@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-06-26T14:50:32.796Z",
+  "data": {
+    "object": {
+      "hasFeaturedSnippet": true,
+      "snippetType": "definition",
+      "targetQuery": "AI code review tools",
+      "extractedSnippetText": "AI code review involves the use of artificial intelligence tools and techniques to assist in evaluating code for quality, style and functionality. The automated process employs machine learning models to identify inconsistencies with coding standards and detect security issues and vulnerabilities. AI code review tools often provide suggestions or even automated fixes, helping developers save time and improve code quality. They can be embedded into integrated development environments (IDEs) and version control systems to facilitate continuous integration and continuous delivery (CI/CD) practices.",
+      "optimizedSnippetRecommendation": "AI code review tools utilize artificial intelligence and machine learning to automate the analysis of source code. They efficiently detect bugs, security vulnerabilities, and deviations from coding standards, often providing automated suggestions or fixes. These tools integrate into development workflows to enhance code quality, accelerate review processes, and boost overall software development efficiency.",
+      "generationDirectives": "Place this definition directly under an H2 heading like 'What Are AI Code Review Tools?' or 'AI Code Review Tools Explained'. Ensure the paragraph is exactly 50-60 words. Bold key terms such as 'artificial intelligence', 'machine learning', 'bugs', 'security vulnerabilities', and 'code quality'."
+    },
+    "usage": {
+      "inputTokens": 1078,
+      "inputTokenDetails": {
+        "noCacheTokens": 1078,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 1668,
+      "outputTokenDetails": {
+        "textTokens": 277,
+        "reasoningTokens": 1391
+      },
+      "totalTokens": 2746,
+      "raw": {
+        "thoughtsTokenCount": 1391,
+        "promptTokenCount": 1078,
+        "candidatesTokenCount": 277,
+        "totalTokenCount": 2746,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1078
+          }
+        ]
+      },
+      "reasoningTokens": 1391,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-07-06T16:09:25.880Z",
+  "data": {
+    "text": "Sorry, you have been blocked\n\nYou are unable to access technologyadvice.com\n\n### Why have I been blocked?\n\nThis website is using a security service to protect itself from online attacks. The action you just performed triggered the security solution. Several actions could trigger this block, including submitting a certain word or phrase, a SQL command, or malformed data.\n\n### What can I do to resolve this?\n\nYou can email the site owner to let them know you were blocked. Please include what you were doing when this page came up and the Cloudflare Ray ID found at the bottom of this page.\n\n*   Cloudflare Ray ID: a16fde778c1f7f79\n*   Your IP: 2401:4900:1f2b:30c7:bdbf:b905:889f:befb",
+    "usage": {
+      "inputTokens": 328,
+      "inputTokenDetails": {
+        "noCacheTokens": 328,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 985,
+      "outputTokenDetails": {
+        "textTokens": 188,
+        "reasoningTokens": 797
+      },
+      "totalTokens": 1313,
+      "raw": {
+        "thoughtsTokenCount": 797,
+        "promptTokenCount": 328,
+        "candidatesTokenCount": 188,
+        "totalTokenCount": 1313,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 328
+          }
+        ]
+      },
+      "reasoningTokens": 797,
+      "cachedInputTokens": 0
+    }
+  }
+}

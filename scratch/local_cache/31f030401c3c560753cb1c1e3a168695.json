@@ -1,0 +1,72 @@
+{
+  "timestamp": "2026-06-27T15:51:34.257Z",
+  "data": {
+    "object": {
+      "intent": "commercial",
+      "confidenceScore": 90,
+      "intentConfidence": {
+        "informational": 10,
+        "commercial": 65,
+        "transactional": 5,
+        "comparison": 20
+      },
+      "formatRecommendation": "Listicle (e.g., 'X Best AI Website Builders') with detailed reviews and a comparison table.",
+      "toneGuidelines": "Objective, authoritative, helpful, and evaluative. Focus on providing unbiased information to guide the user's decision-making process.",
+      "structureGuidelines": "Start with an introduction defining AI website builders and their benefits. Follow with a clear methodology for evaluation. Present each recommended builder with dedicated sections covering features, pros, cons, and ideal use cases. Include a comprehensive comparison table. Conclude with FAQs and a summary recommendation.",
+      "recommendedOutlineSections": [
+        {
+          "heading": "What is an AI Website Builder and Why Use One?",
+          "level": "H2",
+          "purpose": "To provide foundational knowledge and context, addressing initial informational queries and setting the stage for the recommendations."
+        },
+        {
+          "heading": "How We Chose the Best AI Website Builders (Our Criteria)",
+          "level": "H2",
+          "purpose": "To establish credibility and transparency in the evaluation process, helping users understand the basis for the 'best' selections and implicitly addressing comparison factors."
+        },
+        {
+          "heading": "The Best AI Website Builders [Current Year]",
+          "level": "H2",
+          "purpose": "To directly fulfill the commercial intent by presenting a curated list of top AI website builders, with individual H3 sections for each product."
+        },
+        {
+          "heading": "Comparison Table: AI Website Builders at a Glance",
+          "level": "H2",
+          "purpose": "To facilitate quick and easy comparison of key features, pricing, and target users among the recommended builders, directly addressing comparison intent."
+        },
+        {
+          "heading": "FAQs About AI Website Builders",
+          "level": "H2",
+          "purpose": "To address common questions and concerns users might have, further supporting their decision-making process and covering additional informational needs."
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 1002,
+      "inputTokenDetails": {
+        "noCacheTokens": 1002,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 2171,
+      "outputTokenDetails": {
+        "textTokens": 505,
+        "reasoningTokens": 1666
+      },
+      "totalTokens": 3173,
+      "raw": {
+        "thoughtsTokenCount": 1666,
+        "promptTokenCount": 1002,
+        "candidatesTokenCount": 505,
+        "totalTokenCount": 3173,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1002
+          }
+        ]
+      },
+      "reasoningTokens": 1666,
+      "cachedInputTokens": 0
+    }
+  }
+}

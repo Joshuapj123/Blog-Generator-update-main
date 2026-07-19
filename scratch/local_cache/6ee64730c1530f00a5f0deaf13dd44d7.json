@@ -1,0 +1,222 @@
+{
+  "timestamp": "2026-07-12T05:27:29.635Z",
+  "data": {
+    "object": {
+      "headingFrequency": [
+        {
+          "heading": "Best AI Meeting Assistants (List)",
+          "competitorRanks": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "heading": "What to Look for in an AI Meeting Assistant?",
+          "competitorRanks": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "heading": "Do I Need an AI Meeting Assistant?",
+          "competitorRanks": [
+            1,
+            3
+          ]
+        },
+        {
+          "heading": "Best Free AI Meeting Assistant",
+          "competitorRanks": [
+            1,
+            3,
+            4
+          ]
+        },
+        {
+          "heading": "Frequently Asked Questions",
+          "competitorRanks": [
+            2,
+            4
+          ]
+        },
+        {
+          "heading": "Benefits and Conclusion",
+          "competitorRanks": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "heading": "Specific AI Meeting Assistant Features/Use Cases",
+          "competitorRanks": [
+            1,
+            3
+          ]
+        },
+        {
+          "heading": "What is an AI Meeting Assistant?",
+          "competitorRanks": [
+            3
+          ]
+        },
+        {
+          "heading": "How to Choose an AI Meeting Assistant",
+          "competitorRanks": [
+            4
+          ]
+        }
+      ],
+      "tableDetection": {
+        "recommendedTables": [
+          {
+            "name": "AI Meeting Assistant Comparison Table",
+            "type": "Comparison",
+            "columns": [
+              "Assistant Name",
+              "Key Feature/Best For",
+              "Pricing Model (Free/Paid)",
+              "Integrations",
+              "Transcription Accuracy",
+              "Analytics",
+              "Security"
+            ],
+            "purpose": "To allow users to quickly compare features, pricing, and benefits of different AI meeting assistants side-by-side, aiding in their decision-making process."
+          }
+        ]
+      },
+      "paaClustered": [
+        {
+          "question": "What is an AI meeting assistant?",
+          "frequency": 2,
+          "snippet": "An AI meeting assistant is a tool that uses artificial intelligence to automate tasks related to meetings, such as transcription, note-taking, summarizing, and action item identification."
+        },
+        {
+          "question": "Do I need an AI meeting assistant?",
+          "frequency": 3,
+          "snippet": "An AI meeting assistant can significantly improve productivity, ensure accurate record-keeping, and free up participants to focus on the discussion, making it beneficial for teams with frequent meetings."
+        },
+        {
+          "question": "What features should I look for in an AI meeting assistant?",
+          "frequency": 4,
+          "snippet": "Key features to look for include accurate transcription, summarization capabilities, integration with popular meeting platforms, robust security, collaboration tools, and conversation analytics."
+        },
+        {
+          "question": "What is the difference between an AI meeting assistant and an AI notetaker?",
+          "frequency": 2,
+          "snippet": "While an AI notetaker primarily focuses on transcribing and summarizing, an AI meeting assistant often offers broader functionalities like action item tracking, conversation analytics, and integration with other productivity tools."
+        },
+        {
+          "question": "Which AI meeting assistant offers the best free plan?",
+          "frequency": 3,
+          "snippet": "Several AI meeting assistants offer robust free plans, often with limitations on meeting duration or features. Fathom is frequently cited as a strong free option."
+        },
+        {
+          "question": "Are AI meeting notes secure for business conversations?",
+          "frequency": 2,
+          "snippet": "Reputable AI meeting assistants prioritize data privacy and security, often offering enterprise-grade encryption and compliance certifications. It's important to check the provider's security policies."
+        },
+        {
+          "question": "Do AI meeting assistants integrate with common platforms like Zoom, Google Meet, and Microsoft Teams?",
+          "frequency": 2,
+          "snippet": "Most leading AI meeting assistants are designed to integrate seamlessly with popular video conferencing platforms, allowing for easy recording and analysis of meetings."
+        }
+      ],
+      "contentGapReport": {
+        "commonTopics": [
+          "Best AI Meeting Assistants (List)",
+          "What to Look for in an AI Meeting Assistant?",
+          "Do I Need an AI Meeting Assistant?",
+          "Best Free AI Meeting Assistant",
+          "Benefits and Conclusion"
+        ],
+        "uniqueHeadings": [
+          "What is an AI Meeting Assistant?",
+          "Specific AI Meeting Assistant Features/Use Cases",
+          "How to Choose an AI Meeting Assistant",
+          "Key Takeaways",
+          "Related articles/resources"
+        ],
+        "missingTopics": [
+          "Detailed pricing models and ROI justification",
+          "In-depth setup and ease of use guides",
+          "Specific benefits and use cases for different professional roles (e.g., sales, marketing, project management)",
+          "Comprehensive discussion on data privacy and security considerations",
+          "Future trends and evolution of AI meeting assistants",
+          "Troubleshooting common challenges"
+        ],
+        "recommendedNewSections": [
+          {
+            "heading": "Understanding AI Meeting Assistant Pricing and ROI",
+            "level": "H2",
+            "reason": "Competitors only briefly touch on 'free' or 'budget-friendly.' A dedicated section on pricing models (freemium, subscription, per-user), what justifies the cost, and the potential return on investment would be highly valuable for users making purchasing decisions.",
+            "suggestedOutline": "H3: Common Pricing Models (Freemium, Per-User, Tiered)H3: What Justifies the Cost? (Advanced features, integrations, support)H3: Calculating the ROI of an AI Meeting Assistant (Time savings, improved decision-making)"
+          },
+          {
+            "heading": "AI Meeting Assistants for Specific Roles and Industries",
+            "level": "H2",
+            "reason": "While some competitors list features, none deeply explore how different professional roles (e.g., sales, marketing, project managers, HR) or specific industries can uniquely leverage these tools. This adds practical, actionable value.",
+            "suggestedOutline": "H3: For Sales Teams: Improving CRM integration and follow-upsH3: For Marketing Teams: Capturing insights from customer callsH3: For Project Managers: Streamlining action items and accountabilityH3: For HR & Training: Documenting discussions and onboarding"
+          },
+          {
+            "heading": "Data Privacy and Security in AI Meeting Assistants",
+            "level": "H2",
+            "reason": "Zapier mentions it as a feature, and Read.ai has an FAQ question, indicating user concern. A dedicated section would address this critical aspect in detail, building trust and providing essential information.",
+            "suggestedOutline": "H3: Encryption and Data Handling PracticesH3: Compliance Standards (GDPR, HIPAA, SOC 2)H3: User Control Over Data (Deletion, Access)H3: Best Practices for Secure Usage"
+          },
+          {
+            "heading": "Setting Up and Maximizing Your AI Meeting Assistant",
+            "level": "H2",
+            "reason": "No competitor provides a guide on getting started or best practices for maximizing the tool's potential. This offers practical advice and improves user experience, positioning the content as a comprehensive resource.",
+            "suggestedOutline": "H3: Initial Setup and Integration StepsH3: Tips for Optimal Transcription AccuracyH3: Customizing Settings and WorkflowsH3: Training Your Team for Adoption"
+          }
+        ],
+        "unansweredQuestions": [
+          "How do AI meeting assistants handle different accents or noisy environments?",
+          "Can AI meeting assistants be customized for specific industry jargon?",
+          "What are the ethical considerations of using AI for meeting notes?",
+          "What is the typical ROI for implementing an AI meeting assistant?"
+        ],
+        "shouldIncludeFaq": true,
+        "faqQuestions": [
+          "What is an AI meeting assistant?",
+          "Do I need an AI meeting assistant?",
+          "What features should I look for in an AI meeting assistant?",
+          "What is the difference between an AI meeting assistant and an AI notetaker?",
+          "Are AI meeting notes secure for business conversations?"
+        ]
+      }
+    },
+    "usage": {
+      "inputTokens": 1992,
+      "inputTokenDetails": {
+        "noCacheTokens": 1992,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 6698,
+      "outputTokenDetails": {
+        "textTokens": 1860,
+        "reasoningTokens": 4838
+      },
+      "totalTokens": 8690,
+      "raw": {
+        "thoughtsTokenCount": 4838,
+        "promptTokenCount": 1992,
+        "candidatesTokenCount": 1860,
+        "totalTokenCount": 8690,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1992
+          }
+        ]
+      },
+      "reasoningTokens": 4838,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,201 @@
+{
+  "timestamp": "2026-06-27T06:43:36.527Z",
+  "data": {
+    "object": {
+      "headingFrequency": [
+        {
+          "heading": "Best AI Meeting Assistants (List/Review)",
+          "competitorRanks": [
+            2,
+            4,
+            6
+          ]
+        },
+        {
+          "heading": "What is an AI Meeting Assistant? / Why use AI Meeting Assistants?",
+          "competitorRanks": [
+            1,
+            2,
+            5,
+            6
+          ]
+        },
+        {
+          "heading": "How to choose an AI Meeting Assistant / What to look for",
+          "competitorRanks": [
+            2,
+            4,
+            6
+          ]
+        },
+        {
+          "heading": "Features of AI Meeting Assistants",
+          "competitorRanks": [
+            5,
+            6
+          ]
+        },
+        {
+          "heading": "Integrations",
+          "competitorRanks": [
+            1,
+            3,
+            6
+          ]
+        },
+        {
+          "heading": "Frequently Asked Questions (FAQ)",
+          "competitorRanks": [
+            3,
+            4,
+            5
+          ]
+        }
+      ],
+      "tableDetection": {
+        "recommendedTables": [
+          {
+            "name": "AI Meeting Assistant Comparison Table",
+            "type": "Comparison",
+            "columns": [
+              "Product Name",
+              "Key Features",
+              "Best For",
+              "Pricing (Free/Paid)"
+            ],
+            "purpose": "To allow users to quickly compare different AI meeting assistant tools based on features, use cases, and cost."
+          }
+        ]
+      },
+      "paaClustered": [
+        {
+          "question": "What is an AI meeting assistant?",
+          "frequency": 1,
+          "snippet": "Using generative artificial intelligence (AI) technology, automated meeting assistants (aka “AI note takers” or “bots”) are now available to transcribe and summarize online meetings."
+        },
+        {
+          "question": "What are the benefits of using an AI meeting assistant?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "How to choose an AI meeting assistant?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "What features should an AI meeting assistant have?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Which AI helps in meetings?",
+          "frequency": 1,
+          "snippet": "Make meetings more efficient with AI Meeting Assistant Otter and Fireflies.ai are both great AI notetakers if you're looking for simple transcription and note-taking. But at the same time, tl;dv and Avoma offer a better bang for your buck with advanced features available on the free plan."
+        },
+        {
+          "question": "Is there a free AI meeting app?",
+          "frequency": 1,
+          "snippet": "AI Note Taker to Visualize Meeting Decisions. Notta is an AI meeting notetaker that turns your meetings, interviews, or lectures into searchable text or visuals. Transcribe, summarize, collaborate and create all in a single workflow to stay productive."
+        }
+      ],
+      "contentGapReport": {
+        "commonTopics": [
+          "Definition and purpose of AI meeting assistants",
+          "Lists and reviews of top AI meeting assistant software",
+          "Criteria for choosing an AI meeting assistant",
+          "Key features of AI meeting assistants",
+          "Frequently Asked Questions (FAQ)"
+        ],
+        "uniqueHeadings": [
+          "Best AI meeting assistant for collaboration and topic tracking (Rank 2)",
+          "Best AI meeting assistant for data privacy and security (Rank 2)",
+          "Automate CRM updates (Rank 3)",
+          "Built to serve regulated financial institutions (Rank 3)",
+          "How we evaluated these AI meeting assistants (Rank 6)",
+          "Why AI meeting assistants matter more in 2026 (Rank 6)"
+        ],
+        "missingTopics": [
+          "Detailed pricing comparison (beyond just 'free')",
+          "In-depth discussion of security and data privacy features",
+          "Specific use cases for different industries or roles (e.g., sales, marketing, HR, education)",
+          "Challenges or limitations of using AI meeting assistants",
+          "Future trends and predictions for AI in meetings",
+          "Integration guides for popular platforms (Zoom, Teams, Google Meet)"
+        ],
+        "recommendedNewSections": [
+          {
+            "heading": "Benefits of Using an AI Meeting Assistant",
+            "level": "H2",
+            "reason": "To clearly articulate the value proposition, addressing a common user question and reinforcing the 'why' behind the software.",
+            "suggestedOutline": "Improved productivity, accurate record-keeping, enhanced collaboration, better decision-making, time-saving."
+          },
+          {
+            "heading": "AI Meeting Assistant Pricing: What to Expect",
+            "level": "H2",
+            "reason": "Competitors mention 'free' but lack a comprehensive pricing overview. This addresses a key user concern and helps with purchase decisions.",
+            "suggestedOutline": "Free vs. Paid tiers, subscription models, features by tier, hidden costs, value for money."
+          },
+          {
+            "heading": "Data Privacy and Security in AI Meeting Assistants",
+            "level": "H2",
+            "reason": "A critical concern for users, especially in professional settings. Only one competitor briefly touches on it.",
+            "suggestedOutline": "Data encryption, compliance (GDPR, HIPAA), data retention policies, user control over data, ethical AI use."
+          },
+          {
+            "heading": "Choosing the Right AI Meeting Assistant for Your Team",
+            "level": "H2",
+            "reason": "While some competitors discuss 'what to look for,' a dedicated, actionable guide is crucial for users making a decision.",
+            "suggestedOutline": "Identify your needs, consider team size, evaluate integrations, assess features (transcription, summary, action items), check pricing, read reviews."
+          },
+          {
+            "heading": "Future Trends in AI Meeting Technology",
+            "level": "H2",
+            "reason": "To provide forward-looking insights and establish authority, covering a topic generally missed by competitors.",
+            "suggestedOutline": "Advanced analytics, proactive suggestions, deeper integration with workflows, personalized AI assistants, ethical considerations."
+          }
+        ],
+        "unansweredQuestions": [
+          "What are the benefits of using an AI meeting assistant?",
+          "What are the common challenges or limitations of AI meeting assistants?",
+          "How do AI meeting assistants handle data privacy and security?"
+        ],
+        "shouldIncludeFaq": true,
+        "faqQuestions": [
+          "What is an AI meeting assistant?",
+          "Which AI helps in meetings?",
+          "Is there a free AI meeting app?",
+          "How do I choose the best AI meeting assistant?",
+          "What are the main benefits of using an AI meeting assistant?"
+        ]
+      }
+    },
+    "usage": {
+      "inputTokens": 3488,
+      "inputTokenDetails": {
+        "noCacheTokens": 3488,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 6172,
+      "outputTokenDetails": {
+        "textTokens": 1557,
+        "reasoningTokens": 4615
+      },
+      "totalTokens": 9660,
+      "raw": {
+        "thoughtsTokenCount": 4615,
+        "promptTokenCount": 3488,
+        "candidatesTokenCount": 1557,
+        "totalTokenCount": 9660,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3488
+          }
+        ]
+      },
+      "reasoningTokens": 4615,
+      "cachedInputTokens": 0
+    }
+  }
+}

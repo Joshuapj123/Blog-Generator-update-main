@@ -1,0 +1,263 @@
+{
+  "timestamp": "2026-07-05T06:49:42.815Z",
+  "data": {
+    "object": {
+      "keywords": [
+        {
+          "term": "best AI coding assistant",
+          "category": "basic"
+        },
+        {
+          "term": "AI coding assistants",
+          "category": "basic"
+        },
+        {
+          "term": "best AI coding agents",
+          "category": "basic"
+        },
+        {
+          "term": "AI coding tools",
+          "category": "basic"
+        },
+        {
+          "term": "best AI coding assistants 2026",
+          "category": "basic"
+        },
+        {
+          "term": "AI coding assistant comparison",
+          "category": "basic"
+        },
+        {
+          "term": "AI coding assistant pricing",
+          "category": "basic"
+        },
+        {
+          "term": "how to choose AI coding assistant",
+          "category": "basic"
+        },
+        {
+          "term": "AI IDE",
+          "category": "basic"
+        },
+        {
+          "term": "AI for developers",
+          "category": "basic"
+        },
+        {
+          "term": "top AI coding tools",
+          "category": "basic"
+        },
+        {
+          "term": "best AI coding assistant for enterprise",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI coding assistant for complex codebases",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI for large refactors",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI for architectural changes",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI for multi-file features",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI for fixing bugs",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI for refactoring production code",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI coding assistant for workflow",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI coding agent cost enterprise",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI coding assistant testing methods",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI coding agents reviews",
+          "category": "supplementary"
+        },
+        {
+          "term": "different types of AI coding assistants",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI code review",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI-native engineering teams",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI coding landscape evolution",
+          "category": "supplementary"
+        },
+        {
+          "term": "ROI on AI tools",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI as senior developer",
+          "category": "supplementary"
+        },
+        {
+          "term": "developer evaluation of AI tools",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI token efficiency",
+          "category": "supplementary"
+        },
+        {
+          "term": "architectural reasoning with AI",
+          "category": "supplementary"
+        },
+        {
+          "term": "GitHub Copilot",
+          "category": "contextual"
+        },
+        {
+          "term": "Cursor AI",
+          "category": "contextual"
+        },
+        {
+          "term": "Amazon Q Developer",
+          "category": "contextual"
+        },
+        {
+          "term": "Codeium",
+          "category": "contextual"
+        },
+        {
+          "term": "Cody by Sourcegraph",
+          "category": "contextual"
+        },
+        {
+          "term": "Claude Code",
+          "category": "contextual"
+        },
+        {
+          "term": "JetBrains AI Assistant",
+          "category": "contextual"
+        },
+        {
+          "term": "Tabnine",
+          "category": "contextual"
+        },
+        {
+          "term": "Amazon CodeWhisperer",
+          "category": "contextual"
+        },
+        {
+          "term": "AI for VS Code",
+          "category": "contextual"
+        }
+      ],
+      "clusters": [
+        {
+          "clusterName": "Overview & Selection Criteria",
+          "keywords": [
+            "best AI coding assistant",
+            "AI coding assistants",
+            "best AI coding agents",
+            "AI coding tools",
+            "best AI coding assistants 2026",
+            "AI coding assistant comparison",
+            "AI coding assistant pricing",
+            "how to choose AI coding assistant",
+            "AI IDE",
+            "AI for developers",
+            "top AI coding tools",
+            "AI coding assistant testing methods",
+            "AI coding agents reviews",
+            "different types of AI coding assistants",
+            "developer evaluation of AI tools"
+          ]
+        },
+        {
+          "clusterName": "Advanced Use Cases & Performance",
+          "keywords": [
+            "AI for large refactors",
+            "AI for architectural changes",
+            "AI for multi-file features",
+            "AI for fixing bugs",
+            "AI for refactoring production code",
+            "AI coding assistant for workflow",
+            "AI code review",
+            "AI-native engineering teams",
+            "architectural reasoning with AI",
+            "AI as senior developer",
+            "AI coding assistant for complex codebases",
+            "best AI coding assistant for enterprise"
+          ]
+        },
+        {
+          "clusterName": "Economic & Strategic Considerations",
+          "keywords": [
+            "ROI on AI tools",
+            "AI token efficiency",
+            "AI coding agent cost enterprise",
+            "AI coding landscape evolution"
+          ]
+        },
+        {
+          "clusterName": "Specific AI Coding Tools & Platforms",
+          "keywords": [
+            "GitHub Copilot",
+            "Cursor AI",
+            "Amazon Q Developer",
+            "Codeium",
+            "Cody by Sourcegraph",
+            "Claude Code",
+            "JetBrains AI Assistant",
+            "Tabnine",
+            "Amazon CodeWhisperer",
+            "AI for VS Code"
+          ]
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 1679,
+      "inputTokenDetails": {
+        "noCacheTokens": 1679,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 5534,
+      "outputTokenDetails": {
+        "textTokens": 1535,
+        "reasoningTokens": 3999
+      },
+      "totalTokens": 7213,
+      "raw": {
+        "thoughtsTokenCount": 3999,
+        "promptTokenCount": 1679,
+        "candidatesTokenCount": 1535,
+        "totalTokenCount": 7213,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1679
+          }
+        ]
+      },
+      "reasoningTokens": 3999,
+      "cachedInputTokens": 0
+    }
+  }
+}

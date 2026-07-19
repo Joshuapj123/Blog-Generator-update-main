@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-06-27T15:18:41.655Z",
+  "data": {
+    "text": "# Best password manager?\n\nWhat password manager do you use or recommend using for a small 3-person team? Encrypted Excel spreadsheet is not acceptable. Options like RoboForm, Bitwarden, KeePass, or something else are being considered.\n\nWhy? What features are the best?\n\nKey features highlighted for a recommended password manager include:\n*   It’s secure (not stored in the cloud)\n*   Easy to share (create a new database saved to a common location)\n*   Free (great for small teams)\n*   Hides automatically during screen sharing (you can see it, they can’t)\n*   Does everything you want it to and more\n\n**Tags:**\n*   cyber-security\n*   general-it-security\n*   general-software\n*   question",
+    "usage": {
+      "inputTokens": 647,
+      "inputTokenDetails": {
+        "noCacheTokens": 647,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 798,
+      "outputTokenDetails": {
+        "textTokens": 171,
+        "reasoningTokens": 627
+      },
+      "totalTokens": 1445,
+      "raw": {
+        "thoughtsTokenCount": 627,
+        "promptTokenCount": 647,
+        "candidatesTokenCount": 171,
+        "totalTokenCount": 1445,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 647
+          }
+        ]
+      },
+      "reasoningTokens": 627,
+      "cachedInputTokens": 0
+    }
+  }
+}

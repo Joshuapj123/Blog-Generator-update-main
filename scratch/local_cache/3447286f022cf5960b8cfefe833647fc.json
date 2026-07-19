@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-07-12T05:26:59.501Z",
+  "data": {
+    "object": {
+      "hasFeaturedSnippet": true,
+      "snippetType": "list",
+      "targetQuery": "best ai meeting assistant",
+      "extractedSnippetText": "Top 5 AI Meeting Assistants to consider in 2026: Avoma — for most advanced AI note-taking features, Otter — for generating instant answers to questions, Fireflies.ai — for team collaboration, tl;dv — for AI-powered search, Fathom — for basic transcription & summarization.",
+      "optimizedSnippetRecommendation": "The best AI meeting assistants automate note-taking, transcription, and action item generation, allowing you to focus on the conversation. Leading options include: Fireflies.ai: Comprehensive transcription, summaries, and team collaboration. Otter.ai: Real-time transcription and instant answer generation. Fathom: Quick summaries, highlights, and CRM integration. Avoma: Advanced AI for agenda prep, notes, and follow-ups. tl;dv: AI-powered search and sharing key meeting moments.",
+      "generationDirectives": "Create an H2 section titled 'The Best AI Meeting Assistants' or similar. Start with a concise, 1-2 sentence introductory paragraph (under 25 words) defining their core benefit. Immediately follow with an unordered list of 3-5 top AI meeting assistants. Each list item should be bolded with the tool's name, followed by a brief, 5-10 word description of its primary benefit or use case. Ensure the entire snippet (intro + list) is easily scannable and provides immediate value."
+    },
+    "usage": {
+      "inputTokens": 1304,
+      "inputTokenDetails": {
+        "noCacheTokens": 1304,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 2767,
+      "outputTokenDetails": {
+        "textTokens": 329,
+        "reasoningTokens": 2438
+      },
+      "totalTokens": 4071,
+      "raw": {
+        "thoughtsTokenCount": 2438,
+        "promptTokenCount": 1304,
+        "candidatesTokenCount": 329,
+        "totalTokenCount": 4071,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1304
+          }
+        ]
+      },
+      "reasoningTokens": 2438,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,353 @@
+{
+  "timestamp": "2026-07-11T09:22:38.230Z",
+  "data": {
+    "object": {
+      "entities": [
+        {
+          "name": "Knowledge Management",
+          "type": "concept"
+        },
+        {
+          "name": "Knowledge Management Software",
+          "type": "software"
+        },
+        {
+          "name": "Knowledge Base",
+          "type": "concept"
+        },
+        {
+          "name": "AI Agents",
+          "type": "concept"
+        },
+        {
+          "name": "Agentic Workflows",
+          "type": "concept"
+        },
+        {
+          "name": "AI Search",
+          "type": "concept"
+        },
+        {
+          "name": "Knowledge Maintenance",
+          "type": "concept"
+        },
+        {
+          "name": "Single Source of Truth",
+          "type": "concept"
+        },
+        {
+          "name": "Seamless Integrations",
+          "type": "concept"
+        },
+        {
+          "name": "Team Collaboration",
+          "type": "concept"
+        },
+        {
+          "name": "Content Authoring",
+          "type": "concept"
+        },
+        {
+          "name": "Self-Service Capabilities",
+          "type": "concept"
+        },
+        {
+          "name": "Analytics",
+          "type": "concept"
+        },
+        {
+          "name": "Content Approval Workflow",
+          "type": "concept"
+        },
+        {
+          "name": "Customer Experience",
+          "type": "concept"
+        },
+        {
+          "name": "Innovation",
+          "type": "concept"
+        },
+        {
+          "name": "Data Silos",
+          "type": "concept"
+        },
+        {
+          "name": "Decision-Making",
+          "type": "concept"
+        },
+        {
+          "name": "Operational Efficiency",
+          "type": "concept"
+        },
+        {
+          "name": "Knowledge Sharing Culture",
+          "type": "concept"
+        },
+        {
+          "name": "Self-Healing Knowledge Base",
+          "type": "concept"
+        },
+        {
+          "name": "AI-Powered Enterprise Search",
+          "type": "concept"
+        },
+        {
+          "name": "Content Management Software",
+          "type": "software"
+        },
+        {
+          "name": "Slite",
+          "type": "brand"
+        },
+        {
+          "name": "Notion",
+          "type": "brand"
+        },
+        {
+          "name": "Confluence",
+          "type": "brand"
+        },
+        {
+          "name": "Atlassian",
+          "type": "brand"
+        },
+        {
+          "name": "Nuclino",
+          "type": "brand"
+        },
+        {
+          "name": "Bloomfire",
+          "type": "brand"
+        },
+        {
+          "name": "AI Knowledge Management Software",
+          "type": "software"
+        }
+      ],
+      "relationships": [
+        {
+          "source": "Knowledge Management Software",
+          "target": "Knowledge Management",
+          "type": "enables"
+        },
+        {
+          "source": "Knowledge Management Software",
+          "target": "Knowledge Base",
+          "type": "includes"
+        },
+        {
+          "source": "Knowledge Management Software",
+          "target": "AI Agents",
+          "type": "supports"
+        },
+        {
+          "source": "Knowledge Management Software",
+          "target": "Agentic Workflows",
+          "type": "facilitates"
+        },
+        {
+          "source": "Knowledge Management Software",
+          "target": "AI Search",
+          "type": "features"
+        },
+        {
+          "source": "Knowledge Management Software",
+          "target": "Knowledge Maintenance",
+          "type": "automates"
+        },
+        {
+          "source": "Knowledge Management Software",
+          "target": "Single Source of Truth",
+          "type": "provides"
+        },
+        {
+          "source": "Knowledge Management Software",
+          "target": "Seamless Integrations",
+          "type": "offers"
+        },
+        {
+          "source": "Knowledge Management Software",
+          "target": "Team Collaboration",
+          "type": "enables"
+        },
+        {
+          "source": "Knowledge Management Software",
+          "target": "Content Authoring",
+          "type": "supports"
+        },
+        {
+          "source": "Knowledge Management Software",
+          "target": "Self-Service Capabilities",
+          "type": "provides"
+        },
+        {
+          "source": "Knowledge Management Software",
+          "target": "Analytics",
+          "type": "includes"
+        },
+        {
+          "source": "Knowledge Management Software",
+          "target": "Content Approval Workflow",
+          "type": "manages"
+        },
+        {
+          "source": "Knowledge Management",
+          "target": "Customer Experience",
+          "type": "improves"
+        },
+        {
+          "source": "Knowledge Management",
+          "target": "Innovation",
+          "type": "drives"
+        },
+        {
+          "source": "Knowledge Management",
+          "target": "Data Silos",
+          "type": "reduces"
+        },
+        {
+          "source": "Knowledge Management",
+          "target": "Decision-Making",
+          "type": "enhances"
+        },
+        {
+          "source": "Knowledge Management",
+          "target": "Operational Efficiency",
+          "type": "boosts"
+        },
+        {
+          "source": "Knowledge Management",
+          "target": "Knowledge Sharing Culture",
+          "type": "fosters"
+        },
+        {
+          "source": "Self-Healing Knowledge Base",
+          "target": "Knowledge Base",
+          "type": "is a type of"
+        },
+        {
+          "source": "Self-Healing Knowledge Base",
+          "target": "AI Agents",
+          "type": "leverages"
+        },
+        {
+          "source": "AI-Powered Enterprise Search",
+          "target": "Knowledge Management Software",
+          "type": "is a feature of"
+        },
+        {
+          "source": "Content Management Software",
+          "target": "Knowledge Management Software",
+          "type": "is a superset of"
+        },
+        {
+          "source": "Atlassian",
+          "target": "Confluence",
+          "type": "owns"
+        },
+        {
+          "source": "Bloomfire",
+          "target": "AI Knowledge Management Software",
+          "type": "offers"
+        },
+        {
+          "source": "AI Knowledge Management Software",
+          "target": "Knowledge Management Software",
+          "type": "is a type of"
+        },
+        {
+          "source": "Slite",
+          "target": "Knowledge Management Software",
+          "type": "is a top contender for"
+        },
+        {
+          "source": "Notion",
+          "target": "Knowledge Management Software",
+          "type": "is a top contender for"
+        },
+        {
+          "source": "Confluence",
+          "target": "Knowledge Management Software",
+          "type": "is a top contender for"
+        },
+        {
+          "source": "Nuclino",
+          "target": "Knowledge Management Software",
+          "type": "is a top contender for"
+        },
+        {
+          "source": "AI Agents",
+          "target": "Knowledge Base",
+          "type": "read from"
+        },
+        {
+          "source": "Agentic Workflows",
+          "target": "AI Agents",
+          "type": "use"
+        },
+        {
+          "source": "Knowledge Base",
+          "target": "AI Agents",
+          "type": "provides context for"
+        },
+        {
+          "source": "Slite",
+          "target": "Single Source of Truth",
+          "type": "provides"
+        },
+        {
+          "source": "Slite",
+          "target": "Self-Healing Knowledge Base",
+          "type": "offers"
+        },
+        {
+          "source": "Bloomfire",
+          "target": "Self-Healing Knowledge Base",
+          "type": "offers"
+        },
+        {
+          "source": "Bloomfire",
+          "target": "AI-Powered Enterprise Search",
+          "type": "offers"
+        }
+      ],
+      "recommendedConnections": [
+        "Knowledge Management Software -> Employee Productivity",
+        "Knowledge Management Software -> Customer Support",
+        "AI Agents -> Automated Documentation",
+        "Knowledge Management -> Organizational Objectives",
+        "Knowledge Management Software -> Data Quality",
+        "Knowledge Management Software -> Compliance",
+        "Knowledge Management Software -> IT Support",
+        "Knowledge Management Software -> Onboarding"
+      ]
+    },
+    "usage": {
+      "inputTokens": 1791,
+      "inputTokenDetails": {
+        "noCacheTokens": 1791,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 6755,
+      "outputTokenDetails": {
+        "textTokens": 2108,
+        "reasoningTokens": 4647
+      },
+      "totalTokens": 8546,
+      "raw": {
+        "thoughtsTokenCount": 4647,
+        "promptTokenCount": 1791,
+        "candidatesTokenCount": 2108,
+        "totalTokenCount": 8546,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1791
+          }
+        ]
+      },
+      "reasoningTokens": 4647,
+      "cachedInputTokens": 0
+    }
+  }
+}

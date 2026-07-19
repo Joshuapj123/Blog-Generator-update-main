@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-06-25T00:20:27.724Z",
+  "data": {
+    "text": "AI Contract Review and Drafting\n\nReview contracts, draft with your standards, and search every deal you've signed.\n\nContracts at the speed of commerce\nSpellbook is the most complete AI suite for commercial legal work, trusted by 4,500+ in-house teams and law firms worldwide. Spellbook is tuned for commercial legal work, and powered by state-of-the-art LLMs like GPT5 and Opus.\n\nHow modern legal operations flow through Spellbook\n\nBring order to incoming work\nNew contracts come in from email, Slack, Salesforce, and wherever else deals start.\n\nGet a first pass on every contract\nSpellbook redlines each contract against your playbooks and flags the terms that need attention.\n\nPut your contracts to work\nSigned contracts are stored automatically and indexed so you can search your full history.\n\nThe gold standard in AI contract review\nSpot risks and add redlines to your contracts—right in Word.\n\nDraft and revise at lightning speed\nDraft clauses and documents from scratch, or use your preferred precedents.\n\nThe AI agent for multi-document drafting and review\nSay goodbye to Ctrl + C Ctrl+V\nSpellbook works where you do - directly in Word. Draft and review 10x faster without switching windows or endless copy and paste.\n\nAnswers you can trust, with citations\n\nCompare contracts to market\nCompare your contracts to thousands of similar agreements.\n\nOver 10 million contracts accelerated\n\nDesigned for in-house teams and law firms\n\n“Spellbook probably helps me bill an extra hour a day. Maybe more.”\nTodd Strang, Partner, KMSC Law LLP\n\nAn extra eye on contracts for:\n*   Sales\n*   Procurement\n*   Human Resources\n*   Intellectual Property\n*   Mergers and Acquisitions\n*   Real Estate\n*   Privacy Law\n\nHow Alturas Capital Partners wins more deals with Spellbook\nRead about Alturas Capital Partners\n\nElevare Law confidently crafts contracts that strengthen clients’ positions\nRead about Elevare Law\n\nSave up to 2 hours daily in estate planning\n\nSecure and private\nSpellbook brings AI benefits to legal teams without consumer AI drawbacks. We ensure data privacy with Zero Data Retention agreements, preventing data use for training. Browse our security FAQs or view our Trust Portal for more information.\nWe serve 4,500 teams in 80+ countries. We comply with GDPR, CCPA, PIPEDA and numerous other privacy standards.\n\nSOC 2 Type II Compliant\nSpellbook is SOC 2 Type II Compliant.\n\nHIPAA Compliant",
+    "usage": {
+      "inputTokens": 791,
+      "inputTokenDetails": {
+        "noCacheTokens": 791,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 3525,
+      "outputTokenDetails": {
+        "textTokens": 531,
+        "reasoningTokens": 2994
+      },
+      "totalTokens": 4316,
+      "raw": {
+        "thoughtsTokenCount": 2994,
+        "promptTokenCount": 791,
+        "candidatesTokenCount": 531,
+        "totalTokenCount": 4316,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 791
+          }
+        ]
+      },
+      "reasoningTokens": 2994,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "timestamp": "2026-06-26T17:00:00.363Z",
+  "data": {
+    "object": {
+      "heading": "Choosing the Right AI Code Review Tool: A Decision Framework",
+      "level": "H3",
+      "what_it_is": "This framework guides selecting **automated code review solutions** by evaluating **team size**, **project complexity**, crucial **integration needs** with version control systems and existing developer workflows, and **budget**. It ensures the chosen platform aligns with operational requirements.",
+      "why_it_works": "It prevents misaligned tool adoption, securing maximum ROI. This streamlines decision-making, enhancing **developer productivity**, **code quality**, and **coding standards** adherence across CI/CD pipelines efficiently.",
+      "experience_or_data_point": "Industry reports indicate that tailoring **AI code review** solutions to specific team sizes boosts efficiency by up to 25%, drastically reducing technical debt.",
+      "outbound_authority_link": {
+        "anchor_text": "integration needs with existing developer workflows",
+        "search_query": "AI code review tools integration developer workflows"
+      },
+      "example_brands": [
+        "CodeRabbit: Integrates seamlessly with GitHub to provide AI-powered pull request summaries and suggestions.",
+        "SonarQube Community Edition: Offers comprehensive static analysis for coding standards compliance across enterprise-scale codebases.",
+        "Sourcery: Provides real-time, context-aware suggestions within IDEs to improve Python code quality immediately."
+      ],
+      "copy_formula": [
+        "Assess team size and project complexity first, then evaluate integration with existing version control systems.",
+        "Prioritize solutions based on budget while ensuring essential features for coding standards and CI/CD pipeline compatibility.",
+        "Compare features like automated fixes and customization options against specific developer workflow needs."
+      ],
+      "takeaway": "A strategic framework ensures the chosen AI code review solution perfectly matches your team's unique requirements and maximizes ROI.",
+      "rich_media_query": {
+        "type": "image",
+        "suggested_search_query": "AI code review tool decision framework diagram",
+        "alt_text": "Diagram illustrating a decision framework for selecting AI code review tools, showing factors like team size, project complexity, integration, and budget leading to optimal tool choice."
+      }
+    },
+    "usage": {
+      "inputTokens": 2757,
+      "inputTokenDetails": {
+        "noCacheTokens": 2757,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 7713,
+      "outputTokenDetails": {
+        "textTokens": 484,
+        "reasoningTokens": 7229
+      },
+      "totalTokens": 10470,
+      "raw": {
+        "thoughtsTokenCount": 7229,
+        "promptTokenCount": 2757,
+        "candidatesTokenCount": 484,
+        "totalTokenCount": 10470,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2757
+          }
+        ]
+      },
+      "reasoningTokens": 7229,
+      "cachedInputTokens": 0
+    }
+  }
+}

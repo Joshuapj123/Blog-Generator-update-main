@@ -1,0 +1,205 @@
+{
+  "timestamp": "2026-07-11T09:23:20.977Z",
+  "data": {
+    "object": {
+      "headingFrequency": [
+        {
+          "heading": "Key Features of Knowledge Management Software",
+          "competitorRanks": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "heading": "How to Choose/Select Knowledge Management Software",
+          "competitorRanks": [
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "heading": "Benefits of Knowledge Management Software",
+          "competitorRanks": [
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "heading": "List/Examples of Knowledge Management Software",
+          "competitorRanks": [
+            1,
+            3,
+            4
+          ]
+        },
+        {
+          "heading": "What is Knowledge Management Software?",
+          "competitorRanks": [
+            1,
+            4
+          ]
+        },
+        {
+          "heading": "AI / Future Trends in Knowledge Management",
+          "competitorRanks": [
+            1,
+            2
+          ]
+        },
+        {
+          "heading": "Pricing of Knowledge Management Software",
+          "competitorRanks": [
+            1
+          ]
+        },
+        {
+          "heading": "FAQ",
+          "competitorRanks": [
+            1
+          ]
+        }
+      ],
+      "tableDetection": {
+        "recommendedTables": [
+          {
+            "name": "Knowledge Management Software Comparison Table",
+            "type": "Comparison",
+            "columns": [
+              "Tool Name",
+              "Key Features",
+              "Pricing Model",
+              "Best For",
+              "Rating/Review"
+            ],
+            "purpose": "To allow users to quickly compare different knowledge management software options based on key criteria, aiding in their decision-making process."
+          }
+        ]
+      },
+      "paaClustered": [
+        {
+          "question": "What is a knowledge management software?",
+          "frequency": 1,
+          "snippet": "Knowledge Management (KM) Software helps organizations centralize, organize, and share information efficiently across teams. It provides a centralized repository for storing diverse content types—such as documents, presentations, and multimedia—making knowledge easily accessible and searchable."
+        },
+        {
+          "question": "What are the benefits of knowledge management software?",
+          "frequency": 3,
+          "snippet": "Knowledge management software improves efficiency, reduces support costs, enhances collaboration, and ensures consistent information access across an organization."
+        },
+        {
+          "question": "What features should I look for in knowledge management software?",
+          "frequency": 4,
+          "snippet": "Essential features include robust search, content authoring and editing, collaboration tools, self-service capabilities, integrations, and analytics."
+        },
+        {
+          "question": "How do I choose the best knowledge management software?",
+          "frequency": 3,
+          "snippet": "Consider your team's specific needs, budget, required features, integration capabilities, scalability, and ease of use when selecting knowledge management software."
+        },
+        {
+          "question": "What is AI-powered knowledge management?",
+          "frequency": 2,
+          "snippet": "AI-powered knowledge management leverages artificial intelligence to enhance search, automate content maintenance, provide intelligent recommendations, and improve overall knowledge accessibility and relevance."
+        }
+      ],
+      "contentGapReport": {
+        "commonTopics": [
+          "Definition of knowledge management software",
+          "Benefits of using KM software",
+          "Key features to look for in KM software",
+          "How to choose/select KM software",
+          "Comparison/list of top KM tools",
+          "AI and future trends in KM"
+        ],
+        "uniqueHeadings": [
+          "AI search and self-maintaining knowledge: what to look for in 2026",
+          "How did I test each tool for it to make it to the list?",
+          "KCS verified",
+          "Compliance-Driven Knowledge",
+          "What Happened to Knowledge Management?",
+          "The 2026 Guide to Enterprise Intelligence Systems"
+        ],
+        "missingTopics": [
+          "Detailed ROI calculation/framework",
+          "Specific integration examples and importance (e.g., CRM, ticketing systems)",
+          "Implementation best practices and common challenges",
+          "Use cases by industry or department",
+          "Security and data privacy considerations",
+          "User adoption strategies"
+        ],
+        "recommendedNewSections": [
+          {
+            "heading": "Calculating the ROI of Knowledge Management Software",
+            "level": "H2",
+            "reason": "Competitors mention ROI but don't provide a dedicated section on *how* to calculate it, which is crucial for business decision-makers.",
+            "suggestedOutline": "Define key metrics (e.g., reduced support tickets, faster onboarding, improved customer satisfaction). Provide a simple formula or framework. Discuss tangible vs. intangible benefits."
+          },
+          {
+            "heading": "Key Integrations for Knowledge Management Software",
+            "level": "H2",
+            "reason": "While some competitors mention 'seamless integrations' as a feature, a dedicated section explaining *which* integrations are vital (e.g., CRM, helpdesk, communication tools) and *why* would add significant value.",
+            "suggestedOutline": "Discuss integrations with CRM, ticketing systems, collaboration tools (Slack, Teams), and internal wikis. Explain the benefits of each integration type."
+          },
+          {
+            "heading": "Best Practices for Implementing and Adopting KM Software",
+            "level": "H2",
+            "reason": "Rank 4 mentions 'Best practices for implementing' but it's a high-level H2. A more detailed section addressing common pitfalls and strategies for successful rollout and user adoption would be very helpful.",
+            "suggestedOutline": "Planning and strategy, content migration, training and onboarding, fostering a knowledge-sharing culture, continuous improvement, addressing resistance to change."
+          },
+          {
+            "heading": "Security and Data Privacy in Knowledge Management",
+            "level": "H2",
+            "reason": "With sensitive company information often stored in KM systems, security and privacy are critical concerns not explicitly covered by competitors' main headings.",
+            "suggestedOutline": "Access control, encryption, compliance (GDPR, HIPAA), data backup and recovery, vendor security practices."
+          }
+        ],
+        "unansweredQuestions": [
+          "How do I measure the ROI of knowledge management software?",
+          "What are the most important integrations for KM software?",
+          "What are the common challenges during KM software implementation?",
+          "How can I ensure user adoption of a new KM system?",
+          "What are the security considerations for knowledge management software?"
+        ],
+        "shouldIncludeFaq": true,
+        "faqQuestions": [
+          "What is the primary purpose of knowledge management software?",
+          "How does AI enhance knowledge management?",
+          "What are the essential features to look for in a KM tool?",
+          "Can knowledge management software integrate with other business tools?",
+          "What are the benefits of using a knowledge base for customer support?"
+        ]
+      }
+    },
+    "usage": {
+      "inputTokens": 2310,
+      "inputTokenDetails": {
+        "noCacheTokens": 2310,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 5012,
+      "outputTokenDetails": {
+        "textTokens": 1568,
+        "reasoningTokens": 3444
+      },
+      "totalTokens": 7322,
+      "raw": {
+        "thoughtsTokenCount": 3444,
+        "promptTokenCount": 2310,
+        "candidatesTokenCount": 1568,
+        "totalTokenCount": 7322,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2310
+          }
+        ]
+      },
+      "reasoningTokens": 3444,
+      "cachedInputTokens": 0
+    }
+  }
+}

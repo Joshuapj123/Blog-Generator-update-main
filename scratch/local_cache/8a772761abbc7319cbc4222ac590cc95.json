@@ -1,0 +1,346 @@
+{
+  "timestamp": "2026-06-26T14:50:21.454Z",
+  "data": {
+    "object": {
+      "entities": [
+        {
+          "name": "AI code review",
+          "type": "concept"
+        },
+        {
+          "name": "Code review",
+          "type": "concept"
+        },
+        {
+          "name": "GitHub",
+          "type": "brand"
+        },
+        {
+          "name": "Pull Requests (PRs)",
+          "type": "concept"
+        },
+        {
+          "name": "CodeRabbit",
+          "type": "tool"
+        },
+        {
+          "name": "SonarQube Community Edition",
+          "type": "product"
+        },
+        {
+          "name": "Integrated Development Environments (IDEs)",
+          "type": "software"
+        },
+        {
+          "name": "Version Control Systems",
+          "type": "software"
+        },
+        {
+          "name": "Continuous Integration (CI/CD)",
+          "type": "concept"
+        },
+        {
+          "name": "Continuous Delivery (CI/CD)",
+          "type": "concept"
+        },
+        {
+          "name": "Code quality",
+          "type": "concept"
+        },
+        {
+          "name": "Security issues",
+          "type": "concept"
+        },
+        {
+          "name": "Vulnerabilities",
+          "type": "concept"
+        },
+        {
+          "name": "Coding standards",
+          "type": "concept"
+        },
+        {
+          "name": "Automated fixes",
+          "type": "concept"
+        },
+        {
+          "name": "Bugs",
+          "type": "concept"
+        },
+        {
+          "name": "Generative AI",
+          "type": "concept"
+        },
+        {
+          "name": "LLMs",
+          "type": "software"
+        },
+        {
+          "name": "OWASP Top 10 vulnerabilities",
+          "type": "concept"
+        },
+        {
+          "name": "Veracode",
+          "type": "brand"
+        },
+        {
+          "name": "Faros AI",
+          "type": "brand"
+        },
+        {
+          "name": "Qodo",
+          "type": "tool"
+        },
+        {
+          "name": "Traycer",
+          "type": "tool"
+        },
+        {
+          "name": "Sourcery",
+          "type": "tool"
+        },
+        {
+          "name": "CodeAnt AI",
+          "type": "tool"
+        },
+        {
+          "name": "Greptile",
+          "type": "tool"
+        },
+        {
+          "name": "Software development process",
+          "type": "concept"
+        },
+        {
+          "name": "Enterprise-scale codebases",
+          "type": "concept"
+        },
+        {
+          "name": "AI-generated code",
+          "type": "concept"
+        }
+      ],
+      "relationships": [
+        {
+          "source": "AI code review",
+          "target": "Code review",
+          "type": "enhances"
+        },
+        {
+          "source": "AI code review",
+          "target": "Code quality",
+          "type": "improves"
+        },
+        {
+          "source": "AI code review",
+          "target": "Security issues",
+          "type": "detects"
+        },
+        {
+          "source": "AI code review",
+          "target": "Vulnerabilities",
+          "type": "detects"
+        },
+        {
+          "source": "AI code review",
+          "target": "Coding standards",
+          "type": "identifies inconsistencies with"
+        },
+        {
+          "source": "AI code review",
+          "target": "Automated fixes",
+          "type": "provides"
+        },
+        {
+          "source": "AI code review",
+          "target": "Bugs",
+          "type": "catches"
+        },
+        {
+          "source": "AI code review",
+          "target": "Integrated Development Environments (IDEs)",
+          "type": "embeds into"
+        },
+        {
+          "source": "AI code review",
+          "target": "Version Control Systems",
+          "type": "embeds into"
+        },
+        {
+          "source": "AI code review",
+          "target": "Continuous Integration (CI/CD)",
+          "type": "facilitates"
+        },
+        {
+          "source": "AI code review",
+          "target": "Continuous Delivery (CI/CD)",
+          "type": "facilitates"
+        },
+        {
+          "source": "AI code review",
+          "target": "Generative AI",
+          "type": "powered by"
+        },
+        {
+          "source": "AI code review",
+          "target": "LLMs",
+          "type": "uses"
+        },
+        {
+          "source": "Code review",
+          "target": "Software development process",
+          "type": "essential part of"
+        },
+        {
+          "source": "Code review",
+          "target": "Code quality",
+          "type": "boosts"
+        },
+        {
+          "source": "GitHub",
+          "target": "Pull Requests (PRs)",
+          "type": "hosts"
+        },
+        {
+          "source": "GitHub",
+          "target": "CodeRabbit",
+          "type": "integrates with"
+        },
+        {
+          "source": "GitHub",
+          "target": "Qodo",
+          "type": "integrates with"
+        },
+        {
+          "source": "GitHub",
+          "target": "Traycer",
+          "type": "integrates with"
+        },
+        {
+          "source": "GitHub",
+          "target": "Sourcery",
+          "type": "integrates with"
+        },
+        {
+          "source": "GitHub",
+          "target": "CodeAnt AI",
+          "type": "integrates with"
+        },
+        {
+          "source": "GitHub",
+          "target": "Greptile",
+          "type": "integrates with"
+        },
+        {
+          "source": "SonarQube Community Edition",
+          "target": "Enterprise-scale codebases",
+          "type": "supports"
+        },
+        {
+          "source": "Veracode",
+          "target": "LLMs",
+          "type": "tests"
+        },
+        {
+          "source": "Veracode",
+          "target": "OWASP Top 10 vulnerabilities",
+          "type": "researches"
+        },
+        {
+          "source": "Faros AI",
+          "target": "AI-generated code",
+          "type": "researches impact of"
+        },
+        {
+          "source": "Generative AI",
+          "target": "AI-generated code",
+          "type": "generates"
+        },
+        {
+          "source": "LLMs",
+          "target": "AI-generated code",
+          "type": "generates"
+        },
+        {
+          "source": "AI-generated code",
+          "target": "OWASP Top 10 vulnerabilities",
+          "type": "introduces"
+        },
+        {
+          "source": "OWASP Top 10 vulnerabilities",
+          "target": "Security issues",
+          "type": "is a type of"
+        },
+        {
+          "source": "OWASP Top 10 vulnerabilities",
+          "target": "Vulnerabilities",
+          "type": "is a type of"
+        },
+        {
+          "source": "Qodo",
+          "target": "AI code review",
+          "type": "performs"
+        },
+        {
+          "source": "Traycer",
+          "target": "AI code review",
+          "type": "performs"
+        },
+        {
+          "source": "CodeRabbit",
+          "target": "AI code review",
+          "type": "performs"
+        },
+        {
+          "source": "Sourcery",
+          "target": "AI code review",
+          "type": "performs"
+        },
+        {
+          "source": "CodeAnt AI",
+          "target": "AI code review",
+          "type": "performs"
+        },
+        {
+          "source": "Greptile",
+          "target": "AI code review",
+          "type": "performs"
+        }
+      ],
+      "recommendedConnections": [
+        "AI code review -> Developer productivity",
+        "AI code review -> Technical debt reduction",
+        "AI code review -> DevOps pipeline integration",
+        "Generative AI -> Ethical AI development in coding",
+        "AI code review tools -> Customization for specific coding standards"
+      ]
+    },
+    "usage": {
+      "inputTokens": 1585,
+      "inputTokenDetails": {
+        "noCacheTokens": 1585,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 9483,
+      "outputTokenDetails": {
+        "textTokens": 2100,
+        "reasoningTokens": 7383
+      },
+      "totalTokens": 11068,
+      "raw": {
+        "thoughtsTokenCount": 7383,
+        "promptTokenCount": 1585,
+        "candidatesTokenCount": 2100,
+        "totalTokenCount": 11068,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1585
+          }
+        ]
+      },
+      "reasoningTokens": 7383,
+      "cachedInputTokens": 0
+    }
+  }
+}

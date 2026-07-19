@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-06-27T15:51:47.474Z",
+  "data": {
+    "object": {
+      "hasFeaturedSnippet": true,
+      "snippetType": "list",
+      "targetQuery": "best AI website builder",
+      "extractedSnippetText": "AI website builders have turned what used to take weeks or months if you’re being honest into something you can finish over coffee. No coding knowledge needed. No designer on speed dial. Just you, your ideas, and some seriously smart technology. This guide breaks down the ten best AI website builders available globally right now.",
+      "optimizedSnippetRecommendation": "The best AI website builders simplify site creation by automating design, content, and layout, making professional web development accessible without coding. Leading platforms like Wix ADI, 10Web, Hostinger AI Website Builder, Jimdo, and Durable AI offer intuitive tools, rapid generation, and customization options to help users launch stunning websites quickly and efficiently.",
+      "generationDirectives": "Place the optimized snippet recommendation as the first H2 definition on the page, ensuring it is exactly 60 words. Immediately follow this with an ordered list (OL) of the 'Best AI Website Builders', with each list item including the builder's name in bold and a concise 10-15 word description of its key benefit or feature. Aim for 5-7 top builders in the list."
+    },
+    "usage": {
+      "inputTokens": 1837,
+      "inputTokenDetails": {
+        "noCacheTokens": 1837,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 2220,
+      "outputTokenDetails": {
+        "textTokens": 274,
+        "reasoningTokens": 1946
+      },
+      "totalTokens": 4057,
+      "raw": {
+        "thoughtsTokenCount": 1946,
+        "promptTokenCount": 1837,
+        "candidatesTokenCount": 274,
+        "totalTokenCount": 4057,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1837
+          }
+        ]
+      },
+      "reasoningTokens": 1946,
+      "cachedInputTokens": 0
+    }
+  }
+}

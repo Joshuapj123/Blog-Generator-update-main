@@ -1,0 +1,50 @@
+{
+  "timestamp": "2026-07-11T09:21:30.508Z",
+  "data": {
+    "url": "https://en.wikipedia.org/wiki/Knowledge_management_software",
+    "title": "Knowledge management software - Wikipedia",
+    "wordCount": 719,
+    "h2Count": 7,
+    "headings": [
+      {
+        "tag": "h2",
+        "text": "Features"
+      },
+      {
+        "tag": "h2",
+        "text": "Range"
+      },
+      {
+        "tag": "h2",
+        "text": "Visual search"
+      },
+      {
+        "tag": "h2",
+        "text": "Examples"
+      },
+      {
+        "tag": "h2",
+        "text": "See also"
+      },
+      {
+        "tag": "h2",
+        "text": "References"
+      },
+      {
+        "tag": "h2",
+        "text": "External links"
+      }
+    ],
+    "text": "From Wikipedia, the free encyclopedia\nKnowledge management software (KM software) is a subset of content management software, which consists of software that specializes in the way information is collected, stored and/or accessed. The concept of knowledge management is based on the practices of an individual, a business, or a corporation to identify, create, represent and redistribute information in support of organizational goals. Software that enables an information practice or range of practices at any part of the processes of information management can be deemed to be called information management software. A subset of information management software that emphasizes an approach to build knowledge out of information that is managed or contained is often called knowledge management software.\n\nKM software in most cases provides a means for individuals, small groups or mid-sized businesses to innovate, build new knowledge in the group, and/or improve customer experience. Knowledge management systems (software) include a range of about 1,500 or more different approaches to collect and contain information to then build knowledge that can be searched through specialised search tools. These include concept building tools and/or visual search tools that present information in a connected manner not originally conceptualised by those collecting or maintaining the information database.\n\nOne of the main categories of knowledge management software is groupware, which can be used for knowledge sharing and capture. Groupware is a combination of synchronous, asynchronous and community focused tools. Groupware can be used to exchange knowledge and expertise even when the team members are situated around the world.[1]\nFeatures of KM software usually include:\nAggregation of content from both internal and external sources\nClassification of content using taxonomies\nSearch\nExpertise location\nWorkflows for creating knowledge\nVerification of knowledge\nViews/dashboards\nAs business today is becoming increasingly international, the ability to access information in different languages is now a requirement for some organizations. Reported success factors of a KM system include the capability to integrate well with existing internal systems[2]  and the scalability of the system to grow within the organization.[3]\nKM software ranges from small software packages for an individual to use to highly specialized enterprise software suitable for use by hundreds of employees. Often KM software provides a key resource for employees working in customer service or telephone support industries, or sectors of large corporations.\n\nKnowledge management software, in general, enables the combination of unstructured information sources, such as individual word processed documents and/or PDF documents, email, graphic illustrations, unstructured notes, website links, invoices, and other information bearing collections, such as a simple thought, through to a combination of millions of interactions from a website, and through that combination enables the seeker to obtain knowledge that otherwise would not have been discovered. As Internet access speeds increased, many on-demand (or software as a service) products have evolved and are now the leading suppliers of KM software.\nOne of the departures from the almost standard keyword search approach are those group of companies developing visual search techniques. Some common visual search approaches include: \nTree traversal – A folder is opened and inside the display of that folder are further sub-folders. The folders are searched in a specific order, exactly once, in a systematic manner. This tree traversal approach relies on the naming of folders to provide a rich enough indication as to what is contained in the next folder or level of folders.\nTaxonomy navigation – A taxonomy (or topic map) is the classification of things or concepts, as well as the principles underlying such classification. In KM software, taxonomies are often used as a way of visually structuring the available information by tagging it with relevant topics and visually represent them as folders and sub-folders inside the taxonomy. Users can then navigate the taxonomy and select the topic, or combination of topics (faceted search), to perform the search on.\nTag cloud search – Once text data has been tagged with certain topics it can be visually represented as a Tag Cloud, where the importance of each tag is represented as a font size and/or color. This way you can identify and pick the most prominent topics.\nMatrix/heat map search – The classification of information into topics facilitates visualization and analysis of the information flow. A combined topic search can be presented as values in a Matrix, and a Heat Map is a graphical representation of that data, presented in colors.\nNotable knowledge management tools include:\n\nDocument360 - AI powered knowledge management software\nBloomfire – Knowledge sharing software with AI\nCollective Knowledge – An open source, portable and command line framework for knowledge management\nConfluence – Wiki-based knowledge management software that is part of Atlassian's suite\neGain – Knowledge management with AI\nElium – Knowledge management and AI software\nJoplin – Open source knowledge management software\nObsidian - knowledge management software\nLogseq – Open source knowledge management software\nNotion (productivity software) – Proprietary knowledge management software\nMicrosoft OneNote – Proprietary knowledge management software\nOpenKM – Open source knowledge management software\nEnterprise content management\nCustomer knowledge\nKnowledge base\nKnowledge extraction\n↑ de Carvalho, Rodrigo Baroni, and Marta Araújo Tavares Ferreira. \"Knowledge Management Software.\" Encyclopedia of Knowledge Management, edited by David G. Schwartz, Idea Group Reference, 2006, pp. 410-418. Gale Virtual Reference Library, \n↑ Lehner, Franz; Nicolas Haas (2010). \"Knowledge Management Success Factors\". Electronic Journal of Knowledge Management. 8 (1): 81.\n↑ L Feliciano, Joe (1 January 2007). \"The success criteria for implementing knowledge management systems in an organization\". Etd Collection for Pace University. ETD Collection for Pace University Paper: 1–142. Retrieved 20 August 2013.",
+    "hasTables": true,
+    "tableCount": 1,
+    "readabilitySuccess": true,
+    "fallbackUsed": false,
+    "fallbackType": "none",
+    "quality": "high",
+    "qualityScore": 90,
+    "extractionConfidence": 100,
+    "weight": 0.8,
+    "paragraphCount": 9
+  }
+}

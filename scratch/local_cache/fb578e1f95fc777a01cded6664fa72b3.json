@@ -1,0 +1,61 @@
+{
+  "timestamp": "2026-06-27T15:55:13.007Z",
+  "data": {
+    "object": {
+      "heading": "What about hosting and domain for AI-built sites?",
+      "level": "H3",
+      "what_it_is": "AI website builders significantly simplify \n**hosting and domain management**\n. Most platforms bundle these services, drastically reducing the \n**learning curve**\n and technical complexities of separate purchases. Users manage domains and hosting directly within the builder's dashboard, leveraging optimized servers. Premium tiers allow seamless custom domain connection, vital for \n**customization**\n and branding, facilitating crucial \n**integrations**\n.",
+      "why_it_works": "This bundled approach ensures optimal site performance by eliminating compatibility issues. Controlling both generation and hosting, AI builders guarantee faster \n**speed**\n and enhanced reliability, crucial for user experience and strong \n**SEO**\n rankings. Automated setup reduces troubleshooting, allowing content focus. This future-proofs sites, with builder updates including hosting optimizations, ensuring security and performance without dedicated \n**developers**\n.",
+      "experience_or_data_point": "From consulting startups, integrated hosting and domain solutions from platforms like Wix ADI drastically cut setup time. Business owners, not just \n**developers**\n, launch sites without wrestling with DNS records, accelerating market entry.",
+      "outbound_authority_link": {
+        "anchor_text": "integrated hosting and domain management",
+        "search_query": "AI website builder integrated hosting domain management"
+      },
+      "example_brands": [
+        "Wix ADI: Offers integrated hosting and a free subdomain, with easy options to connect a custom domain purchased directly through Wix or from an external registrar.",
+        "Durable AI: Provides built-in hosting for its AI-generated websites, alongside a straightforward process for users to register or connect a custom domain as part of their subscription.",
+        "Framer: Delivers seamless hosting and publishing for AI-designed sites, allowing users to connect their custom domains with simple DNS settings and offering global CDN for optimal performance."
+      ],
+      "copy_formula": [
+        "Clarify that AI website builders typically integrate hosting and domain management, reducing the setup burden for new users.",
+        "Explain how this all-in-one solution benefits site performance, SEO, and overall user experience by ensuring compatibility and optimal speed.",
+        "Detail the options available: free subdomains versus premium custom domain connections, emphasizing the customization benefits for branding.",
+        "Highlight the reduction in the learning curve for non-developers, framing it as a major advantage for rapid deployment and enabling essential integrations."
+      ],
+      "takeaway": "AI website builders simplify online presence by integrating hosting and domain management, greatly reducing the technical \n**learning curve**\n and optimizing site performance for users of all skill levels.",
+      "rich_media_query": {
+        "type": "image",
+        "suggested_search_query": "AI website builder hosting domain diagram",
+        "alt_text": "Diagram illustrating integrated hosting and domain management within an AI website builder dashboard."
+      },
+      "markdown_table": ""
+    },
+    "usage": {
+      "inputTokens": 2970,
+      "inputTokenDetails": {
+        "noCacheTokens": 2970,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 5425,
+      "outputTokenDetails": {
+        "textTokens": 658,
+        "reasoningTokens": 4767
+      },
+      "totalTokens": 8395,
+      "raw": {
+        "thoughtsTokenCount": 4767,
+        "promptTokenCount": 2970,
+        "candidatesTokenCount": 658,
+        "totalTokenCount": 8395,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2970
+          }
+        ]
+      },
+      "reasoningTokens": 4767,
+      "cachedInputTokens": 0
+    }
+  }
+}

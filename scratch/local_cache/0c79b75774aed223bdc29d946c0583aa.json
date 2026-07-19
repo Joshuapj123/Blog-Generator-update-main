@@ -1,0 +1,72 @@
+{
+  "timestamp": "2026-07-11T08:49:56.417Z",
+  "data": {
+    "object": {
+      "intent": "commercial",
+      "confidenceScore": 92,
+      "intentConfidence": {
+        "informational": 20,
+        "commercial": 75,
+        "transactional": 0,
+        "comparison": 5
+      },
+      "formatRecommendation": "Listicle (e.g., 'The 10 Best AI Meeting Assistant Software')",
+      "toneGuidelines": "Authoritative, helpful, and objective, providing balanced reviews and clear recommendations. The tone should be persuasive in guiding the user towards suitable options without being overly salesy.",
+      "structureGuidelines": "The content should feature a clear introduction, a section on selection criteria, detailed reviews of each recommended software, a comparison table for quick reference, and a concluding summary. Each software review should include key features, pros, cons, pricing overview, and ideal use cases. Use H2s for main sections and H3s for individual product reviews.",
+      "recommendedOutlineSections": [
+        {
+          "heading": "What is an AI Meeting Assistant and Why Do You Need One?",
+          "level": "H2",
+          "purpose": "To provide foundational knowledge and context, addressing the informational aspect of the search intent and highlighting the benefits of using such tools."
+        },
+        {
+          "heading": "How We Chose the Best AI Meeting Assistants (Key Features to Look For)",
+          "level": "H2",
+          "purpose": "To establish credibility and guide the user on what criteria are important when evaluating software, satisfying both informational and commercial intent by setting expectations."
+        },
+        {
+          "heading": "The Best AI Meeting Assistant Software: Our Top Picks",
+          "level": "H2",
+          "purpose": "To directly address the commercial intent by presenting a curated list of recommended software, with detailed reviews for each to aid in decision-making."
+        },
+        {
+          "heading": "AI Meeting Assistants Comparison Table",
+          "level": "H2",
+          "purpose": "To offer a quick, at-a-glance comparison of key features, pricing, and unique selling points of the top tools, catering to users who want to quickly compare options."
+        },
+        {
+          "heading": "FAQs About AI Meeting Assistants",
+          "level": "H2",
+          "purpose": "To answer common questions users might have, further solidifying the informational value and addressing potential concerns before a purchasing decision."
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 955,
+      "inputTokenDetails": {
+        "noCacheTokens": 955,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 1972,
+      "outputTokenDetails": {
+        "textTokens": 542,
+        "reasoningTokens": 1430
+      },
+      "totalTokens": 2927,
+      "raw": {
+        "thoughtsTokenCount": 1430,
+        "promptTokenCount": 955,
+        "candidatesTokenCount": 542,
+        "totalTokenCount": 2927,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 955
+          }
+        ]
+      },
+      "reasoningTokens": 1430,
+      "cachedInputTokens": 0
+    }
+  }
+}

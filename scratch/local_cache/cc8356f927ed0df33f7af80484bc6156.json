@@ -1,0 +1,61 @@
+{
+  "timestamp": "2026-06-25T00:24:28.096Z",
+  "data": {
+    "object": {
+      "heading": "What is AI contract review platforms?",
+      "level": "H3",
+      "what_it_is": "**AI contract review software** utilizes **Artificial Intelligence (AI)** to automate and enhance the analysis of legal agreements. It rapidly identifies **risks**, flags non-standard clauses, extracts key data, and suggests **revisions**, significantly reducing manual **Contract Review** time and improving accuracy. This empowers legal teams to manage contracts more efficiently.",
+      "why_it_works": "It works by **automating tedious tasks**, **reducing human error**, and **freeing legal professionals** for strategic work, resulting in **faster deal cycles**.",
+      "experience_or_data_point": "Industry analysis indicates that leveraging **AI for contract review** can decrease review time by 50-70%, allowing legal departments to reallocate resources to higher-value activities.",
+      "outbound_authority_link": {
+        "anchor_text": "AI legal technology can reduce contract review time by 20-50%",
+        "search_query": "Deloitte AI legal technology contract review time savings"
+      },
+      "example_brands": [
+        "LegalOn Technologies: Their AI-powered platform automates contract review, highlighting issues and providing plain-English risk explanations for legal and business teams.",
+        "DocuSign Analyzer: Integrates AI into contract workflows to quickly identify and extract key clauses, improving negotiation efficiency and ensuring compliance.",
+        "Pactum AI: Focuses on automating commercial contract negotiation, using AI to drive optimized outcomes and accelerate deal closures."
+      ],
+      "copy_formula": [
+        "Introduce the traditional problem, then present AI contract review as the innovative solution for efficiency.",
+        "Start with the core benefit (e.g., speed), then elaborate on the AI mechanisms that enable it.",
+        "Highlight common pain points in manual review, then show how AI directly addresses each point.",
+        "Use a 'Before AI vs. With AI' structure to emphasize transformation and improvement."
+      ],
+      "takeaway": "This technology revolutionizes legal operations by transforming tedious manual processes into efficient, accurate, and strategic workflows.",
+      "rich_media_query": {
+        "type": "image",
+        "suggested_search_query": "AI contract review process diagram",
+        "alt_text": "Diagram illustrating the workflow of AI contract review software, showing document upload, AI analysis, risk flagging, data extraction, and proposed revisions."
+      },
+      "markdown_table": ""
+    },
+    "usage": {
+      "inputTokens": 2615,
+      "inputTokenDetails": {
+        "noCacheTokens": 2615,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 6004,
+      "outputTokenDetails": {
+        "textTokens": 552,
+        "reasoningTokens": 5452
+      },
+      "totalTokens": 8619,
+      "raw": {
+        "thoughtsTokenCount": 5452,
+        "promptTokenCount": 2615,
+        "candidatesTokenCount": 552,
+        "totalTokenCount": 8619,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2615
+          }
+        ]
+      },
+      "reasoningTokens": 5452,
+      "cachedInputTokens": 0
+    }
+  }
+}

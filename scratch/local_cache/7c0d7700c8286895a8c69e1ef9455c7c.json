@@ -1,0 +1,61 @@
+{
+  "timestamp": "2026-06-27T05:04:47.667Z",
+  "data": {
+    "object": {
+      "heading": "Key Evaluation Criteria",
+      "level": "H3",
+      "what_it_is": "Key criteria for an intelligent contract review solution include **accuracy** in identifying risks, strong **integration capabilities** with legal tech stacks (DMS, CLM, e-signature), **user-friendliness**, and reliable **vendor support** for implementation.",
+      "why_it_works": "These ensure the platform truly enhances productivity and mitigates risk. Evaluate **detailed pricing, cost considerations, and ROI justification**. Solutions with **plain-English risk explanations** and seamless integration maximize adoption and deliver measurable value.",
+      "experience_or_data_point": "Expert analysis shows that successful AI adoption hinges on practical integration into existing legal workflows and intuitive user interfaces.",
+      "outbound_authority_link": {
+        "anchor_text": "Expert analysis shows that successful AI adoption hinges on practical integration into existing legal workflows",
+        "search_query": "importance of AI legal tech integration adoption rate"
+      },
+      "example_brands": [
+        "LegalOn: Provides an intuitive interface that streamlines contract review, offering clear risk assessments for business teams.",
+        "Spellbook: Integrates directly into Microsoft Word, allowing lawyers to leverage AI suggestions within their familiar drafting environment.",
+        "Harvey AI: Known for its strong vendor support and custom playbook capabilities, enabling tailored AI-driven insights for specific legal practices."
+      ],
+      "copy_formula": [
+        "Start by listing the non-negotiable attributes, then explain their practical implications for workflow efficiency.",
+        "Present a challenge often faced by legal teams, then introduce a specific criterion as the direct solution.",
+        "Connect technical features (e.g., NLP) to real-world benefits like reduced manual review time.",
+        "Frame the selection process around long-term value, emphasizing scalability and continuous improvement."
+      ],
+      "takeaway": "Evaluate solutions on accuracy, integration, usability, and support for effective AI contract review.",
+      "rich_media_query": {
+        "type": "image",
+        "suggested_search_query": "AI contract review software comparison criteria infographic",
+        "alt_text": "Infographic comparing key evaluation criteria for AI contract review software including accuracy, integration, user-friendliness, and support"
+      },
+      "markdown_table": ""
+    },
+    "usage": {
+      "inputTokens": 2387,
+      "inputTokenDetails": {
+        "noCacheTokens": 2387,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 5257,
+      "outputTokenDetails": {
+        "textTokens": 512,
+        "reasoningTokens": 4745
+      },
+      "totalTokens": 7644,
+      "raw": {
+        "thoughtsTokenCount": 4745,
+        "promptTokenCount": 2387,
+        "candidatesTokenCount": 512,
+        "totalTokenCount": 7644,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2387
+          }
+        ]
+      },
+      "reasoningTokens": 4745,
+      "cachedInputTokens": 0
+    }
+  }
+}

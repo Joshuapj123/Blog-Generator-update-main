@@ -1,0 +1,380 @@
+{
+  "timestamp": "2026-07-15T13:48:00.176Z",
+  "data": {
+    "object": {
+      "entities": [
+        {
+          "name": "AI Email Assistant",
+          "type": "software"
+        },
+        {
+          "name": "Large Language Models (LLMs)",
+          "type": "software"
+        },
+        {
+          "name": "Gmail",
+          "type": "software"
+        },
+        {
+          "name": "Outlook",
+          "type": "software"
+        },
+        {
+          "name": "Superhuman",
+          "type": "tool"
+        },
+        {
+          "name": "Shortwave",
+          "type": "tool"
+        },
+        {
+          "name": "SaneBox",
+          "type": "tool"
+        },
+        {
+          "name": "Microsoft Copilot",
+          "type": "product"
+        },
+        {
+          "name": "Gemini for Gmail",
+          "type": "product"
+        },
+        {
+          "name": "Apple Intelligence",
+          "type": "product"
+        },
+        {
+          "name": "Apple Mail",
+          "type": "software"
+        },
+        {
+          "name": "Mailmeteor",
+          "type": "brand"
+        },
+        {
+          "name": "Quillbot",
+          "type": "brand"
+        },
+        {
+          "name": "CRM",
+          "type": "software"
+        },
+        {
+          "name": "Agentic Workflows",
+          "type": "concept"
+        },
+        {
+          "name": "Inbox Filtering",
+          "type": "concept"
+        },
+        {
+          "name": "AI Drafting",
+          "type": "concept"
+        },
+        {
+          "name": "Email Automation",
+          "type": "concept"
+        },
+        {
+          "name": "Cold Outreach",
+          "type": "concept"
+        },
+        {
+          "name": "Sales Emails",
+          "type": "concept"
+        },
+        {
+          "name": "Customer Support Replies",
+          "type": "concept"
+        },
+        {
+          "name": "Missive",
+          "type": "tool"
+        },
+        {
+          "name": "Fyxer AI",
+          "type": "tool"
+        },
+        {
+          "name": "Spark Mail",
+          "type": "tool"
+        },
+        {
+          "name": "Natural Language Processing",
+          "type": "concept"
+        },
+        {
+          "name": "Email Client",
+          "type": "software"
+        },
+        {
+          "name": "Google Workspace",
+          "type": "software"
+        },
+        {
+          "name": "OpenAI",
+          "type": "brand"
+        },
+        {
+          "name": "Gmelius",
+          "type": "tool"
+        },
+        {
+          "name": "AI Prioritization",
+          "type": "concept"
+        }
+      ],
+      "relationships": [
+        {
+          "source": "AI Email Assistant",
+          "target": "Large Language Models (LLMs)",
+          "type": "uses"
+        },
+        {
+          "source": "AI Email Assistant",
+          "target": "AI Drafting",
+          "type": "enables"
+        },
+        {
+          "source": "AI Email Assistant",
+          "target": "Inbox Filtering",
+          "type": "enables"
+        },
+        {
+          "source": "AI Email Assistant",
+          "target": "Email Automation",
+          "type": "enables"
+        },
+        {
+          "source": "AI Email Assistant",
+          "target": "Cold Outreach",
+          "type": "supports"
+        },
+        {
+          "source": "AI Email Assistant",
+          "target": "Sales Emails",
+          "type": "supports"
+        },
+        {
+          "source": "AI Email Assistant",
+          "target": "Customer Support Replies",
+          "type": "supports"
+        },
+        {
+          "source": "AI Email Assistant",
+          "target": "Gmail",
+          "type": "integrates with"
+        },
+        {
+          "source": "AI Email Assistant",
+          "target": "Outlook",
+          "type": "integrates with"
+        },
+        {
+          "source": "AI Email Assistant",
+          "target": "CRM",
+          "type": "integrates with"
+        },
+        {
+          "source": "AI Email Assistant",
+          "target": "Natural Language Processing",
+          "type": "leverages"
+        },
+        {
+          "source": "AI Email Assistant",
+          "target": "Agentic Workflows",
+          "type": "implements"
+        },
+        {
+          "source": "Large Language Models (LLMs)",
+          "target": "AI Drafting",
+          "type": "powers"
+        },
+        {
+          "source": "Large Language Models (LLMs)",
+          "target": "Natural Language Processing",
+          "type": "underpins"
+        },
+        {
+          "source": "Mailmeteor",
+          "target": "Large Language Models (LLMs)",
+          "type": "uses"
+        },
+        {
+          "source": "Quillbot",
+          "target": "Large Language Models (LLMs)",
+          "type": "uses"
+        },
+        {
+          "source": "OpenAI",
+          "target": "Large Language Models (LLMs)",
+          "type": "develops"
+        },
+        {
+          "source": "Superhuman",
+          "target": "AI Email Assistant",
+          "type": "is a type of"
+        },
+        {
+          "source": "Superhuman",
+          "target": "Gmail",
+          "type": "integrates with"
+        },
+        {
+          "source": "Shortwave",
+          "target": "AI Email Assistant",
+          "type": "is a type of"
+        },
+        {
+          "source": "Shortwave",
+          "target": "Gmail",
+          "type": "integrates with"
+        },
+        {
+          "source": "SaneBox",
+          "target": "AI Email Assistant",
+          "type": "is a type of"
+        },
+        {
+          "source": "SaneBox",
+          "target": "Inbox Filtering",
+          "type": "provides"
+        },
+        {
+          "source": "Microsoft Copilot",
+          "target": "AI Email Assistant",
+          "type": "is a type of"
+        },
+        {
+          "source": "Microsoft Copilot",
+          "target": "Outlook",
+          "type": "integrates with"
+        },
+        {
+          "source": "Gemini for Gmail",
+          "target": "AI Email Assistant",
+          "type": "is a type of"
+        },
+        {
+          "source": "Gemini for Gmail",
+          "target": "Gmail",
+          "type": "integrates with"
+        },
+        {
+          "source": "Gemini for Gmail",
+          "target": "Google Workspace",
+          "type": "integrates with"
+        },
+        {
+          "source": "Apple Intelligence",
+          "target": "AI Email Assistant",
+          "type": "is a type of"
+        },
+        {
+          "source": "Apple Intelligence",
+          "target": "Apple Mail",
+          "type": "integrates with"
+        },
+        {
+          "source": "Missive",
+          "target": "AI Email Assistant",
+          "type": "is a type of"
+        },
+        {
+          "source": "Missive",
+          "target": "AI Drafting",
+          "type": "provides"
+        },
+        {
+          "source": "Fyxer AI",
+          "target": "AI Email Assistant",
+          "type": "is a type of"
+        },
+        {
+          "source": "Fyxer AI",
+          "target": "Gmail",
+          "type": "integrates with"
+        },
+        {
+          "source": "Fyxer AI",
+          "target": "Outlook",
+          "type": "integrates with"
+        },
+        {
+          "source": "Spark Mail",
+          "target": "AI Email Assistant",
+          "type": "is a type of"
+        },
+        {
+          "source": "Spark Mail",
+          "target": "AI Prioritization",
+          "type": "provides"
+        },
+        {
+          "source": "Gmelius",
+          "target": "AI Email Assistant",
+          "type": "is a type of"
+        },
+        {
+          "source": "Email Client",
+          "target": "Gmail",
+          "type": "is a type of"
+        },
+        {
+          "source": "Email Client",
+          "target": "Outlook",
+          "type": "is a type of"
+        },
+        {
+          "source": "Email Client",
+          "target": "Apple Mail",
+          "type": "is a type of"
+        },
+        {
+          "source": "AI Email Assistant",
+          "target": "Email Client",
+          "type": "replaces"
+        }
+      ],
+      "recommendedConnections": [
+        "AI Email Assistant -> Productivity",
+        "Large Language Models (LLMs) -> Ethical AI",
+        "AI Email Assistant -> Data Privacy",
+        "CRM -> Lead Scoring",
+        "AI Email Assistant -> Personalization",
+        "Agentic Workflows -> Task Automation",
+        "Email Client -> User Experience",
+        "AI Drafting -> Tone of Voice",
+        "AI Email Assistant -> Time Management",
+        "Inbox Filtering -> Spam Management"
+      ]
+    },
+    "usage": {
+      "inputTokens": 2711,
+      "inputTokenDetails": {
+        "noCacheTokens": 2711,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 7431,
+      "outputTokenDetails": {
+        "textTokens": 2307,
+        "reasoningTokens": 5124
+      },
+      "totalTokens": 10142,
+      "raw": {
+        "thoughtsTokenCount": 5124,
+        "promptTokenCount": 2711,
+        "candidatesTokenCount": 2307,
+        "totalTokenCount": 10142,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2711
+          }
+        ]
+      },
+      "reasoningTokens": 5124,
+      "cachedInputTokens": 0
+    }
+  }
+}

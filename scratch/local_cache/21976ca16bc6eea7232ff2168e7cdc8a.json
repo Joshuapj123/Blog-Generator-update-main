@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-07-05T11:33:04.834Z",
+  "data": {
+    "object": {
+      "hasFeaturedSnippet": true,
+      "snippetType": "list",
+      "targetQuery": "best ai website builder",
+      "extractedSnippetText": "AI website builders have revolutionized site creation, allowing users to build professional websites in minutes without coding. The best AI website builders often include platforms like Neo Sites, Olitt, Wix ADI, Tithely Sites, Design.com, GoDaddy, and 10Web, offering a blend of ease of use and powerful customization features for various needs.",
+      "optimizedSnippetRecommendation": "The best AI website builders simplify site creation, allowing anyone to build professional, responsive websites quickly without coding. Top choices for 2026 include:\n1.  **Wix ADI**: Comprehensive, flexible design and business tools.\n2.  **10Web**: AI-powered WordPress hosting and site generation.\n3.  **Hostinger AI Website Builder**: Affordable, user-friendly experience.\n4.  **Durable AI**: Rapid business website generation.\n5.  **Jimdo**: Simple AI builder for small businesses.\n6.  **Zyro**: E-commerce focused AI tools and quick setup.",
+      "generationDirectives": "Place this content immediately after an H2 or H3 titled 'Best AI Website Builders'. Use an ordered list (1., 2., 3., etc.). Bold the name of each AI website builder. Keep each description to 5-8 words for conciseness and snippet optimization."
+    },
+    "usage": {
+      "inputTokens": 1836,
+      "inputTokenDetails": {
+        "noCacheTokens": 1836,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 1853,
+      "outputTokenDetails": {
+        "textTokens": 318,
+        "reasoningTokens": 1535
+      },
+      "totalTokens": 3689,
+      "raw": {
+        "thoughtsTokenCount": 1535,
+        "promptTokenCount": 1836,
+        "candidatesTokenCount": 318,
+        "totalTokenCount": 3689,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1836
+          }
+        ]
+      },
+      "reasoningTokens": 1535,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-07-05T06:50:31.920Z",
+  "data": {
+    "object": {
+      "hasFeaturedSnippet": true,
+      "snippetType": "list",
+      "targetQuery": "best AI coding assistant",
+      "extractedSnippetText": "The best AI coding assistants for 2026 include Cursor, Claude Code, Codex, GitHub Copilot, and Cline, with Augment Code being a top choice for enterprise teams. Other highly-rated tools are Cody, Tabnine, and Amazon CodeWhisperer. The optimal choice often depends on specific developer needs, such as speed, control over large codebases, or autonomy in complex projects.",
+      "optimizedSnippetRecommendation": "The best AI coding assistants for 2026, catering to diverse developer needs, include:\n1.  **Augment Code**: Ideal for complex enterprise codebases and architectural reasoning.\n2.  **GitHub Copilot**: A popular choice for general-purpose code completion and suggestions.\n3.  **Cursor**: Offers advanced control, reliability, and robust refactoring capabilities.\n4.  **Cody**: Excels in handling multi-file features and large-scale project changes.\n5.  **Tabnine**: Known for its privacy-focused, on-premise deployment options.\n6.  **Amazon CodeWhisperer**: Free for individual use, strong for AWS-integrated development.",
+      "generationDirectives": "Place this numbered list immediately after the introduction, under an H2 titled 'The Best AI Coding Assistants for Developers'. Bold each assistant's name and keep descriptions to a single, concise sentence. Ensure the list is easily scannable and directly answers the query, aiming for 50-60 words in total for the list items and introductory sentence."
+    },
+    "usage": {
+      "inputTokens": 1324,
+      "inputTokenDetails": {
+        "noCacheTokens": 1324,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 1451,
+      "outputTokenDetails": {
+        "textTokens": 358,
+        "reasoningTokens": 1093
+      },
+      "totalTokens": 2775,
+      "raw": {
+        "thoughtsTokenCount": 1093,
+        "promptTokenCount": 1324,
+        "candidatesTokenCount": 358,
+        "totalTokenCount": 2775,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1324
+          }
+        ]
+      },
+      "reasoningTokens": 1093,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,276 @@
+{
+  "timestamp": "2026-07-11T09:22:02.998Z",
+  "data": {
+    "object": {
+      "keywords": [
+        {
+          "term": "knowledge management software",
+          "category": "basic"
+        },
+        {
+          "term": "knowledge base software",
+          "category": "basic"
+        },
+        {
+          "term": "best knowledge management software",
+          "category": "basic"
+        },
+        {
+          "term": "knowledge management tools",
+          "category": "basic"
+        },
+        {
+          "term": "best knowledge base tools",
+          "category": "basic"
+        },
+        {
+          "term": "KM software",
+          "category": "basic"
+        },
+        {
+          "term": "knowledge management platforms",
+          "category": "basic"
+        },
+        {
+          "term": "top knowledge management software",
+          "category": "basic"
+        },
+        {
+          "term": "knowledge management software 2026",
+          "category": "basic"
+        },
+        {
+          "term": "knowledge base software 2026",
+          "category": "basic"
+        },
+        {
+          "term": "free knowledge management software",
+          "category": "basic"
+        },
+        {
+          "term": "why use knowledge base software",
+          "category": "supplementary"
+        },
+        {
+          "term": "benefits of knowledge management tools",
+          "category": "supplementary"
+        },
+        {
+          "term": "key features of knowledge management tools",
+          "category": "supplementary"
+        },
+        {
+          "term": "what is knowledge management software",
+          "category": "supplementary"
+        },
+        {
+          "term": "how to choose knowledge management software",
+          "category": "supplementary"
+        },
+        {
+          "term": "knowledge management software comparison",
+          "category": "supplementary"
+        },
+        {
+          "term": "knowledge management tools for business",
+          "category": "supplementary"
+        },
+        {
+          "term": "knowledge management tools for IT support",
+          "category": "supplementary"
+        },
+        {
+          "term": "knowledge management software for customer satisfaction",
+          "category": "supplementary"
+        },
+        {
+          "term": "open-source knowledge bases",
+          "category": "supplementary"
+        },
+        {
+          "term": "proprietary knowledge bases",
+          "category": "supplementary"
+        },
+        {
+          "term": "internal wikis",
+          "category": "supplementary"
+        },
+        {
+          "term": "self-service articles",
+          "category": "supplementary"
+        },
+        {
+          "term": "FAQs",
+          "category": "supplementary"
+        },
+        {
+          "term": "how-to guides",
+          "category": "supplementary"
+        },
+        {
+          "term": "documentation management",
+          "category": "supplementary"
+        },
+        {
+          "term": "breaking down data silos",
+          "category": "supplementary"
+        },
+        {
+          "term": "accelerating employee onboarding and training",
+          "category": "supplementary"
+        },
+        {
+          "term": "reduced service volume",
+          "category": "supplementary"
+        },
+        {
+          "term": "faster support solutions",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI search",
+          "category": "contextual"
+        },
+        {
+          "term": "AI-driven knowledge management",
+          "category": "contextual"
+        },
+        {
+          "term": "agentic workflows",
+          "category": "contextual"
+        },
+        {
+          "term": "self-maintaining knowledge",
+          "category": "contextual"
+        },
+        {
+          "term": "product knowledge",
+          "category": "contextual"
+        },
+        {
+          "term": "troubleshooting steps",
+          "category": "contextual"
+        },
+        {
+          "term": "customer inquiries",
+          "category": "contextual"
+        },
+        {
+          "term": "operational efficiency",
+          "category": "contextual"
+        },
+        {
+          "term": "improve decision-making",
+          "category": "contextual"
+        },
+        {
+          "term": "content management software",
+          "category": "contextual"
+        },
+        {
+          "term": "information management software",
+          "category": "contextual"
+        }
+      ],
+      "clusters": [
+        {
+          "clusterName": "Understanding Knowledge Management",
+          "keywords": [
+            "knowledge management software",
+            "knowledge base software",
+            "what is knowledge management software",
+            "KM software",
+            "knowledge management tools",
+            "knowledge management platforms",
+            "content management software",
+            "information management software",
+            "why use knowledge base software",
+            "benefits of knowledge management tools",
+            "knowledge management tools for business",
+            "improve decision-making",
+            "operational efficiency"
+          ]
+        },
+        {
+          "clusterName": "Features and Types of Knowledge Solutions",
+          "keywords": [
+            "key features of knowledge management tools",
+            "basic features to look for in a knowledge base",
+            "open-source knowledge bases",
+            "proprietary knowledge bases",
+            "internal wikis",
+            "self-service articles",
+            "FAQs",
+            "how-to guides",
+            "documentation management",
+            "types of knowledge management software"
+          ]
+        },
+        {
+          "clusterName": "Best & Comparison of Knowledge Management Tools",
+          "keywords": [
+            "best knowledge management software",
+            "best knowledge base tools",
+            "top knowledge management software",
+            "knowledge management software 2026",
+            "knowledge base software 2026",
+            "free knowledge management software",
+            "how to choose knowledge management software",
+            "knowledge management software comparison"
+          ]
+        },
+        {
+          "clusterName": "Advanced & AI-Driven Knowledge Management",
+          "keywords": [
+            "AI search",
+            "AI-driven knowledge management",
+            "agentic workflows",
+            "self-maintaining knowledge",
+            "AI agents"
+          ]
+        },
+        {
+          "clusterName": "Applications and Impact",
+          "keywords": [
+            "knowledge management tools for IT support",
+            "knowledge management software for customer satisfaction",
+            "accelerating employee onboarding and training",
+            "reduced service volume",
+            "faster support solutions",
+            "breaking down data silos",
+            "product knowledge",
+            "troubleshooting steps",
+            "customer inquiries"
+          ]
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 1850,
+      "inputTokenDetails": {
+        "noCacheTokens": 1850,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 4042,
+      "outputTokenDetails": {
+        "textTokens": 1605,
+        "reasoningTokens": 2437
+      },
+      "totalTokens": 5892,
+      "raw": {
+        "thoughtsTokenCount": 2437,
+        "promptTokenCount": 1850,
+        "candidatesTokenCount": 1605,
+        "totalTokenCount": 5892,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1850
+          }
+        ]
+      },
+      "reasoningTokens": 2437,
+      "cachedInputTokens": 0
+    }
+  }
+}

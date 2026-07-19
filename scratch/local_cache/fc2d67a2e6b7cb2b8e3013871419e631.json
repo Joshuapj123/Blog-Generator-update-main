@@ -1,0 +1,61 @@
+{
+  "timestamp": "2026-06-25T00:23:52.584Z",
+  "data": {
+    "object": {
+      "heading": "Measuring ROI and the Cost-Benefit Analysis",
+      "level": "H3",
+      "what_it_is": "Measuring **return on investment (ROI)** and performing a **cost-benefit analysis** for **AI contract review tools** means rigorously evaluating current manual costs against the software's investment. This covers initial setup, ongoing expenses, and projected savings from **efficiency** and **risk reduction**.",
+      "why_it_works": "This financial scrutiny **justifies technology adoption**, demonstrating how the platform delivers tangible value by accelerating review cycles, minimizing errors, and freeing legal professionals for strategic tasks. It ensures the **AI contract review software** provides a clear, defensible return.",
+      "experience_or_data_point": "Industry data suggests that adopting legal AI solutions can reduce contract review time by 50-90%, directly impacting operational costs and accelerating business cycles.",
+      "outbound_authority_link": {
+        "anchor_text": "Industry data suggests that adopting legal AI solutions can reduce contract review time by 50-90%",
+        "search_query": "ROI of AI in legal contract review statistics"
+      },
+      "example_brands": [
+        "LegalOn Technologies: Provides clients with detailed ROI calculators to quantify savings from faster contract reviews and improved compliance.",
+        "Ironclad: Showcases customer success stories emphasizing significant reductions in contract cycle times, directly translating to measurable cost savings.",
+        "Evisort: Offers analytics dashboards that help legal teams track key metrics like review time and risk exposure to demonstrate financial impact."
+      ],
+      "copy_formula": [
+        "Highlight the current inefficient spend on manual contract review, then position automated contract analysis software as the primary financial solution.",
+        "Quantify specific areas of saving, such as reduced lawyer hours or mitigated legal risks, to build a compelling ROI case for legal review technology.",
+        "Frame the discussion around future growth and strategic reallocation of resources made possible by investing in AI, rather than just cost-cutting."
+      ],
+      "takeaway": "A robust financial review is essential to unlock and communicate the true value of investing in legal review technology.",
+      "rich_media_query": {
+        "type": "image",
+        "suggested_search_query": "AI contract review software ROI graph",
+        "alt_text": "Graph illustrating the return on investment (ROI) of AI contract review software over time, showing initial investment and subsequent cost savings."
+      },
+      "markdown_table": ""
+    },
+    "usage": {
+      "inputTokens": 2557,
+      "inputTokenDetails": {
+        "noCacheTokens": 1435,
+        "cacheReadTokens": 1122
+      },
+      "outputTokens": 3650,
+      "outputTokenDetails": {
+        "textTokens": 485,
+        "reasoningTokens": 3165
+      },
+      "totalTokens": 6207,
+      "raw": {
+        "cachedContentTokenCount": 1122,
+        "thoughtsTokenCount": 3165,
+        "promptTokenCount": 2557,
+        "candidatesTokenCount": 485,
+        "totalTokenCount": 6207,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2557
+          }
+        ]
+      },
+      "reasoningTokens": 3165,
+      "cachedInputTokens": 1122
+    }
+  }
+}

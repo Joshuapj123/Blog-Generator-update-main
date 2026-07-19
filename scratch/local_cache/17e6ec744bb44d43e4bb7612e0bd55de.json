@@ -1,0 +1,60 @@
+{
+  "timestamp": "2026-06-25T00:24:29.971Z",
+  "data": {
+    "object": {
+      "heading": "Addressing Data Privacy and Security",
+      "level": "H3",
+      "what_it_is": "Safeguarding confidential legal documents within AI systems demands robust **Data Privacy** measures: stringent encryption, secure hosting, and access controls. Compliance with regulations like GDPR is paramount.",
+      "why_it_works": "This ensures trust and mitigates risks, ethically deploying legal AI solutions. Addressing potential **Ethical Implications** proactively prevents breaches, maintaining user confidence in contract review tools.",
+      "experience_or_data_point": "PwC reports 61% of legal departments prioritize data security when adopting legal AI.",
+      "outbound_authority_link": {
+        "anchor_text": "PwC reports 61% of legal departments prioritize data security when adopting legal AI.",
+        "search_query": "PwC legal department data security AI adoption"
+      },
+      "example_brands": [
+        "DocuSign: Implements advanced encryption and compliance frameworks across its e-signature and contract lifecycle management solutions.",
+        "Ironclad: Features enterprise-grade security certifications and customizable data residency options to protect sensitive contract data."
+      ],
+      "copy_formula": [
+        "Start with the inherent risk of data exposure, then introduce security measures as the necessary safeguard.",
+        "Highlight the tension between AI efficiency and privacy, then present ethical frameworks as the resolution.",
+        "Explain regulatory compliance as a baseline, then discuss advanced security features as competitive differentiators."
+      ],
+      "takeaway": "Prioritizing robust data privacy and ethical considerations is fundamental for the successful and trustworthy implementation of automated contract analysis software.",
+      "rich_media_query": {
+        "type": "image",
+        "suggested_search_query": "AI legal tech data privacy security architecture",
+        "alt_text": "Diagram illustrating secure data flow and privacy measures in an AI contract review system"
+      },
+      "markdown_table": ""
+    },
+    "usage": {
+      "inputTokens": 2613,
+      "inputTokenDetails": {
+        "noCacheTokens": 1480,
+        "cacheReadTokens": 1133
+      },
+      "outputTokens": 4062,
+      "outputTokenDetails": {
+        "textTokens": 431,
+        "reasoningTokens": 3631
+      },
+      "totalTokens": 6675,
+      "raw": {
+        "cachedContentTokenCount": 1133,
+        "thoughtsTokenCount": 3631,
+        "promptTokenCount": 2613,
+        "candidatesTokenCount": 431,
+        "totalTokenCount": 6675,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2613
+          }
+        ]
+      },
+      "reasoningTokens": 3631,
+      "cachedInputTokens": 1133
+    }
+  }
+}

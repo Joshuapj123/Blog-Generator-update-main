@@ -1,0 +1,59 @@
+{
+  "timestamp": "2026-06-27T05:05:06.873Z",
+  "data": {
+    "object": {
+      "heading": "Top AI Contract Review Tools in 2026",
+      "level": "H3",
+      "what_it_is": "This section **compares** leading **AI contract review** platforms (2026), detailing **core functionalities** and value propositions for legal teams.",
+      "why_it_works": "Evaluation is **crucial for informed decision-making**, ensuring alignment with needs, **integrations** (DMS, CLM), and **ROI justification**.",
+      "experience_or_data_point": "Organizations typically achieve 60% faster contract cycle times.",
+      "outbound_authority_link": {
+        "anchor_text": "60% faster contract cycle times",
+        "search_query": "AI contract review ROI"
+      },
+      "example_brands": [
+        "LegalOn Technologies: Flags contract risks.",
+        "Evisort: Automates data extraction."
+      ],
+      "copy_formula": [
+        "Highlight a tool's strength, linking it to business outcome.",
+        "Compare platforms based on integration capabilities."
+      ],
+      "takeaway": "Matching platform features and integration potential to organizational needs is key.",
+      "rich_media_query": {
+        "type": "image",
+        "suggested_search_query": "AI contract review tools",
+        "alt_text": "Leading AI contract review tools comparison"
+      },
+      "markdown_table": ""
+    },
+    "usage": {
+      "inputTokens": 2390,
+      "inputTokenDetails": {
+        "noCacheTokens": 1302,
+        "cacheReadTokens": 1088
+      },
+      "outputTokens": 9176,
+      "outputTokenDetails": {
+        "textTokens": 331,
+        "reasoningTokens": 8845
+      },
+      "totalTokens": 11566,
+      "raw": {
+        "cachedContentTokenCount": 1088,
+        "thoughtsTokenCount": 8845,
+        "promptTokenCount": 2390,
+        "candidatesTokenCount": 331,
+        "totalTokenCount": 11566,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2390
+          }
+        ]
+      },
+      "reasoningTokens": 8845,
+      "cachedInputTokens": 1088
+    }
+  }
+}

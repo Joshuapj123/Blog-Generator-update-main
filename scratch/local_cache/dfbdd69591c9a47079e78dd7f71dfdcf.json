@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-06-26T14:47:21.193Z",
+  "data": {
+    "text": "Cut code review time & bugs in half, instantly.\n\nThe leader in AI code reviews, trusted by 15,000+ customers and the most installed AI App.\n\"We're using CodeRabbit all over NVIDIA\" - Founder & CEO, NVIDIA\nReviews for AI-powered teams who move fast (but don’t break things). Your team moves fast with AI. But fast shouldn’t mean sloppy. We make sure every line still earns its merge.\n\nCode reviews were hard before. Now, they feel impossible.\n\n**Faster reviews + better code.**\nWe do the heavy lifting & spot the hard to find issues. You do the final 10%.\n\n**The only tool that reviews everywhere you work.**\nReview at the PR stage or directly in your IDE & CLI. Also available in CLI & IDE.\n\n**Industry-leading context.**\nCodebase-awareness is tablestakes. We pull in dozens more points of context than other tools.\n1.  **Codebase intelligence:** Codegraph and custom guidelines help us understand complex dependencies across files to uncover the impact of changes.\n2.  **External context:** We bring the right context via MCP servers, Linked Issues (Jira & Linear) & Web Query (to fetch the latest info on the web).\n3.  **Linters & Scanners:** 40+ linters and security scanners catch more bugs – while we filter out the noise from false positives.\n\n**Code reviews that learn from you.**\nSet the baseline with your rules and style guides, then train the agent with feedback via replies. Reviews improve continuously. Give our AI agent feedback in natural language and it takes that into account in future reviews. Give feedback on reviews to create Learnings. Or create issues, trigger docstrings & more.\n\n**Ship faster with pre-merge checks & finishing touches.**\nSave hours of work and make sure your code’s ready to ship.\n*   Create your own pre-merge code quality checks in natural language.\n*   Check test coverage and immediately generate any missing tests.\n*   Create docstrings to make it easier to understand the file in the future.\n\n**Why teams prefer CodeRabbit:**\n\n*   **Catch fast. Fix fast.**\n    1-click commits for easy fixes and a “Fix with AI” button for harder ones.\n*   **TL;DR for your diff.**\n    Quick context with a summary of changes, a walkthrough & an architectural diagram.\n*   **Find the bugs. Skip the noise.**\n    We find bugs humans miss – & flag the time consuming and tedious. Without the noise.\n*   **Chat with the CodeRabbit bot directly.**\n*   **Most customizable tool.**\n    Customize everything from your coding guidelines to your workflow in a yaml file. Easily configurable instructions that let you quickly share how you want your code reviewed. Pass your coding instructions from your AI coding tool to CodeRabbit in one click.\n*   **The reports you need.**\n    Automate the creation of your daily standup reports, sprint reviews, and more.\n\n**CodeRabbit learnings:**\n*   Path & AST-based instructions\n*   Coding agent guidelines\n*   Custom checks\n*   Unit test generation\n*   Docstring generation\n\n**We take security seriously.**\nWe protect your code and privacy with an architecture designed to ensure your code is private. End-to-end encryption protects your code during reviews with zero data retention post-review. Enterprise-grade security validated annually through independent SOC2 Type II audits.\n\n**Architected for security:**\n*   SSL encrypted data\n*   SOC 2 Type II certified",
+    "usage": {
+      "inputTokens": 1179,
+      "inputTokenDetails": {
+        "noCacheTokens": 1179,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 3216,
+      "outputTokenDetails": {
+        "textTokens": 761,
+        "reasoningTokens": 2455
+      },
+      "totalTokens": 4395,
+      "raw": {
+        "thoughtsTokenCount": 2455,
+        "promptTokenCount": 1179,
+        "candidatesTokenCount": 761,
+        "totalTokenCount": 4395,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1179
+          }
+        ]
+      },
+      "reasoningTokens": 2455,
+      "cachedInputTokens": 0
+    }
+  }
+}

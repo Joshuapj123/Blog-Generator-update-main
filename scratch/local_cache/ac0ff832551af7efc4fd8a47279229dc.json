@@ -1,0 +1,221 @@
+{
+  "timestamp": "2026-06-27T15:19:20.228Z",
+  "data": {
+    "object": {
+      "entities": [
+        {
+          "name": "password manager",
+          "type": "software"
+        },
+        {
+          "name": "1Password",
+          "type": "brand"
+        },
+        {
+          "name": "LastPass",
+          "type": "brand"
+        },
+        {
+          "name": "BitWarden",
+          "type": "brand"
+        },
+        {
+          "name": "DashLane",
+          "type": "brand"
+        },
+        {
+          "name": "password management",
+          "type": "concept"
+        },
+        {
+          "name": "password",
+          "type": "concept"
+        },
+        {
+          "name": "account",
+          "type": "concept"
+        },
+        {
+          "name": "enterprise network",
+          "type": "concept"
+        },
+        {
+          "name": "router",
+          "type": "product"
+        },
+        {
+          "name": "auto-generated phrases",
+          "type": "concept"
+        },
+        {
+          "name": "security",
+          "type": "concept"
+        },
+        {
+          "name": "data protection",
+          "type": "concept"
+        },
+        {
+          "name": "cybersecurity",
+          "type": "concept"
+        },
+        {
+          "name": "authentication",
+          "type": "concept"
+        },
+        {
+          "name": "unique password",
+          "type": "concept"
+        },
+        {
+          "name": "business",
+          "type": "concept"
+        },
+        {
+          "name": "endpoint",
+          "type": "concept"
+        },
+        {
+          "name": "home network",
+          "type": "concept"
+        }
+      ],
+      "relationships": [
+        {
+          "source": "password manager",
+          "target": "password management",
+          "type": "enables"
+        },
+        {
+          "source": "password manager",
+          "target": "password",
+          "type": "manages"
+        },
+        {
+          "source": "password manager",
+          "target": "account",
+          "type": "secures"
+        },
+        {
+          "source": "password manager",
+          "target": "auto-generated phrases",
+          "type": "provides"
+        },
+        {
+          "source": "password manager",
+          "target": "security",
+          "type": "improves"
+        },
+        {
+          "source": "password manager",
+          "target": "data protection",
+          "type": "supports"
+        },
+        {
+          "source": "password manager",
+          "target": "cybersecurity",
+          "type": "is a tool for"
+        },
+        {
+          "source": "password manager",
+          "target": "authentication",
+          "type": "streamlines"
+        },
+        {
+          "source": "password manager",
+          "target": "unique password",
+          "type": "promotes"
+        },
+        {
+          "source": "1Password",
+          "target": "password manager",
+          "type": "is a"
+        },
+        {
+          "source": "LastPass",
+          "target": "password manager",
+          "type": "is a"
+        },
+        {
+          "source": "BitWarden",
+          "target": "password manager",
+          "type": "is a"
+        },
+        {
+          "source": "DashLane",
+          "target": "password manager",
+          "type": "is a"
+        },
+        {
+          "source": "enterprise network",
+          "target": "password manager",
+          "type": "utilizes"
+        },
+        {
+          "source": "home network",
+          "target": "password manager",
+          "type": "utilizes"
+        },
+        {
+          "source": "router",
+          "target": "home network",
+          "type": "connects to"
+        },
+        {
+          "source": "business",
+          "target": "password manager",
+          "type": "implements"
+        },
+        {
+          "source": "endpoint",
+          "target": "password",
+          "type": "requires"
+        },
+        {
+          "source": "password",
+          "target": "account",
+          "type": "protects"
+        },
+        {
+          "source": "unique password",
+          "target": "security",
+          "type": "enhances"
+        }
+      ],
+      "recommendedConnections": [
+        "Password Manager -> Multi-Factor Authentication",
+        "Password Manager -> Single Sign-On (SSO)",
+        "Password Manager -> Phishing Attacks",
+        "Password Manager -> Data Breaches",
+        "Password Manager -> Compliance Regulations"
+      ]
+    },
+    "usage": {
+      "inputTokens": 640,
+      "inputTokenDetails": {
+        "noCacheTokens": 640,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 3569,
+      "outputTokenDetails": {
+        "textTokens": 1171,
+        "reasoningTokens": 2398
+      },
+      "totalTokens": 4209,
+      "raw": {
+        "thoughtsTokenCount": 2398,
+        "promptTokenCount": 640,
+        "candidatesTokenCount": 1171,
+        "totalTokenCount": 4209,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 640
+          }
+        ]
+      },
+      "reasoningTokens": 2398,
+      "cachedInputTokens": 0
+    }
+  }
+}

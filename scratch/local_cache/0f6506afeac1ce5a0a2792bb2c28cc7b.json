@@ -1,0 +1,72 @@
+{
+  "timestamp": "2026-07-06T16:11:11.338Z",
+  "data": {
+    "object": {
+      "intent": "commercial",
+      "confidenceScore": 95,
+      "intentConfidence": {
+        "informational": 25,
+        "commercial": 60,
+        "transactional": 5,
+        "comparison": 10
+      },
+      "formatRecommendation": "Listicle / Comprehensive Review Guide. The content should present a curated list of the best AI CRM software, detailing their features, benefits, and ideal use cases. Comparison tables and individual software reviews are crucial.",
+      "toneGuidelines": "Authoritative, objective, and helpful. The tone should guide the user through the options with clear, concise information, while also being persuasive in highlighting the value proposition of each recommended solution.",
+      "structureGuidelines": "The content should be structured with clear H2 headings for main sections and H3 headings for individual software reviews or specific feature breakdowns. Each software entry should include an overview, key features, pros, cons, and pricing considerations. Incorporate comparison tables to facilitate easy evaluation and a 'how to choose' section to aid decision-making.",
+      "recommendedOutlineSections": [
+        {
+          "heading": "What is AI CRM Software and Why is it Essential for Business Growth?",
+          "level": "H2",
+          "purpose": "To provide foundational knowledge about AI CRM, its definition, and its importance, satisfying the informational aspect of the search intent."
+        },
+        {
+          "heading": "Key Features and Criteria for Choosing the Best AI CRM",
+          "level": "H2",
+          "purpose": "To educate users on what to look for in AI CRM software, helping them understand the critical functionalities and selection factors, thereby supporting their commercial decision-making."
+        },
+        {
+          "heading": "The Best AI CRM Software Options for 2026",
+          "level": "H2",
+          "purpose": "To present the core list of recommended AI CRM solutions, directly addressing the user's commercial intent to find the 'best' options. This section will contain H3s for each software."
+        },
+        {
+          "heading": "How to Select the Right AI CRM for Your Business Needs",
+          "level": "H2",
+          "purpose": "To guide users through the decision-making process, offering practical advice on matching AI CRM features to specific business requirements, reinforcing the commercial intent."
+        },
+        {
+          "heading": "FAQs About AI CRM Software",
+          "level": "H2",
+          "purpose": "To address common questions and concerns, providing additional informational value and building trust with the user."
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 626,
+      "inputTokenDetails": {
+        "noCacheTokens": 626,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 1585,
+      "outputTokenDetails": {
+        "textTokens": 483,
+        "reasoningTokens": 1102
+      },
+      "totalTokens": 2211,
+      "raw": {
+        "thoughtsTokenCount": 1102,
+        "promptTokenCount": 626,
+        "candidatesTokenCount": 483,
+        "totalTokenCount": 2211,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 626
+          }
+        ]
+      },
+      "reasoningTokens": 1102,
+      "cachedInputTokens": 0
+    }
+  }
+}

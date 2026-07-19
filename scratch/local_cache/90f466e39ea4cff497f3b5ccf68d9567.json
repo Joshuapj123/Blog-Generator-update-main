@@ -1,0 +1,207 @@
+{
+  "timestamp": "2026-07-15T13:48:59.694Z",
+  "data": {
+    "object": {
+      "headingFrequency": [
+        {
+          "heading": "What is an AI Email Assistant? / How it works",
+          "competitorRanks": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "heading": "Best AI Email Assistants / Comparison / List",
+          "competitorRanks": [
+            1,
+            3,
+            4,
+            6,
+            7
+          ]
+        },
+        {
+          "heading": "Individual AI Email Assistant Reviews/Features",
+          "competitorRanks": [
+            1,
+            3,
+            4,
+            6,
+            7
+          ]
+        },
+        {
+          "heading": "How to choose / Evaluate AI Email Assistants",
+          "competitorRanks": [
+            1,
+            3,
+            4,
+            6,
+            7
+          ]
+        },
+        {
+          "heading": "FAQ / Questions & Answers",
+          "competitorRanks": [
+            2,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "heading": "Benefits / Why use AI Email Assistants",
+          "competitorRanks": [
+            1,
+            5,
+            6
+          ]
+        },
+        {
+          "heading": "Types of AI Email Assistants",
+          "competitorRanks": [
+            1,
+            4,
+            7
+          ]
+        }
+      ],
+      "tableDetection": {
+        "recommendedTables": [
+          {
+            "name": "AI Email Assistant Comparison Table",
+            "type": "Comparison",
+            "columns": [
+              "Assistant Name",
+              "Key Features",
+              "Best For",
+              "Pricing Model",
+              "Integrations",
+              "Pros",
+              "Cons"
+            ],
+            "purpose": "To allow users to quickly compare features, pricing, and suitability of different AI email assistants at a glance, aiding their decision-making process."
+          }
+        ]
+      },
+      "paaClustered": [
+        {
+          "question": "How do AI email assistants work?",
+          "frequency": 7,
+          "snippet": "AI email assistants leverage natural language processing (NLP) and machine learning to understand, generate, and manage email content, often integrating with existing email clients."
+        },
+        {
+          "question": "What are the benefits of using an AI email assistant?",
+          "frequency": 6,
+          "snippet": "Benefits include increased productivity, faster email drafting, improved communication quality, better inbox organization, and time savings."
+        },
+        {
+          "question": "Are AI email assistants safe and private?",
+          "frequency": 5,
+          "snippet": "The safety and privacy of AI email assistants depend on the provider's data handling policies, encryption, and compliance with regulations like GDPR. It's crucial to choose reputable services."
+        },
+        {
+          "question": "What is the difference between an AI email assistant, writer, client, or agent?",
+          "frequency": 4,
+          "snippet": "An AI email writer focuses on drafting content, an assistant helps with various tasks, a client integrates AI directly into the email application, and an agent might perform more autonomous actions."
+        },
+        {
+          "question": "How much do AI email assistants cost, and are there free options?",
+          "frequency": 4,
+          "snippet": "Many AI email assistants offer free tiers with limited features, while premium versions typically involve monthly or annual subscriptions, varying widely by provider and feature set."
+        }
+      ],
+      "contentGapReport": {
+        "commonTopics": [
+          "Definition and Functionality of AI Email Assistants",
+          "Comparison and Listing of Best AI Email Assistants",
+          "Benefits and Reasons to Use AI Email Assistants",
+          "Criteria for Choosing an AI Email Assistant",
+          "Individual Reviews and Features of Specific Tools",
+          "Frequently Asked Questions about AI Email Assistants"
+        ],
+        "uniqueHeadings": [
+          "The Business Case: ROI, Statistics, and Pitfalls (Rank 1)",
+          "AI Email Client vs. AI Email Assistant vs. AI Email Agent (Rank 4)",
+          "How is AI actually changing team email management in 2026? (Rank 6)",
+          "The danger of siloed intelligence (Rank 1)",
+          "The future is contextualized (Rank 1)"
+        ],
+        "missingTopics": [
+          "Detailed integration capabilities with other productivity tools (CRM, project management)",
+          "Specific use cases and applications for different industries or roles (e.g., sales, customer support, marketing)",
+          "Ethical considerations, potential for bias, and over-reliance on AI in email communication",
+          "In-depth discussion on future trends and the evolution of AI in email beyond 2026",
+          "Guidance on customizing or 'training' AI email assistants for personalized results"
+        ],
+        "recommendedNewSections": [
+          {
+            "heading": "Advanced Use Cases for AI Email Assistants",
+            "level": "H2",
+            "reason": "Competitors primarily focus on listing tools and general benefits. A section on specific, advanced applications (e.g., sales outreach, customer support automation, internal communications, project management integration) would provide deeper value and differentiate the content.",
+            "suggestedOutline": "H3: Sales & Marketing Automation; H3: Enhanced Customer Support; H3: Streamlining Internal Communications; H3: Integrating with CRM and Project Management Tools"
+          },
+          {
+            "heading": "Ethical Considerations and Limitations of AI Email Assistants",
+            "level": "H2",
+            "reason": "While privacy is mentioned, a broader discussion on ethical implications (bias, over-reliance, human touch) and inherent limitations of current AI technology is largely missing and crucial for informed users.",
+            "suggestedOutline": "H3: Addressing AI Bias in Communication; H3: The Importance of Human Oversight; H3: Data Security Beyond Privacy; H3: Current Limitations and Future Outlook"
+          },
+          {
+            "heading": "Tips for Maximizing Your AI Email Assistant's Potential",
+            "level": "H2",
+            "reason": "Many users might adopt these tools without fully understanding how to get the best results. Providing actionable tips on prompting, customization, and workflow integration would be highly valuable.",
+            "suggestedOutline": "H3: Crafting Effective Prompts; H3: Customizing AI for Your Brand Voice; H3: Integrating AI into Your Daily Workflow; H3: Continuous Learning and Adaptation"
+          }
+        ],
+        "unansweredQuestions": [
+          "How do AI email assistants handle different languages and cultural nuances?",
+          "What are the best practices for using an AI email assistant effectively?",
+          "Can AI email assistants help with email organization beyond just writing?",
+          "What are the limitations of AI email assistants?",
+          "How do AI email assistants learn and adapt to my writing style?"
+        ],
+        "shouldIncludeFaq": true,
+        "faqQuestions": [
+          "How do AI email assistants work?",
+          "Are AI email assistants safe and private?",
+          "What is the difference between an AI email assistant, writer, client, or agent?",
+          "How much do AI email assistants cost, and are there free options?",
+          "Can AI email assistants replace a human assistant?"
+        ]
+      }
+    },
+    "usage": {
+      "inputTokens": 3650,
+      "inputTokenDetails": {
+        "noCacheTokens": 3650,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 5884,
+      "outputTokenDetails": {
+        "textTokens": 1617,
+        "reasoningTokens": 4267
+      },
+      "totalTokens": 9534,
+      "raw": {
+        "thoughtsTokenCount": 4267,
+        "promptTokenCount": 3650,
+        "candidatesTokenCount": 1617,
+        "totalTokenCount": 9534,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3650
+          }
+        ]
+      },
+      "reasoningTokens": 4267,
+      "cachedInputTokens": 0
+    }
+  }
+}

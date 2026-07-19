@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-06-26T14:47:13.025Z",
+  "data": {
+    "text": "## The AI CodeReviewer.\n\nAI agents that review and test pull requests with full context of the codebase.\n\n## How Greptile reviews every PR\n\nGreptile constructs a graph index of your codebase, then uses a swarm of agents to catch potential issues that humans might miss. It builds a graph of your repo, including files, functions, and dependencies. A swarm of parallel agents review changes, assess their impact beyond the diff, and flag issues.\n\n## Catch them all\n\nGreptile identifies issues ranging from style violations to security risks and multi-file logical bugs. Examples include:\n\n*   Unbalanced CUDA release wipes context\n*   Undefined method breaks every step()\n*   Mid-loop overflow leaves orphaned keys\n\n## Reviews that adapt to your team\n\nFrom custom rules to continuous learning, Greptile gets smarter about your codebase with every review.\n\n*   **Your house, your rules:** Write standards in plain English, point Greptile at repo-specific context, and enforce the patterns your team actually cares about on every PR.\n*   **We're getting to know each other:** Greptile learns your codebase and coding standards by reading your team's PR comments.\n\n## The Central Validation Layer.\n\nDesigned to work seamlessly with every coding agent, Greptile serves as the unified validation agent for all code changes.\n\n*   **Fix in your IDE:**\n    *   One-click send issue context to Claude Code, Cursor, Codex, or Devin.\n    *   Connect Greptile to any AI agent to share comment context.\n    *   Let Claude Code automatically read and resolve Greptile comments.\n    *   Let any coding agent iterate with Greptile until all issues are resolved.\n\n## Autonomously Test Every PR\n\nIntroducing TREX: Greptile Now Runs Your Code. TREX is a Greptile agent that writes and runs tests for every PR in a sandbox to catch bugs and missed edge cases.\n\n## Security-First Design\n\n*   **Enterprise Ready:** Built for enterprises across defense, healthcare, and financial services. Features include SSO, audit logs, and dedicated support.\n*   **Self-Hosted Deployment:** Host Greptile in your own air-gapped environment.\n*   **SOC 2 Compliance:** Independent audits, reports available on request.\n\n## See what our customers are saying\n\n“We've tried more code review tools than I can count. Greptile outperforms them all by a mile. Honestly the only AI reviewer that doesn't annoy the s**t out of me.”\n\n## FAQ\n\n*   **How does Greptile pricing work?**\n    $30/seat/month. 50 credits included per seat. 1 credit = 1 standard review. $1 per additional credit.\n*   **Can Greptile be self-hosted?**\n    Yes, you can self-host Greptile in your AWS environment and even use your own LLM providers for added flexibility.\n*   **Are there free trials or discounts available for Greptile?**\n    Greptile offers free usage for qualified open source projects and significant discounts for pre-Series A startups. Contact us to check your eligibility.\n*   **What programming languages does Greptile support?**\n    Greptile fully supports Python, JavaScript, TypeScript, Go, Elixir, Java, C, C++, C#, Swift, PHP, and Rust. Most other languages are supported with slightly lower response quality.\n*   **Is Greptile compatible with GitLab?**\n    Yes, Greptile integrates seamlessly with GitLab in addition to GitHub.\n*   **Can I use Greptile's API for my own product?**\n    Yes, we offer discounted bulk pricing for API use. Please contact us at support@greptile.com for more information.",
+    "usage": {
+      "inputTokens": 1057,
+      "inputTokenDetails": {
+        "noCacheTokens": 1057,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 4254,
+      "outputTokenDetails": {
+        "textTokens": 807,
+        "reasoningTokens": 3447
+      },
+      "totalTokens": 5311,
+      "raw": {
+        "thoughtsTokenCount": 3447,
+        "promptTokenCount": 1057,
+        "candidatesTokenCount": 807,
+        "totalTokenCount": 5311,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1057
+          }
+        ]
+      },
+      "reasoningTokens": 3447,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-06-25T00:21:59.268Z",
+  "data": {
+    "object": {
+      "hasFeaturedSnippet": true,
+      "snippetType": "definition",
+      "targetQuery": "AI contract review software",
+      "extractedSnippetText": "AI contract review software reads your contracts, spots risk, flags non-standard language, and recommends changes in a fraction of the time it would take to do it manually. These tools leverage artificial intelligence to transform the traditional, often manual, process of examining legal agreements, identifying risks, and suggesting improvements.",
+      "optimizedSnippetRecommendation": "AI contract review software utilizes artificial intelligence to automate and enhance the process of analyzing legal agreements. It rapidly identifies risks, flags non-standard clauses, extracts key data, and suggests revisions, significantly reducing manual review time and improving accuracy. This technology empowers legal and business teams to manage contracts more efficiently and mitigate potential liabilities.",
+      "generationDirectives": "Place this definition immediately under an H2 heading titled \"What is AI Contract Review Software?\". Ensure the definition is between 50-60 words. Bold key terms like \"artificial intelligence,\" \"automate,\" \"risks,\" and \"revisions\" for emphasis."
+    },
+    "usage": {
+      "inputTokens": 1477,
+      "inputTokenDetails": {
+        "noCacheTokens": 1477,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 995,
+      "outputTokenDetails": {
+        "textTokens": 235,
+        "reasoningTokens": 760
+      },
+      "totalTokens": 2472,
+      "raw": {
+        "thoughtsTokenCount": 760,
+        "promptTokenCount": 1477,
+        "candidatesTokenCount": 235,
+        "totalTokenCount": 2472,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1477
+          }
+        ]
+      },
+      "reasoningTokens": 760,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,263 @@
+{
+  "timestamp": "2026-06-25T00:21:11.788Z",
+  "data": {
+    "object": {
+      "keywords": [
+        {
+          "term": "AI contract review software",
+          "category": "basic"
+        },
+        {
+          "term": "AI contract review",
+          "category": "basic"
+        },
+        {
+          "term": "Legal AI contract review",
+          "category": "basic"
+        },
+        {
+          "term": "Contract review AI",
+          "category": "basic"
+        },
+        {
+          "term": "Best AI contract review software",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI contract review software buyer's guide",
+          "category": "supplementary"
+        },
+        {
+          "term": "How AI helps with contract review",
+          "category": "supplementary"
+        },
+        {
+          "term": "Challenges of using AI for contract review",
+          "category": "supplementary"
+        },
+        {
+          "term": "Pros and cons of AI contract review software",
+          "category": "supplementary"
+        },
+        {
+          "term": "Who uses contract review software",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI contract review software explained",
+          "category": "supplementary"
+        },
+        {
+          "term": "How AI contract review software works",
+          "category": "supplementary"
+        },
+        {
+          "term": "Faster contract turnaround",
+          "category": "supplementary"
+        },
+        {
+          "term": "Consistent risk management",
+          "category": "supplementary"
+        },
+        {
+          "term": "Spot issues and insights in contracts",
+          "category": "supplementary"
+        },
+        {
+          "term": "Issue spotting against playbooks",
+          "category": "supplementary"
+        },
+        {
+          "term": "Plain-English risk explanations",
+          "category": "supplementary"
+        },
+        {
+          "term": "Automated analysis with heatmaps",
+          "category": "supplementary"
+        },
+        {
+          "term": "Clause and document comparison",
+          "category": "supplementary"
+        },
+        {
+          "term": "Real-time collaboration and markup",
+          "category": "supplementary"
+        },
+        {
+          "term": "Automated drafting and amendment suggestions",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI-powered playbooks and clause libraries",
+          "category": "supplementary"
+        },
+        {
+          "term": "Extract key terms from contracts",
+          "category": "supplementary"
+        },
+        {
+          "term": "Flag deviations from approved positions",
+          "category": "supplementary"
+        },
+        {
+          "term": "Auto-redline third-party paper",
+          "category": "supplementary"
+        },
+        {
+          "term": "Automating legal workflow",
+          "category": "supplementary"
+        },
+        {
+          "term": "Artificial intelligence in contract management",
+          "category": "supplementary"
+        },
+        {
+          "term": "Contract review solutions",
+          "category": "supplementary"
+        },
+        {
+          "term": "Human oversight in AI contract review",
+          "category": "supplementary"
+        },
+        {
+          "term": "Dedicated AI contract review tool",
+          "category": "supplementary"
+        },
+        {
+          "term": "In-house legal teams",
+          "category": "supplementary"
+        },
+        {
+          "term": "Law firms using AI for contracts",
+          "category": "supplementary"
+        },
+        {
+          "term": "Business operations teams for contract review",
+          "category": "supplementary"
+        },
+        {
+          "term": "Finance teams for contract review",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI for legal work",
+          "category": "contextual"
+        },
+        {
+          "term": "Lawyer-trained AI",
+          "category": "contextual"
+        },
+        {
+          "term": "Latest LLMs in legal tech",
+          "category": "contextual"
+        },
+        {
+          "term": "Ethical implications of AI in legal",
+          "category": "contextual"
+        },
+        {
+          "term": "Contract playbook development",
+          "category": "contextual"
+        },
+        {
+          "term": "Common-law standards in AI review",
+          "category": "contextual"
+        }
+      ],
+      "clusters": [
+        {
+          "clusterName": "Understanding AI Contract Review",
+          "keywords": [
+            "AI contract review software",
+            "AI contract review",
+            "Legal AI contract review",
+            "Contract review AI",
+            "AI contract review software explained",
+            "How AI contract review software works",
+            "AI for legal work",
+            "Artificial intelligence in contract management",
+            "Dedicated AI contract review tool"
+          ]
+        },
+        {
+          "clusterName": "Benefits & Use Cases",
+          "keywords": [
+            "How AI helps with contract review",
+            "Faster contract turnaround",
+            "Consistent risk management",
+            "Who uses contract review software",
+            "In-house legal teams",
+            "Law firms using AI for contracts",
+            "Business operations teams for contract review",
+            "Finance teams for contract review",
+            "Automating legal workflow"
+          ]
+        },
+        {
+          "clusterName": "Features & Functionality",
+          "keywords": [
+            "Spot issues and insights in contracts",
+            "Issue spotting against playbooks",
+            "Plain-English risk explanations",
+            "Automated analysis with heatmaps",
+            "Clause and document comparison",
+            "Real-time collaboration and markup",
+            "Automated drafting and amendment suggestions",
+            "AI-powered playbooks and clause libraries",
+            "Extract key terms from contracts",
+            "Flag deviations from approved positions",
+            "Auto-redline third-party paper",
+            "Contract playbook development",
+            "Lawyer-trained AI",
+            "Latest LLMs in legal tech",
+            "Common-law standards in AI review"
+          ]
+        },
+        {
+          "clusterName": "Challenges & Considerations",
+          "keywords": [
+            "Challenges of using AI for contract review",
+            "Pros and cons of AI contract review software",
+            "Human oversight in AI contract review",
+            "Ethical implications of AI in legal"
+          ]
+        },
+        {
+          "clusterName": "Buying Guide & Best Tools",
+          "keywords": [
+            "Best AI contract review software",
+            "AI contract review software buyer's guide",
+            "Contract review solutions"
+          ]
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 1923,
+      "inputTokenDetails": {
+        "noCacheTokens": 1923,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 3663,
+      "outputTokenDetails": {
+        "textTokens": 1051,
+        "reasoningTokens": 2612
+      },
+      "totalTokens": 5586,
+      "raw": {
+        "thoughtsTokenCount": 2612,
+        "promptTokenCount": 1923,
+        "candidatesTokenCount": 1051,
+        "totalTokenCount": 5586,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1923
+          }
+        ]
+      },
+      "reasoningTokens": 2612,
+      "cachedInputTokens": 0
+    }
+  }
+}

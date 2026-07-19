@@ -1,0 +1,420 @@
+{
+  "timestamp": "2026-06-27T06:43:05.298Z",
+  "data": {
+    "object": {
+      "entities": [
+        {
+          "name": "Read AI",
+          "type": "brand"
+        },
+        {
+          "name": "Ada",
+          "type": "product"
+        },
+        {
+          "name": "Fireflies",
+          "type": "brand"
+        },
+        {
+          "name": "Krisp",
+          "type": "brand"
+        },
+        {
+          "name": "Fathom",
+          "type": "brand"
+        },
+        {
+          "name": "Fellow",
+          "type": "brand"
+        },
+        {
+          "name": "Granola",
+          "type": "brand"
+        },
+        {
+          "name": "Avoma",
+          "type": "brand"
+        },
+        {
+          "name": "tl;dv",
+          "type": "brand"
+        },
+        {
+          "name": "Otter",
+          "type": "brand"
+        },
+        {
+          "name": "MeetGeek",
+          "type": "brand"
+        },
+        {
+          "name": "My Notes",
+          "type": "product"
+        },
+        {
+          "name": "Zoom",
+          "type": "software"
+        },
+        {
+          "name": "Google Meet",
+          "type": "software"
+        },
+        {
+          "name": "Microsoft Teams",
+          "type": "software"
+        },
+        {
+          "name": "Aircall",
+          "type": "software"
+        },
+        {
+          "name": "AI meeting assistants",
+          "type": "concept"
+        },
+        {
+          "name": "Note-taking",
+          "type": "concept"
+        },
+        {
+          "name": "Transcription",
+          "type": "concept"
+        },
+        {
+          "name": "Summaries",
+          "type": "concept"
+        },
+        {
+          "name": "Action items",
+          "type": "concept"
+        },
+        {
+          "name": "Workflow management",
+          "type": "concept"
+        },
+        {
+          "name": "Collaboration",
+          "type": "concept"
+        },
+        {
+          "name": "Data privacy",
+          "type": "concept"
+        },
+        {
+          "name": "AI-powered search",
+          "type": "concept"
+        },
+        {
+          "name": "Audio quality",
+          "type": "concept"
+        },
+        {
+          "name": "Calendar integration",
+          "type": "concept"
+        },
+        {
+          "name": "Speaker Recognition",
+          "type": "concept"
+        },
+        {
+          "name": "AI Noise Cancellation",
+          "type": "concept"
+        },
+        {
+          "name": "Conversation analytics",
+          "type": "concept"
+        }
+      ],
+      "relationships": [
+        {
+          "source": "Read AI",
+          "target": "AI meeting assistants",
+          "type": "is a type of"
+        },
+        {
+          "source": "Read AI",
+          "target": "Summaries",
+          "type": "generates"
+        },
+        {
+          "source": "Read AI",
+          "target": "Ada",
+          "type": "integrates with"
+        },
+        {
+          "source": "Read AI",
+          "target": "Workflow management",
+          "type": "manages"
+        },
+        {
+          "source": "Read AI",
+          "target": "Data privacy",
+          "type": "prioritizes"
+        },
+        {
+          "source": "Ada",
+          "target": "AI meeting assistants",
+          "type": "is a type of"
+        },
+        {
+          "source": "AI meeting assistants",
+          "target": "Note-taking",
+          "type": "enables"
+        },
+        {
+          "source": "AI meeting assistants",
+          "target": "Transcription",
+          "type": "enables"
+        },
+        {
+          "source": "AI meeting assistants",
+          "target": "Summaries",
+          "type": "enables"
+        },
+        {
+          "source": "AI meeting assistants",
+          "target": "Action items",
+          "type": "enables"
+        },
+        {
+          "source": "AI meeting assistants",
+          "target": "Collaboration",
+          "type": "supports"
+        },
+        {
+          "source": "AI meeting assistants",
+          "target": "Zoom",
+          "type": "integrates with"
+        },
+        {
+          "source": "AI meeting assistants",
+          "target": "Google Meet",
+          "type": "integrates with"
+        },
+        {
+          "source": "AI meeting assistants",
+          "target": "Microsoft Teams",
+          "type": "integrates with"
+        },
+        {
+          "source": "AI meeting assistants",
+          "target": "Audio quality",
+          "type": "improves"
+        },
+        {
+          "source": "AI meeting assistants",
+          "target": "Data privacy",
+          "type": "supports"
+        },
+        {
+          "source": "Fireflies",
+          "target": "AI meeting assistants",
+          "type": "is a type of"
+        },
+        {
+          "source": "Fireflies",
+          "target": "Collaboration",
+          "type": "enables"
+        },
+        {
+          "source": "Fireflies",
+          "target": "Transcription",
+          "type": "provides"
+        },
+        {
+          "source": "Fireflies",
+          "target": "Summaries",
+          "type": "provides"
+        },
+        {
+          "source": "Fireflies",
+          "target": "Speaker Recognition",
+          "type": "features"
+        },
+        {
+          "source": "Fireflies",
+          "target": "Google Meet",
+          "type": "integrates with"
+        },
+        {
+          "source": "Fireflies",
+          "target": "Aircall",
+          "type": "integrates with"
+        },
+        {
+          "source": "Krisp",
+          "target": "AI meeting assistants",
+          "type": "is a type of"
+        },
+        {
+          "source": "Krisp",
+          "target": "Transcription",
+          "type": "provides"
+        },
+        {
+          "source": "Krisp",
+          "target": "Summaries",
+          "type": "provides"
+        },
+        {
+          "source": "Krisp",
+          "target": "Audio quality",
+          "type": "improves"
+        },
+        {
+          "source": "Krisp",
+          "target": "AI Noise Cancellation",
+          "type": "features"
+        },
+        {
+          "source": "Krisp",
+          "target": "Calendar integration",
+          "type": "integrates with"
+        },
+        {
+          "source": "Fathom",
+          "target": "AI meeting assistants",
+          "type": "is a type of"
+        },
+        {
+          "source": "Fathom",
+          "target": "Transcription",
+          "type": "provides"
+        },
+        {
+          "source": "Fathom",
+          "target": "Summaries",
+          "type": "provides"
+        },
+        {
+          "source": "Fellow",
+          "target": "AI meeting assistants",
+          "type": "is a type of"
+        },
+        {
+          "source": "Fellow",
+          "target": "Data privacy",
+          "type": "prioritizes"
+        },
+        {
+          "source": "Granola",
+          "target": "AI meeting assistants",
+          "type": "is a type of"
+        },
+        {
+          "source": "Avoma",
+          "target": "AI meeting assistants",
+          "type": "is a type of"
+        },
+        {
+          "source": "Avoma",
+          "target": "Conversation analytics",
+          "type": "provides"
+        },
+        {
+          "source": "Avoma",
+          "target": "Note-taking",
+          "type": "provides"
+        },
+        {
+          "source": "Avoma",
+          "target": "Transcription",
+          "type": "provides"
+        },
+        {
+          "source": "Avoma",
+          "target": "Action items",
+          "type": "generates"
+        },
+        {
+          "source": "tl;dv",
+          "target": "AI meeting assistants",
+          "type": "is a type of"
+        },
+        {
+          "source": "tl;dv",
+          "target": "AI-powered search",
+          "type": "supports"
+        },
+        {
+          "source": "Otter",
+          "target": "AI meeting assistants",
+          "type": "is a type of"
+        },
+        {
+          "source": "MeetGeek",
+          "target": "AI meeting assistants",
+          "type": "is a type of"
+        },
+        {
+          "source": "My Notes",
+          "target": "AI meeting assistants",
+          "type": "is a type of"
+        },
+        {
+          "source": "My Notes",
+          "target": "Transcription",
+          "type": "provides"
+        },
+        {
+          "source": "My Notes",
+          "target": "Summaries",
+          "type": "provides"
+        },
+        {
+          "source": "My Notes",
+          "target": "Action items",
+          "type": "generates"
+        },
+        {
+          "source": "My Notes",
+          "target": "Zoom",
+          "type": "integrates with"
+        },
+        {
+          "source": "My Notes",
+          "target": "Microsoft Teams",
+          "type": "integrates with"
+        },
+        {
+          "source": "My Notes",
+          "target": "Google Meet",
+          "type": "integrates with"
+        }
+      ],
+      "recommendedConnections": [
+        "AI meeting assistants -> CRM",
+        "AI meeting assistants -> Sales Pipeline",
+        "AI meeting assistants -> Project Management Software",
+        "AI meeting assistants -> Knowledge Management",
+        "AI meeting assistants -> Business Intelligence"
+      ]
+    },
+    "usage": {
+      "inputTokens": 2260,
+      "inputTokenDetails": {
+        "noCacheTokens": 2260,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 10334,
+      "outputTokenDetails": {
+        "textTokens": 2496,
+        "reasoningTokens": 7838
+      },
+      "totalTokens": 12594,
+      "raw": {
+        "thoughtsTokenCount": 7838,
+        "promptTokenCount": 2260,
+        "candidatesTokenCount": 2496,
+        "totalTokenCount": 12594,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2260
+          }
+        ]
+      },
+      "reasoningTokens": 7838,
+      "cachedInputTokens": 0
+    }
+  }
+}

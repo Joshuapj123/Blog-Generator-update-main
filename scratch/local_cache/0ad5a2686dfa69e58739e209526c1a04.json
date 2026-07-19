@@ -1,0 +1,241 @@
+{
+  "timestamp": "2026-06-27T15:52:17.367Z",
+  "data": {
+    "object": {
+      "headingFrequency": [
+        {
+          "heading": "Best AI Website Builders: Reviews & Comparison",
+          "competitorRanks": [
+            1,
+            2,
+            5,
+            6
+          ]
+        },
+        {
+          "heading": "Frequently Asked Questions (FAQ)",
+          "competitorRanks": [
+            1,
+            3,
+            4,
+            6
+          ]
+        },
+        {
+          "heading": "What is an AI Website Builder?",
+          "competitorRanks": [
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "heading": "How AI Website Builders Work & How to Use Them",
+          "competitorRanks": [
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "heading": "Comparison of AI Website Builders",
+          "competitorRanks": [
+            2,
+            5,
+            6
+          ]
+        },
+        {
+          "heading": "Key Features & What to Look For in an AI Website Builder",
+          "competitorRanks": [
+            1,
+            6
+          ]
+        },
+        {
+          "heading": "Benefits and Limitations of AI Website Builders",
+          "competitorRanks": [
+            3,
+            5
+          ]
+        },
+        {
+          "heading": "Customization Options with AI Website Builders",
+          "competitorRanks": [
+            1,
+            3,
+            4
+          ]
+        },
+        {
+          "heading": "How Long Does it Take to Build a Site with AI?",
+          "competitorRanks": [
+            1,
+            3
+          ]
+        },
+        {
+          "heading": "Free vs. Paid AI Website Builders",
+          "competitorRanks": [
+            1,
+            3
+          ]
+        }
+      ],
+      "tableDetection": {
+        "recommendedTables": [
+          {
+            "name": "Best AI Website Builders Comparison",
+            "type": "Comparison",
+            "columns": [
+              "Builder Name",
+              "Key Features",
+              "Pricing (Free/Paid)",
+              "Ease of Use",
+              "Best For",
+              "Rating"
+            ],
+            "purpose": "To allow users to quickly compare features, pricing, and suitability of different AI website builders at a glance."
+          }
+        ]
+      },
+      "paaClustered": [
+        {
+          "question": "Which is the best AI website builder?",
+          "frequency": 4,
+          "snippet": ""
+        },
+        {
+          "question": "What is an AI website builder?",
+          "frequency": 5,
+          "snippet": ""
+        },
+        {
+          "question": "How do AI website builders work and how do I use them?",
+          "frequency": 3,
+          "snippet": ""
+        },
+        {
+          "question": "Can I customize an AI-generated website?",
+          "frequency": 3,
+          "snippet": ""
+        },
+        {
+          "question": "What are the benefits and limitations of using AI website builders?",
+          "frequency": 2,
+          "snippet": ""
+        },
+        {
+          "question": "Can I create a website for free using an AI builder?",
+          "frequency": 2,
+          "snippet": ""
+        },
+        {
+          "question": "What types of websites can I build with AI?",
+          "frequency": 2,
+          "snippet": ""
+        }
+      ],
+      "contentGapReport": {
+        "commonTopics": [
+          "What is an AI Website Builder?",
+          "How AI Website Builders Work & How to Use Them",
+          "Best AI Website Builders: Reviews & Comparison",
+          "Comparison of AI Website Builders",
+          "Frequently Asked Questions (FAQ)"
+        ],
+        "uniqueHeadings": [
+          "Risk-Free and Affordable AI Website Builders",
+          "What We Look for in the Best Free AI Website Builders",
+          "How We Tested These AI Website Builders",
+          "Benefits and Limitations of AI Website Builders",
+          "Customization Options with AI Website Builders",
+          "SEO Optimization for AI-Built Websites"
+        ],
+        "missingTopics": [
+          "Target Audience/Use Cases (e.g., for e-commerce, small business, portfolio)",
+          "Detailed Pricing Models (beyond just free/paid, e.g., subscription tiers, hidden costs)",
+          "Integration capabilities (e.g., with marketing tools, analytics)",
+          "Scalability and Future Growth",
+          "Security aspects",
+          "Customer Support options"
+        ],
+        "recommendedNewSections": [
+          {
+            "heading": "How to Choose the Best AI Website Builder for Your Needs",
+            "level": "H2",
+            "reason": "Directly addresses the core user intent ('best AI website builder') and helps users navigate the many options. Competitors list builders but don't always provide a comprehensive guide on how to choose.",
+            "suggestedOutline": "Define your project goals (e-commerce, portfolio, blog, business site); Consider your budget (free vs. paid features); Evaluate ease of use and customization options; Look for specific features (SEO, integrations, e-commerce tools); Check for scalability and support."
+          },
+          {
+            "heading": "Key Features to Look for in an AI Website Builder",
+            "level": "H2",
+            "reason": "While some competitors mention features, a dedicated H2 to elaborate on essential features (AI capabilities, design flexibility, SEO tools, integrations, hosting) would be highly valuable and help users understand what makes a builder 'best'.",
+            "suggestedOutline": "AI Design & Content Generation; Customization & Template Options; SEO & Marketing Tools; E-commerce Functionality; Hosting & Domain Management; Integrations & Third-Party Apps."
+          },
+          {
+            "heading": "Pros and Cons of Using AI Website Builders",
+            "level": "H2",
+            "reason": "Competitor 5 has H3s for benefits/limitations, and Rank 3 has a FAQ on 'Why should I build with AI?'. A dedicated H2 section would provide a balanced view, helping users make an informed decision.",
+            "suggestedOutline": "Pros: Speed, Ease of Use, Cost-Effectiveness, Design Assistance; Cons: Limited Customization, AI Hallucinations/Errors, Dependence on Platform, Learning Curve."
+          },
+          {
+            "heading": "AI Website Builders for Specific Use Cases",
+            "level": "H2",
+            "reason": "Users often look for solutions tailored to their specific needs (e.g., 'best for small business,' 'best for e-commerce'). This section would categorize builders or features by common use cases.",
+            "suggestedOutline": "For Small Businesses & Startups; For E-commerce Stores; For Portfolios & Creative Professionals; For Blogs & Content Creators; For Personal Websites."
+          },
+          {
+            "heading": "Pricing Models: Free vs. Paid AI Website Builders",
+            "level": "H2",
+            "reason": "Competitor 1 focuses on 'free' and Rank 3 has a FAQ on 'free'. A dedicated section to discuss different pricing tiers, what's included in free plans, and when to upgrade would be very useful.",
+            "suggestedOutline": "Understanding Free Plans (limitations, ads, subdomains); Paid Subscription Tiers (basic, premium, business); Hidden Costs & Upsells; Value for Money: When to Invest."
+          }
+        ],
+        "unansweredQuestions": [
+          "Can AI website builders create content for my site?",
+          "Will my AI-built website be optimized for SEO?",
+          "Are AI website builders good for beginners?",
+          "What about hosting and domain for AI-built sites?"
+        ],
+        "shouldIncludeFaq": true,
+        "faqQuestions": [
+          "What is an AI website builder and how does it work?",
+          "Can I customize my AI-generated website?",
+          "Are AI website builders suitable for beginners?",
+          "Can I create a website for free using an AI builder?",
+          "Will my AI-built website be optimized for SEO?"
+        ]
+      }
+    },
+    "usage": {
+      "inputTokens": 2999,
+      "inputTokenDetails": {
+        "noCacheTokens": 2999,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 6589,
+      "outputTokenDetails": {
+        "textTokens": 1812,
+        "reasoningTokens": 4777
+      },
+      "totalTokens": 9588,
+      "raw": {
+        "thoughtsTokenCount": 4777,
+        "promptTokenCount": 2999,
+        "candidatesTokenCount": 1812,
+        "totalTokenCount": 9588,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2999
+          }
+        ]
+      },
+      "reasoningTokens": 4777,
+      "cachedInputTokens": 0
+    }
+  }
+}

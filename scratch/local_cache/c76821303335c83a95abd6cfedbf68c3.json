@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-07-06T16:11:19.720Z",
+  "data": {
+    "object": {
+      "hasFeaturedSnippet": true,
+      "snippetType": "list",
+      "targetQuery": "Best AI CRM software",
+      "extractedSnippetText": "Quick answer: What are the best AI CRMs? The best AI CRMs include Nutshell, HubSpot, Salesforce Einstein, Zoho CRM, and Pipedrive, which use artificial intelligence to automate tasks, predict sales outcomes, and provide intelligent recommendations. AI-powered CRMs can automatically log emails, score leads based on likelihood to convert, suggest next-best actions, and generate insights from your sales data. This helps sales teams work more efficiently by reducing manual data entry and making smarter, data-driven decisions.",
+      "optimizedSnippetRecommendation": "The best AI CRM software includes **HubSpot**, **Salesforce Einstein**, **Zoho CRM**, **Pipedrive**, and **Nutshell**. These platforms integrate artificial intelligence to automate tasks, predict sales outcomes, and provide intelligent recommendations. They streamline customer relationship management by reducing manual data entry, scoring leads, and offering data-driven insights, significantly boosting sales team efficiency.",
+      "generationDirectives": "Place this snippet immediately after the H1 title, under an H2 heading like 'Quick Answer: What are the Best AI CRM Software?' or 'Top AI CRM Software'. Format it as a concise paragraph, bolding the names of the CRM tools. Ensure the total word count is between 50-65 words for optimal snippet capture."
+    },
+    "usage": {
+      "inputTokens": 1012,
+      "inputTokenDetails": {
+        "noCacheTokens": 1012,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 1397,
+      "outputTokenDetails": {
+        "textTokens": 306,
+        "reasoningTokens": 1091
+      },
+      "totalTokens": 2409,
+      "raw": {
+        "thoughtsTokenCount": 1091,
+        "promptTokenCount": 1012,
+        "candidatesTokenCount": 306,
+        "totalTokenCount": 2409,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1012
+          }
+        ]
+      },
+      "reasoningTokens": 1091,
+      "cachedInputTokens": 0
+    }
+  }
+}

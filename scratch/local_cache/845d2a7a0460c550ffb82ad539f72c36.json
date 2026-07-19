@@ -1,0 +1,67 @@
+{
+  "timestamp": "2026-07-11T09:22:55.218Z",
+  "data": {
+    "object": {
+      "intent": "commercial",
+      "confidenceScore": 90,
+      "intentConfidence": {
+        "informational": 35,
+        "commercial": 45,
+        "transactional": 5,
+        "comparison": 15
+      },
+      "formatRecommendation": "A comprehensive Buyer's Guide or Listicle, potentially structured as a 'Best Of' list with detailed reviews and feature comparisons.",
+      "toneGuidelines": "Informative, authoritative, helpful, and objective, guiding users through the decision-making process for selecting the right software.",
+      "structureGuidelines": "Start with an introduction defining knowledge management software and its importance. Clearly categorize and explain key features. Present a curated list of top software options, highlighting pros, cons, key features, and ideal use cases for each. Include a section on how to choose the right software, and conclude with a summary and relevant calls to action.",
+      "recommendedOutlineSections": [
+        {
+          "heading": "Understanding Knowledge Management Software: Definition, Benefits, and Types",
+          "level": "H2",
+          "purpose": "To satisfy informational intent by providing foundational knowledge about KM software, its purpose, and its advantages."
+        },
+        {
+          "heading": "Essential Features to Look for in Knowledge Management Software",
+          "level": "H2",
+          "purpose": "To satisfy informational intent and support commercial intent by detailing critical functionalities that users should prioritize when evaluating solutions."
+        },
+        {
+          "heading": "The Best Knowledge Management Software of 2026: A Detailed Comparison",
+          "level": "H2",
+          "purpose": "To satisfy commercial and comparison intent by presenting a curated list of top tools, offering insights into their strengths and weaknesses."
+        },
+        {
+          "heading": "How to Choose the Right Knowledge Management Software for Your Business",
+          "level": "H2",
+          "purpose": "To satisfy commercial intent by providing practical guidance and criteria for users to make an informed purchasing decision."
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 826,
+      "inputTokenDetails": {
+        "noCacheTokens": 826,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 3212,
+      "outputTokenDetails": {
+        "textTokens": 374,
+        "reasoningTokens": 2838
+      },
+      "totalTokens": 4038,
+      "raw": {
+        "thoughtsTokenCount": 2838,
+        "promptTokenCount": 826,
+        "candidatesTokenCount": 374,
+        "totalTokenCount": 4038,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 826
+          }
+        ]
+      },
+      "reasoningTokens": 2838,
+      "cachedInputTokens": 0
+    }
+  }
+}

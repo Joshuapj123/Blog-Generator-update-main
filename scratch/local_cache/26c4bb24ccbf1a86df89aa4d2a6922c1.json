@@ -1,0 +1,78 @@
+{
+  "timestamp": "2026-07-15T14:12:08.148Z",
+  "data": {
+    "url": "https://www.mailbutler.io/smart-assistant/",
+    "title": "AI Email Assistant - Mailbutler’s Smart Assistant",
+    "wordCount": 577,
+    "h2Count": 7,
+    "headings": [
+      {
+        "tag": "h2",
+        "text": "Smart Compose"
+      },
+      {
+        "tag": "h2",
+        "text": "Tuning for customized results"
+      },
+      {
+        "tag": "h2",
+        "text": "Smart Improve"
+      },
+      {
+        "tag": "h3",
+        "text": "AI Email Assistant FAQs"
+      },
+      {
+        "tag": "h3",
+        "text": "What is the Mailbutler Smart Assistant?"
+      },
+      {
+        "tag": "h3",
+        "text": "How can I try out the Mailbutler Smart Assistant?"
+      },
+      {
+        "tag": "h3",
+        "text": "How does the Mailbutler Smart Assistant work?"
+      },
+      {
+        "tag": "h3",
+        "text": "Which AI does the Mailbutler Smart Assistant use?"
+      },
+      {
+        "tag": "h3",
+        "text": "Which email platforms does the Smart Assistant work with?"
+      },
+      {
+        "tag": "h3",
+        "text": "Is the Mailbutler Smart Assistant free to use?"
+      },
+      {
+        "tag": "h2",
+        "text": "Don’t worry about privacy. Mailbutler is 100% GDPR compliant."
+      },
+      {
+        "tag": "h3",
+        "text": "Maybe you heard about us from"
+      },
+      {
+        "tag": "h3",
+        "text": "It only takes 30 seconds to get started"
+      },
+      {
+        "tag": "h3",
+        "text": "It only takes 30 seconds to get started"
+      }
+    ],
+    "text": "Mailbutler presents its AI email assistant for Apple Mail, Gmail, and Outlook which uses the power of artificial intelligence to help you manage and work on your emails.\nSmart Compose\nNeed to write an email quickly? With Mailbutler’s AI email assistant, you can provide a few keywords, and the Smart Assistant will draft an email for you. Then, you can insert it into your compose window and make any edits you need to.\nSick of spending all your time responding to emails? Let Mailbutler do it for you! Simply click on the Reply button and the AI email assistant will generate a response for you. If you need to, instruct the AI assistant to consider specific information in the reply using the With details option.\nTuning for customized results\nDo you send different types of emails and need to adjust the tone of voice depending on the occasion? Use the tuning option to customize the format, length, style, tone, and language of the results that the AI assistant generates for you.\nMailbutler can instantly give you an overview of all pertinent details from an email. Simply click on the Summarize button, and Mailbutler’s email AI assistant will sum up the email for you so you know exactly what’s happening in your inbox at all times.\nSmart Improve\nGetting emails exactly right can be difficult. Thankfully, Mailbutler can help! Our AI mail assistant can improve the spelling and grammar of an email you have written. Simply click on the button and get suggestions on how to improve your message.\nWriting out lists of tasks from the emails you receive can be a bore – but no longer with Mailbutler’s Smart Assistant! Smart Assistant can scan your email and quickly give you a list of to-dos that need to be completed. You can then quickly add the relevant tasks to the Mailbutler Tasks feature, meaning you always have an overview of what needs to get done.\nAI Email Assistant FAQs\nWhat is the Mailbutler Smart Assistant?\nThe Mailbutler Smart Assistant is an AI email writer and assistant. It can compose and respond to emails, summarize long messages, find tasks in your messages, and improve your spelling and grammar, all in seconds.\nHow can I try out the Mailbutler Smart Assistant?\nYou can try out all of Mailbutler’s features, including the AI-powered Smart Assistant, in our 14-day free trial when you sign up for an account. After that, you’ll have to be on either our Smart or Business plan to continue using this feature.\nHow does the Mailbutler Smart Assistant work?\nThe Mailbutler Smart Assistant uses GPT-4o, an AI created by OpenAI. This is an artificial intelligence that ‘talks’ in a conversational way with the user. This is how we’re able to get the Smart Assistant to write comprehensible, accurate emails. Using it couldn’t be easier: in the Mailbutler Sidebar, in the Current and Draft tabs, you’ll see our little Smart Assistant button. When you have an email selected, simply click the button and tell the Smart Assistant what to do – respond, summarize, or find tasks. When you have the compose window open, click the Smart Assistant button and instruct the AI to compose an email from scratch or improve your draft. This helps you save time and effort.\nWhich AI does the Mailbutler Smart Assistant use?\nThe Mailbutler Smart Assistant uses GPT-4o which was created by OpenAI.\nWhich email platforms does the Smart Assistant work with?\nThe Mailbutler Smart Assistant works with the three most popular email clients: Apple Mail, Microsoft Outlook, and Gmail.\nIs the Mailbutler Smart Assistant free to use?\nYou can try out the AI email assistant and all the other Mailbutler features with our 14-day free trial. After that, you’ll have to subscribe to the Smart or Business plan to continue using the Smart Assistant.\nDon’t worry about privacy. Mailbutler is 100% GDPR compliant.\nWe take privacy seriously and never share your data with third parties. And because our servers are located in the EU, you can rest assured that your data is handled in line with the strictest privacy and security regulations.\nMaybe you heard about us from",
+    "hasTables": false,
+    "tableCount": 0,
+    "readabilitySuccess": true,
+    "fallbackUsed": false,
+    "fallbackType": "none",
+    "quality": "medium",
+    "qualityScore": 65,
+    "extractionConfidence": 100,
+    "weight": 0.28,
+    "paragraphCount": 15
+  }
+}

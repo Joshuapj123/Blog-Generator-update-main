@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-06-25T00:20:51.151Z",
+  "data": {
+    "text": "**Online contract review with AI**\n\nLegly is a simple-to-use AI integration that extracts metadata and facilitates contract organization, analysis, red-flag reports, and task assignments. It reads your contracts, extracts metadata, delivers red-flag reports, and assists you in setting actions.\n\n**Can I sign this?**\n\nLegly reviews business contracts in seconds, highlighting deal-breakers and missing clauses based on your preferences before you sign.\n\n**Review before signing**\n\nLegly highlights deal-breakers and missing clauses based on your preferences.\n\n**Analyze and follow up**\n\nFind exactly what you need with smart search and a visual overview of your contracts. Use the Legly dashboard to review, analyze, and organize your contracts.\n\n**Populate your system with KPIs**\n\nExtract metadata to populate your CLM, CRM, SRM, and other repositories. Get metadata for your local repository, platform, and dashboard.\n\n**Solutions**\n\nLegly equips law firms to deliver better and more attractive due diligence.\n\n*   Legal tech and service providers\n*   Law firms\n*   Enterprises\n*   Businesses\n\n**Available via**\n\nLegly is available via its online dashboard and APIs.\n\n**Legly Dashboard**\n\nUse the Legly dashboard to review, analyze, and organize your contracts. Get metadata and access to Legly dashboard.\n\n**Integrate with Legly**\n\nLegly offers a simple-to-use AI integration that extracts metadata and facilitates contract organization, analysis, red-flag reports, and task assignments.\n\n**Metadata**\n\nLegly extracts metadata to populate your CLM, CRM, SRM, and other repositories. Get metadata for your local repository, platform, and dashboard.",
+    "usage": {
+      "inputTokens": 528,
+      "inputTokenDetails": {
+        "noCacheTokens": 528,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 4958,
+      "outputTokenDetails": {
+        "textTokens": 352,
+        "reasoningTokens": 4606
+      },
+      "totalTokens": 5486,
+      "raw": {
+        "thoughtsTokenCount": 4606,
+        "promptTokenCount": 528,
+        "candidatesTokenCount": 352,
+        "totalTokenCount": 5486,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 528
+          }
+        ]
+      },
+      "reasoningTokens": 4606,
+      "cachedInputTokens": 0
+    }
+  }
+}

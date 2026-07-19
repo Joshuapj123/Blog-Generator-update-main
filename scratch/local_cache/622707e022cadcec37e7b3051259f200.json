@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-06-27T06:43:04.621Z",
+  "data": {
+    "object": {
+      "hasFeaturedSnippet": true,
+      "snippetType": "definition",
+      "targetQuery": "AI meeting assistant software",
+      "extractedSnippetText": "AI meeting assistants are tools designed to help you optimize the effectiveness of your meetings. They record calls, transcribe audio, and store it for later use. These AI features extract information, summarize transcripts, list key insights, and generate action items, allowing users to focus on the conversation rather than note-taking.",
+      "optimizedSnippetRecommendation": "AI meeting assistant software leverages artificial intelligence to automate various aspects of meeting management. These tools record, transcribe, and summarize discussions, identify key decisions, and extract action items. By handling administrative tasks like note-taking and follow-up generation, AI meeting assistants enable participants to engage more fully in conversations and improve overall meeting productivity.",
+      "generationDirectives": "Place this definition immediately under the main H1 or a prominent H2 like 'What is AI Meeting Assistant Software?'. Ensure the text is exactly 59 words. Bold key terms such as 'artificial intelligence', 'record, transcribe, and summarize', 'key decisions', 'action items', and 'meeting productivity' to enhance scannability and highlight core functions."
+    },
+    "usage": {
+      "inputTokens": 1842,
+      "inputTokenDetails": {
+        "noCacheTokens": 1842,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 966,
+      "outputTokenDetails": {
+        "textTokens": 257,
+        "reasoningTokens": 709
+      },
+      "totalTokens": 2808,
+      "raw": {
+        "thoughtsTokenCount": 709,
+        "promptTokenCount": 1842,
+        "candidatesTokenCount": 257,
+        "totalTokenCount": 2808,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1842
+          }
+        ]
+      },
+      "reasoningTokens": 709,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,332 @@
+{
+  "timestamp": "2026-07-05T11:32:53.057Z",
+  "data": {
+    "object": {
+      "entities": [
+        {
+          "name": "AI website builders",
+          "type": "concept"
+        },
+        {
+          "name": "Webflow",
+          "type": "brand"
+        },
+        {
+          "name": "Wix",
+          "type": "brand"
+        },
+        {
+          "name": "GoDaddy",
+          "type": "brand"
+        },
+        {
+          "name": "10Web",
+          "type": "brand"
+        },
+        {
+          "name": "Quillbot",
+          "type": "brand"
+        },
+        {
+          "name": "Renderforest",
+          "type": "brand"
+        },
+        {
+          "name": "SITE123",
+          "type": "brand"
+        },
+        {
+          "name": "Webador",
+          "type": "brand"
+        },
+        {
+          "name": "Design.com",
+          "type": "brand"
+        },
+        {
+          "name": "Wix ADI",
+          "type": "product"
+        },
+        {
+          "name": "Text Wizard",
+          "type": "software"
+        },
+        {
+          "name": "SEO",
+          "type": "concept"
+        },
+        {
+          "name": "Marketing",
+          "type": "concept"
+        },
+        {
+          "name": "Web development",
+          "type": "concept"
+        },
+        {
+          "name": "Landing pages",
+          "type": "concept"
+        },
+        {
+          "name": "Mobile-Responsive Design",
+          "type": "concept"
+        },
+        {
+          "name": "Hosting",
+          "type": "concept"
+        },
+        {
+          "name": "Domain",
+          "type": "concept"
+        },
+        {
+          "name": "Security",
+          "type": "concept"
+        },
+        {
+          "name": "Speed",
+          "type": "concept"
+        },
+        {
+          "name": "Customization",
+          "type": "concept"
+        },
+        {
+          "name": "AI Text Generation",
+          "type": "concept"
+        },
+        {
+          "name": "Google Analytics",
+          "type": "software"
+        },
+        {
+          "name": "Meta Pixel",
+          "type": "software"
+        },
+        {
+          "name": "Integrations",
+          "type": "concept"
+        },
+        {
+          "name": "Traditional website builders",
+          "type": "concept"
+        },
+        {
+          "name": "Coding knowledge",
+          "type": "concept"
+        },
+        {
+          "name": "Templates",
+          "type": "concept"
+        },
+        {
+          "name": "Business tools",
+          "type": "concept"
+        }
+      ],
+      "relationships": [
+        {
+          "source": "AI website builders",
+          "target": "Web development",
+          "type": "facilitates"
+        },
+        {
+          "source": "AI website builders",
+          "target": "Marketing",
+          "type": "supports"
+        },
+        {
+          "source": "AI website builders",
+          "target": "SEO",
+          "type": "optimizes for"
+        },
+        {
+          "source": "AI website builders",
+          "target": "Landing pages",
+          "type": "creates"
+        },
+        {
+          "source": "AI website builders",
+          "target": "Mobile-Responsive Design",
+          "type": "generates"
+        },
+        {
+          "source": "AI website builders",
+          "target": "Customization",
+          "type": "offers"
+        },
+        {
+          "source": "AI website builders",
+          "target": "AI Text Generation",
+          "type": "includes"
+        },
+        {
+          "source": "AI website builders",
+          "target": "Hosting",
+          "type": "provides"
+        },
+        {
+          "source": "AI website builders",
+          "target": "Domain",
+          "type": "connects to"
+        },
+        {
+          "source": "AI website builders",
+          "target": "Security",
+          "type": "ensures"
+        },
+        {
+          "source": "AI website builders",
+          "target": "Speed",
+          "type": "optimizes for"
+        },
+        {
+          "source": "AI website builders",
+          "target": "Integrations",
+          "type": "supports"
+        },
+        {
+          "source": "AI website builders",
+          "target": "Traditional website builders",
+          "type": "contrasts with"
+        },
+        {
+          "source": "AI website builders",
+          "target": "Coding knowledge",
+          "type": "eliminates need for"
+        },
+        {
+          "source": "AI website builders",
+          "target": "Templates",
+          "type": "evolves from"
+        },
+        {
+          "source": "Webflow",
+          "target": "Web development",
+          "type": "supports"
+        },
+        {
+          "source": "Wix",
+          "target": "AI website builders",
+          "type": "offers"
+        },
+        {
+          "source": "Wix ADI",
+          "target": "Wix",
+          "type": "is a product of"
+        },
+        {
+          "source": "Wix ADI",
+          "target": "AI website builders",
+          "type": "is a type of"
+        },
+        {
+          "source": "GoDaddy",
+          "target": "AI website builders",
+          "type": "offers"
+        },
+        {
+          "source": "10Web",
+          "target": "AI website builders",
+          "type": "is a type of"
+        },
+        {
+          "source": "Quillbot",
+          "target": "AI website builders",
+          "type": "offers"
+        },
+        {
+          "source": "Renderforest",
+          "target": "AI website builders",
+          "type": "offers"
+        },
+        {
+          "source": "SITE123",
+          "target": "AI website builders",
+          "type": "offers"
+        },
+        {
+          "source": "Webador",
+          "target": "AI website builders",
+          "type": "offers"
+        },
+        {
+          "source": "Design.com",
+          "target": "AI website builders",
+          "type": "offers"
+        },
+        {
+          "source": "Text Wizard",
+          "target": "Renderforest",
+          "type": "is a feature of"
+        },
+        {
+          "source": "Text Wizard",
+          "target": "AI Text Generation",
+          "type": "enables"
+        },
+        {
+          "source": "Google Analytics",
+          "target": "Integrations",
+          "type": "is an example of"
+        },
+        {
+          "source": "Meta Pixel",
+          "target": "Integrations",
+          "type": "is an example of"
+        },
+        {
+          "source": "AI Text Generation",
+          "target": "SEO",
+          "type": "improves"
+        },
+        {
+          "source": "AI Text Generation",
+          "target": "Marketing",
+          "type": "supports"
+        },
+        {
+          "source": "Business tools",
+          "target": "Integrations",
+          "type": "are connected via"
+        }
+      ],
+      "recommendedConnections": [
+        "AI Website Builders -> Business Tools",
+        "AI Website Builders -> User Experience (UX)",
+        "AI Website Builders -> Content Strategy",
+        "AI Website Builders -> Scalability",
+        "AI Website Builders -> Accessibility",
+        "AI Website Builders -> E-commerce",
+        "AI Website Builders -> Personalization"
+      ]
+    },
+    "usage": {
+      "inputTokens": 2306,
+      "inputTokenDetails": {
+        "noCacheTokens": 2306,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 6223,
+      "outputTokenDetails": {
+        "textTokens": 869,
+        "reasoningTokens": 5354
+      },
+      "totalTokens": 8529,
+      "raw": {
+        "thoughtsTokenCount": 5354,
+        "promptTokenCount": 2306,
+        "candidatesTokenCount": 869,
+        "totalTokenCount": 8529,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2306
+          }
+        ]
+      },
+      "reasoningTokens": 5354,
+      "cachedInputTokens": 0
+    }
+  }
+}

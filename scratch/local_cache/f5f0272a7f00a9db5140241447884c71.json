@@ -1,0 +1,62 @@
+{
+  "timestamp": "2026-06-25T00:24:40.892Z",
+  "data": {
+    "object": {
+      "heading": "How does AI contract review solutions work?",
+      "level": "H3",
+      "what_it_is": "AI contract review solutions operate by **leveraging Natural Language Processing (NLP)** to intelligently 'read' legal documents. It extracts key terms, obligations, and clauses, transforming unstructured text into structured data. **Machine Learning** algorithms then analyze this data, identifying risks and flagging non-standard language.",
+      "why_it_works": "This automation drastically improves efficiency, accuracy, and consistency in contract review.",
+      "experience_or_data_point": "Legal tech experts note that AI-driven contract analysis reduces the manual review burden by over 50%, enabling legal teams to reallocate significant hours from rote tasks to strategic advisory roles.",
+      "outbound_authority_link": {
+        "anchor_text": "reduces the manual review burden by over 50%",
+        "search_query": "AI contract review efficiency statistics legal"
+      },
+      "example_brands": [
+        "LegalOn: Leverages AI to provide instant redlining and risk analysis within Microsoft Word, helping lawyers quickly identify and amend problematic clauses.",
+        "LinkSquares: Employs AI to extract and categorize thousands of data points across contract portfolios, enabling proactive risk management and compliance tracking.",
+        "Evisort: Utilizes AI to automate the identification and extraction of critical information from legal documents, transforming unstructured data into actionable insights for legal and business operations."
+      ],
+      "copy_formula": [
+        "Open with how AI 'reads' documents, then explain the data transformation process, and conclude with the algorithmic analysis.",
+        "Describe the role of **Natural Language Processing** first, then pivot to how **Machine Learning** adds intelligence for risk identification.",
+        "Start with the problem of manual review, then introduce AI as the technological solution, detailing its core functionalities.",
+        "Explain the input (contracts), the process (NLP & ML), and the output (flagged risks, extracted data) in sequential order."
+      ],
+      "takeaway": "AI contract review solutions use advanced NLP and Machine Learning to automate document analysis, significantly boosting legal efficiency and accuracy.",
+      "rich_media_query": {
+        "type": "image",
+        "suggested_search_query": "AI contract review workflow explanation diagram",
+        "alt_text": "A workflow diagram illustrating how AI contract review software processes documents using NLP and Machine Learning to identify risks and extract data."
+      },
+      "markdown_table": ""
+    },
+    "usage": {
+      "inputTokens": 2615,
+      "inputTokenDetails": {
+        "noCacheTokens": 1482,
+        "cacheReadTokens": 1133
+      },
+      "outputTokens": 8068,
+      "outputTokenDetails": {
+        "textTokens": 550,
+        "reasoningTokens": 7518
+      },
+      "totalTokens": 10683,
+      "raw": {
+        "cachedContentTokenCount": 1133,
+        "thoughtsTokenCount": 7518,
+        "promptTokenCount": 2615,
+        "candidatesTokenCount": 550,
+        "totalTokenCount": 10683,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2615
+          }
+        ]
+      },
+      "reasoningTokens": 7518,
+      "cachedInputTokens": 1133
+    }
+  }
+}

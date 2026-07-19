@@ -1,0 +1,67 @@
+{
+  "timestamp": "2026-06-27T06:42:58.737Z",
+  "data": {
+    "object": {
+      "intent": "commercial",
+      "confidenceScore": 92,
+      "intentConfidence": {
+        "informational": 5,
+        "commercial": 50,
+        "transactional": 10,
+        "comparison": 35
+      },
+      "formatRecommendation": "A comprehensive 'Best Of' listicle or review guide comparing multiple AI meeting assistant software options.",
+      "toneGuidelines": "Authoritative, helpful, objective, and professional. Focus on providing clear, concise information to aid decision-making, while also highlighting benefits and features persuasively.",
+      "structureGuidelines": "Start with an introduction to the concept and benefits, followed by a quick comparison table of top choices. Dedicate detailed sections to each recommended software, covering features, pros, cons, pricing, and ideal use cases. Include a buying guide section and address common questions in an FAQ.",
+      "recommendedOutlineSections": [
+        {
+          "heading": "The Best AI Meeting Assistant Software of [Current Year]",
+          "level": "H2",
+          "purpose": "To immediately address the user's commercial intent by presenting the top-rated software options in a clear, accessible format."
+        },
+        {
+          "heading": "Key Features to Look for in an AI Meeting Assistant",
+          "level": "H2",
+          "purpose": "To educate users on critical functionalities and help them evaluate different software based on their specific needs, supporting their commercial decision-making."
+        },
+        {
+          "heading": "In-Depth Reviews: [Product 1], [Product 2], [Product 3], and More",
+          "level": "H2",
+          "purpose": "To provide detailed analysis and comparison of individual software, allowing users to understand the nuances of each option before making a choice."
+        },
+        {
+          "heading": "How to Choose the Right AI Meeting Assistant for Your Team",
+          "level": "H2",
+          "purpose": "To guide users through the selection process, offering practical advice and considerations to ensure they pick the best solution for their unique requirements."
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 932,
+      "inputTokenDetails": {
+        "noCacheTokens": 932,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 2143,
+      "outputTokenDetails": {
+        "textTokens": 469,
+        "reasoningTokens": 1674
+      },
+      "totalTokens": 3075,
+      "raw": {
+        "thoughtsTokenCount": 1674,
+        "promptTokenCount": 932,
+        "candidatesTokenCount": 469,
+        "totalTokenCount": 3075,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 932
+          }
+        ]
+      },
+      "reasoningTokens": 1674,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "timestamp": "2026-06-27T07:10:30.026Z",
+  "data": {
+    "object": {
+      "heading": "What are the main benefits of using an AI meeting assistant?",
+      "level": "H3",
+      "what_it_is": "An **AI meeting assistant** fundamentally optimizes your organizational **workflow** by automating critical administrative tasks. It delivers **real-time transcription**, generates **concise summaries**, and extracts **action items**, empowering participants to engage deeply in discussions, rather than manual note-taking. This fosters a highly productive and focused meeting environment where every detail is captured.",
+      "why_it_works": "These tools **boost team productivity** and **decision-making** by significantly reducing post-meeting administrative overhead. By centralizing insights and automating follow-ups, an **AI meeting assistant** streamlines the entire meeting lifecycle, enhancing **collaboration** across distributed teams. Seamless integration with platforms like Zoom, Google Meet, and CRM systems such as HubSpot and Salesforce further amplifies their value, ensuring data consistency and accessibility.",
+      "experience_or_data_point": "Independent studies show companies leveraging AI meeting assistants report a 25% increase in overall team **workflow** efficiency and faster decision cycles.",
+      "outbound_authority_link": {
+        "anchor_text": "25% increase in overall team workflow efficiency",
+        "search_query": "AI meeting assistant workflow efficiency study"
+      },
+      "example_brands": [
+        "Fireflies: Provides AI-powered meeting notes and transcriptions from Zoom, Google Meet, and Microsoft Teams, integrating with Slack for seamless sharing.",
+        "Otter: Offers live transcription and summaries for various meeting platforms, allowing users to search and share key takeaways effortlessly.",
+        "Fathom: Generates instant AI summaries, highlights, and action items directly from video calls, connecting seamlessly with CRM tools like Salesforce and HubSpot."
+      ],
+      "copy_formula": [
+        "Start with a pain point (e.g., 'Drowning in meeting notes?'), then introduce the AI assistant as the streamlined solution.",
+        "Present a core benefit (e.g., 'Boost team productivity instantly'), then elaborate on the underlying mechanism (e.g., 'by automating tedious follow-up tasks').",
+        "Highlight integration capabilities (e.g., 'Connects effortlessly with Zoom and your CRM') to emphasize workflow efficiency.",
+        "Frame the tool as a catalyst for better decisions (e.g., 'Transform conversations into actionable intelligence for rapid progress')."
+      ],
+      "takeaway": "AI meeting assistants transform passive meetings into actionable, efficient collaboration hubs by automating administrative burdens and enhancing focus.",
+      "rich_media_query": {
+        "type": "image",
+        "suggested_search_query": "infographic benefits of AI meeting assistant business productivity",
+        "alt_text": "Infographic illustrating the multifaceted benefits of AI meeting assistants for business productivity and streamlined workflows"
+      },
+      "markdown_table": ""
+    },
+    "usage": {
+      "inputTokens": 2313,
+      "inputTokenDetails": {
+        "noCacheTokens": 2313,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 8747,
+      "outputTokenDetails": {
+        "textTokens": 626,
+        "reasoningTokens": 8121
+      },
+      "totalTokens": 11060,
+      "raw": {
+        "thoughtsTokenCount": 8121,
+        "promptTokenCount": 2313,
+        "candidatesTokenCount": 626,
+        "totalTokenCount": 11060,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2313
+          }
+        ]
+      },
+      "reasoningTokens": 8121,
+      "cachedInputTokens": 0
+    }
+  }
+}

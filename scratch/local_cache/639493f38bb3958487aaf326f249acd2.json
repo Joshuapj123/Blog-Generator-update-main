@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-07-11T09:22:51.500Z",
+  "data": {
+    "object": {
+      "hasFeaturedSnippet": true,
+      "snippetType": "definition",
+      "targetQuery": "knowledge management software",
+      "extractedSnippetText": "Knowledge management software (KM software) is a subset of content management software, which consists of software that specializes in the way information is collected, stored and/or accessed. It helps a company capture, organize, and share its collective knowledge to improve decision-making, innovation, and overall performance.",
+      "optimizedSnippetRecommendation": "Knowledge management software (KM software) is a digital system designed to help organizations capture, store, organize, and share information and expertise efficiently. It centralizes company knowledge, making it easily accessible for employees, improving decision-making, fostering collaboration, and enhancing overall operational efficiency and customer support. KM software transforms raw data into actionable insights.",
+      "generationDirectives": "Place this definition immediately under an H2 titled 'What is Knowledge Management Software?' at the beginning of the article. Ensure the text is exactly as provided and consider bolding key terms like 'capture, store, organize, and share information' and 'actionable insights' for emphasis. Maintain the 50-60 word count."
+    },
+    "usage": {
+      "inputTokens": 1433,
+      "inputTokenDetails": {
+        "noCacheTokens": 1433,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 1142,
+      "outputTokenDetails": {
+        "textTokens": 250,
+        "reasoningTokens": 892
+      },
+      "totalTokens": 2575,
+      "raw": {
+        "thoughtsTokenCount": 892,
+        "promptTokenCount": 1433,
+        "candidatesTokenCount": 250,
+        "totalTokenCount": 2575,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1433
+          }
+        ]
+      },
+      "reasoningTokens": 892,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "timestamp": "2026-06-25T00:21:52.808Z",
+  "data": {
+    "object": {
+      "intent": "commercial",
+      "confidenceScore": 88,
+      "intentConfidence": {
+        "informational": 35,
+        "commercial": 50,
+        "transactional": 10,
+        "comparison": 5
+      },
+      "formatRecommendation": "A comprehensive Buyer's Guide or a Listicle Review (e.g., 'Top X AI Contract Review Software') that includes an overview of the technology, key features, benefits, and a detailed comparison/review of leading software solutions.",
+      "toneGuidelines": "Authoritative, professional, helpful, and solution-oriented. The content should educate the reader while guiding them towards making an informed purchasing decision.",
+      "structureGuidelines": "A logical flow starting with an introduction to the technology, followed by a detailed explanation of its functionality and benefits, criteria for selection, and then a review or comparison of specific products. Use clear headings (H2 for main sections, H3 for sub-sections) and include calls to action for demos or trials.",
+      "recommendedOutlineSections": [
+        {
+          "heading": "What is AI Contract Review Software and Why Do You Need It?",
+          "level": "H2",
+          "purpose": "To provide a foundational understanding of the technology and its core value proposition, satisfying informational intent."
+        },
+        {
+          "heading": "Key Features and Benefits of AI-Powered Contract Review",
+          "level": "H2",
+          "purpose": "To detail the functionalities and advantages of these tools, addressing both informational and commercial aspects by highlighting what to look for."
+        },
+        {
+          "heading": "How to Choose the Best AI Contract Review Software for Your Needs",
+          "level": "H2",
+          "purpose": "To guide users through the selection process, covering critical evaluation criteria and directly supporting commercial intent."
+        },
+        {
+          "heading": "Top AI Contract Review Software Solutions: A Detailed Comparison",
+          "level": "H2",
+          "purpose": "To present and compare leading products in the market, directly fulfilling commercial and comparison intent, and moving users closer to a transactional decision."
+        },
+        {
+          "heading": "Implementing AI Contract Review: Getting Started and Best Practices",
+          "level": "H2",
+          "purpose": "To provide practical advice for adoption and maximize value, supporting transactional intent and offering further informational value."
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 813,
+      "inputTokenDetails": {
+        "noCacheTokens": 813,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 2787,
+      "outputTokenDetails": {
+        "textTokens": 536,
+        "reasoningTokens": 2251
+      },
+      "totalTokens": 3600,
+      "raw": {
+        "thoughtsTokenCount": 2251,
+        "promptTokenCount": 813,
+        "candidatesTokenCount": 536,
+        "totalTokenCount": 3600,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 813
+          }
+        ]
+      },
+      "reasoningTokens": 2251,
+      "cachedInputTokens": 0
+    }
+  }
+}

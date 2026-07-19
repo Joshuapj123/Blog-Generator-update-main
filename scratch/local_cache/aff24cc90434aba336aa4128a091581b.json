@@ -1,0 +1,61 @@
+{
+  "timestamp": "2026-06-27T07:10:18.418Z",
+  "data": {
+    "object": {
+      "heading": "AI Meeting Assistant Pricing: What to Expect",
+      "level": "H2",
+      "what_it_is": "Navigating **AI meeting assistant** pricing involves assessing common models that cater to diverse user needs and budgets. Here's what to check when evaluating costs:\n*   [ ] **Freemium Models:** Many platforms, like **Otter.ai** or **Fathom**, offer free basic transcription and summaries, ideal for individuals or small teams on platforms such as **Zoom** or **Google Meet**.\n*   [ ] **Per-User Licensing:** Tools such as **Avoma** or **Fellow** often charge per user, unlocking advanced features including **sentiment analysis** and **CRM** integrations with platforms like **Salesforce** or **HubSpot**.\n*   [ ] **Tiered Subscriptions:** Most providers, including **Fireflies.ai** and **tl;dv**, structure plans (Basic, Pro, Business) to progressively add features like custom vocabulary, advanced analytics, or **Zapier** integration, vital for a **detailed pricing comparison (beyond just 'free')**.",
+      "why_it_works": "The diverse pricing models for an **AI meeting assistant** ecosystem are strategically aligned with varied value propositions, ensuring businesses find solutions offering clear ROI and **enhanced workflow productivity**. This flexibility is key: consider a small startup needing basic transcription for weekly team meetings versus a large enterprise requiring advanced analytics, **CRM integrations**, and multi-language support for global conferences. The startup might opt for a freemium tier, focusing on cost efficiency, while the enterprise would likely invest in a premium, per-user license with custom features. This highlights the divergent value propositions across different pricing models tailored to specific operational scales, allowing platforms like **Granola** or **MeetGeek** to scale with demand. Ultimately, cost directly correlates with tangible benefits, **streamlining collaboration** and improving **decision making**.",
+      "experience_or_data_point": "According to a recent report by SaaS Capital on emerging market trends, 'AI-driven platforms are increasingly adopting value-based pricing strategies, moving beyond simple per-user or per-feature models. Customers are willing to pay more for solutions that demonstrate clear, quantifiable ROI in terms of time saved, improved decision-making, and enhanced productivity in meeting management.' This underscores that value, not just features, drives purchasing decisions.",
+      "outbound_authority_link": {
+        "anchor_text": "value-based pricing strategies",
+        "search_query": "SaaS value-based pricing report"
+      },
+      "example_brands": [
+        "Fireflies.ai: Offers a free plan for basic transcriptions, then tiers like Pro and Business, with advanced features such as topic tracking and direct integration with CRM platforms like Salesforce for sales teams.",
+        "Otter.ai: Provides a free basic plan with limited monthly transcription minutes, while its Business and Enterprise plans offer unlimited transcription, live captions, and robust team collaboration features.",
+        "Fathom: Is notably free for individual users, providing instant summaries and highlights directly integrated with Zoom and Google Meet, and offers paid team plans for shared knowledge bases and advanced analytics."
+      ],
+      "copy_formula": [
+        "Start by identifying the primary meeting challenge, then present a specific pricing tier as the most cost-effective solution.",
+        "Outline a premium feature, then explain how its value proposition directly justifies a higher per-user or enterprise cost.",
+        "Frame the freemium offering as a risk-free entry point, emphasizing how basic features immediately solve a common pain point.",
+        "Compare two different pricing models side-by-side, detailing which organizational scale benefits most from each."
+      ],
+      "takeaway": "Having navigated the intricacies of AI meeting assistant pricing, let's now delve into the practical considerations for selecting the right solution for your specific organizational needs.",
+      "rich_media_query": {
+        "type": "image",
+        "suggested_search_query": "AI meeting assistant pricing models comparison chart",
+        "alt_text": "Comparison chart of common AI meeting assistant pricing models including freemium, per-user, and tiered subscriptions."
+      },
+      "markdown_table": "| AI Meeting Assistant | Free Tier Capabilities | Key Paid Features | Typical Pricing Model |\n|----------------------|------------------------|-------------------|-----------------------|\n| Fireflies.ai         | Limited transcription, basic summaries | Unlimited transcription, CRM integration (Salesforce, HubSpot), custom vocabulary, sentiment analysis | Freemium, then Pro ($10/user/mo), Business ($19/user/mo), Enterprise |\n| Otter.ai             | 30 min/meeting, 3 meetings/month, limited storage | Unlimited transcription, custom vocabulary, speaker identification, Zoom/Teams integration, admin controls | Freemium, then Pro ($8.33/user/mo), Business ($20/user/mo) |\n| Fathom               | Unlimited recording, instant summaries, highlights for individuals | Team templates, shared highlights, advanced analytics, HubSpot integration, central admin | Free (individual), then Team Plans (custom pricing) |\n| tl;dv                | Unlimited recordings, basic summaries, timestamps | Searchable library, CRM integration, advanced editing, collaborative highlights, Zapier | Free (limited features), then Pro ($20/user/mo), Enterprise (custom pricing) |"
+    },
+    "usage": {
+      "inputTokens": 2639,
+      "inputTokenDetails": {
+        "noCacheTokens": 2639,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 5923,
+      "outputTokenDetails": {
+        "textTokens": 1154,
+        "reasoningTokens": 4769
+      },
+      "totalTokens": 8562,
+      "raw": {
+        "thoughtsTokenCount": 4769,
+        "promptTokenCount": 2639,
+        "candidatesTokenCount": 1154,
+        "totalTokenCount": 8562,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2639
+          }
+        ]
+      },
+      "reasoningTokens": 4769,
+      "cachedInputTokens": 0
+    }
+  }
+}

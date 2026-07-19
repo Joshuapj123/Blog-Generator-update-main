@@ -1,0 +1,146 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@plugin "@tailwindcss/typography";
+
+@theme inline {
+  /* Dynamic Palette */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-sand: var(--sand);
+  
+  /* Feature Colors (Configurable) */
+  --color-preserved-blue: var(--preserved-blue);
+  --color-preserved-orange: var(--preserved-orange);
+  --color-success-green: var(--success-green);
+  --color-warning-amber: var(--warning-amber);
+  --color-error-red: var(--error-red);
+  --color-weak-violet: var(--weak-violet);
+
+  /* Typography */
+  --font-sans: var(--font-dm-sans);
+  --font-serif: var(--font-fraunces);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-fraunces);
+
+  /* Precise Hierarchy */
+  --text-title: 30px;
+  --text-section: 15px;
+  --text-description: 13px;
+  --text-input: 13.5px;
+
+  /* Radii (14-16px) */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: var(--radius); /* 14px */
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+}
+
+:root {
+  /* ─────────────────────────────────────────────────────────────────────────
+   * SURFACE COLOUR — change these 4 values to retheme the entire UI at once.
+   * Current: light violet  |  Alternatives: cream (#f8f8f6 / #fdfbf7 / #e8e4db)
+   * ───────────────────────────────────────────────────────────────────────── */
+  --background: #f5f3ff;   /* page canvas           — violet-50           */
+  --card:       #faf9ff;   /* card / panel surface  — near-white violet    */
+  --popover:    #faf9ff;   /* popover surface       — matches card         */
+  --sand:       #ede9fe;   /* toggle track bg       — violet-100           */
+  --color-indigo-50: #ede9fe; /* subtle accent bg   — violet-100           */
+  /* ───────────────────────────────────────────────────────────────────────── */
+
+  /* Text */
+  --foreground: #0f172a;
+  --card-foreground: #0f172a;
+  --popover-foreground: #0f172a;
+
+  /* Primary Action (Navy) */
+  --primary: #0f172a;
+  --primary-foreground: #ffffff;
+
+  /* Preserved Heritage Colors */
+  --preserved-blue: #0284c7;
+  --preserved-orange: #f97316;
+
+  /* Analysis / Detector Colors */
+  --success-green: #10b981;
+  --warning-amber: #f59e0b;
+  --error-red: #ef4444;
+  --weak-violet: #8b5cf6;
+
+  /* Gradients */
+  --premium-blue-gradient: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+  --premium-orange-gradient: linear-gradient(135deg, #f97316 0%, #ef4444 100%);
+
+  /* UI Infrastructure */
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #0f172a;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #0f172a;
+
+  --radius: 14px; /* Softer 14-16px core corner radii */
+
+}
+
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50 font-light;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); opacity: 0; }
+  50%  { opacity: 1; }
+  100% { transform: translateX(400%); opacity: 0; }
+}
+
+.animate-shimmer {
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+.bg-premium-blue {
+  background: var(--premium-blue-gradient);
+}
+
+.bg-premium-orange {
+  background: var(--premium-orange-gradient);
+}
+/* Weak Copy Highlights */
+.weak-highlight {
+  background-color: var(--color-indigo-50);
+  border-bottom: 2px solid var(--color-weak-violet);
+  color: var(--color-weak-violet);
+  font-weight: 500;
+  border-radius: 2px;
+  padding: 0 2px;
+  transition: all 0.2s ease;
+}
+
+.weak-highlight:hover {
+  background-color: var(--color-weak-violet);
+  color: #ffffff;
+  cursor: help;
+}

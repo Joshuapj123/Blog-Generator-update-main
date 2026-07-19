@@ -1,0 +1,210 @@
+{
+  "timestamp": "2026-07-11T08:50:38.289Z",
+  "data": {
+    "object": {
+      "headingFrequency": [
+        {
+          "heading": "Best AI Meeting Assistant Tools",
+          "competitorRanks": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "heading": "What to Look for in an AI Meeting Assistant / How to Choose",
+          "competitorRanks": [
+            1,
+            2,
+            4,
+            5
+          ]
+        },
+        {
+          "heading": "Frequently Asked Questions",
+          "competitorRanks": [
+            1,
+            2,
+            6
+          ]
+        },
+        {
+          "heading": "Individual AI Meeting Assistant Reviews",
+          "competitorRanks": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "heading": "Do I Need an AI Meeting Assistant?",
+          "competitorRanks": [
+            3,
+            4
+          ]
+        },
+        {
+          "heading": "What is an AI Meeting Assistant?",
+          "competitorRanks": [
+            4
+          ]
+        },
+        {
+          "heading": "AI Meeting Assistant Features and Benefits",
+          "competitorRanks": [
+            6
+          ]
+        },
+        {
+          "heading": "AI Meeting Assistant for Specific Needs (e.g., collaboration, audio, privacy)",
+          "competitorRanks": [
+            3,
+            4
+          ]
+        }
+      ],
+      "tableDetection": {
+        "recommendedTables": [
+          {
+            "name": "AI Meeting Assistant Comparison Table",
+            "type": "Comparison",
+            "columns": [
+              "Tool Name",
+              "Best For",
+              "Key Features",
+              "Pricing / Free Plan",
+              "Integrations",
+              "Limitations"
+            ],
+            "purpose": "To allow users to quickly compare different AI meeting assistant software based on key criteria, features, and pricing."
+          }
+        ]
+      },
+      "paaClustered": [
+        {
+          "question": "What is the difference between an AI meeting assistant and an AI notetaker?",
+          "frequency": 2
+        },
+        {
+          "question": "Which AI meeting assistant offers the best free plan?",
+          "frequency": 3
+        },
+        {
+          "question": "Are AI meeting notes secure and private?",
+          "frequency": 2
+        },
+        {
+          "question": "What platforms do AI meeting assistants integrate with (e.g., Zoom, Google Meet, Microsoft Teams)?",
+          "frequency": 1
+        },
+        {
+          "question": "How to choose the best AI meeting assistant for my team?",
+          "frequency": 4
+        },
+        {
+          "question": "Can an AI meeting assistant help my sales team close more deals?",
+          "frequency": 1
+        }
+      ],
+      "contentGapReport": {
+        "commonTopics": [
+          "Lists of 'Best AI Meeting Assistants'",
+          "Criteria for 'What to Look For' / 'How to Choose' an AI meeting assistant",
+          "Individual AI meeting assistant tool descriptions and reviews",
+          "Frequently Asked Questions (FAQs)",
+          "Definition of an AI Meeting Assistant"
+        ],
+        "uniqueHeadings": [
+          "Key Takeaways",
+          "How we evaluated these AI meeting assistants",
+          "Why AI meeting assistants matter more in 2026",
+          "Best AI meeting assistant for collaboration and topic tracking",
+          "Best AI meeting assistant for improving audio quality",
+          "Best AI meeting assistant for data privacy and security",
+          "Best AI meeting assistant for inclusive meetings",
+          "Who is Krisp AI Meeting Assistant for?"
+        ],
+        "missingTopics": [
+          "Detailed pricing comparison across different tools, including free vs. paid features and ROI",
+          "In-depth analysis of integration ecosystems beyond common meeting platforms (e.g., CRM, project management tools)",
+          "Ethical considerations, data ownership, and user consent for AI in meetings",
+          "Potential challenges, limitations, and common pitfalls when implementing AI meeting assistants",
+          "Future trends and predictions for the evolution of AI meeting assistant technology",
+          "Practical implementation guides or 'getting started' steps for businesses"
+        ],
+        "recommendedNewSections": [
+          {
+            "heading": "Detailed Comparison Table of Top AI Meeting Assistants",
+            "level": "H2",
+            "reason": "Only one competitor includes a table, yet a comparison table is highly valuable for users evaluating 'best' software. It allows for quick, at-a-glance comparison of features, pricing, and use cases.",
+            "suggestedOutline": "Tool Name | Best For | Key Features | Pricing / Free Tier | Integrations | Limitations"
+          },
+          {
+            "heading": "Beyond Transcripts: Advanced Features to Look For",
+            "level": "H2",
+            "reason": "While competitors list features within individual tool reviews, a consolidated section on advanced capabilities (e.g., sentiment analysis, action item detection, custom summaries) provides deeper value and helps users understand the full potential.",
+            "suggestedOutline": "Sentiment Analysis and Emotion Detection; Automated Action Item & Follow-up Generation; Customizable Summary Formats; CRM and Project Management Integrations; Speaker Identification and Voice Biometrics"
+          },
+          {
+            "heading": "Data Privacy, Security, and Ethical Considerations",
+            "level": "H2",
+            "reason": "Security is a common concern, but a broader discussion on data privacy, compliance (GDPR, HIPAA), and ethical use of AI in sensitive conversations is a significant gap that builds trust and authority.",
+            "suggestedOutline": "Understanding Data Encryption and Storage; Compliance Standards (GDPR, HIPAA, etc.); Consent and Notification Best Practices; Bias and Fairness in AI Transcription; Data Ownership and Usage Policies"
+          },
+          {
+            "heading": "Who Benefits Most? Key Use Cases for AI Meeting Assistants",
+            "level": "H2",
+            "reason": "While some FAQs mention sales, a dedicated section exploring how different roles or industries (e.g., sales, marketing, HR, project management) can leverage these tools would be highly beneficial for diverse audiences.",
+            "suggestedOutline": "For Sales Teams: Improving Follow-ups and Coaching; For Marketing Teams: Capturing Customer Insights; For Project Managers: Streamlining Meeting Minutes and Action Items; For HR and Recruiting: Documenting Interviews and Feedback; For Education: Enhancing Virtual Learning"
+          }
+        ],
+        "unansweredQuestions": [
+          "What are the ethical implications of using AI in meetings?",
+          "How do AI meeting assistants handle different languages or accents?",
+          "Can AI meeting assistants be customized for specific industry jargon?",
+          "What are the common pitfalls or challenges when implementing an AI meeting assistant?",
+          "How do AI meeting assistants ensure data compliance (e.g., GDPR, HIPAA)?"
+        ],
+        "shouldIncludeFaq": true,
+        "faqQuestions": [
+          "What is the difference between an AI meeting assistant and an AI notetaker?",
+          "Which AI meeting assistant offers the best free plan?",
+          "Are AI meeting notes secure and private?",
+          "What platforms do AI meeting assistants integrate with?",
+          "How do I choose the right AI meeting assistant for my team?"
+        ]
+      }
+    },
+    "usage": {
+      "inputTokens": 3698,
+      "inputTokenDetails": {
+        "noCacheTokens": 3698,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 6316,
+      "outputTokenDetails": {
+        "textTokens": 1625,
+        "reasoningTokens": 4691
+      },
+      "totalTokens": 10014,
+      "raw": {
+        "thoughtsTokenCount": 4691,
+        "promptTokenCount": 3698,
+        "candidatesTokenCount": 1625,
+        "totalTokenCount": 10014,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3698
+          }
+        ]
+      },
+      "reasoningTokens": 4691,
+      "cachedInputTokens": 0
+    }
+  }
+}

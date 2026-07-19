@@ -1,0 +1,67 @@
+{
+  "timestamp": "2026-06-27T15:19:30.847Z",
+  "data": {
+    "object": {
+      "intent": "commercial",
+      "confidenceScore": 95,
+      "intentConfidence": {
+        "informational": 10,
+        "commercial": 60,
+        "transactional": 0,
+        "comparison": 30
+      },
+      "formatRecommendation": "Listicle or Comprehensive Review Guide comparing multiple password manager software.",
+      "toneGuidelines": "Objective, authoritative, helpful, and trustworthy. Focus on providing unbiased recommendations and detailed analysis to assist users in making an informed purchase decision.",
+      "structureGuidelines": "The content should begin with an introduction defining password managers and their importance. This should be followed by a main section presenting a curated list of top password manager software, with each product receiving a dedicated subsection detailing its features, pros, cons, pricing, and ideal user. Include a section on key factors to consider when choosing a password manager and conclude with a summary and final recommendation.",
+      "recommendedOutlineSections": [
+        {
+          "heading": "What is a Password Manager and Why Do You Need One?",
+          "level": "H2",
+          "purpose": "To provide foundational information and establish the importance of password managers, addressing the informational aspect of the user's query and setting context."
+        },
+        {
+          "heading": "Top Password Managers Reviewed",
+          "level": "H2",
+          "purpose": "To present the main recommendations and detailed analysis of each product (e.g., LastPass, Dashlane, Bitwarden), directly addressing the commercial and comparison intent by offering options and their breakdowns."
+        },
+        {
+          "heading": "How to Choose the Best Password Manager for Your Needs",
+          "level": "H2",
+          "purpose": "To guide users through the selection process by outlining key factors and considerations, enhancing the commercial and comparison aspects and empowering an informed decision."
+        },
+        {
+          "heading": "Conclusion: Our Top Recommendation",
+          "level": "H2",
+          "purpose": "To summarize the findings, provide a final recommendation, and offer a clear path forward for the user, reinforcing the commercial intent."
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 395,
+      "inputTokenDetails": {
+        "noCacheTokens": 395,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 2066,
+      "outputTokenDetails": {
+        "textTokens": 472,
+        "reasoningTokens": 1594
+      },
+      "totalTokens": 2461,
+      "raw": {
+        "thoughtsTokenCount": 1594,
+        "promptTokenCount": 395,
+        "candidatesTokenCount": 472,
+        "totalTokenCount": 2461,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 395
+          }
+        ]
+      },
+      "reasoningTokens": 1594,
+      "cachedInputTokens": 0
+    }
+  }
+}

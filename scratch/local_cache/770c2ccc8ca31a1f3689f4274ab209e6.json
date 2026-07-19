@@ -1,0 +1,407 @@
+{
+  "timestamp": "2026-07-11T08:49:44.451Z",
+  "data": {
+    "object": {
+      "entities": [
+        {
+          "name": "AI Meeting Assistant",
+          "type": "software"
+        },
+        {
+          "name": "AI Notetaker",
+          "type": "software"
+        },
+        {
+          "name": "CRM",
+          "type": "software"
+        },
+        {
+          "name": "Transcription Tool",
+          "type": "software"
+        },
+        {
+          "name": "Collaboration Apps",
+          "type": "software"
+        },
+        {
+          "name": "Calendar",
+          "type": "software"
+        },
+        {
+          "name": "Zoom",
+          "type": "software"
+        },
+        {
+          "name": "Google Meet",
+          "type": "software"
+        },
+        {
+          "name": "Microsoft Teams",
+          "type": "software"
+        },
+        {
+          "name": "Generative AI",
+          "type": "concept"
+        },
+        {
+          "name": "Natural Language Processing",
+          "type": "concept"
+        },
+        {
+          "name": "Speech Recognition",
+          "type": "concept"
+        },
+        {
+          "name": "Fireflies.ai",
+          "type": "brand"
+        },
+        {
+          "name": "Fathom",
+          "type": "brand"
+        },
+        {
+          "name": "Read AI",
+          "type": "brand"
+        },
+        {
+          "name": "Avoma",
+          "type": "brand"
+        },
+        {
+          "name": "Otter",
+          "type": "brand"
+        },
+        {
+          "name": "tl;dv",
+          "type": "brand"
+        },
+        {
+          "name": "Krisp",
+          "type": "brand"
+        },
+        {
+          "name": "Granola",
+          "type": "brand"
+        },
+        {
+          "name": "Action Items",
+          "type": "concept"
+        },
+        {
+          "name": "Meeting Summaries",
+          "type": "concept"
+        },
+        {
+          "name": "Meeting Agendas",
+          "type": "concept"
+        },
+        {
+          "name": "Follow-up Tasks",
+          "type": "concept"
+        },
+        {
+          "name": "Team Collaboration",
+          "type": "concept"
+        },
+        {
+          "name": "Data Privacy",
+          "type": "concept"
+        },
+        {
+          "name": "Sales-driven Teams",
+          "type": "concept"
+        },
+        {
+          "name": "Meeting Workflow",
+          "type": "concept"
+        },
+        {
+          "name": "AI-generated Notes",
+          "type": "concept"
+        },
+        {
+          "name": "Team Alignment",
+          "type": "concept"
+        }
+      ],
+      "relationships": [
+        {
+          "source": "AI Meeting Assistant",
+          "target": "Meeting Summaries",
+          "type": "generates"
+        },
+        {
+          "source": "AI Meeting Assistant",
+          "target": "AI-generated Notes",
+          "type": "generates"
+        },
+        {
+          "source": "AI Meeting Assistant",
+          "target": "Action Items",
+          "type": "extracts"
+        },
+        {
+          "source": "AI Meeting Assistant",
+          "target": "Follow-up Tasks",
+          "type": "creates"
+        },
+        {
+          "source": "AI Meeting Assistant",
+          "target": "Meeting Agendas",
+          "type": "helps prepare"
+        },
+        {
+          "source": "AI Meeting Assistant",
+          "target": "Team Collaboration",
+          "type": "enhances"
+        },
+        {
+          "source": "AI Meeting Assistant",
+          "target": "CRM",
+          "type": "integrates with"
+        },
+        {
+          "source": "AI Meeting Assistant",
+          "target": "Zoom",
+          "type": "integrates with"
+        },
+        {
+          "source": "AI Meeting Assistant",
+          "target": "Google Meet",
+          "type": "integrates with"
+        },
+        {
+          "source": "AI Meeting Assistant",
+          "target": "Microsoft Teams",
+          "type": "integrates with"
+        },
+        {
+          "source": "AI Meeting Assistant",
+          "target": "Calendar",
+          "type": "integrates with"
+        },
+        {
+          "source": "AI Meeting Assistant",
+          "target": "Generative AI",
+          "type": "uses"
+        },
+        {
+          "source": "AI Meeting Assistant",
+          "target": "Natural Language Processing",
+          "type": "uses"
+        },
+        {
+          "source": "AI Meeting Assistant",
+          "target": "Speech Recognition",
+          "type": "uses"
+        },
+        {
+          "source": "AI Meeting Assistant",
+          "target": "Sales-driven Teams",
+          "type": "supports"
+        },
+        {
+          "source": "AI Meeting Assistant",
+          "target": "Team Alignment",
+          "type": "improves"
+        },
+        {
+          "source": "AI Meeting Assistant",
+          "target": "Transcription Tool",
+          "type": "includes"
+        },
+        {
+          "source": "AI Meeting Assistant",
+          "target": "Meeting Workflow",
+          "type": "optimizes"
+        },
+        {
+          "source": "AI Notetaker",
+          "target": "AI Meeting Assistant",
+          "type": "is a type of"
+        },
+        {
+          "source": "AI Notetaker",
+          "target": "AI-generated Notes",
+          "type": "provides"
+        },
+        {
+          "source": "AI Notetaker",
+          "target": "Meeting Summaries",
+          "type": "provides"
+        },
+        {
+          "source": "CRM",
+          "target": "Sales-driven Teams",
+          "type": "supports"
+        },
+        {
+          "source": "CRM",
+          "target": "AI-generated Notes",
+          "type": "receives"
+        },
+        {
+          "source": "CRM",
+          "target": "Action Items",
+          "type": "receives"
+        },
+        {
+          "source": "Transcription Tool",
+          "target": "Speech Recognition",
+          "type": "uses"
+        },
+        {
+          "source": "Collaboration Apps",
+          "target": "Team Collaboration",
+          "type": "facilitates"
+        },
+        {
+          "source": "Collaboration Apps",
+          "target": "Zoom",
+          "type": "hosts"
+        },
+        {
+          "source": "Collaboration Apps",
+          "target": "Google Meet",
+          "type": "hosts"
+        },
+        {
+          "source": "Collaboration Apps",
+          "target": "Microsoft Teams",
+          "type": "hosts"
+        },
+        {
+          "source": "Calendar",
+          "target": "Meeting Agendas",
+          "type": "manages"
+        },
+        {
+          "source": "Generative AI",
+          "target": "AI Meeting Assistant",
+          "type": "powers"
+        },
+        {
+          "source": "Natural Language Processing",
+          "target": "AI Meeting Assistant",
+          "type": "powers"
+        },
+        {
+          "source": "Speech Recognition",
+          "target": "AI Meeting Assistant",
+          "type": "powers"
+        },
+        {
+          "source": "Fireflies.ai",
+          "target": "AI Meeting Assistant",
+          "type": "is a"
+        },
+        {
+          "source": "Fireflies.ai",
+          "target": "CRM",
+          "type": "offers sync with"
+        },
+        {
+          "source": "Fathom",
+          "target": "AI Meeting Assistant",
+          "type": "is a"
+        },
+        {
+          "source": "Fathom",
+          "target": "CRM",
+          "type": "offers sync with"
+        },
+        {
+          "source": "Read AI",
+          "target": "AI Meeting Assistant",
+          "type": "is a"
+        },
+        {
+          "source": "Read AI",
+          "target": "CRM",
+          "type": "offers automated entry to"
+        },
+        {
+          "source": "Avoma",
+          "target": "AI Meeting Assistant",
+          "type": "is a"
+        },
+        {
+          "source": "Otter",
+          "target": "AI Meeting Assistant",
+          "type": "is a"
+        },
+        {
+          "source": "tl;dv",
+          "target": "AI Meeting Assistant",
+          "type": "is a"
+        },
+        {
+          "source": "Krisp",
+          "target": "AI Meeting Assistant",
+          "type": "is a"
+        },
+        {
+          "source": "Granola",
+          "target": "AI Meeting Assistant",
+          "type": "is a"
+        },
+        {
+          "source": "Action Items",
+          "target": "Team Alignment",
+          "type": "improves"
+        },
+        {
+          "source": "Meeting Summaries",
+          "target": "Team Alignment",
+          "type": "improves"
+        },
+        {
+          "source": "AI-generated Notes",
+          "target": "Team Alignment",
+          "type": "improves"
+        },
+        {
+          "source": "Sales-driven Teams",
+          "target": "Meeting Workflow",
+          "type": "benefits from optimized"
+        }
+      ],
+      "recommendedConnections": [
+        "AI Meeting Assistant -> Sales Pipeline",
+        "AI Meeting Assistant -> Productivity",
+        "AI Meeting Assistant -> Remote Work",
+        "AI Meeting Assistant -> Data Security",
+        "AI Meeting Assistant -> Time Management",
+        "AI Meeting Assistant -> Decision Making",
+        "AI Meeting Assistant -> Customer Experience"
+      ]
+    },
+    "usage": {
+      "inputTokens": 2225,
+      "inputTokenDetails": {
+        "noCacheTokens": 2225,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 6772,
+      "outputTokenDetails": {
+        "textTokens": 2442,
+        "reasoningTokens": 4330
+      },
+      "totalTokens": 8997,
+      "raw": {
+        "thoughtsTokenCount": 4330,
+        "promptTokenCount": 2225,
+        "candidatesTokenCount": 2442,
+        "totalTokenCount": 8997,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2225
+          }
+        ]
+      },
+      "reasoningTokens": 4330,
+      "cachedInputTokens": 0
+    }
+  }
+}

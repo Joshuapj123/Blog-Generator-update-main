@@ -1,0 +1,268 @@
+{
+  "timestamp": "2026-07-05T11:32:20.850Z",
+  "data": {
+    "object": {
+      "keywords": [
+        {
+          "term": "best AI website builder",
+          "category": "basic"
+        },
+        {
+          "term": "AI website builder",
+          "category": "basic"
+        },
+        {
+          "term": "AI website builders",
+          "category": "basic"
+        },
+        {
+          "term": "free AI website builder",
+          "category": "basic"
+        },
+        {
+          "term": "AI website builder comparison",
+          "category": "basic"
+        },
+        {
+          "term": "popular AI website builders",
+          "category": "basic"
+        },
+        {
+          "term": "AI website builder tools",
+          "category": "basic"
+        },
+        {
+          "term": "create a website with AI",
+          "category": "basic"
+        },
+        {
+          "term": "AI website design",
+          "category": "basic"
+        },
+        {
+          "term": "AI site builder",
+          "category": "basic"
+        },
+        {
+          "term": "AI website generator",
+          "category": "basic"
+        },
+        {
+          "term": "no code AI website builder",
+          "category": "basic"
+        },
+        {
+          "term": "best free AI website builders",
+          "category": "supplementary"
+        },
+        {
+          "term": "how does an AI website builder work",
+          "category": "supplementary"
+        },
+        {
+          "term": "benefits of using an AI website builder",
+          "category": "supplementary"
+        },
+        {
+          "term": "limitations of AI website builders",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI website builder for small business",
+          "category": "supplementary"
+        },
+        {
+          "term": "create a professional site with AI",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI website builder for beginners",
+          "category": "supplementary"
+        },
+        {
+          "term": "launch your dream site with AI",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI website builder with free trial",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI website builder create web pages",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI website builder in minutes",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI website builder for global audiences",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI web design",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI-powered website creation",
+          "category": "supplementary"
+        },
+        {
+          "term": "build website with AI",
+          "category": "supplementary"
+        },
+        {
+          "term": "responsive AI website",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI website features",
+          "category": "supplementary"
+        },
+        {
+          "term": "website creation tools AI",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI-generated website",
+          "category": "supplementary"
+        },
+        {
+          "term": "customize AI website",
+          "category": "supplementary"
+        },
+        {
+          "term": "Wix ADI",
+          "category": "contextual"
+        },
+        {
+          "term": "10Web AI",
+          "category": "contextual"
+        },
+        {
+          "term": "Framer AI",
+          "category": "contextual"
+        },
+        {
+          "term": "Quillbot AI website builder",
+          "category": "contextual"
+        },
+        {
+          "term": "Renderforest AI website builder",
+          "category": "contextual"
+        },
+        {
+          "term": "landing page generator AI",
+          "category": "contextual"
+        },
+        {
+          "term": "mobile-responsive design AI",
+          "category": "contextual"
+        },
+        {
+          "term": "AI text generation for websites",
+          "category": "contextual"
+        },
+        {
+          "term": "website hosting AI builder",
+          "category": "contextual"
+        },
+        {
+          "term": "Google Analytics integration AI",
+          "category": "contextual"
+        }
+      ],
+      "clusters": [
+        {
+          "clusterName": "AI Website Builder Fundamentals",
+          "keywords": [
+            "best AI website builder",
+            "AI website builder",
+            "AI website builders",
+            "how does an AI website builder work",
+            "benefits of using an AI website builder",
+            "limitations of AI website builders",
+            "AI web design",
+            "AI-powered website creation",
+            "build website with AI",
+            "AI website design"
+          ]
+        },
+        {
+          "clusterName": "Top AI Website Builder Platforms",
+          "keywords": [
+            "free AI website builder",
+            "AI website builder comparison",
+            "popular AI website builders",
+            "best free AI website builders",
+            "AI website builder with free trial",
+            "Wix ADI",
+            "10Web AI",
+            "Framer AI",
+            "Quillbot AI website builder",
+            "Renderforest AI website builder",
+            "AI site builder"
+          ]
+        },
+        {
+          "clusterName": "Features & Capabilities",
+          "keywords": [
+            "AI website builder tools",
+            "create a website with AI",
+            "AI website generator",
+            "no code AI website builder",
+            "responsive AI website",
+            "AI website features",
+            "website creation tools AI",
+            "AI-generated website",
+            "customize AI website",
+            "landing page generator AI",
+            "mobile-responsive design AI",
+            "AI text generation for websites",
+            "website hosting AI builder",
+            "Google Analytics integration AI",
+            "AI website builder in minutes"
+          ]
+        },
+        {
+          "clusterName": "Use Cases & Target Audience",
+          "keywords": [
+            "AI website builder for small business",
+            "create a professional site with AI",
+            "AI website builder for beginners",
+            "launch your dream site with AI",
+            "AI website builder create web pages",
+            "AI website builder for global audiences"
+          ]
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 2450,
+      "inputTokenDetails": {
+        "noCacheTokens": 2450,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 5688,
+      "outputTokenDetails": {
+        "textTokens": 1588,
+        "reasoningTokens": 4100
+      },
+      "totalTokens": 8138,
+      "raw": {
+        "thoughtsTokenCount": 4100,
+        "promptTokenCount": 2450,
+        "candidatesTokenCount": 1588,
+        "totalTokenCount": 8138,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2450
+          }
+        ]
+      },
+      "reasoningTokens": 4100,
+      "cachedInputTokens": 0
+    }
+  }
+}

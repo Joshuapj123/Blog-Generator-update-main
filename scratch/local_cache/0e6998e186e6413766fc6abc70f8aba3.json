@@ -1,0 +1,262 @@
+{
+  "timestamp": "2026-06-26T14:51:03.429Z",
+  "data": {
+    "object": {
+      "headingFrequency": [
+        {
+          "heading": "AI Code Review Tools Overview",
+          "competitorRanks": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "heading": "Individual AI Code Review Tool Reviews",
+          "competitorRanks": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "heading": "What is AI Code Review?",
+          "competitorRanks": [
+            2
+          ]
+        },
+        {
+          "heading": "Why is AI Code Review Important?",
+          "competitorRanks": [
+            2
+          ]
+        },
+        {
+          "heading": "How AI Code Review Works",
+          "competitorRanks": [
+            2
+          ]
+        },
+        {
+          "heading": "Benefits of AI Code Review",
+          "competitorRanks": [
+            2
+          ]
+        },
+        {
+          "heading": "Challenges of AI Code Review",
+          "competitorRanks": [
+            2
+          ]
+        },
+        {
+          "heading": "How to Get Started with AI Code Review",
+          "competitorRanks": [
+            2
+          ]
+        },
+        {
+          "heading": "Comparison of AI Code Review Tools",
+          "competitorRanks": [
+            1,
+            3
+          ]
+        },
+        {
+          "heading": "FAQ about AI Code Review",
+          "competitorRanks": [
+            3
+          ]
+        },
+        {
+          "heading": "Conclusion",
+          "competitorRanks": [
+            1
+          ]
+        },
+        {
+          "heading": "Deployment Models for AI Code Review Tools",
+          "competitorRanks": [
+            3
+          ]
+        },
+        {
+          "heading": "Methodology for Testing AI Code Review Tools",
+          "competitorRanks": [
+            3
+          ]
+        },
+        {
+          "heading": "Decision Framework for Choosing AI Code Review Tools",
+          "competitorRanks": [
+            3
+          ]
+        }
+      ],
+      "tableDetection": {
+        "recommendedTables": [
+          {
+            "name": "AI Code Review Tools Comparison Table",
+            "type": "Comparison",
+            "columns": [
+              "Tool Name",
+              "Key Features",
+              "Setup/Integration",
+              "Security Review",
+              "Context Alignment",
+              "Modularity/Design",
+              "Pros",
+              "Cons",
+              "Pricing Model",
+              "Verdict/Rating"
+            ],
+            "purpose": "To allow users to quickly compare features, pros, cons, and pricing of various AI code review tools side-by-side, aiding in their decision-making process."
+          }
+        ]
+      },
+      "paaClustered": [
+        {
+          "question": "What is AI Code Review?",
+          "frequency": 1,
+          "snippet": "AI code review is the process of using artificial intelligence and machine learning algorithms to analyze source code for potential errors, vulnerabilities, and quality issues, providing automated feedback and suggestions to developers."
+        },
+        {
+          "question": "Why is AI Code Review important?",
+          "frequency": 1,
+          "snippet": "AI code review is important for improving code quality, accelerating development cycles, reducing human error, enhancing security, and freeing up developer time for more complex tasks."
+        },
+        {
+          "question": "How does AI Code Review work?",
+          "frequency": 1,
+          "snippet": "AI code review typically works by training models on vast datasets of code, understanding code semantics, analyzing new code against learned patterns, generating suggestions, and adapting to user feedback to refine its recommendations."
+        },
+        {
+          "question": "What are the benefits of AI Code Review?",
+          "frequency": 1,
+          "snippet": "Benefits include better error detection, improved code consistency, increased efficiency, and enhanced developer productivity by automating repetitive review tasks."
+        },
+        {
+          "question": "What are the challenges of AI Code Review?",
+          "frequency": 1,
+          "snippet": "Challenges include dealing with false positives and negatives, limitations in understanding complex context, and the risk of overreliance on AI, potentially leading to overlooked critical issues."
+        },
+        {
+          "question": "How to get started with AI Code Review?",
+          "frequency": 1,
+          "snippet": "To get started, evaluate your team's needs, research available tools, consider deployment models (self-hosted vs. SaaS), integrate with your existing workflow, and gradually adopt the tool while providing feedback."
+        },
+        {
+          "question": "Which AI code review tool is best for specific teams or use cases?",
+          "frequency": 1,
+          "snippet": "The best tool depends on factors like team size, tech stack, deployment preferences (open-source, self-hosted, cloud), budget, and specific requirements like GitHub integration or monorepo support."
+        },
+        {
+          "question": "What are the cost implications of AI code review tools?",
+          "frequency": 1,
+          "snippet": "Costs vary widely, from free open-source options to subscription-based SaaS models and enterprise licenses, often depending on usage, features, and support levels."
+        },
+        {
+          "question": "Can AI code review tools run offline or be self-hosted?",
+          "frequency": 1,
+          "snippet": "Yes, some open-source and enterprise AI code review tools offer self-hosting options, allowing them to run within your infrastructure without sending code to external APIs, which can be crucial for security and compliance."
+        },
+        {
+          "question": "Do AI code review tools work well on large codebases or monorepos?",
+          "frequency": 1,
+          "snippet": "The effectiveness on large codebases or monorepos varies by tool; some are specifically designed and tested for such environments, offering scalable analysis and efficient reporting."
+        }
+      ],
+      "contentGapReport": {
+        "commonTopics": [
+          "Definition of AI Code Review",
+          "Importance and Benefits of AI Code Review",
+          "How AI Code Review Works",
+          "Challenges of AI Code Review",
+          "List and Review of AI Code Review Tools",
+          "Comparison of AI Code Review Tools"
+        ],
+        "uniqueHeadings": [
+          "Self-Hosted vs. GitHub Action vs. Cloud SaaS: Pick Your Deployment Model First",
+          "How These Tools Were Tested",
+          "Decision Framework: Choosing the Right Tool",
+          "Prerequisites",
+          "Setting up your test environment"
+        ],
+        "missingTopics": [
+          "Detailed Pricing and Cost Comparison (beyond individual tool mentions)",
+          "Integration with existing developer workflows (CI/CD, IDEs, specific version control systems)",
+          "Customization and Configurability of AI tools (e.g., tailoring rules, models)",
+          "Future Trends and Outlook for AI in Code Review",
+          "Data Privacy and Security implications of using cloud-based AI code review tools"
+        ],
+        "recommendedNewSections": [
+          {
+            "heading": "Choosing the Best AI Code Review Tool: A Decision Framework",
+            "level": "H2",
+            "reason": "This directly addresses user intent for tool selection, leveraging insights from competitor 3's unique value, and helps users navigate the complex landscape of options.",
+            "suggestedOutline": "Factors to consider (deployment model, pricing, integration, language support, customization, security), use cases (small teams, enterprises, open-source projects), and a step-by-step guide to evaluation."
+          },
+          {
+            "heading": "Integration of AI Code Review Tools into Your Development Workflow",
+            "level": "H2",
+            "reason": "Addresses a critical practical concern for developers and a significant missing topic across most competitors, focusing on real-world implementation.",
+            "suggestedOutline": "Integrating with CI/CD pipelines, IDE extensions, version control systems (GitHub, GitLab, Bitbucket), automated vs. manual review processes, and best practices for seamless adoption."
+          },
+          {
+            "heading": "Pricing Models and Cost Considerations for AI Code Review",
+            "level": "H2",
+            "reason": "Crucial information for decision-making that is currently scattered or lacks a dedicated, comprehensive focus. Users need to understand the financial implications.",
+            "suggestedOutline": "Overview of free/open-source options, SaaS subscription models, enterprise pricing, factors influencing cost (usage, features, support), and calculating ROI."
+          },
+          {
+            "heading": "The Future of AI in Code Review: Trends and Innovations",
+            "level": "H2",
+            "reason": "Provides forward-looking insights, adds depth and authority to the content, and caters to users interested in the evolving landscape of development tools.",
+            "suggestedOutline": "Emerging trends (more sophisticated AI models, hyper-personalization, autonomous code fixing), challenges and opportunities, ethical considerations, and the role of AI in the developer experience."
+          }
+        ],
+        "unansweredQuestions": [
+          "How do AI code review tools integrate with popular IDEs and CI/CD pipelines?",
+          "What are the privacy and data security implications of using cloud-based AI code review tools?",
+          "Can AI code review tools be customized to specific coding standards or project requirements?",
+          "What is the future outlook for AI in code review?"
+        ],
+        "shouldIncludeFaq": true,
+        "faqQuestions": [
+          "What is AI Code Review and why is it important?",
+          "How do AI code review tools work?",
+          "What are the main benefits and challenges of using AI for code review?",
+          "How do I choose the best AI code review tool for my team?",
+          "Can AI code review tools be integrated into existing development workflows?"
+        ]
+      }
+    },
+    "usage": {
+      "inputTokens": 2482,
+      "inputTokenDetails": {
+        "noCacheTokens": 2482,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 6431,
+      "outputTokenDetails": {
+        "textTokens": 2163,
+        "reasoningTokens": 4268
+      },
+      "totalTokens": 8913,
+      "raw": {
+        "thoughtsTokenCount": 4268,
+        "promptTokenCount": 2482,
+        "candidatesTokenCount": 2163,
+        "totalTokenCount": 8913,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2482
+          }
+        ]
+      },
+      "reasoningTokens": 4268,
+      "cachedInputTokens": 0
+    }
+  }
+}

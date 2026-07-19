@@ -1,0 +1,60 @@
+{
+  "timestamp": "2026-06-27T15:55:00.286Z",
+  "data": {
+    "object": {
+      "heading": "How Long Does it Take to Build a Site with AI?",
+      "level": "H3",
+      "what_it_is": "Building a website with AI typically takes **minutes to hours** for initial generation, a stark contrast to the weeks or months often required by traditional methods. These intelligent platforms, powered by algorithms similar to GPT or Claude, can generate a complete site structure, basic content, and design elements almost instantly after a few prompts. This dramatically reduces the **learning curve** associated with complex web development software, making them ideal for beginners. While the initial setup is incredibly fast, further refinement, detailed content population, and specific **customization** can extend the process to a few hours or a day, depending on the desired complexity and personal tweaks.",
+      "why_it_works": "The effectiveness of AI builders lies in their ability to automate repetitive and complex design and coding tasks, enabling unmatched **speed** in site deployment. They leverage pre-built components and AI-driven content generation to streamline the entire process, requiring significantly less reliance on dedicated **developers**. Furthermore, many AI website builders inherently build sites with baseline **SEO** in mind, ensuring a solid foundation for search engine visibility from the start, a common concern for users asking 'Will my AI-built website be optimized for SEO?'. They also simplify the integration of essential functionalities, offering seamless **integrations** with analytics, payment gateways like Stripe, or marketing tools.",
+      "experience_or_data_point": "Based on my experience evaluating platforms like Durable AI and 10Web, a functional, aesthetically pleasing website can be generated in under five minutes. While this initial output is impressive, reaching a 'launch-ready' state that reflects a unique brand identity often requires an additional 3-5 hours of user interaction for content adjustments, image uploads, and fine-tuning the design.",
+      "outbound_authority_link": {
+        "anchor_text": "AI-driven content generation",
+        "search_query": "AI content generation for websites tools"
+      },
+      "example_brands": [
+        "Wix ADI: Generates a complete website layout and content suggestions within minutes based on user responses to a few simple questions about their business type and style preferences.",
+        "Durable: Promotes the ability to create a professional business website in 30 seconds, providing an immediate starting point that users can then extensively customize.",
+        "10Web: Offers an AI Website Builder that can reconstruct or create new WordPress sites using AI, dramatically speeding up the setup process compared to manual WordPress development."
+      ],
+      "copy_formula": [
+        "Start with the impressive speed: 'In just [X] minutes, you can have a [type] website fully operational with AI.'",
+        "Address the user's time constraint: 'Tired of weeks-long website builds? AI offers [specific time frame] to launch your [goal] site.'",
+        "Highlight the simplicity and outcome: 'Generate a professional-grade website in moments, then refine it to perfection – no coding necessary.'"
+      ],
+      "takeaway": "AI website builders drastically condense website creation time from weeks to hours, making professional web presence accessible and rapid for everyone.",
+      "rich_media_query": {
+        "type": "youtube",
+        "suggested_search_query": "AI website builder speed comparison",
+        "alt_text": "Video demonstrating the speed of AI website builders in generating a website"
+      },
+      "markdown_table": ""
+    },
+    "usage": {
+      "inputTokens": 2970,
+      "inputTokenDetails": {
+        "noCacheTokens": 2970,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 2352,
+      "outputTokenDetails": {
+        "textTokens": 758,
+        "reasoningTokens": 1594
+      },
+      "totalTokens": 5322,
+      "raw": {
+        "thoughtsTokenCount": 1594,
+        "promptTokenCount": 2970,
+        "candidatesTokenCount": 758,
+        "totalTokenCount": 5322,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2970
+          }
+        ]
+      },
+      "reasoningTokens": 1594,
+      "cachedInputTokens": 0
+    }
+  }
+}

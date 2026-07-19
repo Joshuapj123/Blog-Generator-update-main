@@ -1,0 +1,320 @@
+{
+  "timestamp": "2026-07-05T06:50:09.389Z",
+  "data": {
+    "object": {
+      "entities": [
+        {
+          "name": "Augment Code",
+          "type": "software"
+        },
+        {
+          "name": "GitHub Copilot",
+          "type": "software"
+        },
+        {
+          "name": "Cursor",
+          "type": "software"
+        },
+        {
+          "name": "Cody",
+          "type": "software"
+        },
+        {
+          "name": "Tabnine",
+          "type": "software"
+        },
+        {
+          "name": "Amazon CodeWhisperer",
+          "type": "software"
+        },
+        {
+          "name": "Claude Code",
+          "type": "software"
+        },
+        {
+          "name": "Codex",
+          "type": "software"
+        },
+        {
+          "name": "Cline",
+          "type": "software"
+        },
+        {
+          "name": "VS Code",
+          "type": "software"
+        },
+        {
+          "name": "GitHub",
+          "type": "brand"
+        },
+        {
+          "name": "Replit",
+          "type": "brand"
+        },
+        {
+          "name": "AI coding assistant",
+          "type": "concept"
+        },
+        {
+          "name": "AI coding agent",
+          "type": "concept"
+        },
+        {
+          "name": "Autocomplete",
+          "type": "concept"
+        },
+        {
+          "name": "Context understanding",
+          "type": "concept"
+        },
+        {
+          "name": "Refactoring capabilities",
+          "type": "concept"
+        },
+        {
+          "name": "Bug detection",
+          "type": "concept"
+        },
+        {
+          "name": "Test generation",
+          "type": "concept"
+        },
+        {
+          "name": "Multi-agent orchestration",
+          "type": "concept"
+        },
+        {
+          "name": "SWE-bench Pro",
+          "type": "concept"
+        },
+        {
+          "name": "AI tokens",
+          "type": "concept"
+        },
+        {
+          "name": "Large codebases",
+          "type": "concept"
+        },
+        {
+          "name": "Production systems",
+          "type": "concept"
+        },
+        {
+          "name": "Software engineering",
+          "type": "concept"
+        },
+        {
+          "name": "Agent Mode",
+          "type": "product"
+        },
+        {
+          "name": "Agent 3",
+          "type": "product"
+        },
+        {
+          "name": "Intent",
+          "type": "product"
+        },
+        {
+          "name": "Context Engine",
+          "type": "product"
+        },
+        {
+          "name": "Auggie CLI",
+          "type": "product"
+        }
+      ],
+      "relationships": [
+        {
+          "source": "Augment Code",
+          "target": "AI coding assistant",
+          "type": "is a type of"
+        },
+        {
+          "source": "GitHub Copilot",
+          "target": "AI coding assistant",
+          "type": "is a type of"
+        },
+        {
+          "source": "Cursor",
+          "target": "AI coding assistant",
+          "type": "is a type of"
+        },
+        {
+          "source": "Cody",
+          "target": "AI coding assistant",
+          "type": "is a type of"
+        },
+        {
+          "source": "Tabnine",
+          "target": "AI coding assistant",
+          "type": "is a type of"
+        },
+        {
+          "source": "Amazon CodeWhisperer",
+          "target": "AI coding assistant",
+          "type": "is a type of"
+        },
+        {
+          "source": "Claude Code",
+          "target": "AI coding assistant",
+          "type": "is a type of"
+        },
+        {
+          "source": "Codex",
+          "target": "AI coding assistant",
+          "type": "is a type of"
+        },
+        {
+          "source": "Cline",
+          "target": "AI coding assistant",
+          "type": "is a type of"
+        },
+        {
+          "source": "Augment Code",
+          "target": "Context Engine",
+          "type": "features"
+        },
+        {
+          "source": "Augment Code",
+          "target": "Auggie CLI",
+          "type": "features"
+        },
+        {
+          "source": "Augment Code",
+          "target": "Intent",
+          "type": "features"
+        },
+        {
+          "source": "Context Engine",
+          "target": "Context understanding",
+          "type": "provides"
+        },
+        {
+          "source": "Auggie CLI",
+          "target": "SWE-bench Pro",
+          "type": "benchmarked on"
+        },
+        {
+          "source": "Intent",
+          "target": "Multi-agent orchestration",
+          "type": "enables"
+        },
+        {
+          "source": "GitHub",
+          "target": "Agent Mode",
+          "type": "introduced"
+        },
+        {
+          "source": "Replit",
+          "target": "Agent 3",
+          "type": "extended"
+        },
+        {
+          "source": "AI coding assistant",
+          "target": "Autocomplete",
+          "type": "provides"
+        },
+        {
+          "source": "AI coding assistant",
+          "target": "Refactoring capabilities",
+          "type": "provides"
+        },
+        {
+          "source": "AI coding assistant",
+          "target": "Bug detection",
+          "type": "provides"
+        },
+        {
+          "source": "AI coding assistant",
+          "target": "Test generation",
+          "type": "provides"
+        },
+        {
+          "source": "AI coding assistant",
+          "target": "AI tokens",
+          "type": "consumes"
+        },
+        {
+          "source": "AI coding assistant",
+          "target": "Large codebases",
+          "type": "supports"
+        },
+        {
+          "source": "AI coding assistant",
+          "target": "Production systems",
+          "type": "used in"
+        },
+        {
+          "source": "AI coding assistant",
+          "target": "Software engineering",
+          "type": "improves"
+        },
+        {
+          "source": "AI coding agent",
+          "target": "Model",
+          "type": "comprises"
+        },
+        {
+          "source": "AI coding agent",
+          "target": "Harness",
+          "type": "comprises"
+        },
+        {
+          "source": "VS Code",
+          "target": "AI coding assistant",
+          "type": "supports"
+        },
+        {
+          "source": "GitHub Copilot",
+          "target": "Autocomplete",
+          "type": "excels at"
+        },
+        {
+          "source": "Multi-agent orchestration",
+          "target": "living specs",
+          "type": "uses"
+        }
+      ],
+      "recommendedConnections": [
+        "AI coding assistant -> Token efficiency",
+        "AI coding assistant -> Code review workflow",
+        "AI coding assistant -> ROI",
+        "AI coding assistant -> Architectural reasoning",
+        "AI coding assistant -> Cross-service production incidents",
+        "AI coding assistant -> Developer experience",
+        "AI coding assistant -> Integration with IDEs",
+        "AI coding assistant -> Multi-file changes",
+        "AI coding assistant -> Legacy code refactoring",
+        "AI coding assistant -> API development"
+      ]
+    },
+    "usage": {
+      "inputTokens": 1616,
+      "inputTokenDetails": {
+        "noCacheTokens": 1616,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 5091,
+      "outputTokenDetails": {
+        "textTokens": 1870,
+        "reasoningTokens": 3221
+      },
+      "totalTokens": 6707,
+      "raw": {
+        "thoughtsTokenCount": 3221,
+        "promptTokenCount": 1616,
+        "candidatesTokenCount": 1870,
+        "totalTokenCount": 6707,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1616
+          }
+        ]
+      },
+      "reasoningTokens": 3221,
+      "cachedInputTokens": 0
+    }
+  }
+}

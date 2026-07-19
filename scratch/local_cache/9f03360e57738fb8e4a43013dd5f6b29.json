@@ -1,0 +1,61 @@
+{
+  "timestamp": "2026-06-27T07:10:06.347Z",
+  "data": {
+    "object": {
+      "heading": "Best AI Meeting Assistant Software in 2026: A Detailed Comparison",
+      "level": "H2",
+      "what_it_is": "This section provides a **comprehensive review and comparison** of the leading AI meeting assistant tools available in 2026, helping you navigate the diverse landscape of options. We delve into how platforms like **Fireflies.ai** offer robust meeting management, while **Avoma** specializes in advanced conversation intelligence tailored for revenue teams. For those seeking instant meeting insights, **Fathom** excels at delivering quick **Summaries** and tracking **Action items**. Similarly, **Otter.ai** stands out for its superior real-time **Transcription** and live note-taking capabilities, making every word searchable. Meanwhile, **tl;dv** focuses on generating powerful video highlight reels and seamless sharing. Consider a medium-sized marketing agency with diverse client meetings, ranging from initial pitches to detailed project updates. Their goal is to streamline post-meeting workflows, ensure no action items are missed, and gather client **Insights** for future strategies. By comparing these tools, they can identify the best fit for their specific communication and analytical needs, ensuring efficient follow-ups and improved client relations.",
+      "why_it_works": "Integrating the right AI meeting assistant tool fundamentally **transforms meeting productivity and outcome effectiveness**. These AI-powered tools eliminate the tedious burden of manual note-taking, allowing participants to engage fully and contribute more meaningfully to discussions. By automatically generating accurate **Transcriptions**, concise **Summaries**, and clearly defined **Action items**, they ensure that crucial decisions and follow-ups are never missed. This not only **saves significant time** in post-meeting wrap-ups but also provides valuable **Insights** through features like sentiment analysis and speaker identification. The ability to easily search past conversations, extract key data, and integrate with platforms like Zoom, Google Meet, and Microsoft Teams ultimately **streamlines workflows**, improves decision-making, and fosters a culture of accountability.",
+      "experience_or_data_point": "According to a 2023 productivity software report by Gartner, organizations that strategically integrate AI-powered meeting assistants experience a 25-30% improvement in post-meeting task completion rates and decision-making efficiency. The key lies in aligning the tool's core strengths—whether it's advanced conversation insights, accurate transcription, or robust action item tracking—with the team's primary objectives, rather than simply adopting the most popular option.",
+      "outbound_authority_link": {
+        "anchor_text": "productivity software report by Gartner",
+        "search_query": "Gartner productivity software report 2023 AI meeting assistants"
+      },
+      "example_brands": [
+        "Fireflies.ai: This platform offers AI-powered meeting transcription and summarization, integrating with popular conferencing tools to automate note-taking for sales demos and internal syncs.",
+        "Avoma: Avoma helps sales teams analyze customer conversations, providing AI-generated insights into call sentiment, talk-to-listen ratios, and identifying key moments for coaching and pipeline acceleration.",
+        "Fathom: Fathom provides quick, shareable AI summaries and action items from Zoom, Google Meet, and Microsoft Teams calls, allowing users to rapidly capture and distribute key takeaways."
+      ],
+      "copy_formula": [
+        "Introduce the tool's primary strength, then highlight its unique feature set and ideal user profile.",
+        "Start with a common meeting challenge, then present a specific AI assistant as the named solution with a key benefit.",
+        "Compare two tools directly based on a critical feature like 'accuracy of transcription' or 'depth of analytics'.",
+        "Describe a user scenario, then explain which tool best fits that need based on its core capabilities."
+      ],
+      "takeaway": "Having established the foundational benefits of integrating AI into meeting protocols, let's now delve into a detailed comparison of the market's leading AI meeting assistant software in 2026, evaluating their unique offerings to help you make an informed decision.",
+      "rich_media_query": {
+        "type": "image",
+        "suggested_search_query": "AI meeting assistant software comparison chart 2026",
+        "alt_text": "Comparison chart of leading AI meeting assistant software tools for 2026, highlighting features and pricing"
+      },
+      "markdown_table": "| Tool Name | Key Features | Pricing Tier Example | Ideal For |\n|---|---|---|---|\n| Fireflies.ai | AI transcription, summaries, sentiment analysis, integrations (Zoom, Google Meet, MS Teams) | Pro: $10/user/month (annual) | Teams needing comprehensive meeting intelligence & CRM integration |\n| Avoma | Conversation intelligence, AI coaching, sales analytics, customizable templates | Business: $49/user/month (annual) | Revenue teams, sales managers, customer success for in-depth insights |\n| Fathom | Instant summaries, action items, video highlights, CRM integration (Salesforce, HubSpot) | Free for individuals & small teams | Individuals & teams prioritizing quick insights & easy sharing |\n| Otter.ai | Real-time transcription, speaker identification, searchable notes, mobile app | Business: $20/user/month (annual) | Professionals needing highly accurate live transcription & searchable archives |\n| tl;dv | Video recording, timestamping, highlight reels, sharing to Slack, Notion | Pro: $20/user/month (annual) | Remote teams, product managers for video-first collaboration & knowledge sharing |"
+    },
+    "usage": {
+      "inputTokens": 2954,
+      "inputTokenDetails": {
+        "noCacheTokens": 2954,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 2533,
+      "outputTokenDetails": {
+        "textTokens": 1192,
+        "reasoningTokens": 1341
+      },
+      "totalTokens": 5487,
+      "raw": {
+        "thoughtsTokenCount": 1341,
+        "promptTokenCount": 2954,
+        "candidatesTokenCount": 1192,
+        "totalTokenCount": 5487,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2954
+          }
+        ]
+      },
+      "reasoningTokens": 1341,
+      "cachedInputTokens": 0
+    }
+  }
+}

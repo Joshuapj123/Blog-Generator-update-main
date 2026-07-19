@@ -1,0 +1,278 @@
+{
+  "timestamp": "2026-06-26T14:49:43.335Z",
+  "data": {
+    "object": {
+      "keywords": [
+        {
+          "term": "AI code review tools",
+          "category": "basic"
+        },
+        {
+          "term": "AI code review",
+          "category": "basic"
+        },
+        {
+          "term": "top AI code review tools",
+          "category": "basic"
+        },
+        {
+          "term": "best AI code review tools",
+          "category": "basic"
+        },
+        {
+          "term": "leading AI code review tools",
+          "category": "basic"
+        },
+        {
+          "term": "open source AI code review tools",
+          "category": "basic"
+        },
+        {
+          "term": "AI code review tools comparison",
+          "category": "basic"
+        },
+        {
+          "term": "AI code analysis tools",
+          "category": "basic"
+        },
+        {
+          "term": "automated code review",
+          "category": "basic"
+        },
+        {
+          "term": "code quality tools",
+          "category": "basic"
+        },
+        {
+          "term": "what is AI code review",
+          "category": "supplementary"
+        },
+        {
+          "term": "how AI code review works",
+          "category": "supplementary"
+        },
+        {
+          "term": "why is AI code review important",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI code review tools for GitHub",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI code review tools for PR reviews",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI code review tools rankings",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI code review tools for enterprise",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI code review tools for monorepo",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI code review tools setup",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI code review security review",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI code review deployment models",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI code review for detecting security issues",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI code review for vulnerabilities",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI code review for automated fixes",
+          "category": "supplementary"
+        },
+        {
+          "term": "improve code quality with AI",
+          "category": "supplementary"
+        },
+        {
+          "term": "code evaluation",
+          "category": "contextual"
+        },
+        {
+          "term": "coding standards",
+          "category": "contextual"
+        },
+        {
+          "term": "bug detection",
+          "category": "contextual"
+        },
+        {
+          "term": "developer tools",
+          "category": "contextual"
+        },
+        {
+          "term": "software development workflow",
+          "category": "contextual"
+        },
+        {
+          "term": "AI-generated code review",
+          "category": "contextual"
+        },
+        {
+          "term": "machine learning in code review",
+          "category": "contextual"
+        },
+        {
+          "term": "LogRocket Galileo AI",
+          "category": "contextual"
+        },
+        {
+          "term": "Qodo",
+          "category": "contextual"
+        },
+        {
+          "term": "Traycer",
+          "category": "contextual"
+        },
+        {
+          "term": "CodeRabbit",
+          "category": "contextual"
+        },
+        {
+          "term": "Sourcery",
+          "category": "contextual"
+        },
+        {
+          "term": "CodeAnt AI",
+          "category": "contextual"
+        },
+        {
+          "term": "SonarQube Community Edition",
+          "category": "contextual"
+        },
+        {
+          "term": "integrated development environments (IDEs)",
+          "category": "contextual"
+        },
+        {
+          "term": "version control systems",
+          "category": "contextual"
+        },
+        {
+          "term": "CI/CD practices",
+          "category": "contextual"
+        },
+        {
+          "term": "semantic code understanding",
+          "category": "contextual"
+        },
+        {
+          "term": "rule-based detection",
+          "category": "contextual"
+        }
+      ],
+      "clusters": [
+        {
+          "clusterName": "Introduction to AI Code Review",
+          "keywords": [
+            "AI code review",
+            "what is AI code review",
+            "how AI code review works",
+            "why is AI code review important",
+            "automated code review",
+            "code evaluation",
+            "AI-generated code review",
+            "software development workflow"
+          ]
+        },
+        {
+          "clusterName": "AI Code Review Tools & Evaluation",
+          "keywords": [
+            "AI code review tools",
+            "top AI code review tools",
+            "best AI code review tools",
+            "leading AI code review tools",
+            "open source AI code review tools",
+            "AI code review tools comparison",
+            "AI code review tools rankings",
+            "LogRocket Galileo AI",
+            "Qodo",
+            "Traycer",
+            "CodeRabbit",
+            "Sourcery",
+            "CodeAnt AI",
+            "SonarQube Community Edition",
+            "developer tools"
+          ]
+        },
+        {
+          "clusterName": "Implementation, Integration & Benefits",
+          "keywords": [
+            "AI code review tools for GitHub",
+            "AI code review tools for PR reviews",
+            "AI code review tools for enterprise",
+            "AI code review tools for monorepo",
+            "AI code review tools setup",
+            "AI code review security review",
+            "AI code review deployment models",
+            "AI code review for detecting security issues",
+            "AI code review for vulnerabilities",
+            "AI code review for automated fixes",
+            "improve code quality with AI",
+            "integrated development environments (IDEs)",
+            "version control systems",
+            "CI/CD practices"
+          ]
+        },
+        {
+          "clusterName": "Core Technologies & Concepts",
+          "keywords": [
+            "AI code analysis tools",
+            "code quality tools",
+            "coding standards",
+            "bug detection",
+            "machine learning in code review",
+            "semantic code understanding",
+            "rule-based detection"
+          ]
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 1275,
+      "inputTokenDetails": {
+        "noCacheTokens": 1275,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 6329,
+      "outputTokenDetails": {
+        "textTokens": 1647,
+        "reasoningTokens": 4682
+      },
+      "totalTokens": 7604,
+      "raw": {
+        "thoughtsTokenCount": 4682,
+        "promptTokenCount": 1275,
+        "candidatesTokenCount": 1647,
+        "totalTokenCount": 7604,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1275
+          }
+        ]
+      },
+      "reasoningTokens": 4682,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,273 @@
+{
+  "timestamp": "2026-07-12T05:26:00.527Z",
+  "data": {
+    "object": {
+      "keywords": [
+        {
+          "term": "best AI meeting assistant",
+          "category": "basic"
+        },
+        {
+          "term": "AI meeting assistants",
+          "category": "basic"
+        },
+        {
+          "term": "top AI meeting assistants",
+          "category": "basic"
+        },
+        {
+          "term": "AI meeting tools",
+          "category": "basic"
+        },
+        {
+          "term": "AI note taker for meetings",
+          "category": "basic"
+        },
+        {
+          "term": "what is an AI meeting assistant",
+          "category": "supplementary"
+        },
+        {
+          "term": "do I need an AI meeting assistant",
+          "category": "supplementary"
+        },
+        {
+          "term": "what to look for in an AI meeting assistant",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant features",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant integrations",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant free plan",
+          "category": "supplementary"
+        },
+        {
+          "term": "how to choose AI meeting assistant",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for collaboration",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for startups",
+          "category": "supplementary"
+        },
+        {
+          "term": "affordable AI meeting assistant",
+          "category": "supplementary"
+        },
+        {
+          "term": "budget-friendly AI meeting assistant",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistants for teams",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistants for productivity",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for conversation analytics",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for meeting insights",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for transcription",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for summarization",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for action items",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for task creation",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for follow-ups",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for live captions",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for meeting minutes",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for search functionality",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for CRM sync",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for automated CRM entry",
+          "category": "supplementary"
+        },
+        {
+          "term": "make meetings more efficient with AI",
+          "category": "supplementary"
+        },
+        {
+          "term": "Fireflies.ai",
+          "category": "contextual"
+        },
+        {
+          "term": "Avoma",
+          "category": "contextual"
+        },
+        {
+          "term": "Otter.ai",
+          "category": "contextual"
+        },
+        {
+          "term": "tl;dv",
+          "category": "contextual"
+        },
+        {
+          "term": "Fathom",
+          "category": "contextual"
+        },
+        {
+          "term": "Read AI",
+          "category": "contextual"
+        },
+        {
+          "term": "Granola AI",
+          "category": "contextual"
+        },
+        {
+          "term": "Sembly AI",
+          "category": "contextual"
+        },
+        {
+          "term": "MeetGeek AI",
+          "category": "contextual"
+        },
+        {
+          "term": "conversation analytics software",
+          "category": "contextual"
+        },
+        {
+          "term": "transcription accuracy",
+          "category": "contextual"
+        },
+        {
+          "term": "AI meeting assistant reviews",
+          "category": "contextual"
+        }
+      ],
+      "clusters": [
+        {
+          "clusterName": "Core Concepts & Value",
+          "keywords": [
+            "best AI meeting assistant",
+            "AI meeting assistants",
+            "top AI meeting assistants",
+            "AI meeting tools",
+            "AI note taker for meetings",
+            "what is an AI meeting assistant",
+            "do I need an AI meeting assistant",
+            "make meetings more efficient with AI",
+            "AI meeting assistants for productivity"
+          ]
+        },
+        {
+          "clusterName": "Features, Functionality & Evaluation",
+          "keywords": [
+            "what to look for in an AI meeting assistant",
+            "AI meeting assistant features",
+            "AI meeting assistant integrations",
+            "AI meeting assistant free plan",
+            "how to choose AI meeting assistant",
+            "transcription accuracy",
+            "AI meeting assistant for transcription",
+            "AI meeting assistant for summarization",
+            "AI meeting assistant for action items",
+            "AI meeting assistant for task creation",
+            "AI meeting assistant for follow-ups",
+            "AI meeting assistant for live captions",
+            "AI meeting assistant for meeting minutes",
+            "AI meeting assistant for search functionality",
+            "AI meeting assistant for meeting insights",
+            "AI meeting assistant for conversation analytics",
+            "conversation analytics software",
+            "AI meeting assistant for CRM sync",
+            "AI meeting assistant for automated CRM entry"
+          ]
+        },
+        {
+          "clusterName": "Specific Use Cases & Budget",
+          "keywords": [
+            "AI meeting assistant for collaboration",
+            "AI meeting assistant for startups",
+            "affordable AI meeting assistant",
+            "budget-friendly AI meeting assistant",
+            "AI meeting assistants for teams"
+          ]
+        },
+        {
+          "clusterName": "AI Meeting Assistant Tools & Reviews",
+          "keywords": [
+            "Fireflies.ai",
+            "Avoma",
+            "Otter.ai",
+            "tl;dv",
+            "Fathom",
+            "Read AI",
+            "Granola AI",
+            "Sembly AI",
+            "MeetGeek AI",
+            "AI meeting assistant reviews"
+          ]
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 1718,
+      "inputTokenDetails": {
+        "noCacheTokens": 1718,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 5440,
+      "outputTokenDetails": {
+        "textTokens": 1661,
+        "reasoningTokens": 3779
+      },
+      "totalTokens": 7158,
+      "raw": {
+        "thoughtsTokenCount": 3779,
+        "promptTokenCount": 1718,
+        "candidatesTokenCount": 1661,
+        "totalTokenCount": 7158,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1718
+          }
+        ]
+      },
+      "reasoningTokens": 3779,
+      "cachedInputTokens": 0
+    }
+  }
+}

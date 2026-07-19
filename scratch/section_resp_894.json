@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-06-13T18:00:56.223Z",
+  "operation": "Section Compression Repair",
+  "model": "gemini-2.5-flash",
+  "runId": "run_blocks_AI%20Contract%2_1781373273599",
+  "rawResponse": {
+    "heading": "Can AI contract review software handle complex contract types or different jurisdictions?",
+    "level": "H2",
+    "what_it_is": "**AI contract review software** offers **robust versatility**, managing **diverse contract types** (NDAs, M&A) and adapting to **jurisdictional nuances** via local standards.",
+    "why_it_works": "**Machine learning** and **custom playbooks** enable AI's adaptability to legal frameworks. This boosts **Legal Workflow** and **Compliance Management** for global adherence, integrating with **CLM**.",
+    "experience_or_data_point": "Experts confirm AI continuously adapts to global complexities.",
+    "example_brands": [
+      "ContractPodAi: AI CLM for multi-jurisdictional clause libraries.",
+      "ThoughtTrace: Extracts complex data from specialized contracts (oil & gas, real estate).",
+      "DocuSign CLM: AI streamlines diverse contracts and compliance."
+    ],
+    "copy_formula": [
+      "Address skepticism, then highlight AI's versatility with complex contracts.",
+      "Explain ML and custom playbooks for adapting to diverse jurisdictions.",
+      "Show seamless CLM integration for comprehensive, globally compliant solutions."
+    ],
+    "takeaway": "AI powerfully adapts to global contract complexities."
+  }
+}

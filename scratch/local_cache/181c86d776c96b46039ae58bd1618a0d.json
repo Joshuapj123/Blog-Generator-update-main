@@ -1,0 +1,59 @@
+{
+  "timestamp": "2026-06-25T00:23:52.806Z",
+  "data": {
+    "object": {
+      "heading": "Automated Clause and Risk Identification",
+      "level": "H3",
+      "what_it_is": "AI contract review tools leverage advanced algorithms for accurate **Risk Spotting**, immediately highlighting potential liabilities and missing terms within legal documents. They meticulously flag **Non-standard Language** that diverges from approved templates or regulatory guidelines, ensuring quick attention to deviations. This proactive identification is fundamental to robust contract management.",
+      "why_it_works": "This automation significantly accelerates legal review processes, reducing manual effort and enhancing consistency. By providing **Plain-English risk explanations**, these tools allow broader business understanding, bolstering compliance and mitigating legal exposure across all contracts efficiently.",
+      "experience_or_data_point": "Industry data indicates that AI-powered contract review can reduce manual review time by up to 80%, allowing legal professionals to focus on strategic tasks.",
+      "outbound_authority_link": {
+        "anchor_text": "reduce contract review time by up to 80%",
+        "search_query": "AI contract review time savings statistics"
+      },
+      "example_brands": [
+        "LegalOn Technologies: Their AI identifies specific contract risks and provides redlining suggestions based on jurisdiction-specific regulations, flagging non-compliant clauses.",
+        "Evisort: This platform flags anomalous clauses in M&A agreements, comparing them against a vast database of similar contracts for risk assessment and non-standard language detection."
+      ],
+      "copy_formula": [
+        "Start with the challenge of manual risk identification, then introduce automated clause identification as the precise, efficient solution.",
+        "Detail how non-standard language is detected, then explain its direct impact on compliance and negotiation strategy.",
+        "Highlight the benefit of plain-English risk explanations, showing how it democratizes legal understanding for all stakeholders."
+      ],
+      "takeaway": "AI revolutionizes contract review by automating precise risk identification and translating complex legal risks into accessible insights for all business functions.",
+      "rich_media_query": {
+        "type": "image",
+        "suggested_search_query": "AI contract review highlighting risks and non-standard clauses",
+        "alt_text": "Diagram illustrating AI contract review software highlighting risk clauses and non-standard language in a legal document with plain-English explanations."
+      },
+      "markdown_table": ""
+    },
+    "usage": {
+      "inputTokens": 2628,
+      "inputTokenDetails": {
+        "noCacheTokens": 2628,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 3939,
+      "outputTokenDetails": {
+        "textTokens": 510,
+        "reasoningTokens": 3429
+      },
+      "totalTokens": 6567,
+      "raw": {
+        "thoughtsTokenCount": 3429,
+        "promptTokenCount": 2628,
+        "candidatesTokenCount": 510,
+        "totalTokenCount": 6567,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2628
+          }
+        ]
+      },
+      "reasoningTokens": 3429,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "timestamp": "2026-06-26T16:59:44.812Z",
+  "data": {
+    "object": {
+      "heading": "Frequently Asked Questions (FAQs)",
+      "level": "H3",
+      "what_it_is": "This section addresses common inquiries about **AI code review**, covering **what it is**, **how it works**, and **why it's important**. We clarify core benefits, challenges, and implementation of these **AI code analysis tools**.",
+      "why_it_works": "Answering these FAQs enhances understanding of **AI code review** integration with developer workflows (CI/CD, IDEs), customization options, and crucial data privacy and security implications. It enables informed decision-making for adoption.",
+      "experience_or_data_point": "Industry reports indicate clear communication about new technologies like **AI code review** is paramount for successful developer adoption and avoiding implementation pitfalls, underscoring the value of comprehensive FAQs.",
+      "outbound_authority_link": {
+        "anchor_text": "successful developer adoption",
+        "search_query": "developer adoption of AI tools challenges report"
+      },
+      "example_brands": [
+        "CodeRabbit: streamlines pull request reviews by suggesting changes directly in GitHub.",
+        "Sourcery: offers AI-powered code refactoring and quality checks directly within IDEs.",
+        "SonarQube Community Edition: provides robust static code analysis, often integrated with custom rule sets for compliance."
+      ],
+      "copy_formula": [
+        "Begin with the question, then provide a concise, direct answer followed by a brief elaboration.",
+        "Address a common misconception, then offer the correct understanding with supporting detail.",
+        "Structure answers to move from 'what' to 'how' to 'why' for comprehensive clarity.",
+        "Frame responses to highlight practical benefits or address potential concerns directly."
+      ],
+      "takeaway": "Clear, concise answers to FAQs empower developers to confidently evaluate and adopt **AI code review** solutions for improved code quality.",
+      "rich_media_query": {
+        "type": "image",
+        "suggested_search_query": "AI code review workflow diagram",
+        "alt_text": "Diagram illustrating the workflow of an AI code review tool, from code commit to automated feedback"
+      },
+      "markdown_table": ""
+    },
+    "usage": {
+      "inputTokens": 2745,
+      "inputTokenDetails": {
+        "noCacheTokens": 2745,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 3962,
+      "outputTokenDetails": {
+        "textTokens": 487,
+        "reasoningTokens": 3475
+      },
+      "totalTokens": 6707,
+      "raw": {
+        "thoughtsTokenCount": 3475,
+        "promptTokenCount": 2745,
+        "candidatesTokenCount": 487,
+        "totalTokenCount": 6707,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2745
+          }
+        ]
+      },
+      "reasoningTokens": 3475,
+      "cachedInputTokens": 0
+    }
+  }
+}

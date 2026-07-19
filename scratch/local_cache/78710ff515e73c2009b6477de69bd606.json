@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-06-27T06:40:11.787Z",
+  "data": {
+    "text": "Meeting.ai records, transcribes, and creates visual meeting minutes automatically. Just tap start and focus on the conversation while AI captures everything.\n\nAfter each meeting, you get hand-drawn diagrams and visual summaries that help you remember 65% more information than text-only notes. Our AI creates visual meeting minutes that actually make sense—turning complex discussions into clear, memorable diagrams you can share with your team.\n\nThe app recognizes who's speaking and labels them automatically. Tag someone once, and Meeting.ai remembers them forever. Search by speaker name to find what specific people said in any meeting. No more wondering who said what or when important decisions were made.\n\nDuring your meeting, chat with AI in real-time. Instantly fact-check statements, define technical terms, or ask clarifying questions without interrupting the flow. It's like having a smart assistant sitting beside you, ready to explain acronyms, verify data, or provide context when you need it.\n\nMeeting.ai works everywhere you meet—conference rooms, coffee shops, Zoom, Teams, and Google Meet. It transcribes in 30+ languages instantly, even when speakers switch mid-sentence. Perfect for sales calls, client meetings, team standups, lectures, interviews, medical consultations, and personal voice notes.\n\nEvery meeting becomes searchable. Find any discussion, decision, or detail from your entire meeting history in seconds. Export meeting minutes and transcripts to your favorite tools. Share with a link or protect with a PIN.\n\nDownload Meeting.ai—the AI note-taker built for real, in-person conversations.\n\nUpdated on Feb 11, 2026\n\n**Data Privacy and Security**\nSafety starts with understanding how developers collect and share your data. Data privacy and security practices may vary based on your use, region, and age. The developer provided this information and may update it over time.\n\n*   This app may share these data types with third parties: Personal info, App activity and 2 others.\n*   This app may collect these data types: Personal info, Photos and videos and 4 others.\n*   Data is encrypted in transit.\n*   You can request that data be deleted.\n\n**Recent Updates**\n*   Introducing Calendar – Never miss Visual Notes for important meetings.\n*   Connect your calendar to get reminders, easily record online meetings, and share Visual Notes with your colleagues.\n*   Edit notes now available – Select text and tap Edit.\n*   Easy to use with 9 supported languages.\n*   Other fixes & improvements.",
+    "usage": {
+      "inputTokens": 1123,
+      "inputTokenDetails": {
+        "noCacheTokens": 1123,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 2371,
+      "outputTokenDetails": {
+        "textTokens": 530,
+        "reasoningTokens": 1841
+      },
+      "totalTokens": 3494,
+      "raw": {
+        "thoughtsTokenCount": 1841,
+        "promptTokenCount": 1123,
+        "candidatesTokenCount": 530,
+        "totalTokenCount": 3494,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1123
+          }
+        ]
+      },
+      "reasoningTokens": 1841,
+      "cachedInputTokens": 0
+    }
+  }
+}

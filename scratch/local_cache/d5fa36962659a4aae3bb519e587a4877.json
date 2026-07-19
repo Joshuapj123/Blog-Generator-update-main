@@ -1,0 +1,255 @@
+{
+  "timestamp": "2026-07-15T13:47:24.878Z",
+  "data": {
+    "object": {
+      "keywords": [
+        {
+          "term": "AI email assistant",
+          "category": "basic"
+        },
+        {
+          "term": "AI email assistants",
+          "category": "basic"
+        },
+        {
+          "term": "best AI email assistants",
+          "category": "basic"
+        },
+        {
+          "term": "AI email assistant software",
+          "category": "basic"
+        },
+        {
+          "term": "AI email writer",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI email tools",
+          "category": "supplementary"
+        },
+        {
+          "term": "email AI",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI email generator",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI email client",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI writing extension",
+          "category": "supplementary"
+        },
+        {
+          "term": "best AI email assistants for productivity",
+          "category": "supplementary"
+        },
+        {
+          "term": "how to use AI assistants for email",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI email client vs AI email assistant vs AI email agent",
+          "category": "supplementary"
+        },
+        {
+          "term": "free AI email writer",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI email assistant for teams",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI email response",
+          "category": "supplementary"
+        },
+        {
+          "term": "email subject line generator",
+          "category": "supplementary"
+        },
+        {
+          "term": "generate email with AI",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI-generated daily digest of emails",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI email assistant in 2026",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI-first email client",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI overlay for Gmail and Outlook",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI-powered inbox filtering",
+          "category": "supplementary"
+        },
+        {
+          "term": "write professional emails with AI",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI email apps for writing drafts",
+          "category": "supplementary"
+        },
+        {
+          "term": "email productivity",
+          "category": "contextual"
+        },
+        {
+          "term": "inbox management",
+          "category": "contextual"
+        },
+        {
+          "term": "email organization",
+          "category": "contextual"
+        },
+        {
+          "term": "email drafting",
+          "category": "contextual"
+        },
+        {
+          "term": "save time with AI email",
+          "category": "contextual"
+        },
+        {
+          "term": "personalize email messages",
+          "category": "contextual"
+        },
+        {
+          "term": "automatic email replies",
+          "category": "contextual"
+        },
+        {
+          "term": "processing email content",
+          "category": "contextual"
+        },
+        {
+          "term": "business intelligence for email",
+          "category": "contextual"
+        },
+        {
+          "term": "email automation",
+          "category": "contextual"
+        },
+        {
+          "term": "GPT models",
+          "category": "contextual"
+        },
+        {
+          "term": "large language model (LLM)",
+          "category": "contextual"
+        },
+        {
+          "term": "core technical components (AI email)",
+          "category": "contextual"
+        },
+        {
+          "term": "autonomous AI agents",
+          "category": "contextual"
+        },
+        {
+          "term": "multimodality (AI email)",
+          "category": "contextual"
+        },
+        {
+          "term": "Microsoft Copilot for Outlook",
+          "category": "contextual"
+        }
+      ],
+      "clusters": [
+        {
+          "clusterName": "Understanding AI Email Assistants",
+          "keywords": [
+            "AI email assistant",
+            "AI email assistants",
+            "AI email client",
+            "AI email client vs AI email assistant vs AI email agent",
+            "core technical components (AI email)",
+            "GPT models",
+            "large language model (LLM)",
+            "autonomous AI agents",
+            "multimodality (AI email)"
+          ]
+        },
+        {
+          "clusterName": "Benefits & Use Cases of AI Email",
+          "keywords": [
+            "email productivity",
+            "inbox management",
+            "email organization",
+            "email drafting",
+            "save time with AI email",
+            "personalize email messages",
+            "automatic email replies",
+            "processing email content",
+            "business intelligence for email",
+            "email automation",
+            "how to use AI assistants for email",
+            "write professional emails with AI",
+            "generate email with AI",
+            "AI email response",
+            "email subject line generator",
+            "AI-generated daily digest of emails"
+          ]
+        },
+        {
+          "clusterName": "Top Tools & Comparison",
+          "keywords": [
+            "best AI email assistants",
+            "AI email assistant software",
+            "AI email tools",
+            "AI email generator",
+            "AI writing extension",
+            "free AI email writer",
+            "AI email assistant in 2026",
+            "AI email assistant for teams",
+            "AI-first email client",
+            "AI overlay for Gmail and Outlook",
+            "AI-powered inbox filtering",
+            "AI email apps for writing drafts",
+            "Microsoft Copilot for Outlook"
+          ]
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 2931,
+      "inputTokenDetails": {
+        "noCacheTokens": 2931,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 3385,
+      "outputTokenDetails": {
+        "textTokens": 1496,
+        "reasoningTokens": 1889
+      },
+      "totalTokens": 6316,
+      "raw": {
+        "thoughtsTokenCount": 1889,
+        "promptTokenCount": 2931,
+        "candidatesTokenCount": 1496,
+        "totalTokenCount": 6316,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2931
+          }
+        ]
+      },
+      "reasoningTokens": 1889,
+      "cachedInputTokens": 0
+    }
+  }
+}

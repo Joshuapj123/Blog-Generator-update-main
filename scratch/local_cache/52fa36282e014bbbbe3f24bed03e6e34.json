@@ -1,0 +1,67 @@
+{
+  "timestamp": "2026-06-26T14:50:33.934Z",
+  "data": {
+    "object": {
+      "intent": "commercial",
+      "confidenceScore": 90,
+      "intentConfidence": {
+        "informational": 20,
+        "commercial": 50,
+        "transactional": 0,
+        "comparison": 30
+      },
+      "formatRecommendation": "Listicle or Comprehensive Guide with Reviews and Comparison Table",
+      "toneGuidelines": "Objective, analytical, and authoritative, aiming to guide users through the decision-making process for selecting an AI code review tool.",
+      "structureGuidelines": "Start with an introduction defining AI code review, followed by detailed reviews of individual tools. Include a dedicated comparison section (e.g., a table) and a guide on how to choose the best tool. Conclude with a summary or future outlook.",
+      "recommendedOutlineSections": [
+        {
+          "heading": "Understanding AI Code Review: What It Is and Why Your Team Needs It",
+          "level": "H2",
+          "purpose": "To provide foundational knowledge and context, addressing the informational intent and highlighting the importance of these tools."
+        },
+        {
+          "heading": "Top AI Code Review Tools: Features, Pros, and Cons",
+          "level": "H2",
+          "purpose": "To present a detailed analysis of leading tools, satisfying the commercial intent by showcasing options and their individual merits."
+        },
+        {
+          "heading": "Head-to-Head: A Comparison of Leading AI Code Review Solutions",
+          "level": "H2",
+          "purpose": "To directly address the comparison intent by providing a clear, concise comparison (e.g., via a table) of key features, pricing, and use cases across different tools."
+        },
+        {
+          "heading": "Choosing the Right AI Code Review Tool for Your Workflow",
+          "level": "H2",
+          "purpose": "To guide users through the selection process, offering criteria and considerations to help them make an informed commercial decision tailored to their specific needs."
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 768,
+      "inputTokenDetails": {
+        "noCacheTokens": 768,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 2096,
+      "outputTokenDetails": {
+        "textTokens": 448,
+        "reasoningTokens": 1648
+      },
+      "totalTokens": 2864,
+      "raw": {
+        "thoughtsTokenCount": 1648,
+        "promptTokenCount": 768,
+        "candidatesTokenCount": 448,
+        "totalTokenCount": 2864,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 768
+          }
+        ]
+      },
+      "reasoningTokens": 1648,
+      "cachedInputTokens": 0
+    }
+  }
+}

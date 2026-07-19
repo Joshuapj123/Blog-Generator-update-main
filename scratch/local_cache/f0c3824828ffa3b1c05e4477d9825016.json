@@ -1,0 +1,72 @@
+{
+  "timestamp": "2026-07-05T11:32:41.056Z",
+  "data": {
+    "object": {
+      "intent": "commercial",
+      "confidenceScore": 95,
+      "intentConfidence": {
+        "informational": 5,
+        "commercial": 70,
+        "transactional": 0,
+        "comparison": 25
+      },
+      "formatRecommendation": "A comprehensive listicle comparing multiple AI website builders, including individual mini-reviews for each.",
+      "toneGuidelines": "Authoritative, objective, helpful, and evaluative. Focus on providing clear, unbiased information to aid decision-making.",
+      "structureGuidelines": "Start with an introduction defining AI website builders and their benefits. Follow with a clear methodology for evaluation. Dedicate a distinct section (H2) to each recommended builder, detailing its features, pros, cons, and ideal user. Include a summary or comparison table. Conclude with advice on choosing the right builder.",
+      "recommendedOutlineSections": [
+        {
+          "heading": "Introduction: What is an AI Website Builder and Why Use One?",
+          "level": "H2",
+          "purpose": "Briefly inform the user about the technology and its benefits, setting the stage for the recommendations."
+        },
+        {
+          "heading": "How We Evaluated the Best AI Website Builders",
+          "level": "H2",
+          "purpose": "Establish credibility and transparency by outlining the criteria used to select and review the builders."
+        },
+        {
+          "heading": "The Best AI Website Builders for [Year/Specific Needs]",
+          "level": "H2",
+          "purpose": "Present the core recommendations, with each builder getting a dedicated H3 section detailing its features, pros, cons, and ideal user."
+        },
+        {
+          "heading": "Factors to Consider When Choosing an AI Website Builder",
+          "level": "H2",
+          "purpose": "Empower users with knowledge to make an informed decision beyond the presented list."
+        },
+        {
+          "heading": "Conclusion: Finding Your Perfect AI Website Builder",
+          "level": "H2",
+          "purpose": "Summarize key takeaways and offer final guidance or a call to action (e.g., try a free demo)."
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 784,
+      "inputTokenDetails": {
+        "noCacheTokens": 784,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 2102,
+      "outputTokenDetails": {
+        "textTokens": 491,
+        "reasoningTokens": 1611
+      },
+      "totalTokens": 2886,
+      "raw": {
+        "thoughtsTokenCount": 1611,
+        "promptTokenCount": 784,
+        "candidatesTokenCount": 491,
+        "totalTokenCount": 2886,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 784
+          }
+        ]
+      },
+      "reasoningTokens": 1611,
+      "cachedInputTokens": 0
+    }
+  }
+}

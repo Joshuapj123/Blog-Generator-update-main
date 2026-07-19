@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-07-15T13:43:45.295Z",
+  "data": {
+    "text": "# AI email assistant for Outlook\n\n## Welcome to Copilot in Outlook\n\n## What is an AI email assistant?\nAn AI email assistant is a tool that helps people manage their inboxes. Also known as an AI email generator and email automation software, it can organize messages, suggest replies, prioritize important emails, draft emails, and even automate certain tasks, like scheduling meetings.\n\n## What can AI email assistants do?\nAI email assistants not only help you control your inbox but also work smarter. By handling repetitive tasks and improving how you manage and prioritize emails, you’ll have more time to focus on more important things. Here’s how they deliver value:\n\n*   Draft and respond to emails\n*   Organize your inbox\n*   Summarize information\n*   Manage scheduling\n*   Coordinate across apps\n*   Help with tasks and reminders\n*   Polish your writing\n\n### Staying organized\n*   **Smart sorting.** Scan new emails and organize them into categories, such as work, personal, promotions, and travel, so you can find what you need fast.\n*   **Custom folders.** Automatically create folders for emails based on your habits.\n*   **Email tagging.** Label emails with tags like “Urgent” or “Follow-up” based on the content or sender, so it’s easier to prioritize tasks.\n*   **Junk filtering.** Filter out spam or low-priority messages, so you spend less time weeding out distractions.\n\n### Simplifying scheduling\n*   **Smart scheduling.** Analyze your calendar and get suggestions for the best times for everyone to meet while avoiding conflicts and accounting for different time zones.\n*   **Refresh your memory.** Instead of manually looking through your calendar trying to find the upcoming meeting you know is scheduled sometime, ask the AI to find it for you.\n*   **Reminders.** Stay on track by receiving reminders for upcoming events and tasks before they slip through the cracks.\n\n### Streamlining communication\n*   **Automated responses.** For common questions, like “Can we reschedule?,” AI suggests quick, logical replies that you can send with just one click.\n*   **AI-generated drafts.** Ask an AI email assistant to write an email for you based on the context of a conversation—whether it’s a simple follow-up or something more detailed—saving you the time of starting from scratch.\n*   **Polished writing.** AI accounts for grammar and flow to keep your emails sounding crisp. Go a step further and tell the AI the tone you’d like to use to convey the most fitting voice.\n\n### Examples of AI Email Assistant Commands:\n*   “Write an email thanking the team for their presentation.”\n*   “Get tips for writing an email request for a proposal.”\n*   “Draft a reply to this email, agreeing to the proposed timeline.”\n*   “Move all emails from [name] to the ‘Invoices’ folder.”\n*   “Find the last email from [name] about the budget report.”\n*   “Summarize this email thread into key points.”\n*   “What is the latest on [project name]?”\n*   “Schedule a 30-minute meeting with [name] next week and find the best available time.”\n*   “Set up a recurring monthly meeting for the project team.”\n*   “When is my next meeting with [name]?”\n*   “Show emails and Teams messages where I was @mentioned this week.”\n*   “Find the file [name] emailed me about last week on [topic].”\n*   “Set my Out of Office message for my trip planned [date range].”\n*   “Do I have any action items in my unread emails today?”\n*   “Rewrite this email to sound more professional.”\n*   “Simplify this email for a broader audience.”\n\n## Real-world benefits of AI email assistants\n*   **Boosted productivity.** Instead of spending hours organizing emails, responding to routine questions, and scheduling meetings, let AI handle these tasks automatically.\n*   **Smarter prioritization.** AI can highlight the emails that need your attention first, like urgent requests or important updates, so you don’t miss crucial information.\n*   **Seamless email management.** Whether it’s moving emails to the right folders or drafting messages, AI makes sure your inbox runs smoothly.\n\n## Frequently asked questions about AI email assistants\n\n### What is an AI email assistant?\nAn AI email assistant is a tool that helps people manage their inboxes. Also known as an AI email generator and email automation software, it can organize messages, suggest replies, prioritize important emails, draft emails, and even automate certain tasks, like scheduling meetings.\n\n### Is there an AI email assistant for Outlook?\nYes. The AI email assistant for Outlook is Microsoft 365 Copilot, or simply Copilot in Outlook for short.\n\n### Is there AI in Outlook that helps write emails?\nYes, Copilot in Outlook helps you write and edit emails. It can also adjust for tone, length, and audience.\n\n### How can I automate my emails?\nThere are many ways to automate how your inbox is managed. One way is to create specific rules that apply to future incoming messages. For example, tell Copilot to “Flag past and future emails from [name].” This way, you’re less likely to miss an important message.\n\n### Can an AI email generator send emails?\nAI email generators can help you draft a new email, but they won’t send an email on your behalf. Once you’re happy with an email’s contents, the actual sending is up to you—send it immediately or schedule it to automatically send at a future date and time.",
+    "usage": {
+      "inputTokens": 1322,
+      "inputTokenDetails": {
+        "noCacheTokens": 1322,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 4031,
+      "outputTokenDetails": {
+        "textTokens": 1190,
+        "reasoningTokens": 2841
+      },
+      "totalTokens": 5353,
+      "raw": {
+        "thoughtsTokenCount": 2841,
+        "promptTokenCount": 1322,
+        "candidatesTokenCount": 1190,
+        "totalTokenCount": 5353,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1322
+          }
+        ]
+      },
+      "reasoningTokens": 2841,
+      "cachedInputTokens": 0
+    }
+  }
+}

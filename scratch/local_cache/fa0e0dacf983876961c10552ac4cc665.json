@@ -1,0 +1,60 @@
+{
+  "timestamp": "2026-06-25T00:24:53.256Z",
+  "data": {
+    "object": {
+      "heading": "Key Evaluation Criteria",
+      "level": "H3",
+      "what_it_is": "**Key evaluation criteria** for legal AI contract review include **accuracy**, **user-friendliness**, and **vendor support**. Crucially, assess the **Integration Ecosystem** with existing tech stacks and the strength of **Data Security** protocols.",
+      "why_it_works": "Focusing on these ensures optimal utility, as **Custom Playbooks** tailor reviews, enhancing efficiency. This strategic selection leads to better **risk mitigation** and a stronger return on investment, aligning the software with specific organizational needs.",
+      "experience_or_data_point": "Industry research indicates that overlooked integration capabilities often lead to 30% lower legal tech adoption rates post-deployment, highlighting integration's critical role.",
+      "outbound_authority_link": {
+        "anchor_text": "30% lower legal tech adoption rates",
+        "search_query": "legal tech integration adoption rates study"
+      },
+      "example_brands": [
+        "ThoughtTrace: Offers robust analytics and an **Integration Ecosystem** for complex contract portfolios.",
+        "BlackBoiler: Known for its highly customizable **Custom Playbooks** that adapt to specific negotiation stances.",
+        "Ironclad: Provides strong **Data Security** features alongside comprehensive contract lifecycle management."
+      ],
+      "copy_formula": [
+        "Outline critical evaluation points, then detail how each contributes to long-term success for legal teams.",
+        "Start with the 'must-haves' for software selection, then explain the strategic advantage of each criterion.",
+        "Present a challenge in contract review, then offer evaluation criteria as the solution for efficient automation."
+      ],
+      "takeaway": "Thorough evaluation across criteria like integration, security, and customization is paramount for maximizing AI contract review software's strategic value.",
+      "rich_media_query": {
+        "type": "image",
+        "suggested_search_query": "AI contract review software evaluation criteria diagram",
+        "alt_text": "Diagram illustrating key evaluation criteria for AI contract review software, including accuracy, user-friendliness, integration ecosystem, data security, and custom playbooks."
+      },
+      "markdown_table": ""
+    },
+    "usage": {
+      "inputTokens": 2617,
+      "inputTokenDetails": {
+        "noCacheTokens": 2617,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 2961,
+      "outputTokenDetails": {
+        "textTokens": 493,
+        "reasoningTokens": 2468
+      },
+      "totalTokens": 5578,
+      "raw": {
+        "thoughtsTokenCount": 2468,
+        "promptTokenCount": 2617,
+        "candidatesTokenCount": 493,
+        "totalTokenCount": 5578,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2617
+          }
+        ]
+      },
+      "reasoningTokens": 2468,
+      "cachedInputTokens": 0
+    }
+  }
+}

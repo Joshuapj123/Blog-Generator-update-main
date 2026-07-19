@@ -1,0 +1,61 @@
+{
+  "timestamp": "2026-06-27T05:03:54.238Z",
+  "data": {
+    "object": {
+      "heading": "What is AI contract review platforms?",
+      "level": "H3",
+      "what_it_is": "AI contract review software utilizes **artificial intelligence** to **automate** and enhance the process of analyzing legal agreements. It rapidly identifies **risks**, flags non-standard clauses, extracts key data, and suggests **revisions**, significantly reducing manual **Contract Review** time and improving accuracy. This technology empowers legal and business teams to manage contracts more efficiently and mitigate potential liabilities.",
+      "why_it_works": "The effectiveness of these platforms stems from their ability to **process vast volumes** of legal documentation in moments, a task that would consume hundreds of human hours. By applying **machine learning algorithms** to identify patterns and anomalies, they drastically **reduce human error** and ensure **consistency**, accelerating deal cycles and fortifying compliance postures.",
+      "experience_or_data_point": "According to a Gartner report, legal departments using AI for contract review can see a **reduction in review time by up to 90%**, significantly reallocating lawyer efforts to higher-value, strategic tasks.",
+      "outbound_authority_link": {
+        "anchor_text": "According to a Gartner report",
+        "search_query": "Gartner AI legal tech report"
+      },
+      "example_brands": [
+        "LegalOn Technologies: Their AI platform offers rapid contract analysis, identifying risks and suggesting improvements for agreements like NDAs and MSAs, often in seconds.",
+        "Evisort: Utilizes AI to extract key data points and identify critical clauses across a wide range of contract types, streamlining due diligence and compliance checks.",
+        "Kira Systems: Known for its machine learning capabilities in M&A due diligence, it can pinpoint relevant provisions in complex contracts, accelerating large-scale document review."
+      ],
+      "copy_formula": [
+        "Describe the tedious manual process, then introduce AI contract review platforms as the definitive solution for speed and precision.",
+        "Highlight a critical business risk (e.g., missed deadlines, non-compliance), then present the platform as the preventative measure.",
+        "Begin with the transformative power of AI in legal operations, then detail how it specifically elevates the contract review process.",
+        "State the core benefit (e.g., 'Save X hours per week'), then explain the underlying AI mechanism enabling it."
+      ],
+      "takeaway": "AI contract review platforms are essential tools that leverage intelligence to transform slow, error-prone manual legal review into a fast, accurate, and strategically empowered process.",
+      "rich_media_query": {
+        "type": "image",
+        "suggested_search_query": "AI contract review platform workflow diagram",
+        "alt_text": "Diagram showing the workflow of an AI contract review platform, from document upload to risk identification and suggested revisions."
+      },
+      "markdown_table": "| Feature Category | Manual Contract Review | AI Contract Review Platforms |\n|---|---|---|\n| Speed | Slow, time-consuming | Instant, rapid analysis |\n| Accuracy | Prone to human error | High, consistent, rule-based |\n| Scalability | Limited by human capacity | Highly scalable, handles vast volumes |\n| Cost | High labor costs | Reduced operational costs, higher ROI |\n| Risk Identification | Inconsistent, overlooks nuances | Precise, flags anomalies automatically |\n| Data Extraction | Manual, tedious | Automated, accurate key data extraction |"
+    },
+    "usage": {
+      "inputTokens": 2479,
+      "inputTokenDetails": {
+        "noCacheTokens": 2479,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 4288,
+      "outputTokenDetails": {
+        "textTokens": 744,
+        "reasoningTokens": 3544
+      },
+      "totalTokens": 6767,
+      "raw": {
+        "thoughtsTokenCount": 3544,
+        "promptTokenCount": 2479,
+        "candidatesTokenCount": 744,
+        "totalTokenCount": 6767,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2479
+          }
+        ]
+      },
+      "reasoningTokens": 3544,
+      "cachedInputTokens": 0
+    }
+  }
+}

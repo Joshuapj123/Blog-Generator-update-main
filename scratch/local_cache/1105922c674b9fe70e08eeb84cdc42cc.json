@@ -1,0 +1,73 @@
+{
+  "timestamp": "2026-07-15T13:48:16.997Z",
+  "data": {
+    "object": {
+      "intent": "commercial",
+      "confidenceScore": 92,
+      "intentConfidence": {
+        "informational": 10,
+        "commercial": 60,
+        "transactional": 5,
+        "comparison": 25
+      },
+      "formatRecommendation": "Listicle, Buyer's Guide, or Comprehensive Review",
+      "toneGuidelines": "Objective, helpful, authoritative, practical, and slightly persuasive towards the value proposition.",
+      "structureGuidelines": "Start with an introduction defining the topic and its benefits. Include a 'how to choose' section. Feature a ranked or categorized list of products with pros, cons, key features, and pricing. Incorporate a comparison table. Conclude with a summary and a call to action.",
+      "recommendedOutlineSections": [
+        {
+          "heading": "What is an AI Email Assistant?",
+          "level": "H2",
+          "purpose": "To provide foundational knowledge and context for users unfamiliar with the concept, satisfying informational intent."
+        },
+        {
+          "heading": "Why Use an AI Email Assistant? (Benefits & Use Cases)",
+          "level": "H2",
+          "purpose": "To highlight the value proposition and practical applications, addressing both informational and commercial interest."
+        },
+        {
+          "heading": "How to Choose the Best AI Email Assistant (Key Features & Criteria)",
+          "level": "H2",
+          "purpose": "To guide users through the decision-making process, directly supporting commercial and comparison intent."
+        },
+        {
+          "heading": "The Best AI Email Assistants [Current Year] (Ranked & Reviewed)",
+          "level": "H2",
+          "purpose": "To present a curated list of top products with detailed reviews, directly fulfilling commercial and comparison intent."
+        },
+        {
+          "heading": "AI Email Assistant Comparison Table",
+          "level": "H2",
+          "purpose": "To offer a quick, at-a-glance comparison of key features and pricing for easy evaluation, serving comparison intent."
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 1120,
+      "inputTokenDetails": {
+        "noCacheTokens": 613,
+        "cacheReadTokens": 507
+      },
+      "outputTokens": 2705,
+      "outputTokenDetails": {
+        "textTokens": 467,
+        "reasoningTokens": 2238
+      },
+      "totalTokens": 3825,
+      "raw": {
+        "cachedContentTokenCount": 507,
+        "thoughtsTokenCount": 2238,
+        "promptTokenCount": 1120,
+        "candidatesTokenCount": 467,
+        "totalTokenCount": 3825,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1120
+          }
+        ]
+      },
+      "reasoningTokens": 2238,
+      "cachedInputTokens": 507
+    }
+  }
+}

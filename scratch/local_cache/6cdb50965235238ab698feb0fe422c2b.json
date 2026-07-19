@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-07-15T13:48:30.004Z",
+  "data": {
+    "object": {
+      "hasFeaturedSnippet": true,
+      "snippetType": "definition",
+      "targetQuery": "AI email assistant",
+      "extractedSnippetText": "An AI email assistant is a software tool that leverages artificial intelligence, often large language models (LLMs), to automate and enhance email management. These tools can draft replies, summarize threads, organize inboxes, and even act as proactive agents by classifying and routing emails, significantly reducing the time professionals spend on email tasks.",
+      "optimizedSnippetRecommendation": "An AI email assistant is a software tool leveraging artificial intelligence, primarily large language models (LLMs), to automate and enhance email management. These assistants draft replies, summarize threads, organize inboxes, and prioritize messages. Modern versions can act as proactive agents, classifying and routing emails, transforming the inbox into an intelligent workspace and significantly boosting productivity for professionals.",
+      "generationDirectives": "Place this definition immediately under an H2 heading such as \"What is an AI Email Assistant?\". Ensure the definition is a single, concise paragraph, between 40-60 words. Use bolding for key terms like \"artificial intelligence\", \"large language models (LLMs)\", \"automate and enhance email management\", and \"proactive agents\" to improve scannability and emphasize core concepts."
+    },
+    "usage": {
+      "inputTokens": 2207,
+      "inputTokenDetails": {
+        "noCacheTokens": 2207,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 1854,
+      "outputTokenDetails": {
+        "textTokens": 271,
+        "reasoningTokens": 1583
+      },
+      "totalTokens": 4061,
+      "raw": {
+        "thoughtsTokenCount": 1583,
+        "promptTokenCount": 2207,
+        "candidatesTokenCount": 271,
+        "totalTokenCount": 4061,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2207
+          }
+        ]
+      },
+      "reasoningTokens": 1583,
+      "cachedInputTokens": 0
+    }
+  }
+}

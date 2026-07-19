@@ -1,0 +1,259 @@
+{
+  "timestamp": "2026-06-25T00:22:30.474Z",
+  "data": {
+    "object": {
+      "headingFrequency": [
+        {
+          "heading": "What is AI Contract Review Software?",
+          "competitorRanks": [
+            1,
+            3,
+            4
+          ]
+        },
+        {
+          "heading": "How AI Contract Review Software Works",
+          "competitorRanks": [
+            1,
+            2,
+            4,
+            5
+          ]
+        },
+        {
+          "heading": "Benefits of AI Contract Review Software",
+          "competitorRanks": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "heading": "Challenges and Limitations of AI Contract Review Software",
+          "competitorRanks": [
+            1,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "heading": "Who Uses AI Contract Review Software?",
+          "competitorRanks": [
+            1,
+            3
+          ]
+        },
+        {
+          "heading": "Features of AI Contract Review Software",
+          "competitorRanks": [
+            1,
+            2
+          ]
+        },
+        {
+          "heading": "How to Evaluate/Choose AI Contract Review Software",
+          "competitorRanks": [
+            1,
+            3,
+            5
+          ]
+        },
+        {
+          "heading": "Best AI Contract Review Software",
+          "competitorRanks": [
+            3,
+            5
+          ]
+        },
+        {
+          "heading": "AI Contract Review Software vs. General AI/ChatGPT",
+          "competitorRanks": [
+            1,
+            2,
+            5
+          ]
+        },
+        {
+          "heading": "Implementation of AI Contract Review Software",
+          "competitorRanks": [
+            1
+          ]
+        },
+        {
+          "heading": "Role of Playbooks in AI Contract Review",
+          "competitorRanks": [
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "heading": "FAQs about AI Contract Review Software",
+          "competitorRanks": [
+            1,
+            2,
+            4,
+            5
+          ]
+        }
+      ],
+      "tableDetection": {
+        "recommendedTables": [
+          {
+            "name": "AI Contract Review Software Comparison",
+            "type": "Comparison",
+            "columns": [
+              "Software Name",
+              "Key Features",
+              "Pricing Model/Free Trial",
+              "Best For",
+              "Unique Selling Points"
+            ],
+            "purpose": "To help users quickly compare different AI contract review software options based on features, pricing, and target audience, facilitating an informed decision."
+          }
+        ]
+      },
+      "paaClustered": [
+        {
+          "question": "What is AI contract review software?",
+          "frequency": 4,
+          "snippet": ""
+        },
+        {
+          "question": "How does AI contract review software work?",
+          "frequency": 5,
+          "snippet": ""
+        },
+        {
+          "question": "What are the benefits of using AI for contract review?",
+          "frequency": 4,
+          "snippet": ""
+        },
+        {
+          "question": "What are the challenges or limitations of AI contract review?",
+          "frequency": 4,
+          "snippet": ""
+        },
+        {
+          "question": "How to choose the best AI contract review software?",
+          "frequency": 4,
+          "snippet": ""
+        },
+        {
+          "question": "Is AI contract review software secure for confidential legal documents?",
+          "frequency": 3,
+          "snippet": ""
+        },
+        {
+          "question": "How accurate is AI contract review compared to manual review?",
+          "frequency": 2,
+          "snippet": ""
+        },
+        {
+          "question": "What is the role of playbooks in AI contract review?",
+          "frequency": 3,
+          "snippet": ""
+        }
+      ],
+      "contentGapReport": {
+        "commonTopics": [
+          "What is AI Contract Review Software?",
+          "How AI Contract Review Software Works",
+          "Benefits of AI Contract Review Software",
+          "Challenges and Limitations of AI Contract Review Software",
+          "How to Evaluate/Choose AI Contract Review Software",
+          "FAQs about AI Contract Review Software"
+        ],
+        "uniqueHeadings": [
+          "Contract Review AI vs General AI",
+          "The history of artificial intelligence in the legal profession",
+          "How to Implement AI Contract Review Software",
+          "Should you use AI to review legal contracts?"
+        ],
+        "missingTopics": [
+          "Integrations with existing legal tech stacks (DMS, CLM, e-signature)",
+          "Detailed pricing models, cost considerations, and ROI justification",
+          "Future trends and the evolution of AI in contract review",
+          "Specific real-world use cases and case studies",
+          "Ethical considerations and potential biases in AI legal review"
+        ],
+        "recommendedNewSections": [
+          {
+            "heading": "Integrations: Connecting AI Contract Review with Your Legal Ecosystem",
+            "level": "H2",
+            "reason": "This is a crucial aspect for legal teams adopting new software, ensuring it fits into their existing workflows (DMS, CLM, e-signature tools). Competitors mention it briefly as a feature to look for but don't dedicate a section to it.",
+            "suggestedOutline": "Discuss common integration points (CRM, CLM, DMS, e-signature), benefits of seamless integration, and what to look for in terms of API/compatibility."
+          },
+          {
+            "heading": "Pricing Models and ROI of AI Contract Review Software",
+            "level": "H2",
+            "reason": "Cost is a major factor in software adoption. Competitors touch on 'free' in FAQs but don't provide a comprehensive overview of pricing structures, potential ROI, or how to justify the investment.",
+            "suggestedOutline": "Explain different pricing models (per user, per contract, tiered), discuss factors influencing cost, and provide a framework for calculating ROI (time savings, risk reduction, accuracy)."
+          },
+          {
+            "heading": "The Future of AI in Legal Contract Review",
+            "level": "H2",
+            "reason": "To position the content as forward-thinking and comprehensive. Competitors focus on current capabilities, but discussing future trends adds depth and value.",
+            "suggestedOutline": "Explore emerging AI capabilities (generative AI for drafting, predictive analytics), potential impact on legal roles, and ethical considerations."
+          },
+          {
+            "heading": "Real-World Use Cases and Case Studies",
+            "level": "H2",
+            "reason": "To provide concrete examples and build trust. While benefits are listed, specific scenarios and success stories can illustrate the practical application and value of the software.",
+            "suggestedOutline": "Detail how different types of organizations (in-house legal, law firms, procurement) leverage AI for specific contract types or processes, including anonymized examples or hypothetical scenarios."
+          },
+          {
+            "heading": "Ethical Considerations and Bias in AI Contract Review",
+            "level": "H2",
+            "reason": "This is a critical and often overlooked aspect of AI in sensitive fields like law. Addressing it demonstrates a thorough and responsible approach.",
+            "suggestedOutline": "Discuss potential sources of bias in AI models, the importance of human oversight, data privacy concerns, and how reputable software addresses these issues."
+          }
+        ],
+        "unansweredQuestions": [
+          "What are the typical pricing models for AI contract review software?",
+          "How does AI contract review software integrate with existing contract management systems?",
+          "What are the ethical implications of using AI for legal contract review?",
+          "Are there specific case studies or success stories demonstrating ROI?"
+        ],
+        "shouldIncludeFaq": true,
+        "faqQuestions": [
+          "What is AI contract review software?",
+          "How does AI contract review software work?",
+          "Is AI contract review software secure for confidential legal documents?",
+          "How accurate is AI contract review compared to manual review?",
+          "How do I choose the right AI contract review software for my business?"
+        ]
+      }
+    },
+    "usage": {
+      "inputTokens": 3113,
+      "inputTokenDetails": {
+        "noCacheTokens": 3113,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 6591,
+      "outputTokenDetails": {
+        "textTokens": 1812,
+        "reasoningTokens": 4779
+      },
+      "totalTokens": 9704,
+      "raw": {
+        "thoughtsTokenCount": 4779,
+        "promptTokenCount": 3113,
+        "candidatesTokenCount": 1812,
+        "totalTokenCount": 9704,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3113
+          }
+        ]
+      },
+      "reasoningTokens": 4779,
+      "cachedInputTokens": 0
+    }
+  }
+}

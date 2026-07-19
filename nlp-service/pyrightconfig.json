@@ -1,0 +1,14 @@
+{
+  "venvPath": ".",
+  "venv": "venv",
+  "pythonVersion": "3.13",
+  "include": [
+    "nlp",
+    "main.py"
+  ],
+  "exclude": [
+    "venv"
+  ],
+  "typeCheckingMode": "basic",
+  "reportMissingModuleSource": "none"
+}

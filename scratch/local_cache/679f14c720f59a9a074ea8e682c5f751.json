@@ -1,0 +1,333 @@
+{
+  "timestamp": "2026-07-12T05:26:32.286Z",
+  "data": {
+    "object": {
+      "entities": [
+        {
+          "name": "Fireflies",
+          "type": "brand"
+        },
+        {
+          "name": "Krisp",
+          "type": "brand"
+        },
+        {
+          "name": "Fathom",
+          "type": "brand"
+        },
+        {
+          "name": "Fellow",
+          "type": "brand"
+        },
+        {
+          "name": "Granola",
+          "type": "brand"
+        },
+        {
+          "name": "Avoma",
+          "type": "brand"
+        },
+        {
+          "name": "tl;dv",
+          "type": "brand"
+        },
+        {
+          "name": "Equal Time",
+          "type": "brand"
+        },
+        {
+          "name": "Otter",
+          "type": "brand"
+        },
+        {
+          "name": "MeetGeek",
+          "type": "brand"
+        },
+        {
+          "name": "Read AI",
+          "type": "brand"
+        },
+        {
+          "name": "AI meeting assistants",
+          "type": "software"
+        },
+        {
+          "name": "CRM",
+          "type": "software"
+        },
+        {
+          "name": "Generative AI",
+          "type": "software"
+        },
+        {
+          "name": "Conversational AI",
+          "type": "software"
+        },
+        {
+          "name": "Natural Language Processing (NLP)",
+          "type": "software"
+        },
+        {
+          "name": "Collaboration apps",
+          "type": "software"
+        },
+        {
+          "name": "AI meeting notetakers",
+          "type": "software"
+        },
+        {
+          "name": "Note-taking",
+          "type": "concept"
+        },
+        {
+          "name": "Task creation",
+          "type": "concept"
+        },
+        {
+          "name": "Follow-ups",
+          "type": "concept"
+        },
+        {
+          "name": "Meeting workflow",
+          "type": "concept"
+        },
+        {
+          "name": "Transcription",
+          "type": "concept"
+        },
+        {
+          "name": "Summarization",
+          "type": "concept"
+        },
+        {
+          "name": "Action items",
+          "type": "concept"
+        },
+        {
+          "name": "Conversation analytics",
+          "type": "concept"
+        },
+        {
+          "name": "Data privacy",
+          "type": "concept"
+        },
+        {
+          "name": "Security",
+          "type": "concept"
+        },
+        {
+          "name": "CRM sync",
+          "type": "concept"
+        },
+        {
+          "name": "Team alignment",
+          "type": "concept"
+        },
+        {
+          "name": "Sales-driven teams",
+          "type": "concept"
+        },
+        {
+          "name": "Manual work",
+          "type": "concept"
+        }
+      ],
+      "relationships": [
+        {
+          "source": "AI meeting assistants",
+          "target": "Note-taking",
+          "type": "automates"
+        },
+        {
+          "source": "AI meeting assistants",
+          "target": "Task creation",
+          "type": "automates"
+        },
+        {
+          "source": "AI meeting assistants",
+          "target": "Follow-ups",
+          "type": "automates"
+        },
+        {
+          "source": "AI meeting assistants",
+          "target": "Transcription",
+          "type": "enables"
+        },
+        {
+          "source": "AI meeting assistants",
+          "target": "Summarization",
+          "type": "enables"
+        },
+        {
+          "source": "AI meeting assistants",
+          "target": "Action items",
+          "type": "generates"
+        },
+        {
+          "source": "AI meeting assistants",
+          "target": "Generative AI",
+          "type": "leverages"
+        },
+        {
+          "source": "AI meeting assistants",
+          "target": "Conversational AI",
+          "type": "leverages"
+        },
+        {
+          "source": "AI meeting assistants",
+          "target": "Natural Language Processing (NLP)",
+          "type": "uses"
+        },
+        {
+          "source": "AI meeting assistants",
+          "target": "Meeting workflow",
+          "type": "supports"
+        },
+        {
+          "source": "AI meeting assistants",
+          "target": "Team alignment",
+          "type": "supports"
+        },
+        {
+          "source": "AI meeting assistants",
+          "target": "Manual work",
+          "type": "reduces"
+        },
+        {
+          "source": "AI meeting assistants",
+          "target": "CRM",
+          "type": "integrates with"
+        },
+        {
+          "source": "Fireflies",
+          "target": "Collaboration",
+          "type": "supports"
+        },
+        {
+          "source": "Fireflies",
+          "target": "CRM sync",
+          "type": "offers"
+        },
+        {
+          "source": "Fathom",
+          "target": "CRM sync",
+          "type": "offers"
+        },
+        {
+          "source": "Avoma",
+          "target": "Conversation analytics",
+          "type": "provides"
+        },
+        {
+          "source": "Avoma",
+          "target": "Agendas",
+          "type": "supports"
+        },
+        {
+          "source": "Avoma",
+          "target": "Scheduling meetings",
+          "type": "supports"
+        },
+        {
+          "source": "Avoma",
+          "target": "Transcription accuracy",
+          "type": "ensures"
+        },
+        {
+          "source": "tl;dv",
+          "target": "AI-powered meeting search",
+          "type": "enables"
+        },
+        {
+          "source": "Krisp",
+          "target": "Audio quality",
+          "type": "improves"
+        },
+        {
+          "source": "Read AI",
+          "target": "Automated CRM entry",
+          "type": "provides"
+        },
+        {
+          "source": "CRM sync",
+          "target": "Sales-driven teams",
+          "type": "benefits"
+        },
+        {
+          "source": "Automated CRM entry",
+          "target": "Sales-driven teams",
+          "type": "benefits"
+        },
+        {
+          "source": "Fellow",
+          "target": "Data privacy",
+          "type": "ensures"
+        },
+        {
+          "source": "Fellow",
+          "target": "Security",
+          "type": "ensures"
+        },
+        {
+          "source": "Granola",
+          "target": "Human notes",
+          "type": "combines"
+        },
+        {
+          "source": "Granola",
+          "target": "AI notes",
+          "type": "combines"
+        },
+        {
+          "source": "Otter",
+          "target": "Instant answers",
+          "type": "generates"
+        },
+        {
+          "source": "Equal Time",
+          "target": "Inclusive meetings",
+          "type": "promotes"
+        },
+        {
+          "source": "MeetGeek",
+          "target": "AI voice agents",
+          "type": "utilizes"
+        }
+      ],
+      "recommendedConnections": [
+        "AI meeting assistants -> enhances -> Sales pipeline",
+        "Generative AI -> powers -> Summarization",
+        "Natural Language Processing (NLP) -> enables -> Conversation analytics",
+        "AI meeting assistants -> improves -> Productivity",
+        "AI meeting assistants -> facilitates -> Knowledge management"
+      ]
+    },
+    "usage": {
+      "inputTokens": 1596,
+      "inputTokenDetails": {
+        "noCacheTokens": 1596,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 5535,
+      "outputTokenDetails": {
+        "textTokens": 1914,
+        "reasoningTokens": 3621
+      },
+      "totalTokens": 7131,
+      "raw": {
+        "thoughtsTokenCount": 3621,
+        "promptTokenCount": 1596,
+        "candidatesTokenCount": 1914,
+        "totalTokenCount": 7131,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1596
+          }
+        ]
+      },
+      "reasoningTokens": 3621,
+      "cachedInputTokens": 0
+    }
+  }
+}

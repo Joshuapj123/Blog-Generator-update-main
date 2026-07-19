@@ -1,0 +1,255 @@
+'use client';
+
+import { useRef, useEffect } from 'react';
+import { useEngine } from '../context/EngineContext';
+
+import { toMarkdown } from '@/lib/article-utils';
+import { computeStructuredScore } from '@/lib/content-scoring';
+import { getArticleByGenerationInputs } from '@/lib/firebase/firestore';
+
+export function useGenerationPipeline() {
+  const engine = useEngine();
+
+  const runPostGenerationAnalysis = async (finalSections: any[], blueprint: any) => {
+    engine.setIsDetectingWeakCopy(true);
+    engine.setGenStatus('Running full SEO QA analysis...');
+    engine.setWeakCopyFlags([]);
+    engine.setAnalysisResults(null);
+    
+    try {
+      const rawMarkdown = (blueprint?.section_outlines || []).map((blueprintSec: any, i: number) => {
+        const sec = finalSections[i];
+        if (!sec) return `## ${blueprintSec.heading}\n\n*Content missing.*`;
+        const lines: string[] = [];
+        const level = sec.level === 'H3' ? '###' : '##';
+        lines.push(`${level} ${sec.heading}`);
+        lines.push('');
+        if (sec.what_it_is) lines.push(sec.what_it_is.replace(/\*\*(.*?)\*\*/g, '**$1**').trim() + '\n');
+        if (sec.why_it_works) lines.push(sec.why_it_works.replace(/\*\*(.*?)\*\*/g, '**$1**').trim() + '\n');
+        if (sec.experience_or_data_point) lines.push(`> **Expert Insight:** ${sec.experience_or_data_point}\n`);
+        if (sec.example_brands?.length) lines.push(`**Examples:** ${sec.example_brands.join(', ')}\n`);
+        if (sec.outbound_authority_link?.resolved_url) {
+          lines.push(`📎 [${sec.outbound_authority_link.resolved_title || 'Source'}](${sec.outbound_authority_link.resolved_url})\n`);
+        }
+        if (sec.rich_media_query?.youtube_video_id) {
+          const vid = sec.rich_media_query;
+          lines.push(`🎬 **YouTube Reference:** [${vid.suggested_search_query || 'Watch Video'}](https://www.youtube.com/watch?v=${vid.youtube_video_id})\n`);
+        } else if (sec.rich_media_query?.suggested_search_query) {
+          const query = sec.rich_media_query.suggested_search_query;
+          lines.push(`🎬 **YouTube Search:** [${query}](https://www.youtube.com/results?search_query=${encodeURIComponent(query)})\n`);
+        }
+        return lines.join('\n');
+      }).join('\n\n');
+      
+      const textContext = `# ${blueprint?.title || ''}\n\n` + rawMarkdown;
+      
+      const res = await fetch('/api/standalone-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          text: textContext,
+          referenceContext: engine.referenceData?.rawText || '',
+          refRawText: engine.referenceData?.rawText || '',
+          refRawHtml: (engine.referenceData as any)?.rawHtml || '',
+          serpContext: {},
+          masterKeywords: engine.keywordBank?.terms.map(t => t.term) || engine.serpTerms.map(t => t.term),
+          nlpExtraction: engine.referenceData?.nlpExtraction || null
+        }),
+      });
+      
+      const data = await res.json();
+      if (res.ok) {
+        engine.setAnalysisResults(data);
+        if (data.weakCopyItems) {
+           engine.setWeakCopyFlags(data.weakCopyItems.map((w: any) => ({
+              originalPhrase: w.phrase,
+              suggestedRewrite: w.improvement,
+              category: 'weak copy',
+              reasoning: ''
+           })));
+        }
+
+        // Compute Score
+        try {
+          const headings = finalSections.map((s: any) => s.heading);
+          const liveTerms = (engine.serpTerms || []).map(t => ({ ...t, currentCount: 0, overuseRisk: false }));
+          const entities: any[] = [];
+          
+          const score = computeStructuredScore({
+            textContext,
+            title: blueprint?.title || '',
+            headings,
+            liveTerms,
+            entities,
+            topTermsForIntent: [], // Simplified for engine for now
+            medianWordCount: engine.referenceData?.advancedMetrics?.wordCount || 1500,
+            medianTitleLength: 60,
+            medianH2Count: engine.referenceData?.seo?.headerHierarchy?.filter((h: any) => h.tag === 'h2').length || 8,
+            contentGapReport: (engine.referenceData as any)?.contentGapReport,
+            headingFrequency: engine.serpAnalysis?.headingFrequency || (engine.referenceData as any)?.headingFrequency,
+            topicClusters: engine.serpAnalysis?.topicClusters || (engine.referenceData as any)?.topicClusters,
+            paaQuestions: engine.serpAnalysis?.paaQuestions || (engine.referenceData as any)?.paaQuestions,
+            medianLexicalDiversity: engine.serpAnalysis?.medianLexicalDiversity || (engine.referenceData as any)?.medianLexicalDiversity || (engine.referenceData as any)?.advancedMetrics?.medianLexicalDiversity || 0.35,
+            featuredSnippetBlueprint: engine.serpAnalysis?.featuredSnippetBlueprint || (engine.referenceData as any)?.featuredSnippetBlueprint || blueprint?.featuredSnippetBlueprint,
+          });
+          engine.setContentScore(score);
+        } catch (scoreErr) {
+          console.error('[compute-score]', scoreErr);
+        }
+      }
+    } catch (e) {
+      console.error('[standalone-analysis]', e);
+    } finally {
+      engine.setIsDetectingWeakCopy(false);
+      if (engine.genStatus !== 'Cancelled') {
+        engine.setGenStatus('Generation complete');
+      }
+    }
+  };
+
+  const startPipeline = async (force = false) => {
+    if (!engine.title) return;
+
+    engine.setIsRunning(true);
+    engine.setIsGenerated(false);
+    engine.setGenStatus('Initializing pipeline…');
+    engine.setGenProgress(5);
+    engine.setBlueprint(null);
+    engine.setSections([]);
+    engine.setTiptapContent('');
+    engine.setGenError(null);
+
+    // Auto-Restore logic
+    if (!force && engine.targetKeywords && engine.referenceUrl) {
+      try {
+        const existing = await getArticleByGenerationInputs(engine.targetKeywords, engine.referenceUrl);
+        if (existing) {
+          engine.setCurrentArticleId(existing.id || null);
+          engine.setTiptapContent(existing.content);
+          if (existing.blueprint) {
+            engine.setBlueprint(existing.blueprint);
+            if (existing.blueprint.sections) {
+              engine.setSections(existing.blueprint.sections);
+            }
+          }
+          if (existing.serpAnalysis?.terms) {
+            engine.setSerpTerms(existing.serpAnalysis.terms);
+          }
+          if (existing.contentScore) {
+            engine.setContentScore(existing.contentScore);
+          }
+          if (existing.analysisResults) {
+            engine.setAnalysisResults(existing.analysisResults);
+          }
+          engine.setIsGenerated(true);
+          engine.setIsRunning(false);
+          engine.setGenStatus('Restored from draft');
+          return;
+        }
+      } catch (err) {
+        console.warn('Auto-restore check failed:', err);
+      }
+    }
+
+    const controller = new AbortController();
+    engine.setAbortController(controller);
+
+    try {
+      const res = await fetch('/api/generate-blocks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: engine.title,
+          targetKeywords: engine.targetKeywords,
+          referenceData: engine.referenceData,
+          campaignMode: engine.campaignMode,
+          guestPostBacklinkUrl: engine.campaignMode === 'guest_post' ? engine.guestPostBacklinkUrl : undefined,
+          guestPostTargetPublication: engine.campaignMode === 'guest_post' ? engine.guestPostTargetPublication : undefined,
+          keywordBank: engine.keywordBank,
+          ctaIntent: engine.ctaIntent,
+          serpTerms: engine.serpTerms,
+          serpEntities: engine.serpAnalysis?.entities || [],
+          serpMedianWordCount: engine.serpAnalysis?.medianWordCount || engine.referenceData?.advancedMetrics?.wordCount || 2000,
+          serpMedianTitleLength: engine.serpAnalysis?.medianTitleLength || 60,
+          serpMedianH2Count: engine.serpAnalysis?.medianH2Count || 5,
+          planRole: engine.planRole,
+          detectedFormat: engine.serpAnalysis?.intentBlueprint?.formatRecommendation,
+          serpAnalysis: engine.serpAnalysis,
+        }),
+        signal: controller.signal,
+      });
+
+      if (!res.body) throw new Error('No readable stream.');
+      if (!res.ok) throw new Error(`Server error ${res.status}`);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+
+      while (!done) {
+        const { value, done: rd } = await reader.read();
+        done = rd;
+        if (value) {
+          const str = decoder.decode(value, { stream: true });
+          const chunks = str.split('\n\n').filter((c) => c.trim().startsWith('data: '));
+          for (const chunk of chunks) {
+            try {
+              const parsed = JSON.parse(chunk.replace(/^data: /, ''));
+              if (parsed.type === 'status') {
+                engine.setGenStatus(parsed.message);
+                if (parsed.progress) engine.setGenProgress(parsed.progress);
+              } else if (parsed.type === 'outline') {
+                engine.setBlueprint(parsed.data);
+              } else if (parsed.type === 'section') {
+                engine.setSections((prev: any) => {
+                  const next = [...prev];
+                  next[parsed.index] = parsed.data;
+                  return next;
+                });
+              } else if (parsed.type === 'complete') {
+                engine.setBlueprint((prev: any) => ({ ...prev, ...parsed.data }));
+                if (parsed.data.sections) {
+                  engine.setSections(parsed.data.sections);
+                }
+                engine.setGenProgress(100);
+                engine.setGenStatus('Generation complete');
+                engine.setIsGenerated(true);
+                // Switch QA panel to Score tab
+                engine.setActiveQaTab('score');
+
+                if (parsed.data.sections) {
+                  runPostGenerationAnalysis(parsed.data.sections, parsed.data);
+                }
+              } else if (parsed.type === 'error') {
+                throw new Error(parsed.message);
+              }
+            } catch (e) {
+              /* ignore parse errors */
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        engine.setGenError(err.message || 'Generation failed.');
+        engine.setGenStatus('Failed');
+      }
+    } finally {
+      engine.setIsRunning(false);
+    }
+  };
+
+  const cancelPipeline = () => {
+    engine.abortGeneration();
+    engine.setIsRunning(false);
+    engine.setGenStatus('Cancelled');
+  };
+
+  // Removed abort on unmount so the global pipeline can continue running 
+  // even when the StepFinalConfig component is unmounted.
+
+  return {
+    startPipeline,
+    cancelPipeline,
+  };
+}

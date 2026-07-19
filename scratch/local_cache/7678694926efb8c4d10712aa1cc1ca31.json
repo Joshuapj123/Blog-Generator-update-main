@@ -1,0 +1,278 @@
+{
+  "timestamp": "2026-06-27T06:42:08.519Z",
+  "data": {
+    "object": {
+      "keywords": [
+        {
+          "term": "AI meeting assistant software",
+          "category": "basic"
+        },
+        {
+          "term": "AI meeting assistant",
+          "category": "basic"
+        },
+        {
+          "term": "AI note taker",
+          "category": "basic"
+        },
+        {
+          "term": "best AI meeting assistants",
+          "category": "basic"
+        },
+        {
+          "term": "top AI meeting assistants",
+          "category": "basic"
+        },
+        {
+          "term": "automated meeting assistant",
+          "category": "basic"
+        },
+        {
+          "term": "AI meeting manager",
+          "category": "basic"
+        },
+        {
+          "term": "what makes the best AI note taker",
+          "category": "basic"
+        },
+        {
+          "term": "meeting summaries",
+          "category": "supplementary"
+        },
+        {
+          "term": "meeting transcripts",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI notetaker",
+          "category": "supplementary"
+        },
+        {
+          "term": "action items",
+          "category": "supplementary"
+        },
+        {
+          "term": "conversation analytics",
+          "category": "supplementary"
+        },
+        {
+          "term": "meeting notes",
+          "category": "supplementary"
+        },
+        {
+          "term": "record meetings",
+          "category": "supplementary"
+        },
+        {
+          "term": "summarize meetings",
+          "category": "supplementary"
+        },
+        {
+          "term": "transcribe meetings",
+          "category": "supplementary"
+        },
+        {
+          "term": "meeting efficiency",
+          "category": "supplementary"
+        },
+        {
+          "term": "meeting workflow",
+          "category": "supplementary"
+        },
+        {
+          "term": "follow-up emails",
+          "category": "supplementary"
+        },
+        {
+          "term": "meeting agendas",
+          "category": "supplementary"
+        },
+        {
+          "term": "searchable meeting library",
+          "category": "supplementary"
+        },
+        {
+          "term": "privacy first AI assistant",
+          "category": "supplementary"
+        },
+        {
+          "term": "security for AI meeting tools",
+          "category": "supplementary"
+        },
+        {
+          "term": "CRM updates automation",
+          "category": "supplementary"
+        },
+        {
+          "term": "integrations with meeting tools",
+          "category": "supplementary"
+        },
+        {
+          "term": "digital twin technology",
+          "category": "contextual"
+        },
+        {
+          "term": "enterprise search solutions",
+          "category": "contextual"
+        },
+        {
+          "term": "AI features for meetings",
+          "category": "contextual"
+        },
+        {
+          "term": "AI-powered search in meetings",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for collaboration",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for topic tracking",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for human and AI notes",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for advanced note-taking",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for instant answers",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for team collaboration",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for basic transcription",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for individuals",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for small teams",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for enterprise",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for call centers",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for financial institutions",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for every team",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant for scheduling",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI meeting assistant benefits",
+          "category": "supplementary"
+        }
+      ],
+      "clusters": [
+        {
+          "clusterName": "Core AI Meeting Assistant Concepts",
+          "keywords": [
+            "AI meeting assistant software",
+            "AI meeting assistant",
+            "AI note taker",
+            "best AI meeting assistants",
+            "top AI meeting assistants",
+            "automated meeting assistant",
+            "AI meeting manager",
+            "what makes the best AI note taker",
+            "AI meeting assistant benefits",
+            "meeting efficiency"
+          ]
+        },
+        {
+          "clusterName": "AI Meeting Assistant Features & Functions",
+          "keywords": [
+            "meeting summaries",
+            "meeting transcripts",
+            "AI notetaker",
+            "action items",
+            "conversation analytics",
+            "meeting notes",
+            "record meetings",
+            "summarize meetings",
+            "transcribe meetings",
+            "meeting workflow",
+            "follow-up emails",
+            "meeting agendas",
+            "searchable meeting library",
+            "AI-powered search in meetings",
+            "AI meeting assistant for basic transcription",
+            "AI meeting assistant for advanced note-taking",
+            "AI meeting assistant for instant answers"
+          ]
+        },
+        {
+          "clusterName": "Deployment, Use Cases & Advanced Considerations",
+          "keywords": [
+            "privacy first AI assistant",
+            "security for AI meeting tools",
+            "CRM updates automation",
+            "integrations with meeting tools",
+            "digital twin technology",
+            "enterprise search solutions",
+            "AI features for meetings",
+            "AI meeting assistant for collaboration",
+            "AI meeting assistant for topic tracking",
+            "AI meeting assistant for human and AI notes",
+            "AI meeting assistant for team collaboration",
+            "AI meeting assistant for individuals",
+            "AI meeting assistant for small teams",
+            "AI meeting assistant for enterprise",
+            "AI meeting assistant for call centers",
+            "AI meeting assistant for financial institutions",
+            "AI meeting assistant for every team",
+            "AI meeting assistant for scheduling"
+          ]
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 2322,
+      "inputTokenDetails": {
+        "noCacheTokens": 2322,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 4922,
+      "outputTokenDetails": {
+        "textTokens": 1646,
+        "reasoningTokens": 3276
+      },
+      "totalTokens": 7244,
+      "raw": {
+        "thoughtsTokenCount": 3276,
+        "promptTokenCount": 2322,
+        "candidatesTokenCount": 1646,
+        "totalTokenCount": 7244,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2322
+          }
+        ]
+      },
+      "reasoningTokens": 3276,
+      "cachedInputTokens": 0
+    }
+  }
+}

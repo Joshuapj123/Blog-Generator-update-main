@@ -1,0 +1,345 @@
+{
+  "timestamp": "2026-06-25T00:21:38.912Z",
+  "data": {
+    "object": {
+      "entities": [
+        {
+          "name": "AI Contract Review Software",
+          "type": "software"
+        },
+        {
+          "name": "Artificial Intelligence (AI)",
+          "type": "concept"
+        },
+        {
+          "name": "Contract Review",
+          "type": "concept"
+        },
+        {
+          "name": "Legal Teams",
+          "type": "concept"
+        },
+        {
+          "name": "In-house Legal Teams",
+          "type": "concept"
+        },
+        {
+          "name": "Law Firms",
+          "type": "organization"
+        },
+        {
+          "name": "Lawyers",
+          "type": "concept"
+        },
+        {
+          "name": "BriefAI",
+          "type": "brand"
+        },
+        {
+          "name": "LegalOn",
+          "type": "brand"
+        },
+        {
+          "name": "Harvey",
+          "type": "brand"
+        },
+        {
+          "name": "Spellbook",
+          "type": "brand"
+        },
+        {
+          "name": "goHeather",
+          "type": "brand"
+        },
+        {
+          "name": "LEGALFLY",
+          "type": "brand"
+        },
+        {
+          "name": "Playbooks",
+          "type": "concept"
+        },
+        {
+          "name": "Machine Learning",
+          "type": "concept"
+        },
+        {
+          "name": "Natural Language Processing (NLP)",
+          "type": "concept"
+        },
+        {
+          "name": "Contracts",
+          "type": "concept"
+        },
+        {
+          "name": "Risk Spotting",
+          "type": "concept"
+        },
+        {
+          "name": "Non-standard Language",
+          "type": "concept"
+        },
+        {
+          "name": "Legal Workflow",
+          "type": "concept"
+        },
+        {
+          "name": "Legal Productivity",
+          "type": "concept"
+        },
+        {
+          "name": "LLMs (Large Language Models)",
+          "type": "software"
+        },
+        {
+          "name": "Microsoft Word",
+          "type": "software"
+        },
+        {
+          "name": "SharePoint",
+          "type": "software"
+        },
+        {
+          "name": "Data Privacy",
+          "type": "concept"
+        },
+        {
+          "name": "Ethical Implications",
+          "type": "concept"
+        },
+        {
+          "name": "Contract Management",
+          "type": "concept"
+        },
+        {
+          "name": "Key Data Extraction",
+          "type": "concept"
+        },
+        {
+          "name": "Document Review Process",
+          "type": "concept"
+        },
+        {
+          "name": "Business Operations Teams",
+          "type": "concept"
+        }
+      ],
+      "relationships": [
+        {
+          "source": "AI Contract Review Software",
+          "target": "Artificial Intelligence (AI)",
+          "type": "uses"
+        },
+        {
+          "source": "AI Contract Review Software",
+          "target": "Contract Review",
+          "type": "automates"
+        },
+        {
+          "source": "AI Contract Review Software",
+          "target": "Legal Teams",
+          "type": "targets"
+        },
+        {
+          "source": "AI Contract Review Software",
+          "target": "In-house Legal Teams",
+          "type": "targets"
+        },
+        {
+          "source": "AI Contract Review Software",
+          "target": "Law Firms",
+          "type": "targets"
+        },
+        {
+          "source": "AI Contract Review Software",
+          "target": "Lawyers",
+          "type": "assists"
+        },
+        {
+          "source": "AI Contract Review Software",
+          "target": "Playbooks",
+          "type": "leverages"
+        },
+        {
+          "source": "AI Contract Review Software",
+          "target": "Machine Learning",
+          "type": "powered by"
+        },
+        {
+          "source": "AI Contract Review Software",
+          "target": "Natural Language Processing (NLP)",
+          "type": "powered by"
+        },
+        {
+          "source": "AI Contract Review Software",
+          "target": "Risk Spotting",
+          "type": "enables"
+        },
+        {
+          "source": "AI Contract Review Software",
+          "target": "Non-standard Language",
+          "type": "identifies"
+        },
+        {
+          "source": "AI Contract Review Software",
+          "target": "Legal Workflow",
+          "type": "integrates with"
+        },
+        {
+          "source": "AI Contract Review Software",
+          "target": "Legal Productivity",
+          "type": "enhances"
+        },
+        {
+          "source": "AI Contract Review Software",
+          "target": "LLMs (Large Language Models)",
+          "type": "powered by"
+        },
+        {
+          "source": "AI Contract Review Software",
+          "target": "Microsoft Word",
+          "type": "integrates with"
+        },
+        {
+          "source": "AI Contract Review Software",
+          "target": "SharePoint",
+          "type": "integrates with"
+        },
+        {
+          "source": "AI Contract Review Software",
+          "target": "Data Privacy",
+          "type": "addresses"
+        },
+        {
+          "source": "AI Contract Review Software",
+          "target": "Ethical Implications",
+          "type": "considers"
+        },
+        {
+          "source": "AI Contract Review Software",
+          "target": "Contract Management",
+          "type": "supports"
+        },
+        {
+          "source": "AI Contract Review Software",
+          "target": "Key Data Extraction",
+          "type": "performs"
+        },
+        {
+          "source": "AI Contract Review Software",
+          "target": "Document Review Process",
+          "type": "streamlines"
+        },
+        {
+          "source": "AI Contract Review Software",
+          "target": "Business Operations Teams",
+          "type": "targets"
+        },
+        {
+          "source": "BriefAI",
+          "target": "AI Contract Review Software",
+          "type": "is a type of"
+        },
+        {
+          "source": "LegalOn",
+          "target": "AI Contract Review Software",
+          "type": "is a type of"
+        },
+        {
+          "source": "Harvey",
+          "target": "AI Contract Review Software",
+          "type": "is a type of"
+        },
+        {
+          "source": "Spellbook",
+          "target": "AI Contract Review Software",
+          "type": "is a type of"
+        },
+        {
+          "source": "goHeather",
+          "target": "AI Contract Review Software",
+          "type": "is a type of"
+        },
+        {
+          "source": "LEGALFLY",
+          "target": "AI Contract Review Software",
+          "type": "is a type of"
+        },
+        {
+          "source": "Artificial Intelligence (AI)",
+          "target": "Machine Learning",
+          "type": "encompasses"
+        },
+        {
+          "source": "Artificial Intelligence (AI)",
+          "target": "Natural Language Processing (NLP)",
+          "type": "encompasses"
+        },
+        {
+          "source": "Contract Review",
+          "target": "Contracts",
+          "type": "involves"
+        },
+        {
+          "source": "Legal Teams",
+          "target": "Playbooks",
+          "type": "utilize"
+        },
+        {
+          "source": "Legal Teams",
+          "target": "Legal Workflow",
+          "type": "follow"
+        },
+        {
+          "source": "Contracts",
+          "target": "Non-standard Language",
+          "type": "contain"
+        },
+        {
+          "source": "Contract Management",
+          "target": "Contract Review",
+          "type": "includes"
+        }
+      ],
+      "recommendedConnections": [
+        "AI Contract Review Software -> Compliance Management",
+        "AI Contract Review Software -> Negotiation Strategy",
+        "Legal Teams -> Burnout Reduction",
+        "Contracts -> Lifecycle Management",
+        "Artificial Intelligence (AI) -> Future of Legal Tech",
+        "AI Contract Review Software -> Custom Playbooks",
+        "Machine Learning -> Predictive Analytics",
+        "Natural Language Processing (NLP) -> Semantic Analysis",
+        "AI Contract Review Software -> Integration Ecosystem",
+        "Data Security -> Cloud-based AI Solutions"
+      ]
+    },
+    "usage": {
+      "inputTokens": 1842,
+      "inputTokenDetails": {
+        "noCacheTokens": 1842,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 6374,
+      "outputTokenDetails": {
+        "textTokens": 1337,
+        "reasoningTokens": 5037
+      },
+      "totalTokens": 8216,
+      "raw": {
+        "thoughtsTokenCount": 5037,
+        "promptTokenCount": 1842,
+        "candidatesTokenCount": 1337,
+        "totalTokenCount": 8216,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1842
+          }
+        ]
+      },
+      "reasoningTokens": 5037,
+      "cachedInputTokens": 0
+    }
+  }
+}

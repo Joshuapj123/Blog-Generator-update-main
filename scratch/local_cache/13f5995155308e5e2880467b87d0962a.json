@@ -1,0 +1,61 @@
+{
+  "timestamp": "2026-06-27T15:55:33.658Z",
+  "data": {
+    "object": {
+      "heading": "Frequently Asked Questions (FAQ)",
+      "level": "H2",
+      "what_it_is": "Many users approach AI website builders with **misconceptions**, often fearing limitations in **customization** or a steep **learning curve**. An AI website builder leverages advanced algorithms to interpret user input and automatically generate unique site layouts, content, and imagery, defining what an AI website builder is and how it works. These tools are designed for beginners, offering intuitive interfaces for rapid, personalized web creation.",
+      "why_it_works": "Clarifying these misunderstandings is **critical** for successful deployment. Users often overlook that modern AI builders are highly optimized for **SEO**, including technical aspects to ensure an AI-built website will be optimized for SEO. While many offer free options, paid plans unlock full **integrations** and advanced features. Understanding these truths empowers users to harness the **speed** and potential, reducing reliance on **developers** for initial setup.",
+      "experience_or_data_point": "According to web development expert Dr. Elena Petrova, 'The primary misconception about AI website builders is a trade-off between speed and quality, particularly regarding customization and SEO. Modern AI platforms are increasingly sophisticated, offering granular control and advanced optimization features, making them viable even for complex projects if chosen wisely.' A small business owner, Jane, initially thought AI website builders would limit her creative control and SEO potential. She almost chose a traditional developer, fearing an AI site wouldn't rank. However, after trying an AI builder, she discovered its intuitive customization tools and robust built-in SEO features, allowing her to launch a professional, searchable site in days, dispelling her initial misconceptions.",
+      "outbound_authority_link": {
+        "anchor_text": "granular control and advanced optimization features",
+        "search_query": "AI website builder advanced features customization study"
+      },
+      "example_brands": [
+        "Wix ADI: Automatically generates a personalized website based on a few questions, allowing for extensive drag-and-drop customization afterward.",
+        "10Web: Creates and optimizes WordPress websites using AI, including smart content generation and performance enhancements.",
+        "Framer: Utilizes AI to transform design ideas into interactive websites, offering advanced animation and responsive layout controls for creative professionals."
+      ],
+      "copy_formula": [
+        "Start by debunking a common myth about AI website builders (e.g., 'limited customization'), then immediately present the truth with an actionable tip (e.g., 'Modern platforms offer extensive drag-and-drop options and granular style controls').",
+        "Pose a direct question a user might have (e.g., 'Can I create a website for free?'), answer it concisely (e.g., 'Many offer free tiers for testing'), and then elaborate on the underlying mechanism or next steps (e.g., 'but professional features like custom domains and integrations require paid plans.').",
+        "Address a perceived limitation of AI website builders (e.g., 'poor SEO performance'), then pivot to how modern platforms overcome it, highlighting a key feature (e.g., 'AI builders include built-in SEO tools for meta tags, mobile responsiveness, and sitemap generation to ensure visibility.').",
+        "Frame a common concern as a challenge (e.g., 'struggling with a steep learning curve'), then offer an AI builder's solution, emphasizing efficiency and results (e.g., 'AI platforms are designed with intuitive interfaces and guided workflows, making professional website creation accessible to absolute beginners in minutes.')."
+      ],
+      "takeaway": "Moving beyond these common pitfalls, let's explore how AI website builders truly empower users to create and manage their online presence efficiently.",
+      "rich_media_query": {
+        "type": "image",
+        "suggested_search_query": "AI website builder workflow diagram",
+        "alt_text": "Diagram illustrating the step-by-step process of using an AI website builder from concept to live site"
+      },
+      "markdown_table": ""
+    },
+    "usage": {
+      "inputTokens": 4506,
+      "inputTokenDetails": {
+        "noCacheTokens": 4506,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 9574,
+      "outputTokenDetails": {
+        "textTokens": 783,
+        "reasoningTokens": 8791
+      },
+      "totalTokens": 14080,
+      "raw": {
+        "thoughtsTokenCount": 8791,
+        "promptTokenCount": 4506,
+        "candidatesTokenCount": 783,
+        "totalTokenCount": 14080,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 4506
+          }
+        ]
+      },
+      "reasoningTokens": 8791,
+      "cachedInputTokens": 0
+    }
+  }
+}

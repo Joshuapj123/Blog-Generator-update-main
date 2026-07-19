@@ -1,0 +1,278 @@
+{
+  "timestamp": "2026-07-06T16:10:31.902Z",
+  "data": {
+    "object": {
+      "keywords": [
+        {
+          "term": "Best AI CRM software",
+          "category": "basic"
+        },
+        {
+          "term": "AI CRM software",
+          "category": "basic"
+        },
+        {
+          "term": "Top AI CRM software",
+          "category": "basic"
+        },
+        {
+          "term": "AI CRM tools",
+          "category": "basic"
+        },
+        {
+          "term": "Best AI CRM tools",
+          "category": "basic"
+        },
+        {
+          "term": "AI-powered CRMs",
+          "category": "basic"
+        },
+        {
+          "term": "What is AI CRM?",
+          "category": "basic"
+        },
+        {
+          "term": "CRM with AI",
+          "category": "basic"
+        },
+        {
+          "term": "Autonomous AI CRM tools",
+          "category": "supplementary"
+        },
+        {
+          "term": "Features of AI-powered CRMs",
+          "category": "supplementary"
+        },
+        {
+          "term": "Key features AI CRM",
+          "category": "supplementary"
+        },
+        {
+          "term": "Essential AI capabilities CRM",
+          "category": "supplementary"
+        },
+        {
+          "term": "Best AI CRM for business",
+          "category": "supplementary"
+        },
+        {
+          "term": "Best AI CRM for small businesses",
+          "category": "supplementary"
+        },
+        {
+          "term": "Best AI CRM for enterprise-level customization",
+          "category": "supplementary"
+        },
+        {
+          "term": "Best AI CRM for aligning marketing and sales",
+          "category": "supplementary"
+        },
+        {
+          "term": "Best AI CRM for visual pipeline management",
+          "category": "supplementary"
+        },
+        {
+          "term": "How to choose AI CRM",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI CRM benefits",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI CRM pricing",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI CRM for sales teams",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI CRM for customer relationships",
+          "category": "supplementary"
+        },
+        {
+          "term": "Customer Relationship Management tools",
+          "category": "contextual"
+        },
+        {
+          "term": "What is CRM",
+          "category": "contextual"
+        },
+        {
+          "term": "Salesforce CRM AI",
+          "category": "contextual"
+        },
+        {
+          "term": "Zoho CRM AI",
+          "category": "contextual"
+        },
+        {
+          "term": "HubSpot CRM AI",
+          "category": "contextual"
+        },
+        {
+          "term": "Pipedrive AI CRM",
+          "category": "contextual"
+        },
+        {
+          "term": "Stackby CRM AI",
+          "category": "contextual"
+        },
+        {
+          "term": "Nutshell AI CRM",
+          "category": "contextual"
+        },
+        {
+          "term": "AI CRM automate tasks",
+          "category": "contextual"
+        },
+        {
+          "term": "AI CRM predict sales outcomes",
+          "category": "contextual"
+        },
+        {
+          "term": "AI CRM intelligent recommendations",
+          "category": "contextual"
+        },
+        {
+          "term": "AI CRM lead scoring",
+          "category": "contextual"
+        },
+        {
+          "term": "AI CRM predictive analytics",
+          "category": "contextual"
+        },
+        {
+          "term": "AI CRM next-action recommendations",
+          "category": "contextual"
+        },
+        {
+          "term": "AI CRM workflow automation",
+          "category": "contextual"
+        },
+        {
+          "term": "AI CRM data-driven decisions",
+          "category": "contextual"
+        },
+        {
+          "term": "AI CRM sales pipeline prediction",
+          "category": "contextual"
+        },
+        {
+          "term": "AI CRM follow-up management",
+          "category": "contextual"
+        },
+        {
+          "term": "AI CRM reduce manual data entry",
+          "category": "contextual"
+        },
+        {
+          "term": "CRM evolution",
+          "category": "contextual"
+        },
+        {
+          "term": "Business growth with AI CRM",
+          "category": "contextual"
+        },
+        {
+          "term": "Boost sales with AI CRM",
+          "category": "contextual"
+        }
+      ],
+      "clusters": [
+        {
+          "clusterName": "Understanding AI CRM",
+          "keywords": [
+            "Best AI CRM software",
+            "AI CRM software",
+            "Top AI CRM software",
+            "AI CRM tools",
+            "Best AI CRM tools",
+            "AI-powered CRMs",
+            "What is AI CRM?",
+            "CRM with AI",
+            "Customer Relationship Management tools",
+            "What is CRM",
+            "Autonomous AI CRM tools",
+            "CRM evolution"
+          ]
+        },
+        {
+          "clusterName": "AI CRM Capabilities & Advantages",
+          "keywords": [
+            "Features of AI-powered CRMs",
+            "Key features AI CRM",
+            "Essential AI capabilities CRM",
+            "AI CRM benefits",
+            "AI CRM automate tasks",
+            "AI CRM predict sales outcomes",
+            "AI CRM intelligent recommendations",
+            "AI CRM lead scoring",
+            "AI CRM predictive analytics",
+            "AI CRM next-action recommendations",
+            "AI CRM workflow automation",
+            "AI CRM data-driven decisions",
+            "AI CRM sales pipeline prediction",
+            "AI CRM follow-up management",
+            "AI CRM reduce manual data entry",
+            "Business growth with AI CRM",
+            "Boost sales with AI CRM"
+          ]
+        },
+        {
+          "clusterName": "Choosing & Applying AI CRM",
+          "keywords": [
+            "Best AI CRM for business",
+            "Best AI CRM for small businesses",
+            "Best AI CRM for enterprise-level customization",
+            "Best AI CRM for aligning marketing and sales",
+            "Best AI CRM for visual pipeline management",
+            "How to choose AI CRM",
+            "AI CRM pricing",
+            "AI CRM for sales teams",
+            "AI CRM for customer relationships"
+          ]
+        },
+        {
+          "clusterName": "Top AI CRM Solutions (Brands)",
+          "keywords": [
+            "Salesforce CRM AI",
+            "Zoho CRM AI",
+            "HubSpot CRM AI",
+            "Pipedrive AI CRM",
+            "Stackby CRM AI",
+            "Nutshell AI CRM"
+          ]
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 1278,
+      "inputTokenDetails": {
+        "noCacheTokens": 1278,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 4164,
+      "outputTokenDetails": {
+        "textTokens": 1674,
+        "reasoningTokens": 2490
+      },
+      "totalTokens": 5442,
+      "raw": {
+        "thoughtsTokenCount": 2490,
+        "promptTokenCount": 1278,
+        "candidatesTokenCount": 1674,
+        "totalTokenCount": 5442,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1278
+          }
+        ]
+      },
+      "reasoningTokens": 2490,
+      "cachedInputTokens": 0
+    }
+  }
+}

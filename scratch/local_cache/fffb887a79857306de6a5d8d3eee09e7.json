@@ -1,0 +1,257 @@
+{
+  "timestamp": "2026-07-06T16:11:00.233Z",
+  "data": {
+    "object": {
+      "entities": [
+        {
+          "name": "CRM",
+          "type": "software"
+        },
+        {
+          "name": "Artificial Intelligence (AI)",
+          "type": "concept"
+        },
+        {
+          "name": "AI-powered CRMs",
+          "type": "software"
+        },
+        {
+          "name": "Customer Relationships",
+          "type": "concept"
+        },
+        {
+          "name": "Sales",
+          "type": "concept"
+        },
+        {
+          "name": "Sales Pipeline",
+          "type": "concept"
+        },
+        {
+          "name": "Lead Scoring",
+          "type": "concept"
+        },
+        {
+          "name": "Predictive Analytics",
+          "type": "concept"
+        },
+        {
+          "name": "Next-Action Recommendations",
+          "type": "concept"
+        },
+        {
+          "name": "Automate Tasks",
+          "type": "concept"
+        },
+        {
+          "name": "Analyze Data",
+          "type": "concept"
+        },
+        {
+          "name": "Workflows",
+          "type": "concept"
+        },
+        {
+          "name": "HubSpot",
+          "type": "brand"
+        },
+        {
+          "name": "Salesforce",
+          "type": "brand"
+        },
+        {
+          "name": "Zoho",
+          "type": "brand"
+        },
+        {
+          "name": "Pipedrive",
+          "type": "brand"
+        },
+        {
+          "name": "Zendesk",
+          "type": "brand"
+        },
+        {
+          "name": "Nutshell",
+          "type": "brand"
+        },
+        {
+          "name": "Zapier",
+          "type": "tool"
+        },
+        {
+          "name": "HubSpot CRM",
+          "type": "product"
+        },
+        {
+          "name": "Zoho CRM",
+          "type": "product"
+        },
+        {
+          "name": "Salesforce Einstein",
+          "type": "product"
+        },
+        {
+          "name": "Manual Data Entry",
+          "type": "concept"
+        },
+        {
+          "name": "Data-driven Decisions",
+          "type": "concept"
+        },
+        {
+          "name": "ROI",
+          "type": "concept"
+        },
+        {
+          "name": "Implementation",
+          "type": "concept"
+        },
+        {
+          "name": "Customer Relationship Management Strategy",
+          "type": "concept"
+        },
+        {
+          "name": "Enterprise Teams",
+          "type": "concept"
+        }
+      ],
+      "relationships": [
+        {
+          "source": "CRM",
+          "target": "Customer Relationships",
+          "type": "manages"
+        },
+        {
+          "source": "Artificial Intelligence (AI)",
+          "target": "CRM",
+          "type": "enhances"
+        },
+        {
+          "source": "AI-powered CRMs",
+          "target": "Sales",
+          "type": "boosts"
+        },
+        {
+          "source": "AI-powered CRMs",
+          "target": "Workflows",
+          "type": "automates"
+        },
+        {
+          "source": "AI-powered CRMs",
+          "target": "Lead Scoring",
+          "type": "enables"
+        },
+        {
+          "source": "AI-powered CRMs",
+          "target": "Predictive Analytics",
+          "type": "provides"
+        },
+        {
+          "source": "AI-powered CRMs",
+          "target": "Next-Action Recommendations",
+          "type": "offers"
+        },
+        {
+          "source": "AI-powered CRMs",
+          "target": "Sales Pipeline",
+          "type": "predicts"
+        },
+        {
+          "source": "AI-powered CRMs",
+          "target": "Manual Data Entry",
+          "type": "reduces"
+        },
+        {
+          "source": "AI-powered CRMs",
+          "target": "Data-driven Decisions",
+          "type": "supports"
+        },
+        {
+          "source": "HubSpot",
+          "target": "HubSpot CRM",
+          "type": "offers"
+        },
+        {
+          "source": "Salesforce",
+          "target": "Salesforce Einstein",
+          "type": "offers"
+        },
+        {
+          "source": "Zoho",
+          "target": "Zoho CRM",
+          "type": "offers"
+        },
+        {
+          "source": "Pipedrive",
+          "target": "Sales Pipeline",
+          "type": "manages"
+        },
+        {
+          "source": "Zendesk",
+          "target": "Customer Relationships",
+          "type": "supports"
+        },
+        {
+          "source": "Zapier",
+          "target": "AI-powered CRMs",
+          "type": "integrates with"
+        },
+        {
+          "source": "Implementation",
+          "target": "ROI",
+          "type": "influences"
+        },
+        {
+          "source": "Customer Relationship Management Strategy",
+          "target": "AI-powered CRMs",
+          "type": "utilizes"
+        },
+        {
+          "source": "AI-powered CRMs",
+          "target": "Enterprise Teams",
+          "type": "serves"
+        },
+        {
+          "source": "Nutshell",
+          "target": "AI-powered CRMs",
+          "type": "offers"
+        }
+      ],
+      "recommendedConnections": [
+        "AI-powered CRMs -> Customer Lifetime Value (CLTV)",
+        "AI-powered CRMs -> Personalization",
+        "AI-powered CRMs -> Marketing Automation",
+        "AI-powered CRMs -> Customer Experience (CX)",
+        "ROI -> User Adoption"
+      ]
+    },
+    "usage": {
+      "inputTokens": 1270,
+      "inputTokenDetails": {
+        "noCacheTokens": 1270,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 5459,
+      "outputTokenDetails": {
+        "textTokens": 1453,
+        "reasoningTokens": 4006
+      },
+      "totalTokens": 6729,
+      "raw": {
+        "thoughtsTokenCount": 4006,
+        "promptTokenCount": 1270,
+        "candidatesTokenCount": 1453,
+        "totalTokenCount": 6729,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1270
+          }
+        ]
+      },
+      "reasoningTokens": 4006,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "timestamp": "2026-06-26T17:00:38.198Z",
+  "data": {
+    "object": {
+      "heading": "Understanding Customization and Configurability of AI tools (e.g., tailoring rules, models)",
+      "level": "H2",
+      "what_it_is": "**Customization and configurability** allow AI code analysis tools to **tailor rule-based detection** and models to project-specific **coding standards**, enabling precise alignment. This directly answers: **Can AI code review tools be customized to specific coding standards or project requirements?**",
+      "why_it_works": "This adaptability **enhances automated code review efficacy**, reducing false positives and improving feedback. Integration with **version control systems** and CI/CD boosts **code quality** and developer productivity, minimizing technical debt.",
+      "experience_or_data_point": "Tailored AI models drastically reduce false positives in **automated code review**, improving efficiency significantly.",
+      "outbound_authority_link": {
+        "anchor_text": "reduce false positives",
+        "search_query": "AI code review false positive reduction customization"
+      },
+      "example_brands": [
+        "SonarQube: Customizes **rule-based detection** for specific **coding standards** and quality gates.",
+        "Sourcery: Configures refactoring suggestions and linting rules to unique project style guides."
+      ],
+      "copy_formula": [
+        "Lead with flexibility, then detail configuration impact.",
+        "Show how tailored rules reduce noise and improve relevance.",
+        "Connect custom setup to specific project compliance and quality goals."
+      ],
+      "takeaway": "Customization is crucial for AI code review to deliver relevant, impactful analysis aligned with unique project requirements.",
+      "rich_media_query": {
+        "type": "image",
+        "suggested_search_query": "AI code review customization workflow diagram",
+        "alt_text": "Diagram showing the workflow for customizing AI code review rules and models to fit specific coding standards and project requirements."
+      },
+      "markdown_table": ""
+    },
+    "usage": {
+      "inputTokens": 2773,
+      "inputTokenDetails": {
+        "noCacheTokens": 2773,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 4975,
+      "outputTokenDetails": {
+        "textTokens": 436,
+        "reasoningTokens": 4539
+      },
+      "totalTokens": 7748,
+      "raw": {
+        "thoughtsTokenCount": 4539,
+        "promptTokenCount": 2773,
+        "candidatesTokenCount": 436,
+        "totalTokenCount": 7748,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2773
+          }
+        ]
+      },
+      "reasoningTokens": 4539,
+      "cachedInputTokens": 0
+    }
+  }
+}

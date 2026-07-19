@@ -1,0 +1,61 @@
+{
+  "timestamp": "2026-06-26T16:59:47.948Z",
+  "data": {
+    "object": {
+      "heading": "Navigating Challenges in AI Code Review",
+      "level": "H3",
+      "what_it_is": "Navigating **AI code review** means addressing challenges like **false positives**, **context limitations** for complex logic, and the **risk of over-reliance** on automated suggestions, potentially diminishing human oversight.",
+      "why_it_works": "Overcoming these pitfalls ensures **AI code analysis tools** truly enhance **developer productivity** and **code quality**, promoting effective **human-AI collaboration** within **DevOps pipeline integration** for robust development.",
+      "experience_or_data_point": "Studies indicate that the effectiveness of AI code analysis tools significantly increases when developers actively curate and fine-tune models to align with project-specific coding standards and architectural patterns, directly mitigating context limitations.",
+      "outbound_authority_link": {
+        "anchor_text": "effectiveness of AI code analysis tools significantly increases when developers actively curate and fine-tune models",
+        "search_query": "mitigating false positives AI code review tools context limitations"
+      },
+      "example_brands": [
+        "SonarQube Community Edition: Developers utilizing this open source AI code review tool often customize its rule sets to reduce false positives for their specific coding standards.",
+        "CodeRabbit: Teams integrating CodeRabbit leverage its contextual suggestions as a starting point for review, not a final verdict, actively managing the risk of over-reliance.",
+        "Sourcery: Sourcery's focus on actionable, precise refactoring suggestions helps reduce context limitations by targeting specific code smells directly."
+      ],
+      "copy_formula": [
+        "Start by highlighting a common AI limitation, then explain how human involvement turns it into a strength.",
+        "Present a challenge, then offer a practical strategy for mitigation using specific tool features.",
+        "Begin with the 'why it matters' of a specific challenge, then illustrate its impact on development.",
+        "Introduce a potential pitfall of AI, then pivot to the essential role of human expertise."
+      ],
+      "takeaway": "Effective AI code review requires active developer engagement to navigate its inherent challenges and maximize its benefits.",
+      "rich_media_query": {
+        "type": "image",
+        "suggested_search_query": "diagram showing human-AI collaboration in code review with challenges",
+        "alt_text": "Diagram illustrating the balance between AI code review tools and human oversight, highlighting challenges like false positives and context limitations."
+      },
+      "markdown_table": ""
+    },
+    "usage": {
+      "inputTokens": 2753,
+      "inputTokenDetails": {
+        "noCacheTokens": 2753,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 4758,
+      "outputTokenDetails": {
+        "textTokens": 548,
+        "reasoningTokens": 4210
+      },
+      "totalTokens": 7511,
+      "raw": {
+        "thoughtsTokenCount": 4210,
+        "promptTokenCount": 2753,
+        "candidatesTokenCount": 548,
+        "totalTokenCount": 7511,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2753
+          }
+        ]
+      },
+      "reasoningTokens": 4210,
+      "cachedInputTokens": 0
+    }
+  }
+}

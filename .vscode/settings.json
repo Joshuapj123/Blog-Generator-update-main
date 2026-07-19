@@ -1,0 +1,11 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/nlp-service/venv/bin/python3",
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/nlp-service/venv/lib/python3.13/site-packages"
+  ],
+  "python.analysis.venvPath": "${workspaceFolder}/nlp-service",
+  "python.analysis.venv": "venv",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.python"
+  }
+}

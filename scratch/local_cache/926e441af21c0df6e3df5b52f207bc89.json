@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-07-12T05:25:36.543Z",
+  "data": {
+    "text": "Memo is an agent with installable skills.\nStart with meeting skills, then add more from the skill store or teach Memo private workflows of your own. Install new skills, or teach Memo your own — you're only getting started.\n\nMemo is an AI agent that knows your context.\nIt keeps the context of every meeting, file, and decision you share — so you never have to explain yourself twice. From there, Memo gets to work: drafting, researching, and following up on what was actually said. It learns as it goes and remembers what you ask it to.\n\n*   **Meeting notes**\n    I join the call and turn it into clean notes — decisions, action items, and a full transcript.\n*   **Slides**\n    Tell me your topic and I'll draft a ready-to-present deck, with talking points for every slide.\n*   **Spreadsheets**\n    I pull the numbers from your meeting and shape them into a sheet you can total and chart.\n*   **Research**\n    Ask about a company, person, or topic and I'll come back with a clear, sourced answer.\n*   **Images**\n    Describe what you need and I'll generate a finished visual you can drop into your work.\n*   **Ask your meetings**\n    Ask anything across all your past meetings and I'll answer with the exact sources.\n*   **Any frontier model**\n    Use the best AI model for each task — OpenAI, Anthropic, and more, all in one place.",
+    "usage": {
+      "inputTokens": 411,
+      "inputTokenDetails": {
+        "noCacheTokens": 411,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 1395,
+      "outputTokenDetails": {
+        "textTokens": 324,
+        "reasoningTokens": 1071
+      },
+      "totalTokens": 1806,
+      "raw": {
+        "thoughtsTokenCount": 1071,
+        "promptTokenCount": 411,
+        "candidatesTokenCount": 324,
+        "totalTokenCount": 1806,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 411
+          }
+        ]
+      },
+      "reasoningTokens": 1071,
+      "cachedInputTokens": 0
+    }
+  }
+}

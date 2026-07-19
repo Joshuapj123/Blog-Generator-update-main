@@ -1,0 +1,326 @@
+{
+  "timestamp": "2026-07-06T16:11:54.966Z",
+  "data": {
+    "object": {
+      "headingFrequency": [
+        {
+          "heading": "What is AI CRM?",
+          "competitorRanks": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "heading": "Key Features of AI CRM",
+          "competitorRanks": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "heading": "Best AI CRM Software (List & Reviews)",
+          "competitorRanks": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "heading": "How to Choose the Right AI CRM",
+          "competitorRanks": [
+            1,
+            3
+          ]
+        },
+        {
+          "heading": "AI CRM Trends",
+          "competitorRanks": [
+            1,
+            3
+          ]
+        },
+        {
+          "heading": "AI CRM Use Cases & Benefits",
+          "competitorRanks": [
+            2
+          ]
+        },
+        {
+          "heading": "AI CRM ROI",
+          "competitorRanks": [
+            3
+          ]
+        },
+        {
+          "heading": "FAQ about AI CRM",
+          "competitorRanks": [
+            3
+          ]
+        },
+        {
+          "heading": "Zoho CRM Review",
+          "competitorRanks": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "heading": "Salesforce CRM Review",
+          "competitorRanks": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "heading": "Pipedrive CRM Review",
+          "competitorRanks": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "heading": "HubSpot CRM Review",
+          "competitorRanks": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "heading": "Monday.com CRM Review",
+          "competitorRanks": [
+            1,
+            3
+          ]
+        },
+        {
+          "heading": "Freshsales CRM Review",
+          "competitorRanks": [
+            1,
+            3
+          ]
+        },
+        {
+          "heading": "Attio CRM Review",
+          "competitorRanks": [
+            2,
+            3
+          ]
+        },
+        {
+          "heading": "Stackby CRM Review",
+          "competitorRanks": [
+            1
+          ]
+        },
+        {
+          "heading": "ClickUp CRM Review",
+          "competitorRanks": [
+            1
+          ]
+        },
+        {
+          "heading": "Creatio CRM Review",
+          "competitorRanks": [
+            1
+          ]
+        },
+        {
+          "heading": "Insightly CRM Review",
+          "competitorRanks": [
+            1
+          ]
+        },
+        {
+          "heading": "Zendesk CRM Review",
+          "competitorRanks": [
+            2
+          ]
+        },
+        {
+          "heading": "Zapier CRM Review",
+          "competitorRanks": [
+            2
+          ]
+        },
+        {
+          "heading": "Nutshell CRM Review",
+          "competitorRanks": [
+            3
+          ]
+        },
+        {
+          "heading": "Softr CRM Review",
+          "competitorRanks": [
+            3
+          ]
+        }
+      ],
+      "tableDetection": {
+        "recommendedTables": [
+          {
+            "name": "Best AI CRM Software Comparison",
+            "type": "Comparison",
+            "columns": [
+              "CRM Name",
+              "Key AI Features",
+              "Best For",
+              "Pricing Model",
+              "Integrations",
+              "Pros",
+              "Cons"
+            ],
+            "purpose": "To allow users to quickly compare the top AI CRM solutions based on critical features and suitability for different business needs."
+          },
+          {
+            "name": "AI CRM Features Checklist",
+            "type": "Features",
+            "columns": [
+              "Feature",
+              "Description",
+              "Benefit"
+            ],
+            "purpose": "To help users understand essential AI capabilities in CRM and what to look for when evaluating software."
+          }
+        ]
+      },
+      "paaClustered": [
+        {
+          "question": "What is the best AI CRM for small businesses?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "How much does AI CRM cost?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Can AI CRM accurately predict sales outcomes?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Will AI CRM replace sales teams?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "How long does AI CRM implementation take?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Which AI CRM is easiest to learn?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Can I try AI CRM before buying?",
+          "frequency": 1,
+          "snippet": ""
+        }
+      ],
+      "contentGapReport": {
+        "commonTopics": [
+          "What is AI CRM?",
+          "Key Features of AI CRM",
+          "Best AI CRM Software (List & Reviews)",
+          "How to Choose the Right AI CRM",
+          "AI CRM Trends"
+        ],
+        "uniqueHeadings": [
+          "What is CRM?",
+          "AI CRM Use Cases & Benefits",
+          "AI CRM ROI",
+          "How we selected AI CRM",
+          "Decision matrix by business size",
+          "Buying questions to ask before committing",
+          "Red flags to watch for",
+          "Sample evaluation matrix"
+        ],
+        "missingTopics": [
+          "Detailed AI CRM Pricing Guide",
+          "Implementation & Onboarding Process",
+          "Specific Benefits/Advantages of AI CRM",
+          "Potential Challenges or Limitations of AI CRM",
+          "Integration capabilities with other tools"
+        ],
+        "recommendedNewSections": [
+          {
+            "heading": "Benefits of AI CRM for Your Business",
+            "level": "H2",
+            "reason": "While competitors mention features and use cases, a dedicated section on the overarching benefits (e.g., increased efficiency, improved customer experience, better decision-making) would clearly articulate the value proposition.",
+            "suggestedOutline": "Discuss how AI CRM boosts productivity, enhances personalization, provides predictive insights, and streamlines workflows. Include real-world examples or scenarios."
+          },
+          {
+            "heading": "AI CRM Pricing: What to Expect",
+            "level": "H2",
+            "reason": "Pricing is a common user question (from PAA) and a critical factor in decision-making, yet no competitor has a dedicated H2 section for it. This would directly address a key user concern.",
+            "suggestedOutline": "Cover different pricing models (per user, tiered), factors influencing cost (features, integrations, support), typical price ranges, and tips for budgeting. Could include a small pricing comparison table."
+          },
+          {
+            "heading": "Implementing AI CRM: A Step-by-Step Guide",
+            "level": "H2",
+            "reason": "Users often wonder about the practicalities of adopting new software. A guide on implementation addresses concerns about setup time, data migration, and training, which are also PAA questions.",
+            "suggestedOutline": "Outline the stages of implementation: planning, data migration, customization, user training, and post-launch support. Discuss common challenges and best practices for a smooth rollout."
+          },
+          {
+            "heading": "Challenges and Considerations When Adopting AI CRM",
+            "level": "H2",
+            "reason": "Providing a balanced view by discussing potential challenges (e.g., data quality, integration complexity, user adoption) builds trust and helps users make informed decisions, a topic not explicitly covered by competitors.",
+            "suggestedOutline": "Address issues like data privacy, the need for clean data, potential resistance from sales teams, and the importance of choosing the right vendor. Offer solutions or mitigation strategies."
+          }
+        ],
+        "unansweredQuestions": [
+          "How much does AI CRM cost?",
+          "Can AI really predict sales outcomes accurately?",
+          "Will AI CRM replace my sales team?",
+          "How long does it take to implement AI CRM?",
+          "Which AI CRM is easiest to learn?",
+          "What if I’m not ready to commit? Can I try before buying?"
+        ],
+        "shouldIncludeFaq": true,
+        "faqQuestions": [
+          "What is the best AI CRM for small businesses?",
+          "How much does AI CRM cost?",
+          "Can AI CRM accurately predict sales outcomes?",
+          "Will AI CRM replace sales teams?",
+          "How long does AI CRM implementation take?"
+        ]
+      }
+    },
+    "usage": {
+      "inputTokens": 2058,
+      "inputTokenDetails": {
+        "noCacheTokens": 2058,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 7903,
+      "outputTokenDetails": {
+        "textTokens": 1984,
+        "reasoningTokens": 5919
+      },
+      "totalTokens": 9961,
+      "raw": {
+        "thoughtsTokenCount": 5919,
+        "promptTokenCount": 2058,
+        "candidatesTokenCount": 1984,
+        "totalTokenCount": 9961,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2058
+          }
+        ]
+      },
+      "reasoningTokens": 5919,
+      "cachedInputTokens": 0
+    }
+  }
+}

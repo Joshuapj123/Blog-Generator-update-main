@@ -1,0 +1,32 @@
+{
+  "timestamp": "2026-06-26T16:55:12.361Z",
+  "data": {
+    "text": "",
+    "usage": {
+      "inputTokens": 183,
+      "inputTokenDetails": {
+        "noCacheTokens": 183,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 860,
+      "outputTokenDetails": {
+        "textTokens": 0,
+        "reasoningTokens": 860
+      },
+      "totalTokens": 1043,
+      "raw": {
+        "thoughtsTokenCount": 860,
+        "promptTokenCount": 183,
+        "totalTokenCount": 1043,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 183
+          }
+        ]
+      },
+      "reasoningTokens": 860,
+      "cachedInputTokens": 0
+    }
+  }
+}

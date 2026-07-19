@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-06-27T15:19:44.687Z",
+  "data": {
+    "object": {
+      "hasFeaturedSnippet": true,
+      "snippetType": "list",
+      "targetQuery": "best password manager software",
+      "extractedSnippetText": "The provided text is an introductory paragraph from a competitor, explaining the necessity of password managers and setting up the article's analysis of top options. It does not present a direct featured snippet. For 'best password manager software', a typical featured snippet would be an ordered or unordered list of the top 3-5 password managers, often with a brief description or key benefit for each.",
+      "optimizedSnippetRecommendation": "Our optimized snippet should be a concise, ordered list of the top 3-5 password managers, each with a brief, compelling benefit. This list should be easily scannable and appear early in the content. An example structure, targeting 40-60 words:\n1. **LastPass:** Excellent cross-platform compatibility and secure sharing.\n2. **1Password:** Robust security features and family plans.\n3. **Bitwarden:** Open-source, affordable, and highly customizable.\n4. **Dashlane:** Strong VPN integration and identity theft protection.",
+      "generationDirectives": "Place an H2 heading 'Best Password Managers' or 'Top Password Managers' directly above the optimized list. Ensure the list is an ordered (numbered) list. Each item should start with the password manager's name in bold, followed by a brief, benefit-oriented description. Keep the entire list section (heading + list items) to approximately 40-60 words for optimal snippet capture."
+    },
+    "usage": {
+      "inputTokens": 484,
+      "inputTokenDetails": {
+        "noCacheTokens": 484,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 2882,
+      "outputTokenDetails": {
+        "textTokens": 335,
+        "reasoningTokens": 2547
+      },
+      "totalTokens": 3366,
+      "raw": {
+        "thoughtsTokenCount": 2547,
+        "promptTokenCount": 484,
+        "candidatesTokenCount": 335,
+        "totalTokenCount": 3366,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 484
+          }
+        ]
+      },
+      "reasoningTokens": 2547,
+      "cachedInputTokens": 0
+    }
+  }
+}

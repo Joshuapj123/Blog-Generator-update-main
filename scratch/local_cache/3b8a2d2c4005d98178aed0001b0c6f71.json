@@ -1,0 +1,61 @@
+{
+  "timestamp": "2026-06-27T05:04:27.130Z",
+  "data": {
+    "object": {
+      "heading": "How accurate is AI contract review compared to manual review?",
+      "level": "H3",
+      "what_it_is": "AI-powered **Contract Review** offers **remarkable precision**, often surpassing human consistency. Utilizing Natural Language Processing (NLP) and machine learning, it **reliably identifies clauses, flags anomalies, and extracts key data**, mitigating human fatigue for **swift initial analysis**.",
+      "why_it_works": "Its effectiveness stems from AI's **unbiased, tireless processing**, learning from legal datasets to identify patterns and pinpoint risks. This **reduces human error** in repetitive tasks, freeing legal professionals for complex interpretations, **enhancing reliability and efficiency**.",
+      "experience_or_data_point": "Yet, ethical considerations and potential biases in AI legal review mandate human oversight.",
+      "outbound_authority_link": {
+        "anchor_text": "ethical considerations and potential biases in AI legal review mandate human oversight",
+        "search_query": "ethical implications of AI in legal review"
+      },
+      "example_brands": [
+        "LegalOn: Their platform uses AI to automatically compare contracts against a vast database of precedents and highlight non-standard clauses in real-time.",
+        "Spellbook: Leverages GPT-4 to suggest language improvements and identify legal risks directly within Microsoft Word, streamlining the review process.",
+        "BriefAI: Specializes in quickly extracting key data points and summarizing complex legal documents, drastically reducing manual review time for due diligence."
+      ],
+      "copy_formula": [
+        "Start by directly stating AI's accuracy in a specific task, then elaborate on the technological mechanisms that enable it.",
+        "Compare AI's performance against human limitations, emphasizing AI's consistency and speed for repetitive contract review tasks.",
+        "Lead with a concise claim about AI's precision, then back it up by explaining its underlying AI capabilities (e.g., NLP, ML).",
+        "Acknowledge AI's strengths in data processing, then pivot to the irreplaceable role of human judgment in ethical or nuanced legal interpretations."
+      ],
+      "takeaway": "AI significantly boosts the speed and consistency of contract review, allowing legal professionals to focus their expertise on strategic and ethical considerations rather than repetitive tasks.",
+      "rich_media_query": {
+        "type": "image",
+        "suggested_search_query": "AI contract review accuracy vs human comparison infographic",
+        "alt_text": "Infographic comparing accuracy and efficiency of AI contract review versus manual human review"
+      },
+      "markdown_table": "| Feature | AI Contract Review | Manual Contract Review |\n|---|---|---|\n| **Speed** | Minutes to hours | Days to weeks |\n| **Consistency** | High (algorithmic) | Variable (human fatigue) |\n| **Error Rate** | Low (for trained tasks) | Higher (human oversight) |\n| **Cost** | Subscription-based, scalable | Labor-intensive, fixed |\n| **Bias** | Potential (training data) | Potential (human judgment) |\n| **Nuance** | Requires human validation | Strong (human expertise) |"
+    },
+    "usage": {
+      "inputTokens": 2491,
+      "inputTokenDetails": {
+        "noCacheTokens": 2491,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 9360,
+      "outputTokenDetails": {
+        "textTokens": 684,
+        "reasoningTokens": 8676
+      },
+      "totalTokens": 11851,
+      "raw": {
+        "thoughtsTokenCount": 8676,
+        "promptTokenCount": 2491,
+        "candidatesTokenCount": 684,
+        "totalTokenCount": 11851,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2491
+          }
+        ]
+      },
+      "reasoningTokens": 8676,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,251 @@
+{
+  "timestamp": "2026-06-27T15:19:02.110Z",
+  "data": {
+    "object": {
+      "keywords": [
+        {
+          "term": "best password manager software",
+          "category": "basic"
+        },
+        {
+          "term": "best password manager",
+          "category": "basic"
+        },
+        {
+          "term": "what is the best password manager",
+          "category": "basic"
+        },
+        {
+          "term": "top password managers",
+          "category": "basic"
+        },
+        {
+          "term": "password manager options",
+          "category": "basic"
+        },
+        {
+          "term": "password management",
+          "category": "basic"
+        },
+        {
+          "term": "password manager for business",
+          "category": "basic"
+        },
+        {
+          "term": "password manager for home",
+          "category": "basic"
+        },
+        {
+          "term": "password manager comparison",
+          "category": "basic"
+        },
+        {
+          "term": "password manager review",
+          "category": "basic"
+        },
+        {
+          "term": "password manager for personal use",
+          "category": "basic"
+        },
+        {
+          "term": "password manager for teams",
+          "category": "basic"
+        },
+        {
+          "term": "best password manager money can buy",
+          "category": "supplementary"
+        },
+        {
+          "term": "top 4 password manager options",
+          "category": "supplementary"
+        },
+        {
+          "term": "password manager for enterprise network",
+          "category": "supplementary"
+        },
+        {
+          "term": "password manager for home router",
+          "category": "supplementary"
+        },
+        {
+          "term": "why use a password manager",
+          "category": "supplementary"
+        },
+        {
+          "term": "should my business use a password manager",
+          "category": "supplementary"
+        },
+        {
+          "term": "auto-generated passwords",
+          "category": "supplementary"
+        },
+        {
+          "term": "unique password generation",
+          "category": "supplementary"
+        },
+        {
+          "term": "forgetting passwords solution",
+          "category": "supplementary"
+        },
+        {
+          "term": "password management solution",
+          "category": "supplementary"
+        },
+        {
+          "term": "password vault",
+          "category": "supplementary"
+        },
+        {
+          "term": "secure password storage",
+          "category": "supplementary"
+        },
+        {
+          "term": "password organizer",
+          "category": "supplementary"
+        },
+        {
+          "term": "digital password keeper",
+          "category": "supplementary"
+        },
+        {
+          "term": "password security tool",
+          "category": "supplementary"
+        },
+        {
+          "term": "password manager features",
+          "category": "supplementary"
+        },
+        {
+          "term": "password manager benefits",
+          "category": "supplementary"
+        },
+        {
+          "term": "password manager for multiple accounts",
+          "category": "supplementary"
+        },
+        {
+          "term": "LastPass",
+          "category": "contextual"
+        },
+        {
+          "term": "Dashlane",
+          "category": "contextual"
+        },
+        {
+          "term": "Bitwarden",
+          "category": "contextual"
+        },
+        {
+          "term": "KeePass",
+          "category": "contextual"
+        },
+        {
+          "term": "endpoint security",
+          "category": "contextual"
+        },
+        {
+          "term": "enterprise network security",
+          "category": "contextual"
+        },
+        {
+          "term": "home network security",
+          "category": "contextual"
+        },
+        {
+          "term": "account management best practices",
+          "category": "contextual"
+        },
+        {
+          "term": "password management system",
+          "category": "contextual"
+        }
+      ],
+      "clusters": [
+        {
+          "clusterName": "Best Password Managers & Comparisons",
+          "keywords": [
+            "best password manager software",
+            "best password manager",
+            "what is the best password manager",
+            "top password managers",
+            "password manager options",
+            "password manager comparison",
+            "password manager review",
+            "top 4 password manager options",
+            "best password manager money can buy"
+          ]
+        },
+        {
+          "clusterName": "Password Manager Use Cases & Benefits",
+          "keywords": [
+            "password management",
+            "password manager for business",
+            "password manager for home",
+            "password manager for personal use",
+            "password manager for teams",
+            "why use a password manager",
+            "should my business use a password manager",
+            "password manager benefits",
+            "password manager for multiple accounts",
+            "forgetting passwords solution"
+          ]
+        },
+        {
+          "clusterName": "Password Manager Features & Functionality",
+          "keywords": [
+            "auto-generated passwords",
+            "unique password generation",
+            "password management solution",
+            "password vault",
+            "secure password storage",
+            "password organizer",
+            "digital password keeper",
+            "password security tool",
+            "password manager features",
+            "password management system"
+          ]
+        },
+        {
+          "clusterName": "Specific Password Manager Brands & Related Concepts",
+          "keywords": [
+            "LastPass",
+            "Dashlane",
+            "Bitwarden",
+            "KeePass",
+            "endpoint security",
+            "enterprise network security",
+            "home network security",
+            "account management best practices"
+          ]
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 525,
+      "inputTokenDetails": {
+        "noCacheTokens": 525,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 3852,
+      "outputTokenDetails": {
+        "textTokens": 1403,
+        "reasoningTokens": 2449
+      },
+      "totalTokens": 4377,
+      "raw": {
+        "thoughtsTokenCount": 2449,
+        "promptTokenCount": 525,
+        "candidatesTokenCount": 1403,
+        "totalTokenCount": 4377,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 525
+          }
+        ]
+      },
+      "reasoningTokens": 2449,
+      "cachedInputTokens": 0
+    }
+  }
+}

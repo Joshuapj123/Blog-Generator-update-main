@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-07-11T08:50:07.177Z",
+  "data": {
+    "object": {
+      "hasFeaturedSnippet": true,
+      "snippetType": "list",
+      "targetQuery": "best AI meeting assistant software",
+      "extractedSnippetText": "Top 5 AI Meeting Assistants to consider in 2026Avoma — for most advanced AI note-taking featuresOtter — for generating instant answers to questionsFireflies.ai — for team collaborationtl;dv — for AI-powered searchFathom — for basic transcription & summarization",
+      "optimizedSnippetRecommendation": "The best AI meeting assistant software automates note-taking, transcription, and action item generation, significantly boosting productivity. These top tools offer diverse features, from advanced analytics to seamless CRM integration, catering to various team needs.<ul><li><b>Fireflies.ai:</b> Comprehensive transcription, summaries, and team collaboration.</li><li><b>Otter.ai:</b> Real-time transcription, speaker identification, and instant answers.</li><li><b>Fathom:</b> Automated CRM entry, sales call analysis, and quick summaries.</li><li><b>Avoma:</b> End-to-end meeting workflow, advanced AI notes, and agenda management.</li><li><b>tl;dv:</b> AI-powered search, highlight reels, and multi-platform recording.</li><li><b>Krisp:</b> AI noise cancellation, smart note-taking, and meeting summaries.</li></ul>",
+      "generationDirectives": "Place this content immediately after the main H1 or a very short introductory paragraph. Use an introductory sentence (approx. 20-30 words) followed by an unordered list of 5-7 tools. Each tool name should be <b>bolded</b>, followed by a concise, benefit-driven description (under 10 words). Ensure the entire snippet, including the intro and list items, is easily scannable and directly answers 'best AI meeting assistant software'."
+    },
+    "usage": {
+      "inputTokens": 1822,
+      "inputTokenDetails": {
+        "noCacheTokens": 1822,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 1927,
+      "outputTokenDetails": {
+        "textTokens": 386,
+        "reasoningTokens": 1541
+      },
+      "totalTokens": 3749,
+      "raw": {
+        "thoughtsTokenCount": 1541,
+        "promptTokenCount": 1822,
+        "candidatesTokenCount": 386,
+        "totalTokenCount": 3749,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1822
+          }
+        ]
+      },
+      "reasoningTokens": 1541,
+      "cachedInputTokens": 0
+    }
+  }
+}

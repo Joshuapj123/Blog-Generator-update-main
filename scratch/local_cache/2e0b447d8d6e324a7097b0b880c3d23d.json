@@ -1,0 +1,59 @@
+{
+  "timestamp": "2026-06-25T00:24:30.528Z",
+  "data": {
+    "object": {
+      "heading": "The Role of Playbooks in AI Contract Review",
+      "level": "H3",
+      "what_it_is": "**Playbooks** are foundational for **customizing AI review**, providing **Legal Teams** with predefined guidelines and best practices. They dictate how the AI interprets **Contracts**, ensuring tailored analysis aligned with specific needs. **Custom Playbooks** enable precise risk identification and clause flagging.",
+      "why_it_works": "This customization ensures automated contract analysis software aligns with specific organizational standards and risk appetites. It **enhances accuracy**, **reduces human error**, and **accelerates review cycles**, driving efficiency and robust compliance across all legal documents.",
+      "experience_or_data_point": "Many general counsels report that the true value of legal AI contract review lies in its configurability to reflect their unique corporate policies, vastly improving consistency.",
+      "outbound_authority_link": {
+        "anchor_text": "configurability to reflect their unique corporate policies",
+        "search_query": "corporate legal policies AI contract review customization"
+      },
+      "example_brands": [
+        "ContractPodAi: Utilizes customizable playbooks to help enterprises like Telstra automate specific clause extraction and risk analysis in their vendor agreements.",
+        "Ironclad: Offers flexible workflow automation and playbook creation, allowing companies such as Mastercard to standardize contract approvals based on defined legal thresholds."
+      ],
+      "copy_formula": [
+        "Start by highlighting how manual contract review leads to inconsistencies, then introduce playbooks as the solution for standardization.",
+        "Describe a common legal challenge, then explain how custom playbooks in automated review solutions directly address it.",
+        "Present the concept of AI learning your firm's specific risk tolerance, enabled by a robust playbook."
+      ],
+      "takeaway": "Playbooks transform generic AI review into a powerful, customized legal assistant that reflects your specific legal strategy.",
+      "rich_media_query": {
+        "type": "image",
+        "suggested_search_query": "AI contract review playbook workflow diagram",
+        "alt_text": "Workflow diagram showing how custom playbooks guide AI in contract review from intake to risk flagging."
+      },
+      "markdown_table": ""
+    },
+    "usage": {
+      "inputTokens": 2621,
+      "inputTokenDetails": {
+        "noCacheTokens": 2621,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 2332,
+      "outputTokenDetails": {
+        "textTokens": 488,
+        "reasoningTokens": 1844
+      },
+      "totalTokens": 4953,
+      "raw": {
+        "thoughtsTokenCount": 1844,
+        "promptTokenCount": 2621,
+        "candidatesTokenCount": 488,
+        "totalTokenCount": 4953,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2621
+          }
+        ]
+      },
+      "reasoningTokens": 1844,
+      "cachedInputTokens": 0
+    }
+  }
+}

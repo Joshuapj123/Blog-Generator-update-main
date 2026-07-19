@@ -1,0 +1,118 @@
+{
+  "timestamp": "2026-07-15T13:43:09.617Z",
+  "data": {
+    "url": "https://mailmeteor.com/tools/ai-email-writer",
+    "title": "AI Email Writer: Write Professional Emails with AI (Free) - Mailmeteor",
+    "wordCount": 551,
+    "h2Count": 5,
+    "headings": [
+      {
+        "tag": "h2",
+        "text": "The fastest way to generate email with AI"
+      },
+      {
+        "tag": "h3",
+        "text": "Other tools"
+      },
+      {
+        "tag": "h3",
+        "text": "AI Email Response"
+      },
+      {
+        "tag": "h3",
+        "text": "Email Subject Line Generator"
+      },
+      {
+        "tag": "h2",
+        "text": "Do more than write emails.  Your inbox, now with an assistant"
+      },
+      {
+        "tag": "h3",
+        "text": "Your emails, smartly organized."
+      },
+      {
+        "tag": "h3",
+        "text": "Ready to hit send."
+      },
+      {
+        "tag": "h3",
+        "text": "Write smarter. Not longer."
+      },
+      {
+        "tag": "h2",
+        "text": "How it works"
+      },
+      {
+        "tag": "h3",
+        "text": "Trusted by 6 million professionals"
+      },
+      {
+        "tag": "h2",
+        "text": "Questions & answers about AI Email Writer"
+      },
+      {
+        "tag": "h3",
+        "text": "How does AI Email Writer work?"
+      },
+      {
+        "tag": "h3",
+        "text": "What kinds of emails can I write with it?"
+      },
+      {
+        "tag": "h3",
+        "text": "Can I set the tone, length, or language?"
+      },
+      {
+        "tag": "h3",
+        "text": "Is AI Email Writer free?"
+      },
+      {
+        "tag": "h3",
+        "text": "How is this different from using a general AI chatbot?"
+      },
+      {
+        "tag": "h3",
+        "text": "How accurate is the AI-generated content?"
+      },
+      {
+        "tag": "h3",
+        "text": "Should I use AI Email Writer for sensitive emails?"
+      },
+      {
+        "tag": "h3",
+        "text": "Does AI Email Writer work on mobile?"
+      },
+      {
+        "tag": "h3",
+        "text": "Will the emails it writes land in spam?"
+      },
+      {
+        "tag": "h3",
+        "text": "Can I use AI-written emails for mass outreach?"
+      },
+      {
+        "tag": "h3",
+        "text": "Is my data private?"
+      },
+      {
+        "tag": "h2",
+        "text": "Questions? Comments?"
+      },
+      {
+        "tag": "h3",
+        "text": "The Best Rated Mail Merge for Gmail"
+      }
+    ],
+    "text": "AI Email Writer by Mailmeteor makes it easy to generate fine-tuned emails, thanks to GPT models. Using a large language model (LLM), it will generate email content based on the context and intent expressed in your instructions.\n\nGet back one hour every day with an inbox that organizes itself and writes in your tone, all inside your Gmail. When you open your inbox, every message is already sorted and prioritized, so you can focus only on what truly matters. When you check your inbox, every email requiring a response will have a reply pre-drafted in your tone, ready for you to send. You can also highlight any text and let AI polish, shorten, or expand it in seconds, making your words better.\n\n### Everything you need to know about generating email with AI\n\nAI Email Writer uses leading large language models (LLMs) to generate an email from a short prompt. You describe the context, intent, and tone (formal, friendly, concise), and the tool returns a ready-to-send draft you can edit, copy, or paste into Gmail or Outlook.\n\nAI Email Writer handles most business and personal use cases, including:\n*   Cold outreach and sales emails\n*   Follow-ups and meeting requests\n*   Customer support replies\n*   Internal announcements and team updates\n*   Networking, introductions, and thank-you notes\n*   Job applications and recruiter outreach\n\nFor any of these, you can ask for a specific tone (e.g., “polite but direct”) or length (e.g., “under 80 words”).\n\n### Frequently Asked Questions\n\n**Can I specify tone, length, or language?**\nYes. Add tone, length, or language directly in your prompt — for example, “Write a 3-sentence friendly follow-up in Spanish” or “Rewrite this reply to sound more professional”. AI Email Writer supports English, Spanish, French, German, and most major languages.\n\n**Is AI Email Writer free?**\nYes, AI Email Writer is 100% free. No sign-up, credit card, or usage quota. If you send high-volume campaigns (up to 2,000 emails/day), you can also use the AI Email Assistant inside Gmail for drafting, sorting, and replying directly in your inbox. A free plan is available.\n\n**How is it different from general AI chatbots like ChatGPT?**\nGeneral AI chatbots (ChatGPT, Claude, Gemini) are built for open-ended conversation. AI Email Writer is purpose-built for email — it’s pre-tuned for subject lines, greetings, sign-offs, and common business scenarios, so you get a clean, email-ready output without extra prompting.\n\n**Are AI-generated emails always perfect?**\nResults are usually ready to send with minor edits, but AI can still miss specific facts, names, or context. Always proofread before sending — especially for figures, dates, or anything the model couldn’t know about your business.\n\n**Should I use AI for sensitive communications?**\nNo. Avoid using AI for legal, medical, financial, HR, or confidential communications where nuance, legal liability, or privacy matter. Use it as a starting point for drafting tone and structure, not as a substitute for professional judgment.\n\n**Does the tool work on mobile?**\nYes. The web tool works in any modern mobile browser (iOS Safari, Chrome on Android). For an inbox-native experience, install the AI Email Assistant to draft and rewrite emails directly inside Gmail.\n\n**Will AI-written emails be flagged as spam?**\nAI-written emails are not flagged by spam filters by default — what matters is your sender reputation, authentication (SPF, DKIM, DMARC), and content. Run your draft through our free Spam Checker to catch trigger words before hitting send.\n\n**Can I use AI-generated emails for mass campaigns?**\nYes, but personalize before sending. Paste the generated draft into Mailmeteor to merge it with variables (first name, company, custom fields) so every recipient gets a message that feels written just for them — without reducing deliverability.\n\n**What about data privacy?**\nYour data stays yours. Prompts are sent securely to our AI provider to generate the response, are not used to train any model, and are not stored beyond the short abuse-prevention window required by the provider. Mailmeteor does not log or share your drafts.\n\nMailmeteor is rated 4.9/5 out of 10,000+ reviews.",
+    "hasTables": false,
+    "tableCount": 0,
+    "readabilitySuccess": false,
+    "fallbackUsed": true,
+    "fallbackType": "gemini_summary",
+    "quality": "medium",
+    "qualityScore": 40,
+    "extractionConfidence": 75,
+    "weight": 0.63,
+    "paragraphCount": 24
+  }
+}

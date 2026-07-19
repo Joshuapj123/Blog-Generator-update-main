@@ -1,0 +1,72 @@
+{
+  "timestamp": "2026-07-05T06:50:21.599Z",
+  "data": {
+    "object": {
+      "intent": "commercial",
+      "confidenceScore": 95,
+      "intentConfidence": {
+        "informational": 10,
+        "commercial": 70,
+        "transactional": 0,
+        "comparison": 20
+      },
+      "formatRecommendation": "Listicle / Review Guide",
+      "toneGuidelines": "Authoritative, helpful, objective, and practical. Focus on providing value through thorough testing and unbiased recommendations, guiding the user towards the best solution for their needs.",
+      "structureGuidelines": "Start with an introduction to AI coding assistants, followed by a clear methodology of how the tools were tested. Include a quick comparison table for easy overview. Dedicate detailed sections to individual product reviews, discuss key factors for selection, and conclude with FAQs and a summary.",
+      "recommendedOutlineSections": [
+        {
+          "heading": "What is an AI Coding Assistant and Why Do You Need One?",
+          "level": "H2",
+          "purpose": "To introduce the topic, define AI coding assistants, and explain their benefits to set the context for the commercial intent."
+        },
+        {
+          "heading": "How We Tested the Best AI Coding Assistants",
+          "level": "H2",
+          "purpose": "To build trust and transparency by outlining the testing methodology, addressing a common element found in top-ranking competitor content."
+        },
+        {
+          "heading": "Quick Comparison: Top AI Coding Assistants at a Glance",
+          "level": "H2",
+          "purpose": "To provide a concise overview and facilitate quick comparison for users who want to see key differences and rankings immediately."
+        },
+        {
+          "heading": "Detailed Reviews of the Best AI Coding Assistants",
+          "level": "H2",
+          "purpose": "To provide in-depth analysis and evaluation of each recommended tool, directly satisfying the commercial intent of finding the 'best' options."
+        },
+        {
+          "heading": "Factors to Consider When Choosing an AI Coding Assistant",
+          "level": "H2",
+          "purpose": "To empower users to make an informed decision by highlighting critical criteria, further supporting their commercial research phase."
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 792,
+      "inputTokenDetails": {
+        "noCacheTokens": 792,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 1941,
+      "outputTokenDetails": {
+        "textTokens": 490,
+        "reasoningTokens": 1451
+      },
+      "totalTokens": 2733,
+      "raw": {
+        "thoughtsTokenCount": 1451,
+        "promptTokenCount": 792,
+        "candidatesTokenCount": 490,
+        "totalTokenCount": 2733,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 792
+          }
+        ]
+      },
+      "reasoningTokens": 1451,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "timestamp": "2026-06-25T00:24:19.853Z",
+  "data": {
+    "object": {
+      "heading": "How accurate is AI contract review compared to manual review?",
+      "level": "H3",
+      "what_it_is": "The **Accuracy of AI** in legal **Document Review** for tasks like identifying common risks, standard clauses, and non-compliance is remarkably high. Automated contract analysis software often surpasses human consistency across vast volumes of documents.",
+      "why_it_works": "This precision stems from AI's ability to rapidly identify **patterns** and **discrepancies**, drastically reducing human error in repetitive tasks. While it enhances efficiency, human expertise remains vital for complex contextual interpretation.",
+      "experience_or_data_point": "Studies show AI tools can reduce review time by 20-90% with higher consistency than manual review alone, drastically impacting legal department efficiency.",
+      "outbound_authority_link": {
+        "anchor_text": "reduce review time by 20-90% with higher consistency",
+        "search_query": "AI contract review efficiency statistics legal"
+      },
+      "example_brands": [
+        "LegalOn: Its AI rapidly flags subtle risks in commercial agreements, offering in-context suggestions directly within the document.",
+        "Evisort: Utilizes AI to extract key data points from contracts and identify non-standard language across diverse document types."
+      ],
+      "copy_formula": [
+        "Begin by stating the specific task AI excels at, then contrast with manual limitations.",
+        "Present a factual statement on AI's performance, followed by a 'however' clause introducing human nuance.",
+        "Highlight AI's speed and consistency, then connect it to risk reduction and efficiency gains."
+      ],
+      "takeaway": "AI significantly enhances contract review accuracy and efficiency, but it functions best as an augment to human legal judgment.",
+      "rich_media_query": {
+        "type": "image",
+        "suggested_search_query": "AI vs human contract review accuracy chart",
+        "alt_text": "Comparison chart illustrating AI contract review accuracy against human manual review, highlighting speed and consistency advantages."
+      },
+      "markdown_table": ""
+    },
+    "usage": {
+      "inputTokens": 2621,
+      "inputTokenDetails": {
+        "noCacheTokens": 2621,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 2243,
+      "outputTokenDetails": {
+        "textTokens": 472,
+        "reasoningTokens": 1771
+      },
+      "totalTokens": 4864,
+      "raw": {
+        "thoughtsTokenCount": 1771,
+        "promptTokenCount": 2621,
+        "candidatesTokenCount": 472,
+        "totalTokenCount": 4864,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2621
+          }
+        ]
+      },
+      "reasoningTokens": 1771,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,387 @@
+{
+  "timestamp": "2026-06-27T15:51:21.426Z",
+  "data": {
+    "object": {
+      "entities": [
+        {
+          "name": "Wix",
+          "type": "brand"
+        },
+        {
+          "name": "SITE123",
+          "type": "brand"
+        },
+        {
+          "name": "Webador",
+          "type": "brand"
+        },
+        {
+          "name": "GoDaddy",
+          "type": "brand"
+        },
+        {
+          "name": "10Web",
+          "type": "brand"
+        },
+        {
+          "name": "Webflow",
+          "type": "brand"
+        },
+        {
+          "name": "Base44",
+          "type": "brand"
+        },
+        {
+          "name": "Figma Make",
+          "type": "product"
+        },
+        {
+          "name": "AI website builders",
+          "type": "software"
+        },
+        {
+          "name": "Website builders",
+          "type": "software"
+        },
+        {
+          "name": "AI app builder",
+          "type": "software"
+        },
+        {
+          "name": "AI",
+          "type": "concept"
+        },
+        {
+          "name": "Customization",
+          "type": "concept"
+        },
+        {
+          "name": "No code website",
+          "type": "concept"
+        },
+        {
+          "name": "Responsive websites",
+          "type": "concept"
+        },
+        {
+          "name": "User experience",
+          "type": "concept"
+        },
+        {
+          "name": "SEO",
+          "type": "concept"
+        },
+        {
+          "name": "Integrations",
+          "type": "concept"
+        },
+        {
+          "name": "Speed",
+          "type": "concept"
+        },
+        {
+          "name": "Security",
+          "type": "concept"
+        },
+        {
+          "name": "Reliability",
+          "type": "concept"
+        },
+        {
+          "name": "Natural language",
+          "type": "concept"
+        },
+        {
+          "name": "AI-generated layouts",
+          "type": "concept"
+        },
+        {
+          "name": "AI-generated text",
+          "type": "concept"
+        },
+        {
+          "name": "AI-generated images",
+          "type": "concept"
+        },
+        {
+          "name": "Traditional website builders",
+          "type": "software"
+        },
+        {
+          "name": "Developers",
+          "type": "concept"
+        },
+        {
+          "name": "Coding knowledge",
+          "type": "concept"
+        },
+        {
+          "name": "Business tools",
+          "type": "concept"
+        },
+        {
+          "name": "Marketing",
+          "type": "concept"
+        },
+        {
+          "name": "Learning curve",
+          "type": "concept"
+        },
+        {
+          "name": "Web development",
+          "type": "concept"
+        }
+      ],
+      "relationships": [
+        {
+          "source": "AI website builders",
+          "target": "Website builders",
+          "type": "is a type of"
+        },
+        {
+          "source": "AI website builders",
+          "target": "AI",
+          "type": "leverages"
+        },
+        {
+          "source": "AI website builders",
+          "target": "No code website",
+          "type": "enables"
+        },
+        {
+          "source": "AI website builders",
+          "target": "Customization",
+          "type": "offers"
+        },
+        {
+          "source": "AI website builders",
+          "target": "AI-generated layouts",
+          "type": "generates"
+        },
+        {
+          "source": "AI website builders",
+          "target": "AI-generated text",
+          "type": "generates"
+        },
+        {
+          "source": "AI website builders",
+          "target": "AI-generated images",
+          "type": "generates"
+        },
+        {
+          "source": "AI website builders",
+          "target": "Responsive websites",
+          "type": "supports"
+        },
+        {
+          "source": "AI website builders",
+          "target": "User experience",
+          "type": "improves"
+        },
+        {
+          "source": "AI website builders",
+          "target": "Integrations",
+          "type": "facilitates"
+        },
+        {
+          "source": "AI website builders",
+          "target": "Speed",
+          "type": "enhances"
+        },
+        {
+          "source": "AI website builders",
+          "target": "Security",
+          "type": "ensures"
+        },
+        {
+          "source": "AI website builders",
+          "target": "Reliability",
+          "type": "provides"
+        },
+        {
+          "source": "AI website builders",
+          "target": "Natural language",
+          "type": "processes"
+        },
+        {
+          "source": "AI website builders",
+          "target": "Business tools",
+          "type": "integrates with"
+        },
+        {
+          "source": "Wix",
+          "target": "AI website builders",
+          "type": "is a"
+        },
+        {
+          "source": "SITE123",
+          "target": "AI website builders",
+          "type": "is a"
+        },
+        {
+          "source": "Webador",
+          "target": "AI website builders",
+          "type": "is a"
+        },
+        {
+          "source": "GoDaddy",
+          "target": "AI website builders",
+          "type": "is a"
+        },
+        {
+          "source": "10Web",
+          "target": "AI website builders",
+          "type": "is a"
+        },
+        {
+          "source": "Webflow",
+          "target": "Website builders",
+          "type": "is a"
+        },
+        {
+          "source": "Base44",
+          "target": "AI app builder",
+          "type": "is a"
+        },
+        {
+          "source": "AI app builder",
+          "target": "AI website builders",
+          "type": "is a type of"
+        },
+        {
+          "source": "Figma Make",
+          "target": "AI website builders",
+          "type": "is a"
+        },
+        {
+          "source": "Traditional website builders",
+          "target": "Coding knowledge",
+          "type": "often requires"
+        },
+        {
+          "source": "Traditional website builders",
+          "target": "Developers",
+          "type": "may require"
+        },
+        {
+          "source": "Traditional website builders",
+          "target": "Learning curve",
+          "type": "involves"
+        },
+        {
+          "source": "No code website",
+          "target": "Coding knowledge",
+          "type": "reduces need for"
+        },
+        {
+          "source": "No code website",
+          "target": "Developers",
+          "type": "reduces need for"
+        },
+        {
+          "source": "AI website builders",
+          "target": "Learning curve",
+          "type": "reduces"
+        },
+        {
+          "source": "SEO",
+          "target": "Marketing",
+          "type": "supports"
+        },
+        {
+          "source": "Website builders",
+          "target": "Marketing",
+          "type": "supports"
+        },
+        {
+          "source": "AI",
+          "target": "Web development",
+          "type": "transforms"
+        },
+        {
+          "source": "AI website builders",
+          "target": "Web development",
+          "type": "simplifies"
+        },
+        {
+          "source": "Customization",
+          "target": "User experience",
+          "type": "impacts"
+        },
+        {
+          "source": "Speed",
+          "target": "User experience",
+          "type": "impacts"
+        },
+        {
+          "source": "Security",
+          "target": "AI website builders",
+          "type": "is a feature of"
+        },
+        {
+          "source": "Reliability",
+          "target": "AI website builders",
+          "type": "is a feature of"
+        },
+        {
+          "source": "Natural language",
+          "target": "AI website builders",
+          "type": "enables input for"
+        },
+        {
+          "source": "AI-generated layouts",
+          "target": "Customization",
+          "type": "enables"
+        },
+        {
+          "source": "AI-generated text",
+          "target": "AI website builders",
+          "type": "generated by"
+        },
+        {
+          "source": "AI-generated images",
+          "target": "AI website builders",
+          "type": "generated by"
+        }
+      ],
+      "recommendedConnections": [
+        "AI website builders -> SEO",
+        "No code website -> Business tools",
+        "User experience -> Responsive websites",
+        "AI-generated text -> Marketing",
+        "Customization -> Brand",
+        "Speed -> User experience",
+        "Reliability -> User experience",
+        "Natural language -> Web development",
+        "Integrations -> Marketing"
+      ]
+    },
+    "usage": {
+      "inputTokens": 2319,
+      "inputTokenDetails": {
+        "noCacheTokens": 2319,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 7700,
+      "outputTokenDetails": {
+        "textTokens": 2295,
+        "reasoningTokens": 5405
+      },
+      "totalTokens": 10019,
+      "raw": {
+        "thoughtsTokenCount": 5405,
+        "promptTokenCount": 2319,
+        "candidatesTokenCount": 2295,
+        "totalTokenCount": 10019,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2319
+          }
+        ]
+      },
+      "reasoningTokens": 5405,
+      "cachedInputTokens": 0
+    }
+  }
+}
