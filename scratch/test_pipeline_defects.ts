@@ -1,5 +1,4 @@
-import { hasIncompleteSentence } from '../src/app/api/generate-blocks/route';
-import { validateArticleQuality, isPassiveSentence, calculateJaccardSimilarity, calculateFleschReadingEase } from '../src/lib/seo-intelligence/quality_validator';
+import { hasIncompleteSentence, validateArticleQuality, isPassiveSentence, calculateJaccardSimilarity, calculateFleschReadingEase } from '../src/lib/seo-intelligence/quality_validator';
 import { LinkQualityEngine, LinkScorer, BlacklistFilter } from '../src/lib/seo-intelligence/link_quality_engine';
 
 console.log("=========================================");

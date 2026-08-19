@@ -287,3 +287,15 @@ export function validateArticleQuality(
     }
   };
 }
+
+export function hasIncompleteSentence(text: string): boolean {
+  const trimmed = text.trim();
+  if (trimmed.endsWith('...') || trimmed.endsWith('…')) {
+    return true;
+  }
+  if (trimmed.endsWith(',')) {
+    return true;
+  }
+  return false;
+}
+
