@@ -45,6 +45,13 @@ The system is split into two primary components:
 *   **Hallucination Validator**: Cross-checks facts, pricing, features, and integrations via Gemini to flag and repair suspect claims.
 *   **Human Style Copyeditor**: Polishes flow, sentence length variation, and transitions while preserving target SEO terms and structural alignments.
 
+### 5. Recent Core Pipeline & UI Updates
+*   **Dynamic LLM Budget Allocation**: Dynamically scales the orchestrator's `maxLLMCalls` budget limit using the formula:
+    $$\text{allowedLLMCalls} = \text{fixedOverhead} (8) + \text{plannedSections} + \text{maxReviewRetries} (2) + \text{safetyBuffer} (3)$$
+    This prevents false budget aborts at ~70% (transition to `REVIEW` stage) for long-form articles while keeping infinite-loop protections active.
+*   **Search Call Budget Optimization**: Skips the keyword-discovery expansion block when a valid seed keyword is already provided for single-article generation, preventing the orchestrator from exceeding the target limit of 5 search/SERP API calls.
+*   **Workspace Context Alignment**: Ensures the active `currentArticleId` is set when loading legacy outlines and Todo ideas prior to launching the generator wizard, resolving the bug that reset the UI to the Final Configuration page instead of launching the editor.
+
 ---
 
 ## 🛠️ Getting Started

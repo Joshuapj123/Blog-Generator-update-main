@@ -1,0 +1,322 @@
+{
+  "timestamp": "2026-08-30T10:08:32.393Z",
+  "data": {
+    "object": {
+      "entities": [
+        {
+          "name": "HubSpot",
+          "type": "brand"
+        },
+        {
+          "name": "Activepieces",
+          "type": "brand"
+        },
+        {
+          "name": "Zapier",
+          "type": "brand"
+        },
+        {
+          "name": "Microsoft",
+          "type": "brand"
+        },
+        {
+          "name": "Zendesk",
+          "type": "brand"
+        },
+        {
+          "name": "Asana",
+          "type": "brand"
+        },
+        {
+          "name": "ClickUp",
+          "type": "brand"
+        },
+        {
+          "name": "CMIT Solutions",
+          "type": "organization"
+        },
+        {
+          "name": "Microsoft Copilot",
+          "type": "product"
+        },
+        {
+          "name": "ChatGPT Business",
+          "type": "product"
+        },
+        {
+          "name": "Notion AI",
+          "type": "product"
+        },
+        {
+          "name": "Mailchimp",
+          "type": "product"
+        },
+        {
+          "name": "CRM",
+          "type": "software"
+        },
+        {
+          "name": "Project Management Software",
+          "type": "software"
+        },
+        {
+          "name": "Email Marketing Software",
+          "type": "software"
+        },
+        {
+          "name": "Automation Platforms",
+          "type": "software"
+        },
+        {
+          "name": "AI Automation Tool",
+          "type": "software"
+        },
+        {
+          "name": "AI Workflow Automation",
+          "type": "concept"
+        },
+        {
+          "name": "Small Business Automation",
+          "type": "concept"
+        },
+        {
+          "name": "Artificial Intelligence",
+          "type": "concept"
+        },
+        {
+          "name": "Repetitive Tasks",
+          "type": "concept"
+        },
+        {
+          "name": "Manual Work",
+          "type": "concept"
+        },
+        {
+          "name": "Lead Management",
+          "type": "concept"
+        },
+        {
+          "name": "Customer Service",
+          "type": "concept"
+        },
+        {
+          "name": "HR Onboarding",
+          "type": "concept"
+        },
+        {
+          "name": "Data Integration",
+          "type": "concept"
+        },
+        {
+          "name": "No-code",
+          "type": "concept"
+        },
+        {
+          "name": "Compliance",
+          "type": "concept"
+        },
+        {
+          "name": "Productivity",
+          "type": "concept"
+        },
+        {
+          "name": "Scalability",
+          "type": "concept"
+        }
+      ],
+      "relationships": [
+        {
+          "source": "AI Workflow Automation",
+          "target": "Small Business Automation",
+          "type": "enables"
+        },
+        {
+          "source": "Small Business Automation",
+          "target": "Repetitive Tasks",
+          "type": "reduces"
+        },
+        {
+          "source": "Small Business Automation",
+          "target": "Manual Work",
+          "type": "reduces"
+        },
+        {
+          "source": "Artificial Intelligence",
+          "target": "AI Workflow Automation",
+          "type": "powers"
+        },
+        {
+          "source": "CRM",
+          "target": "Lead Management",
+          "type": "manages"
+        },
+        {
+          "source": "CRM",
+          "target": "Automation Platforms",
+          "type": "integrates with"
+        },
+        {
+          "source": "Project Management Software",
+          "target": "AI Workflow Automation",
+          "type": "automates"
+        },
+        {
+          "source": "Email Marketing Software",
+          "target": "AI Workflow Automation",
+          "type": "automates"
+        },
+        {
+          "source": "Automation Platforms",
+          "target": "Data Integration",
+          "type": "enable"
+        },
+        {
+          "source": "Automation Platforms",
+          "target": "No-code",
+          "type": "feature"
+        },
+        {
+          "source": "Zapier",
+          "target": "Automation Platforms",
+          "type": "is an"
+        },
+        {
+          "source": "Activepieces",
+          "target": "Automation Platforms",
+          "type": "is an"
+        },
+        {
+          "source": "HubSpot",
+          "target": "CRM",
+          "type": "offers"
+        },
+        {
+          "source": "HubSpot",
+          "target": "Email Marketing Software",
+          "type": "offers"
+        },
+        {
+          "source": "Microsoft Copilot",
+          "target": "AI Automation Tool",
+          "type": "is an"
+        },
+        {
+          "source": "ChatGPT Business",
+          "target": "AI Automation Tool",
+          "type": "is an"
+        },
+        {
+          "source": "Notion AI",
+          "target": "AI Automation Tool",
+          "type": "is an"
+        },
+        {
+          "source": "Mailchimp",
+          "target": "Email Marketing Software",
+          "type": "is an"
+        },
+        {
+          "source": "Asana",
+          "target": "Project Management Software",
+          "type": "is a"
+        },
+        {
+          "source": "ClickUp",
+          "target": "Project Management Software",
+          "type": "is a"
+        },
+        {
+          "source": "Zendesk",
+          "target": "Customer Service",
+          "type": "supports"
+        },
+        {
+          "source": "AI Workflow Automation",
+          "target": "Productivity",
+          "type": "improves"
+        },
+        {
+          "source": "AI Workflow Automation",
+          "target": "Data Integration",
+          "type": "requires"
+        },
+        {
+          "source": "AI Workflow Automation",
+          "target": "Compliance",
+          "type": "helps ensure"
+        },
+        {
+          "source": "AI Workflow Automation",
+          "target": "Scalability",
+          "type": "provides"
+        },
+        {
+          "source": "Repetitive Tasks",
+          "target": "Manual Work",
+          "type": "involve"
+        },
+        {
+          "source": "HR Onboarding",
+          "target": "AI Workflow Automation",
+          "type": "is automated by"
+        },
+        {
+          "source": "Lead Management",
+          "target": "AI Workflow Automation",
+          "type": "is automated by"
+        },
+        {
+          "source": "Customer Service",
+          "target": "AI Workflow Automation",
+          "type": "is enhanced by"
+        },
+        {
+          "source": "No-code",
+          "target": "AI Workflow Automation",
+          "type": "simplifies"
+        },
+        {
+          "source": "CMIT Solutions",
+          "target": "AI Workflow Automation",
+          "type": "supports safe adoption of"
+        }
+      ],
+      "recommendedConnections": [
+        "AI Workflow Automation -> ROI for Small Businesses",
+        "No-code -> Democratization of AI Workflow Automation",
+        "Data Integration -> Unified Business Operations",
+        "AI Automation Tool -> Data Security & Compliance",
+        "CRM -> Hyper-personalized Customer Experiences",
+        "Small Business Automation -> Competitive Advantage against Larger Companies",
+        "Artificial Intelligence -> Adaptive Learning in Automation"
+      ]
+    },
+    "usage": {
+      "inputTokens": 1843,
+      "inputTokenDetails": {
+        "noCacheTokens": 1843,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 9346,
+      "outputTokenDetails": {
+        "textTokens": 1870,
+        "reasoningTokens": 7476
+      },
+      "totalTokens": 11189,
+      "raw": {
+        "thoughtsTokenCount": 7476,
+        "promptTokenCount": 1843,
+        "candidatesTokenCount": 1870,
+        "totalTokenCount": 11189,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1843
+          }
+        ]
+      },
+      "reasoningTokens": 7476,
+      "cachedInputTokens": 0
+    }
+  }
+}

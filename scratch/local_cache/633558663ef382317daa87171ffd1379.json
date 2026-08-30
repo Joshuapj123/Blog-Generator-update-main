@@ -1,0 +1,342 @@
+{
+  "timestamp": "2026-08-30T07:59:17.507Z",
+  "data": {
+    "object": {
+      "entities": [
+        {
+          "name": "Project management software",
+          "type": "software"
+        },
+        {
+          "name": "Monday.com",
+          "type": "brand"
+        },
+        {
+          "name": "Smartsheet",
+          "type": "brand"
+        },
+        {
+          "name": "ProjectManager",
+          "type": "brand"
+        },
+        {
+          "name": "Trello",
+          "type": "brand"
+        },
+        {
+          "name": "Asana",
+          "type": "brand"
+        },
+        {
+          "name": "ClickUp",
+          "type": "brand"
+        },
+        {
+          "name": "Wrike",
+          "type": "brand"
+        },
+        {
+          "name": "Task management",
+          "type": "concept"
+        },
+        {
+          "name": "Resource allocation",
+          "type": "concept"
+        },
+        {
+          "name": "Workload visibility",
+          "type": "concept"
+        },
+        {
+          "name": "Collaboration",
+          "type": "concept"
+        },
+        {
+          "name": "Planning",
+          "type": "concept"
+        },
+        {
+          "name": "Reporting",
+          "type": "concept"
+        },
+        {
+          "name": "Schedules",
+          "type": "concept"
+        },
+        {
+          "name": "Gantt chart view",
+          "type": "concept"
+        },
+        {
+          "name": "Kanban board",
+          "type": "concept"
+        },
+        {
+          "name": "Mobile app",
+          "type": "software"
+        },
+        {
+          "name": "Cloud-based tool",
+          "type": "software"
+        },
+        {
+          "name": "Integrations",
+          "type": "concept"
+        },
+        {
+          "name": "Productivity",
+          "type": "concept"
+        },
+        {
+          "name": "Bottlenecks",
+          "type": "concept"
+        },
+        {
+          "name": "Deadlines",
+          "type": "concept"
+        },
+        {
+          "name": "Cost analysis",
+          "type": "concept"
+        },
+        {
+          "name": "Client satisfaction",
+          "type": "concept"
+        },
+        {
+          "name": "Spreadsheets",
+          "type": "software"
+        },
+        {
+          "name": "Email threads",
+          "type": "concept"
+        },
+        {
+          "name": "Shared cloud storage",
+          "type": "software"
+        },
+        {
+          "name": "Communication software",
+          "type": "software"
+        },
+        {
+          "name": "Accounting software",
+          "type": "software"
+        }
+      ],
+      "relationships": [
+        {
+          "source": "Project management software",
+          "target": "Task management",
+          "type": "enables"
+        },
+        {
+          "source": "Project management software",
+          "target": "Resource allocation",
+          "type": "enables"
+        },
+        {
+          "source": "Project management software",
+          "target": "Workload visibility",
+          "type": "provides"
+        },
+        {
+          "source": "Project management software",
+          "target": "Collaboration",
+          "type": "supports"
+        },
+        {
+          "source": "Project management software",
+          "target": "Planning",
+          "type": "facilitates"
+        },
+        {
+          "source": "Project management software",
+          "target": "Reporting",
+          "type": "generates"
+        },
+        {
+          "source": "Project management software",
+          "target": "Schedules",
+          "type": "manages"
+        },
+        {
+          "source": "Project management software",
+          "target": "Bottlenecks",
+          "type": "prevents"
+        },
+        {
+          "source": "Project management software",
+          "target": "Deadlines",
+          "type": "helps meet"
+        },
+        {
+          "source": "Project management software",
+          "target": "Cost analysis",
+          "type": "supports"
+        },
+        {
+          "source": "Project management software",
+          "target": "Client satisfaction",
+          "type": "improves"
+        },
+        {
+          "source": "Project management software",
+          "target": "Productivity",
+          "type": "increases"
+        },
+        {
+          "source": "Project management software",
+          "target": "Shared cloud storage",
+          "type": "integrates with"
+        },
+        {
+          "source": "Project management software",
+          "target": "Communication software",
+          "type": "integrates with"
+        },
+        {
+          "source": "Project management software",
+          "target": "Accounting software",
+          "type": "integrates with"
+        },
+        {
+          "source": "Project management software",
+          "target": "Spreadsheets",
+          "type": "replaces"
+        },
+        {
+          "source": "Project management software",
+          "target": "Email threads",
+          "type": "replaces"
+        },
+        {
+          "source": "Cloud-based tool",
+          "target": "Project management software",
+          "type": "is a type of"
+        },
+        {
+          "source": "Mobile app",
+          "target": "Project management software",
+          "type": "extends functionality of"
+        },
+        {
+          "source": "Gantt chart view",
+          "target": "Project management software",
+          "type": "is a feature of"
+        },
+        {
+          "source": "Kanban board",
+          "target": "Project management software",
+          "type": "is a feature of"
+        },
+        {
+          "source": "Monday.com",
+          "target": "Cloud-based tool",
+          "type": "is a"
+        },
+        {
+          "source": "Monday.com",
+          "target": "Integrations",
+          "type": "offers"
+        },
+        {
+          "source": "Smartsheet",
+          "target": "Gantt chart view",
+          "type": "offers"
+        },
+        {
+          "source": "Smartsheet",
+          "target": "Schedules",
+          "type": "manages"
+        },
+        {
+          "source": "ProjectManager",
+          "target": "Planning",
+          "type": "enables"
+        },
+        {
+          "source": "ProjectManager",
+          "target": "Cost analysis",
+          "type": "enables"
+        },
+        {
+          "source": "ProjectManager",
+          "target": "Resource allocation",
+          "type": "enables"
+        },
+        {
+          "source": "ProjectManager",
+          "target": "Task management",
+          "type": "enables"
+        },
+        {
+          "source": "ProjectManager",
+          "target": "Reporting",
+          "type": "enables"
+        },
+        {
+          "source": "ProjectManager",
+          "target": "Mobile app",
+          "type": "has"
+        },
+        {
+          "source": "Trello",
+          "target": "Kanban board",
+          "type": "specializes in"
+        },
+        {
+          "source": "Asana",
+          "target": "Collaboration",
+          "type": "specializes in"
+        },
+        {
+          "source": "ClickUp",
+          "target": "Task management",
+          "type": "specializes in"
+        },
+        {
+          "source": "Wrike",
+          "target": "Schedules",
+          "type": "specializes in"
+        }
+      ],
+      "recommendedConnections": [
+        "Project management software -> Agile methodology",
+        "Resource allocation -> Team capacity planning",
+        "Task management -> Workflow automation",
+        "Reporting -> Business intelligence",
+        "Gantt chart view -> Critical path method",
+        "Project management software -> Risk management",
+        "Project management software -> Time tracking"
+      ]
+    },
+    "usage": {
+      "inputTokens": 1500,
+      "inputTokenDetails": {
+        "noCacheTokens": 1500,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 6271,
+      "outputTokenDetails": {
+        "textTokens": 1997,
+        "reasoningTokens": 4274
+      },
+      "totalTokens": 7771,
+      "raw": {
+        "thoughtsTokenCount": 4274,
+        "promptTokenCount": 1500,
+        "candidatesTokenCount": 1997,
+        "totalTokenCount": 7771,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1500
+          }
+        ]
+      },
+      "reasoningTokens": 4274,
+      "cachedInputTokens": 0
+    }
+  }
+}

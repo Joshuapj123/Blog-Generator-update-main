@@ -211,6 +211,7 @@ export interface ContentPlan {
   mistakes?: string[];
   actionItems?: string[];
   recommendedPages: RecommendedPage[];
+  saasIntelligenceProfile?: any;
   createdAt?: any;
   updatedAt?: any;
 }
@@ -247,4 +248,159 @@ export const deleteContentPlan = async (id: string) => {
 export const deleteArticle = async (id: string) => {
   const docRef = doc(db, "articles", id);
   await deleteDoc(docRef);
+};
+
+export const saveGeoVisibilityRun = async (runData: any) => {
+  const col = collection(db, "geo_visibility_runs");
+  const cleanData = Object.fromEntries(Object.entries(runData).filter(([_, v]) => v !== undefined));
+  if (cleanData.id) {
+    const docRef = doc(db, "geo_visibility_runs", cleanData.id as string);
+    await updateDoc(docRef, { ...cleanData, updatedAt: serverTimestamp() });
+    return cleanData.id as string;
+  } else {
+    const docRef = await addDoc(col, { ...cleanData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+    return docRef.id;
+  }
+};
+
+export const getGeoVisibilityRuns = async (): Promise<any[]> => {
+  const col = collection(db, "geo_visibility_runs");
+  const snapshot = await getDocs(col);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+};
+
+export const saveGeoOpportunity = async (opp: any) => {
+  const col = collection(db, "geo_opportunities");
+  const cleanData = Object.fromEntries(Object.entries(opp).filter(([_, v]) => v !== undefined));
+  if (cleanData.id) {
+    const docRef = doc(db, "geo_opportunities", cleanData.id as string);
+    await updateDoc(docRef, { ...cleanData, updatedAt: serverTimestamp() });
+    return cleanData.id as string;
+  } else {
+    const docRef = await addDoc(col, { ...cleanData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+    return docRef.id;
+  }
+};
+
+export const getGeoOpportunities = async (): Promise<any[]> => {
+  const col = collection(db, "geo_opportunities");
+  const snapshot = await getDocs(col);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+};
+
+export const saveDistributionJob = async (job: any) => {
+  const col = collection(db, "distribution_jobs");
+  const cleanData = Object.fromEntries(Object.entries(job).filter(([_, v]) => v !== undefined));
+  if (cleanData.id || cleanData.jobId) {
+    const docId = (cleanData.id || cleanData.jobId) as string;
+    const docRef = doc(db, "distribution_jobs", docId);
+    await setDoc(docRef, { ...cleanData, updatedAt: serverTimestamp() }, { merge: true });
+    return docId;
+  } else {
+    const docRef = await addDoc(col, { ...cleanData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+    return docRef.id;
+  }
+};
+
+export const getDistributionJobs = async (): Promise<any[]> => {
+  const col = collection(db, "distribution_jobs");
+  const snapshot = await getDocs(col);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+};
+
+export const getDistributionJobById = async (id: string): Promise<any | null> => {
+  const docRef = doc(db, "distribution_jobs", id);
+  const snapshot = await getDoc(docRef);
+  return snapshot.exists() ? ({ id: snapshot.id, ...snapshot.data() }) : null;
+};
+
+export const getDistributionJobByIdempotencyKey = async (idempotencyKey: string): Promise<any | null> => {
+  const col = collection(db, "distribution_jobs");
+  const q = query(col, where("idempotencyKey", "==", idempotencyKey));
+  const snapshot = await getDocs(q);
+  if (!snapshot.empty) {
+    const doc = snapshot.docs[0];
+    return { id: doc.id, ...doc.data() };
+  }
+  return null;
+};
+
+export const savePerformanceSnapshot = async (snap: any) => {
+  const col = collection(db, "performance_snapshots");
+  const cleanData = Object.fromEntries(Object.entries(snap).filter(([_, v]) => v !== undefined));
+  const docId = (cleanData.id || cleanData.snapshotId) as string;
+  if (docId) {
+    const docRef = doc(db, "performance_snapshots", docId);
+    await setDoc(docRef, { ...cleanData, updatedAt: serverTimestamp() }, { merge: true });
+    return docId;
+  } else {
+    const docRef = await addDoc(col, { ...cleanData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+    return docRef.id;
+  }
+};
+
+export const getPerformanceSnapshots = async (): Promise<any[]> => {
+  const col = collection(db, "performance_snapshots");
+  const snapshot = await getDocs(col);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+};
+
+export const savePerformanceInsight = async (ins: any) => {
+  const col = collection(db, "performance_insights");
+  const cleanData = Object.fromEntries(Object.entries(ins).filter(([_, v]) => v !== undefined));
+  const docId = (cleanData.id || cleanData.insightId) as string;
+  if (docId) {
+    const docRef = doc(db, "performance_insights", docId);
+    await setDoc(docRef, { ...cleanData, updatedAt: serverTimestamp() }, { merge: true });
+    return docId;
+  } else {
+    const docRef = await addDoc(col, { ...cleanData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+    return docRef.id;
+  }
+};
+
+export const getPerformanceInsights = async (): Promise<any[]> => {
+  const col = collection(db, "performance_insights");
+  const snapshot = await getDocs(col);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+};
+
+export const savePerformanceRecommendation = async (rec: any) => {
+  const col = collection(db, "performance_recommendations");
+  const cleanData = Object.fromEntries(Object.entries(rec).filter(([_, v]) => v !== undefined));
+  const docId = (cleanData.id || cleanData.recommendationId) as string;
+  if (docId) {
+    const docRef = doc(db, "performance_recommendations", docId);
+    await setDoc(docRef, { ...cleanData, updatedAt: serverTimestamp() }, { merge: true });
+    return docId;
+  } else {
+    const docRef = await addDoc(col, { ...cleanData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+    return docRef.id;
+  }
+};
+
+export const getPerformanceRecommendations = async (): Promise<any[]> => {
+  const col = collection(db, "performance_recommendations");
+  const snapshot = await getDocs(col);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+};
+
+export const saveAuthorityOpportunity = async (opp: any) => {
+  const col = collection(db, "authority_opportunities");
+  const cleanData = Object.fromEntries(Object.entries(opp).filter(([_, v]) => v !== undefined));
+  const docId = (cleanData.id || cleanData.opportunityId) as string;
+  if (docId) {
+    const docRef = doc(db, "authority_opportunities", docId);
+    await setDoc(docRef, { ...cleanData, updatedAt: serverTimestamp() }, { merge: true });
+    return docId;
+  } else {
+    const docRef = await addDoc(col, { ...cleanData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+    return docRef.id;
+  }
+};
+
+export const getAuthorityOpportunities = async (): Promise<any[]> => {
+  const col = collection(db, "authority_opportunities");
+  const snapshot = await getDocs(col);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };

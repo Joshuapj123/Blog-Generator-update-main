@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-08-30T05:59:09.805Z",
+  "data": {
+    "text": "You've found it: an AI Resume Builder that actually works (and that'll give you your money back if you don't like it, no fuss).\n\nLand More Interviews with the Sheets AI Resume Builder\n\nHow can you trust that this is the right AI Resume Builder out of all the ones on the internet these days? Well, this is a passion project for us (and by \"us\", we mean... us, Nate and Colin). We've poured our nights and weekends into our Resume Builder, and we've created something that we think will make your job search as painless as possible. We literally just linked you to our LinkedIn's.... would someone really do that if they weren't 100% confident you'd love their service?\n\nWe do this for love of the game (and that \"game\" is landing you an amazing new job so your family can continue to access employer-provided healthcare; great system we've got). Since 2018, we've helped literally millions of people on Reddit with their job hunt, and we've heard directly from tens of thousands of people who have switched to our resume format, landed an amazing new job, and changed their lives. To help people even more, in 2023 we started finding time on nights and weekends to do long-form 1:1 Resume Refreshes for job seekers who needed a professional review (and one that didn't break the bank).\n\nUnfortunately, Nate and Colin are still human (not today, Musk), so time is a major limiting factor on how many people we can help 1:1. Beyond that, cost is another limiter: we try to offer our Resume Refresh for a relatively inexpensive $400 – some resume writers charge $1,000+! What?! – but realistically it's still a lot of money for people in between jobs. So, we created this AI Resume Builder to dramatically amplify our 1:1 resume review efforts with a far more affordable option that works 24/7, round the clock, anywhere in the world.\n\nMost job searches take around 3 months, and in that time we understand that most of you will need to make 5, 10, 20, or even 50 various resumes for different types of roles. So for a small cost – only requested after you complete your resume and are 100% satisfied with our tools – you'll receive unlimited access to our:\n\n*   AI Resume Builder\n*   Cover Letter Generator\n*   AI Mock Interview Practice\n*   AI LinkedIn Updater\n*   AI Job Search\n\n(Note: If you are facing tough financial times, as many people are, email me at colin@sheetsresume.com and I'll give you a temporary membership to help you out.)",
+    "usage": {
+      "inputTokens": 846,
+      "inputTokenDetails": {
+        "noCacheTokens": 846,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 3165,
+      "outputTokenDetails": {
+        "textTokens": 589,
+        "reasoningTokens": 2576
+      },
+      "totalTokens": 4011,
+      "raw": {
+        "thoughtsTokenCount": 2576,
+        "promptTokenCount": 846,
+        "candidatesTokenCount": 589,
+        "totalTokenCount": 4011,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 846
+          }
+        ]
+      },
+      "reasoningTokens": 2576,
+      "cachedInputTokens": 0
+    }
+  }
+}

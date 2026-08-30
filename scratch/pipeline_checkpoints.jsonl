@@ -491,3 +491,47 @@
 {"stage":"keyword_extraction","title":"AI coding assistant","keyword":"AI coding assistant","passed":true,"timestamp":"2026-07-19T04:14:46.667Z"}
 {"stage":"keyword_extraction","title":"AI coding assistant","keyword":"AI coding assistant","passed":true,"timestamp":"2026-07-19T04:16:58.338Z"}
 {"stage":"keyword_extraction","title":"AI coding assistant","keyword":"AI coding assistant","passed":true,"timestamp":"2026-07-19T04:17:30.960Z"}
+{"stage":"outline_generation","title":"What is CRM Workflow Automation","keyword":"crm workflow, crm automation","passed":false,"timestamp":"2026-08-18T17:11:30.248Z"}
+{"stage":"outline_generation","title":"Best Lead Scoring Software Tools","keyword":"lead scoring software, sales tools","passed":false,"timestamp":"2026-08-18T17:11:35.466Z"}
+{"stage":"outline_generation","title":"HubSpot vs Salesforce CRM Comparison","keyword":"hubspot vs salesforce, crm comparison","passed":false,"timestamp":"2026-08-18T17:11:40.993Z"}
+{"stage":"outline_generation","title":"Asana Alternatives for Project Management","keyword":"asana alternatives, project management","passed":false,"timestamp":"2026-08-18T17:11:47.259Z"}
+{"stage":"outline_generation","title":"How to Build a SaaS Marketing Strategy","keyword":"saas marketing strategy, marketing funnel","passed":false,"timestamp":"2026-08-18T17:11:52.945Z"}
+{"stage":"outline_generation","title":"Bypass Test","keyword":"test","passed":false,"timestamp":"2026-08-18T17:28:21.984Z"}
+{"stage":"section_generation","title":"Bypass Test","keyword":"test","passed":true,"timestamp":"2026-08-18T17:29:54.274Z"}
+{"stage":"assembly","title":"Bypass Test","keyword":"test","passed":true,"timestamp":"2026-08-18T17:37:57.992Z"}
+{"stage":"final_validation","title":"Bypass Test","keyword":"test","passed":true,"timestamp":"2026-08-18T17:37:57.994Z"}
+{"stage":"outline_generation","title":"Bypass Test","keyword":"test","passed":false,"timestamp":"2026-08-18T17:46:54.892Z"}
+{"stage":"section_generation","title":"Bypass Test","keyword":"test","passed":true,"timestamp":"2026-08-18T17:48:16.234Z"}
+{"stage":"assembly","title":"Bypass Test","keyword":"test","passed":true,"timestamp":"2026-08-18T17:55:31.689Z"}
+{"stage":"final_validation","title":"Bypass Test","keyword":"test","passed":true,"timestamp":"2026-08-18T17:55:31.690Z"}
+{"stage":"outline_generation","title":"Building SaaS Workflows with CRM Integration","keyword":"crm workflows","passed":false,"timestamp":"2026-08-19T13:36:53.537Z"}
+{"stage":"outline_generation","title":"Building SaaS Workflows with CRM Integration","keyword":"crm workflows","passed":false,"timestamp":"2026-08-19T13:39:28.363Z"}
+{"stage":"outline_generation","title":"Bypass Test","keyword":"test","passed":false,"timestamp":"2026-08-19T13:41:50.625Z"}
+{"stage":"section_generation","title":"Bypass Test","keyword":"test","passed":true,"timestamp":"2026-08-19T13:43:26.417Z"}
+{"stage":"assembly","title":"Bypass Test","keyword":"test","passed":true,"timestamp":"2026-08-19T13:50:13.282Z"}
+{"stage":"final_validation","title":"Bypass Test","keyword":"test","passed":true,"timestamp":"2026-08-19T13:50:13.284Z"}
+{"stage":"outline_generation","title":"Building SaaS Workflows with CRM Integration","keyword":"crm workflows","passed":false,"timestamp":"2026-08-19T13:55:43.731Z"}
+{"stage":"outline_generation","title":"Building SaaS Workflows with CRM Integration","keyword":"crm workflows","passed":false,"timestamp":"2026-08-19T14:22:16.663Z"}
+{"stage":"keyword_extraction","title":"topical authority","keyword":"topical authority","passed":true,"timestamp":"2026-08-23T06:52:20.522Z"}
+{"stage":"keyword_extraction","title":"topical authority","keyword":"topical authority","passed":true,"timestamp":"2026-08-23T06:52:26.177Z"}
+{"stage":"keyword_extraction","title":"AI content writing tools for SaaS","keyword":"AI content writing tools for SaaS","passed":true,"timestamp":"2026-08-26T10:55:06.110Z"}
+{"stage":"keyword_extraction","title":"AI content writing tools for SaaS","keyword":"AI content writing tools for SaaS","passed":true,"timestamp":"2026-08-26T10:55:13.842Z"}
+{"stage":"keyword_extraction","title":"AI content writing tools for SaaS","keyword":"AI content writing tools for SaaS","passed":true,"timestamp":"2026-08-26T12:09:24.108Z"}
+{"stage":"keyword_extraction","title":"AI content writing tools for SaaS","keyword":"AI content writing tools for SaaS","passed":true,"timestamp":"2026-08-26T12:09:26.970Z"}
+{"stage":"keyword_extraction","title":"AI content writing tools","keyword":"AI content writing tools","passed":true,"timestamp":"2026-08-27T16:59:47.796Z"}
+{"stage":"keyword_extraction","title":"AI content writing tools","keyword":"AI content writing tools","passed":true,"timestamp":"2026-08-27T16:59:51.479Z"}
+{"stage":"keyword_extraction","title":"AI resume builder","keyword":"AI resume builder","passed":true,"timestamp":"2026-08-30T06:01:17.995Z"}
+{"stage":"keyword_extraction","title":"AI resume builder","keyword":"AI resume builder","passed":true,"timestamp":"2026-08-30T06:01:29.854Z"}
+{"stage":"keyword_extraction","title":"AI resume builder","keyword":"AI resume builder","passed":true,"timestamp":"2026-08-30T06:16:07.803Z"}
+{"stage":"keyword_extraction","title":"project management software for small business","keyword":"project management software for small business","passed":true,"timestamp":"2026-08-30T07:58:50.497Z"}
+{"stage":"keyword_extraction","title":"project management software for small business","keyword":"project management software for small business","passed":true,"timestamp":"2026-08-30T07:58:53.048Z"}
+{"stage":"keyword_extraction","title":"SaaS customer onboarding strategy","keyword":"SaaS customer onboarding strategy","passed":true,"timestamp":"2026-08-30T09:29:48.671Z"}
+{"stage":"keyword_extraction","title":"SaaS customer onboarding strategy","keyword":"SaaS customer onboarding strategy","passed":true,"timestamp":"2026-08-30T09:29:52.474Z"}
+{"stage":"keyword_extraction","title":"AI workflow automation for small business","keyword":"AI workflow automation for small business","passed":true,"timestamp":"2026-08-30T10:07:49.321Z"}
+{"stage":"keyword_extraction","title":"AI workflow automation for small business","keyword":"AI workflow automation for small business","passed":true,"timestamp":"2026-08-30T10:07:57.436Z"}
+{"stage":"keyword_extraction","title":"SaaS customer onboarding strategy","keyword":"SaaS customer onboarding strategy","passed":true,"timestamp":"2026-08-30T10:30:33.945Z"}
+{"stage":"keyword_extraction","title":"SaaS customer onboarding strategy","keyword":"SaaS customer onboarding strategy","passed":true,"timestamp":"2026-08-30T10:30:38.961Z"}
+{"stage":"keyword_extraction","title":"AI automation for SaaS customer support","keyword":"AI automation for SaaS customer support","passed":true,"timestamp":"2026-08-30T11:58:53.340Z"}
+{"stage":"keyword_extraction","title":"AI automation for SaaS customer support","keyword":"AI automation for SaaS customer support","passed":true,"timestamp":"2026-08-30T11:58:59.194Z"}
+{"stage":"keyword_extraction","title":"AI workflow automation for small business","keyword":"AI workflow automation for small business","passed":true,"timestamp":"2026-08-30T12:34:33.988Z"}
+{"stage":"keyword_extraction","title":"AI workflow automation for small business","keyword":"AI workflow automation for small business","passed":true,"timestamp":"2026-08-30T12:34:37.092Z"}

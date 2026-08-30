@@ -1,0 +1,395 @@
+{
+  "timestamp": "2026-08-27T17:00:22.540Z",
+  "data": {
+    "object": {
+      "entities": [
+        {
+          "name": "AI",
+          "type": "concept"
+        },
+        {
+          "name": "AI Writing Tools",
+          "type": "software"
+        },
+        {
+          "name": "Content Creation",
+          "type": "concept"
+        },
+        {
+          "name": "Content Marketing",
+          "type": "concept"
+        },
+        {
+          "name": "SEO",
+          "type": "concept"
+        },
+        {
+          "name": "Content Optimization",
+          "type": "concept"
+        },
+        {
+          "name": "Marketing Copy",
+          "type": "concept"
+        },
+        {
+          "name": "Blog Posts",
+          "type": "concept"
+        },
+        {
+          "name": "Emails",
+          "type": "concept"
+        },
+        {
+          "name": "Social Media Posts",
+          "type": "concept"
+        },
+        {
+          "name": "Video Content",
+          "type": "concept"
+        },
+        {
+          "name": "Podcast Content",
+          "type": "concept"
+        },
+        {
+          "name": "Productivity",
+          "type": "concept"
+        },
+        {
+          "name": "Creativity",
+          "type": "concept"
+        },
+        {
+          "name": "Search Intent",
+          "type": "concept"
+        },
+        {
+          "name": "Plagiarism",
+          "type": "concept"
+        },
+        {
+          "name": "Human Touch",
+          "type": "concept"
+        },
+        {
+          "name": "Keyword Suggestions",
+          "type": "concept"
+        },
+        {
+          "name": "Digital Ads",
+          "type": "concept"
+        },
+        {
+          "name": "Grammarly",
+          "type": "tool"
+        },
+        {
+          "name": "Copy.ai",
+          "type": "tool"
+        },
+        {
+          "name": "Rytr",
+          "type": "tool"
+        },
+        {
+          "name": "Gemini",
+          "type": "tool"
+        },
+        {
+          "name": "Canva",
+          "type": "tool"
+        },
+        {
+          "name": "Surfer SEO",
+          "type": "tool"
+        },
+        {
+          "name": "Clearscope",
+          "type": "tool"
+        },
+        {
+          "name": "Copymatic",
+          "type": "tool"
+        },
+        {
+          "name": "Claude 4.6",
+          "type": "software"
+        },
+        {
+          "name": "Google",
+          "type": "brand"
+        },
+        {
+          "name": "Descript",
+          "type": "tool"
+        }
+      ],
+      "relationships": [
+        {
+          "source": "AI",
+          "target": "AI Writing Tools",
+          "type": "powers"
+        },
+        {
+          "source": "AI Writing Tools",
+          "target": "Content Creation",
+          "type": "facilitates"
+        },
+        {
+          "source": "AI Writing Tools",
+          "target": "Content Marketing",
+          "type": "supports"
+        },
+        {
+          "source": "AI Writing Tools",
+          "target": "Marketing Copy",
+          "type": "generates"
+        },
+        {
+          "source": "AI Writing Tools",
+          "target": "Blog Posts",
+          "type": "generates"
+        },
+        {
+          "source": "AI Writing Tools",
+          "target": "Emails",
+          "type": "generates"
+        },
+        {
+          "source": "AI Writing Tools",
+          "target": "Social Media Posts",
+          "type": "generates"
+        },
+        {
+          "source": "AI Writing Tools",
+          "target": "Productivity",
+          "type": "boosts"
+        },
+        {
+          "source": "AI Writing Tools",
+          "target": "Creativity",
+          "type": "boosts"
+        },
+        {
+          "source": "AI Writing Tools",
+          "target": "Plagiarism",
+          "type": "can introduce"
+        },
+        {
+          "source": "Content Creation",
+          "target": "SEO",
+          "type": "targets"
+        },
+        {
+          "source": "Content Creation",
+          "target": "Human Touch",
+          "type": "requires"
+        },
+        {
+          "source": "SEO",
+          "target": "Content Optimization",
+          "type": "drives"
+        },
+        {
+          "source": "SEO",
+          "target": "Keyword Suggestions",
+          "type": "uses"
+        },
+        {
+          "source": "Content Optimization",
+          "target": "Search Intent",
+          "type": "aligns with"
+        },
+        {
+          "source": "Grammarly",
+          "target": "Content Creation",
+          "type": "assists with grammar and tone for"
+        },
+        {
+          "source": "Copy.ai",
+          "target": "Marketing Copy",
+          "type": "specializes in generating"
+        },
+        {
+          "source": "Rytr",
+          "target": "Content Creation",
+          "type": "provides quick drafts for"
+        },
+        {
+          "source": "Gemini",
+          "target": "Content Creation",
+          "type": "assists with research and writing for"
+        },
+        {
+          "source": "Gemini",
+          "target": "Google",
+          "type": "is a product of"
+        },
+        {
+          "source": "Canva",
+          "target": "Content Creation",
+          "type": "supports visual design for"
+        },
+        {
+          "source": "Surfer SEO",
+          "target": "SEO",
+          "type": "optimizes content for"
+        },
+        {
+          "source": "Surfer SEO",
+          "target": "Keyword Suggestions",
+          "type": "provides"
+        },
+        {
+          "source": "Clearscope",
+          "target": "Content Optimization",
+          "type": "specializes in"
+        },
+        {
+          "source": "Clearscope",
+          "target": "Search Intent",
+          "type": "aligns content with"
+        },
+        {
+          "source": "Copymatic",
+          "target": "Content Creation",
+          "type": "generates various forms of"
+        },
+        {
+          "source": "Copymatic",
+          "target": "SEO-optimized content",
+          "type": "produces"
+        },
+        {
+          "source": "Claude 4.6",
+          "target": "AI Writing Tools",
+          "type": "is an example of"
+        },
+        {
+          "source": "Descript",
+          "target": "Video Content",
+          "type": "edits"
+        },
+        {
+          "source": "Descript",
+          "target": "Podcast Content",
+          "type": "edits"
+        },
+        {
+          "source": "AI",
+          "target": "Content Creation",
+          "type": "enables"
+        },
+        {
+          "source": "AI",
+          "target": "Content Optimization",
+          "type": "enables"
+        },
+        {
+          "source": "AI",
+          "target": "Productivity",
+          "type": "enhances"
+        },
+        {
+          "source": "AI",
+          "target": "Creativity",
+          "type": "enhances"
+        },
+        {
+          "source": "AI Writing Tools",
+          "target": "AI Rewriter Tool",
+          "type": "is a type of"
+        },
+        {
+          "source": "AI Writing Tools",
+          "target": "AI Grammar Check Tool",
+          "type": "is a type of"
+        },
+        {
+          "source": "AI Writing Tools",
+          "target": "Paraphrasing Tool",
+          "type": "is a type of"
+        },
+        {
+          "source": "AI Writing Tools",
+          "target": "AI Text Generator",
+          "type": "is a type of"
+        },
+        {
+          "source": "AI Text Generator",
+          "target": "Marketing Copy",
+          "type": "generates"
+        },
+        {
+          "source": "AI Text Generator",
+          "target": "Blog Posts",
+          "type": "generates"
+        },
+        {
+          "source": "AI Text Generator",
+          "target": "Emails",
+          "type": "generates"
+        },
+        {
+          "source": "AI Text Generator",
+          "target": "Social Media Posts",
+          "type": "generates"
+        },
+        {
+          "source": "AI Text Generator",
+          "target": "Digital Ads",
+          "type": "generates"
+        },
+        {
+          "source": "Video Content",
+          "target": "Content Creation",
+          "type": "is a form of"
+        },
+        {
+          "source": "Podcast Content",
+          "target": "Content Creation",
+          "type": "is a form of"
+        },
+        {
+          "source": "Digital Ads",
+          "target": "Content Marketing",
+          "type": "is a component of"
+        }
+      ],
+      "recommendedConnections": [
+        "AI Writing Tools -> Human Touch (maintaining authenticity)",
+        "AI Writing Tools -> Search Intent (for SEO effectiveness)",
+        "AI Writing Tools -> Content Strategy (for scalable content marketing)",
+        "AI Writing Tools -> Ethical Considerations (content ownership and bias)",
+        "AI Writing Tools -> Workflow Integration (seamless content creation)"
+      ]
+    },
+    "usage": {
+      "inputTokens": 1869,
+      "inputTokenDetails": {
+        "noCacheTokens": 1869,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 6854,
+      "outputTokenDetails": {
+        "textTokens": 2381,
+        "reasoningTokens": 4473
+      },
+      "totalTokens": 8723,
+      "raw": {
+        "thoughtsTokenCount": 4473,
+        "promptTokenCount": 1869,
+        "candidatesTokenCount": 2381,
+        "totalTokenCount": 8723,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1869
+          }
+        ]
+      },
+      "reasoningTokens": 4473,
+      "cachedInputTokens": 0
+    }
+  }
+}

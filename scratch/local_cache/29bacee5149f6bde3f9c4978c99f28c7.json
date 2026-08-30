@@ -1,0 +1,347 @@
+{
+  "timestamp": "2026-08-30T06:02:12.063Z",
+  "data": {
+    "object": {
+      "entities": [
+        {
+          "name": "Resume",
+          "type": "concept"
+        },
+        {
+          "name": "CV",
+          "type": "concept"
+        },
+        {
+          "name": "AI Resume Builder",
+          "type": "software"
+        },
+        {
+          "name": "AI Resume Writer",
+          "type": "product"
+        },
+        {
+          "name": "Applicant Tracking System (ATS)",
+          "type": "software"
+        },
+        {
+          "name": "Keywords",
+          "type": "concept"
+        },
+        {
+          "name": "Resume template",
+          "type": "concept"
+        },
+        {
+          "name": "GPT-4.1",
+          "type": "software"
+        },
+        {
+          "name": "Job ads",
+          "type": "concept"
+        },
+        {
+          "name": "Recruiter feedback",
+          "type": "concept"
+        },
+        {
+          "name": "Job position",
+          "type": "concept"
+        },
+        {
+          "name": "ResumeBuild",
+          "type": "brand"
+        },
+        {
+          "name": "Rezi",
+          "type": "brand"
+        },
+        {
+          "name": "GPT Resume Builder",
+          "type": "software"
+        },
+        {
+          "name": "A.I. Keyword Targeting",
+          "type": "software"
+        },
+        {
+          "name": "Interview",
+          "type": "concept"
+        },
+        {
+          "name": "Mock Interview",
+          "type": "concept"
+        },
+        {
+          "name": "Resume review",
+          "type": "concept"
+        },
+        {
+          "name": "Resume build",
+          "type": "concept"
+        },
+        {
+          "name": "ATS Optimization",
+          "type": "concept"
+        },
+        {
+          "name": "Resume formats",
+          "type": "concept"
+        },
+        {
+          "name": "Job descriptions",
+          "type": "concept"
+        },
+        {
+          "name": "Content analysis",
+          "type": "software"
+        },
+        {
+          "name": "Resume Score",
+          "type": "concept"
+        },
+        {
+          "name": "Career prospects",
+          "type": "concept"
+        },
+        {
+          "name": "Hiring",
+          "type": "concept"
+        },
+        {
+          "name": "Job applications",
+          "type": "concept"
+        },
+        {
+          "name": "Bullet points",
+          "type": "concept"
+        },
+        {
+          "name": "Customization",
+          "type": "concept"
+        },
+        {
+          "name": "Editing",
+          "type": "concept"
+        }
+      ],
+      "relationships": [
+        {
+          "source": "AI Resume Builder",
+          "target": "Resume",
+          "type": "creates"
+        },
+        {
+          "source": "AI Resume Builder",
+          "target": "CV",
+          "type": "creates"
+        },
+        {
+          "source": "AI Resume Builder",
+          "target": "Applicant Tracking System (ATS)",
+          "type": "optimizes for"
+        },
+        {
+          "source": "AI Resume Builder",
+          "target": "Keywords",
+          "type": "uses"
+        },
+        {
+          "source": "AI Resume Builder",
+          "target": "Resume template",
+          "type": "uses"
+        },
+        {
+          "source": "AI Resume Builder",
+          "target": "GPT-4.1",
+          "type": "powered by"
+        },
+        {
+          "source": "AI Resume Builder",
+          "target": "Recruiter feedback",
+          "type": "incorporates"
+        },
+        {
+          "source": "AI Resume Builder",
+          "target": "Job position",
+          "type": "targets"
+        },
+        {
+          "source": "AI Resume Builder",
+          "target": "Resume build",
+          "type": "assists with"
+        },
+        {
+          "source": "AI Resume Builder",
+          "target": "Resume review",
+          "type": "assists with"
+        },
+        {
+          "source": "AI Resume Builder",
+          "target": "ATS Optimization",
+          "type": "improves"
+        },
+        {
+          "source": "AI Resume Builder",
+          "target": "Resume formats",
+          "type": "generates"
+        },
+        {
+          "source": "AI Resume Builder",
+          "target": "Job descriptions",
+          "type": "tailors to"
+        },
+        {
+          "source": "AI Resume Builder",
+          "target": "Content analysis",
+          "type": "performs"
+        },
+        {
+          "source": "AI Resume Builder",
+          "target": "Resume Score",
+          "type": "provides"
+        },
+        {
+          "source": "AI Resume Builder",
+          "target": "Career prospects",
+          "type": "enhances"
+        },
+        {
+          "source": "AI Resume Builder",
+          "target": "Hiring",
+          "type": "supports"
+        },
+        {
+          "source": "AI Resume Builder",
+          "target": "Job applications",
+          "type": "optimizes"
+        },
+        {
+          "source": "AI Resume Builder",
+          "target": "Bullet points",
+          "type": "generates"
+        },
+        {
+          "source": "AI Resume Builder",
+          "target": "Customization",
+          "type": "enables"
+        },
+        {
+          "source": "AI Resume Builder",
+          "target": "Editing",
+          "type": "enables"
+        },
+        {
+          "source": "ResumeBuild",
+          "target": "AI Resume Builder",
+          "type": "offers"
+        },
+        {
+          "source": "Rezi",
+          "target": "AI Resume Builder",
+          "type": "offers"
+        },
+        {
+          "source": "Rezi",
+          "target": "Mock Interview",
+          "type": "offers"
+        },
+        {
+          "source": "Applicant Tracking System (ATS)",
+          "target": "Resume",
+          "type": "screens"
+        },
+        {
+          "source": "Applicant Tracking System (ATS)",
+          "target": "CV",
+          "type": "screens"
+        },
+        {
+          "source": "Keywords",
+          "target": "Applicant Tracking System (ATS)",
+          "type": "critical for"
+        },
+        {
+          "source": "A.I. Keyword Targeting",
+          "target": "Keywords",
+          "type": "optimizes"
+        },
+        {
+          "source": "Resume",
+          "target": "Job applications",
+          "type": "submitted for"
+        },
+        {
+          "source": "CV",
+          "target": "Job applications",
+          "type": "submitted for"
+        },
+        {
+          "source": "Job applications",
+          "target": "Interview",
+          "type": "lead to"
+        },
+        {
+          "source": "Mock Interview",
+          "target": "Interview",
+          "type": "prepares for"
+        },
+        {
+          "source": "Hiring",
+          "target": "Career prospects",
+          "type": "achieves"
+        },
+        {
+          "source": "Job descriptions",
+          "target": "Resume",
+          "type": "inform"
+        },
+        {
+          "source": "AI Resume Writer",
+          "target": "AI Resume Builder",
+          "type": "is a type of"
+        },
+        {
+          "source": "GPT Resume Builder",
+          "target": "AI Resume Builder",
+          "type": "is a type of"
+        }
+      ],
+      "recommendedConnections": [
+        "AI Resume Builder -> integrates with -> Job Boards",
+        "Resume -> showcases -> Skills",
+        "Applicant Tracking System (ATS) -> utilizes -> AI",
+        "AI Resume Builder -> leverages -> Natural Language Processing (NLP)",
+        "Resume -> requires -> Cover Letter",
+        "Career prospects -> enhanced by -> Professional Development",
+        "Resume template -> offers -> Design options"
+      ]
+    },
+    "usage": {
+      "inputTokens": 1371,
+      "inputTokenDetails": {
+        "noCacheTokens": 1371,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 6979,
+      "outputTokenDetails": {
+        "textTokens": 2032,
+        "reasoningTokens": 4947
+      },
+      "totalTokens": 8350,
+      "raw": {
+        "thoughtsTokenCount": 4947,
+        "promptTokenCount": 1371,
+        "candidatesTokenCount": 2032,
+        "totalTokenCount": 8350,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1371
+          }
+        ]
+      },
+      "reasoningTokens": 4947,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,281 @@
+{
+  "timestamp": "2026-08-27T16:59:49.098Z",
+  "data": {
+    "object": {
+      "keywords": [
+        {
+          "term": "AI content writing tools",
+          "category": "basic"
+        },
+        {
+          "term": "AI writing tools",
+          "category": "basic"
+        },
+        {
+          "term": "AI content generators",
+          "category": "basic"
+        },
+        {
+          "term": "AI writing software",
+          "category": "basic"
+        },
+        {
+          "term": "AI tools for content creation",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI writing generator",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI content generation tools",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI copywriter",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI content writer",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI text generators",
+          "category": "supplementary"
+        },
+        {
+          "term": "best AI writing tools",
+          "category": "supplementary"
+        },
+        {
+          "term": "free AI writing generator",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI writing tools comparison",
+          "category": "supplementary"
+        },
+        {
+          "term": "what to look for in AI writing tools",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI writing tools free & paid",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI content writing tools reviews",
+          "category": "supplementary"
+        },
+        {
+          "term": "long-form AI content writer",
+          "category": "supplementary"
+        },
+        {
+          "term": "generate AI content",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI tools to produce content faster",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI for SEO writing support",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI for marketing email generation",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI for product description generation",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI for meta description generation",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI for blog post idea generation",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI for website copy & SEO",
+          "category": "supplementary"
+        },
+        {
+          "term": "content creation",
+          "category": "contextual"
+        },
+        {
+          "term": "copywriting",
+          "category": "contextual"
+        },
+        {
+          "term": "text generation",
+          "category": "contextual"
+        },
+        {
+          "term": "content marketing",
+          "category": "contextual"
+        },
+        {
+          "term": "content optimization",
+          "category": "contextual"
+        },
+        {
+          "term": "grammar checker",
+          "category": "contextual"
+        },
+        {
+          "term": "paraphrasing tool",
+          "category": "contextual"
+        },
+        {
+          "term": "sentence rewriter",
+          "category": "contextual"
+        },
+        {
+          "term": "blog content",
+          "category": "contextual"
+        },
+        {
+          "term": "digital ads",
+          "category": "contextual"
+        },
+        {
+          "term": "ChatGPT",
+          "category": "contextual"
+        },
+        {
+          "term": "Gemini",
+          "category": "contextual"
+        },
+        {
+          "term": "Jasper",
+          "category": "contextual"
+        },
+        {
+          "term": "Copy.ai",
+          "category": "contextual"
+        },
+        {
+          "term": "Rytr",
+          "category": "contextual"
+        },
+        {
+          "term": "Grammarly",
+          "category": "contextual"
+        },
+        {
+          "term": "Surfer",
+          "category": "contextual"
+        },
+        {
+          "term": "Claude 4.6",
+          "category": "contextual"
+        },
+        {
+          "term": "CRM platform",
+          "category": "contextual"
+        },
+        {
+          "term": "AI technology",
+          "category": "contextual"
+        }
+      ],
+      "clusters": [
+        {
+          "clusterName": "Top AI Writing Tools & Comparisons",
+          "keywords": [
+            "AI content writing tools",
+            "AI writing tools",
+            "AI content generators",
+            "AI writing software",
+            "best AI writing tools",
+            "AI writing tools comparison",
+            "AI content writing tools reviews",
+            "what to look for in AI writing tools",
+            "AI writing tools free & paid",
+            "ChatGPT",
+            "Gemini",
+            "Jasper",
+            "Copy.ai",
+            "Rytr",
+            "Grammarly",
+            "Surfer",
+            "Claude 4.6",
+            "AI content generation tools",
+            "AI text generators",
+            "AI tools for content creation"
+          ]
+        },
+        {
+          "clusterName": "AI for Content & Copywriting",
+          "keywords": [
+            "AI copywriter",
+            "AI content writer",
+            "content creation",
+            "copywriting",
+            "text generation",
+            "content marketing",
+            "generate AI content",
+            "long-form AI content writer",
+            "blog content",
+            "digital ads",
+            "AI writing generator",
+            "AI tools to produce content faster",
+            "AI technology"
+          ]
+        },
+        {
+          "clusterName": "Specific AI Writing Applications",
+          "keywords": [
+            "AI for SEO writing support",
+            "AI for marketing email generation",
+            "AI for product description generation",
+            "AI for meta description generation",
+            "AI for blog post idea generation",
+            "AI for website copy & SEO",
+            "AI for Instagram caption generation",
+            "AI for cold email generation",
+            "AI for creative writing",
+            "AI for business content creation",
+            "content optimization",
+            "grammar checker",
+            "paraphrasing tool",
+            "sentence rewriter",
+            "CRM platform"
+          ]
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 2015,
+      "inputTokenDetails": {
+        "noCacheTokens": 2015,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 4859,
+      "outputTokenDetails": {
+        "textTokens": 1615,
+        "reasoningTokens": 3244
+      },
+      "totalTokens": 6874,
+      "raw": {
+        "thoughtsTokenCount": 3244,
+        "promptTokenCount": 2015,
+        "candidatesTokenCount": 1615,
+        "totalTokenCount": 6874,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2015
+          }
+        ]
+      },
+      "reasoningTokens": 3244,
+      "cachedInputTokens": 0
+    }
+  }
+}

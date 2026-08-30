@@ -1,0 +1,41 @@
+{
+  "timestamp": "2026-08-27T17:00:58.744Z",
+  "data": {
+    "object": {
+      "hasFeaturedSnippet": true,
+      "snippetType": "definition",
+      "targetQuery": "AI content writing tools",
+      "extractedSnippetText": "AI content writing tools are software applications that leverage artificial intelligence to automate and assist in various aspects of content creation. They help make content creation faster, easier, and more consistent by generating ideas, structuring text, and even optimizing for SEO. These tools promise to save time, overcome creative blocks, and improve the overall quality of written content.",
+      "optimizedSnippetRecommendation": "AI content writing tools are software applications that utilize artificial intelligence to streamline and enhance the content creation process. They assist marketers, writers, and businesses by generating ideas, drafting text, optimizing for SEO, and improving overall writing efficiency. These tools aim to save time, overcome creative blocks, and produce high-quality, engaging content across various platforms.",
+      "generationDirectives": "Place this definition in the very first paragraph of the article, ideally under an H1 or H2 heading like 'What Are AI Content Writing Tools?'. Ensure it is exactly 59 words and uses clear, concise language. Consider bolding key terms like 'artificial intelligence' and 'content creation process' for emphasis."
+    },
+    "usage": {
+      "inputTokens": 1519,
+      "inputTokenDetails": {
+        "noCacheTokens": 144,
+        "cacheReadTokens": 1375
+      },
+      "outputTokens": 2663,
+      "outputTokenDetails": {
+        "textTokens": 257,
+        "reasoningTokens": 2406
+      },
+      "totalTokens": 4182,
+      "raw": {
+        "cachedContentTokenCount": 1375,
+        "thoughtsTokenCount": 2406,
+        "promptTokenCount": 1519,
+        "candidatesTokenCount": 257,
+        "totalTokenCount": 4182,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1519
+          }
+        ]
+      },
+      "reasoningTokens": 2406,
+      "cachedInputTokens": 1375
+    }
+  }
+}

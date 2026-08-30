@@ -1,0 +1,72 @@
+{
+  "timestamp": "2026-08-30T06:01:50.126Z",
+  "data": {
+    "object": {
+      "intent": "transactional",
+      "confidenceScore": 95,
+      "intentConfidence": {
+        "informational": 3,
+        "commercial": 25,
+        "transactional": 70,
+        "comparison": 2
+      },
+      "formatRecommendation": "Service/Landing Page. The content should be structured to guide users directly to using the AI resume builder, featuring clear calls-to-action, benefit-driven copy, and social proof.",
+      "toneGuidelines": "The tone should be encouraging, professional, and authoritative, instilling confidence in the user that the tool can effectively help them land a job. It should also be empathetic to the job seeker's challenges.",
+      "structureGuidelines": "The page should feature a prominent value proposition above the fold, followed by clear sections detailing features and benefits, a 'how it works' guide, social proof (testimonials, success metrics), and a comprehensive FAQ. Calls-to-action should be strategically placed throughout the content.",
+      "recommendedOutlineSections": [
+        {
+          "heading": "Create Your Perfect Resume with AI in Minutes",
+          "level": "H2",
+          "purpose": "Immediately capture user attention with the core benefit and a strong call to action, addressing the transactional intent directly."
+        },
+        {
+          "heading": "Why Our AI Resume Builder Stands Out",
+          "level": "H2",
+          "purpose": "Highlight unique features, benefits, and competitive advantages to convince users to choose this specific service over others, catering to the commercial aspect of the intent."
+        },
+        {
+          "heading": "How It Works: Build Your Resume in 3 Simple Steps",
+          "level": "H2",
+          "purpose": "Provide a clear, concise guide on how to use the tool, reducing friction and encouraging immediate engagement and conversion."
+        },
+        {
+          "heading": "Trusted by Millions: Success Stories & Testimonials",
+          "level": "H2",
+          "purpose": "Build trust and credibility through social proof, showcasing real-world success and reinforcing the value proposition to drive transactional completion."
+        },
+        {
+          "heading": "Frequently Asked Questions About Our AI Resume Builder",
+          "level": "H2",
+          "purpose": "Address common concerns and objections, providing reassurance and removing any barriers to the user proceeding with the service."
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 620,
+      "inputTokenDetails": {
+        "noCacheTokens": 620,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 2210,
+      "outputTokenDetails": {
+        "textTokens": 532,
+        "reasoningTokens": 1678
+      },
+      "totalTokens": 2830,
+      "raw": {
+        "thoughtsTokenCount": 1678,
+        "promptTokenCount": 620,
+        "candidatesTokenCount": 532,
+        "totalTokenCount": 2830,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 620
+          }
+        ]
+      },
+      "reasoningTokens": 1678,
+      "cachedInputTokens": 0
+    }
+  }
+}

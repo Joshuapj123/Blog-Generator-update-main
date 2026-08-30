@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-08-23T12:58:14.769Z",
+  "data": {
+    "text": "**What is FAST.com measuring?**\nFAST.com gives you an estimate of your current Internet speed. You will generally be able to get this speed from leading Internet services, which use globally distributed servers.\n\n**Why does FAST.com focus primarily on download speed?**\nDownload speed is most relevant for people who are consuming content on the Internet, and we want FAST.com to be a very simple and fast speed test.\n\n**What about ping, latency, upload and other things?**\nWhen you click the “Show more info” button, you can see your upload speed and connection latency (ping). FAST.com provides two different latency measurements for your Internet connection: “unloaded” and “loaded” with traffic. The difference between these two measurements is also called “bufferbloat”.\n\n**How are the results calculated?**\nTo calculate your Internet speed, FAST.com performs a series of downloads from and uploads to Netflix servers and calculates the maximum speed your Internet connection can provide. More details are in our blog post.\n\n**Will the FAST.com speed test work everywhere in the world?**\nFAST.com will test Internet speed globally on any device (phone, laptop, or smart TV with browser).\n\n**Why is Netflix offering the FAST.com speed test?**\nWe want our members to have a simple, quick, ad-free way to estimate the Internet speed that their ISP is providing.\n\n**What can I do if I'm not getting the speed I pay for?**\nIf results from FAST.com and other Internet speed tests often show less speed than you have paid for, you can ask your ISP about the results.\n\n**Can FAST.com be used to certify enterprise bandwidth or other service certification?**\nFAST.com is designed for general usage by individual Internet users. It is not designed or supported for 3rd party service certification or other enterprise usage.",
+    "usage": {
+      "inputTokens": 663,
+      "inputTokenDetails": {
+        "noCacheTokens": 663,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 1398,
+      "outputTokenDetails": {
+        "textTokens": 394,
+        "reasoningTokens": 1004
+      },
+      "totalTokens": 2061,
+      "raw": {
+        "thoughtsTokenCount": 1004,
+        "promptTokenCount": 663,
+        "candidatesTokenCount": 394,
+        "totalTokenCount": 2061,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 663
+          }
+        ]
+      },
+      "reasoningTokens": 1004,
+      "cachedInputTokens": 0
+    }
+  }
+}

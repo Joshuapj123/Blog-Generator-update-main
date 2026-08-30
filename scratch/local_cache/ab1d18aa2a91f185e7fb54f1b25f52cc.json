@@ -1,0 +1,263 @@
+{
+  "timestamp": "2026-08-30T07:58:51.541Z",
+  "data": {
+    "object": {
+      "keywords": [
+        {
+          "term": "project management software for small business",
+          "category": "basic"
+        },
+        {
+          "term": "best project management software for small business",
+          "category": "basic"
+        },
+        {
+          "term": "project management tools for small business",
+          "category": "basic"
+        },
+        {
+          "term": "project management systems for small business",
+          "category": "basic"
+        },
+        {
+          "term": "work management software for small business",
+          "category": "basic"
+        },
+        {
+          "term": "free project management software",
+          "category": "basic"
+        },
+        {
+          "term": "free task management software",
+          "category": "basic"
+        },
+        {
+          "term": "project management software for growing teams",
+          "category": "basic"
+        },
+        {
+          "term": "project management software for solopreneurs",
+          "category": "basic"
+        },
+        {
+          "term": "project management software for small teams",
+          "category": "basic"
+        },
+        {
+          "term": "project management software features",
+          "category": "supplementary"
+        },
+        {
+          "term": "ease of use project management software",
+          "category": "supplementary"
+        },
+        {
+          "term": "project management software integration",
+          "category": "supplementary"
+        },
+        {
+          "term": "web-based project management software",
+          "category": "supplementary"
+        },
+        {
+          "term": "project management software for remote teams",
+          "category": "supplementary"
+        },
+        {
+          "term": "project management software for construction",
+          "category": "supplementary"
+        },
+        {
+          "term": "project management software for professional services",
+          "category": "supplementary"
+        },
+        {
+          "term": "project management software for IT projects",
+          "category": "supplementary"
+        },
+        {
+          "term": "project management software for visual project management",
+          "category": "supplementary"
+        },
+        {
+          "term": "project management software for task tracking",
+          "category": "supplementary"
+        },
+        {
+          "term": "project management software for collaboration",
+          "category": "supplementary"
+        },
+        {
+          "term": "project management software for resource allocation",
+          "category": "supplementary"
+        },
+        {
+          "term": "project management software for planning and execution",
+          "category": "supplementary"
+        },
+        {
+          "term": "project management software for team productivity",
+          "category": "supplementary"
+        },
+        {
+          "term": "project management software for project portfolios",
+          "category": "supplementary"
+        },
+        {
+          "term": "project management software for critical path",
+          "category": "supplementary"
+        },
+        {
+          "term": "project management software for preventing burnout",
+          "category": "supplementary"
+        },
+        {
+          "term": "scalable project management software",
+          "category": "supplementary"
+        },
+        {
+          "term": "monday.com",
+          "category": "contextual"
+        },
+        {
+          "term": "ClickUp",
+          "category": "contextual"
+        },
+        {
+          "term": "Wrike",
+          "category": "contextual"
+        },
+        {
+          "term": "Jira",
+          "category": "contextual"
+        },
+        {
+          "term": "Trello",
+          "category": "contextual"
+        },
+        {
+          "term": "Asana",
+          "category": "contextual"
+        },
+        {
+          "term": "Smartsheet",
+          "category": "contextual"
+        },
+        {
+          "term": "Zoho Projects",
+          "category": "contextual"
+        },
+        {
+          "term": "Kanban board",
+          "category": "contextual"
+        },
+        {
+          "term": "Gantt chart",
+          "category": "contextual"
+        },
+        {
+          "term": "resource management",
+          "category": "contextual"
+        },
+        {
+          "term": "task management",
+          "category": "contextual"
+        },
+        {
+          "term": "reporting tools",
+          "category": "contextual"
+        }
+      ],
+      "clusters": [
+        {
+          "clusterName": "Core Solutions & General Search",
+          "keywords": [
+            "project management software for small business",
+            "best project management software for small business",
+            "project management tools for small business",
+            "project management systems for small business",
+            "work management software for small business",
+            "free project management software",
+            "free task management software",
+            "web-based project management software"
+          ]
+        },
+        {
+          "clusterName": "Features, Functionality & Benefits",
+          "keywords": [
+            "project management software features",
+            "ease of use project management software",
+            "project management software integration",
+            "project management software for visual project management",
+            "project management software for task tracking",
+            "project management software for collaboration",
+            "project management software for resource allocation",
+            "project management software for planning and execution",
+            "project management software for team productivity",
+            "project management software for project portfolios",
+            "project management software for critical path",
+            "project management software for preventing burnout",
+            "scalable project management software",
+            "Kanban board",
+            "Gantt chart",
+            "resource management",
+            "task management",
+            "reporting tools"
+          ]
+        },
+        {
+          "clusterName": "Target Audience & Industry Specifics",
+          "keywords": [
+            "project management software for growing teams",
+            "project management software for solopreneurs",
+            "project management software for small teams",
+            "project management software for remote teams",
+            "project management software for construction",
+            "project management software for professional services",
+            "project management software for IT projects"
+          ]
+        },
+        {
+          "clusterName": "Specific Software & Alternatives",
+          "keywords": [
+            "monday.com",
+            "ClickUp",
+            "Wrike",
+            "Jira",
+            "Trello",
+            "Asana",
+            "Smartsheet",
+            "Zoho Projects"
+          ]
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 1539,
+      "inputTokenDetails": {
+        "noCacheTokens": 1539,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 4724,
+      "outputTokenDetails": {
+        "textTokens": 1574,
+        "reasoningTokens": 3150
+      },
+      "totalTokens": 6263,
+      "raw": {
+        "thoughtsTokenCount": 3150,
+        "promptTokenCount": 1539,
+        "candidatesTokenCount": 1574,
+        "totalTokenCount": 6263,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1539
+          }
+        ]
+      },
+      "reasoningTokens": 3150,
+      "cachedInputTokens": 0
+    }
+  }
+}

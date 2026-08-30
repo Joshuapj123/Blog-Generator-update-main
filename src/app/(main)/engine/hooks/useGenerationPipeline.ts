@@ -17,6 +17,27 @@ export function useGenerationPipeline() {
     engine.setAnalysisResults(null);
     
     try {
+      const isDefaultMetaText = (text: string, heading?: string): boolean => {
+        if (!text) return true;
+        const t = text.trim().toLowerCase();
+        const cleanT = t.endsWith('.') ? t.slice(0, -1) : t;
+
+        if (cleanT.includes("this section details key execution processes and guidelines")) return true;
+        if (cleanT.includes("key execution processes and guidelines")) return true;
+        if (cleanT.includes("factual research on")) return true;
+        if (cleanT.startsWith("factual research")) return true;
+        if (cleanT.includes("takeaway for")) return true;
+        if (cleanT.startsWith("takeaway for")) return true;
+
+        if (heading) {
+          const hNorm = heading.trim().toLowerCase();
+          const cleanHNorm = hNorm.endsWith('.') ? hNorm.slice(0, -1) : hNorm;
+          if (cleanT === `factual research on ${cleanHNorm}`) return true;
+          if (cleanT === `takeaway for ${cleanHNorm}`) return true;
+        }
+        return false;
+      };
+
       const rawMarkdown = (blueprint?.section_outlines || []).map((blueprintSec: any, i: number) => {
         const sec = finalSections[i];
         if (!sec) return `## ${blueprintSec.heading}\n\n*Content missing.*`;
@@ -25,8 +46,12 @@ export function useGenerationPipeline() {
         lines.push(`${level} ${sec.heading}`);
         lines.push('');
         if (sec.what_it_is) lines.push(sec.what_it_is.replace(/\*\*(.*?)\*\*/g, '**$1**').trim() + '\n');
-        if (sec.why_it_works) lines.push(sec.why_it_works.replace(/\*\*(.*?)\*\*/g, '**$1**').trim() + '\n');
-        if (sec.experience_or_data_point) lines.push(`> **Expert Insight:** ${sec.experience_or_data_point}\n`);
+        if (sec.why_it_works && !isDefaultMetaText(sec.why_it_works)) {
+          lines.push(sec.why_it_works.replace(/\*\*(.*?)\*\*/g, '**$1**').trim() + '\n');
+        }
+        if (sec.experience_or_data_point && !isDefaultMetaText(sec.experience_or_data_point, blueprintSec.heading)) {
+          lines.push(`> **Expert Insight:** ${sec.experience_or_data_point}\n`);
+        }
         if (sec.example_brands?.length) lines.push(`**Examples:** ${sec.example_brands.join(', ')}\n`);
         if (sec.outbound_authority_link?.resolved_url) {
           lines.push(`📎 [${sec.outbound_authority_link.resolved_title || 'Source'}](${sec.outbound_authority_link.resolved_url})\n`);
@@ -185,47 +210,92 @@ export function useGenerationPipeline() {
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let done = false;
+      let buffer = '';
 
       while (!done) {
         const { value, done: rd } = await reader.read();
         done = rd;
         if (value) {
-          const str = decoder.decode(value, { stream: true });
-          const chunks = str.split('\n\n').filter((c) => c.trim().startsWith('data: '));
-          for (const chunk of chunks) {
-            try {
-              const parsed = JSON.parse(chunk.replace(/^data: /, ''));
-              if (parsed.type === 'status') {
-                engine.setGenStatus(parsed.message);
-                if (parsed.progress) engine.setGenProgress(parsed.progress);
-              } else if (parsed.type === 'outline') {
-                engine.setBlueprint(parsed.data);
-              } else if (parsed.type === 'section') {
-                engine.setSections((prev: any) => {
-                  const next = [...prev];
-                  next[parsed.index] = parsed.data;
-                  return next;
-                });
-              } else if (parsed.type === 'complete') {
-                engine.setBlueprint((prev: any) => ({ ...prev, ...parsed.data }));
-                if (parsed.data.sections) {
-                  engine.setSections(parsed.data.sections);
-                }
-                engine.setGenProgress(100);
-                engine.setGenStatus('Generation complete');
-                engine.setIsGenerated(true);
-                // Switch QA panel to Score tab
-                engine.setActiveQaTab('score');
+          buffer += decoder.decode(value, { stream: !done });
+          const parts = buffer.split('\n\n');
+          buffer = parts.pop() || '';
+          
+          for (const part of parts) {
+            const trimmed = part.trim();
+            if (!trimmed) continue;
+            if (trimmed.startsWith('data: ')) {
+              try {
+                const parsed = JSON.parse(trimmed.substring(6));
+                if (parsed.type === 'status') {
+                  engine.setGenStatus(parsed.message);
+                  if (parsed.progress) engine.setGenProgress(parsed.progress);
+                } else if (parsed.type === 'outline') {
+                  engine.setBlueprint(parsed.data);
+                } else if (parsed.type === 'section') {
+                  engine.setSections((prev: any) => {
+                    const next = [...prev];
+                    next[parsed.index] = parsed.data;
+                    return next;
+                  });
+                } else if (parsed.type === 'complete') {
+                  engine.setBlueprint((prev: any) => ({ ...prev, ...parsed.data }));
+                  if (parsed.data.sections) {
+                    engine.setSections(parsed.data.sections);
+                  }
+                  engine.setGenProgress(100);
+                  engine.setGenStatus('Generation complete');
+                  engine.setIsGenerated(true);
+                  // Switch QA panel to Score tab
+                  engine.setActiveQaTab('score');
 
-                if (parsed.data.sections) {
-                  runPostGenerationAnalysis(parsed.data.sections, parsed.data);
+                  if (parsed.data.sections) {
+                    runPostGenerationAnalysis(parsed.data.sections, parsed.data);
+                  }
+                } else if (parsed.type === 'error') {
+                  throw new Error(parsed.message);
                 }
-              } else if (parsed.type === 'error') {
-                throw new Error(parsed.message);
+              } catch (e) {
+                console.warn('[useGenerationPipeline] Parse error for chunk:', e);
               }
-            } catch (e) {
-              /* ignore parse errors */
             }
+          }
+        }
+      }
+
+      // Parse any remaining leftovers in the buffer
+      if (buffer.trim()) {
+        const trimmed = buffer.trim();
+        if (trimmed.startsWith('data: ')) {
+          try {
+            const parsed = JSON.parse(trimmed.substring(6));
+            if (parsed.type === 'status') {
+              engine.setGenStatus(parsed.message);
+              if (parsed.progress) engine.setGenProgress(parsed.progress);
+            } else if (parsed.type === 'outline') {
+              engine.setBlueprint(parsed.data);
+            } else if (parsed.type === 'section') {
+              engine.setSections((prev: any) => {
+                const next = [...prev];
+                next[parsed.index] = parsed.data;
+                return next;
+              });
+            } else if (parsed.type === 'complete') {
+              engine.setBlueprint((prev: any) => ({ ...prev, ...parsed.data }));
+              if (parsed.data.sections) {
+                engine.setSections(parsed.data.sections);
+              }
+              engine.setGenProgress(100);
+              engine.setGenStatus('Generation complete');
+              engine.setIsGenerated(true);
+              engine.setActiveQaTab('score');
+              if (parsed.data.sections) {
+                runPostGenerationAnalysis(parsed.data.sections, parsed.data);
+              }
+            } else if (parsed.type === 'error') {
+              throw new Error(parsed.message);
+            }
+          } catch (e) {
+            console.warn('[useGenerationPipeline] Parse error for leftover buffer:', e);
           }
         }
       }

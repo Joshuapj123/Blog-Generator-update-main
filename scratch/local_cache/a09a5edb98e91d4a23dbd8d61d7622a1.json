@@ -1,0 +1,72 @@
+{
+  "timestamp": "2026-08-30T11:59:55.198Z",
+  "data": {
+    "object": {
+      "intent": "commercial",
+      "confidenceScore": 80,
+      "intentConfidence": {
+        "informational": 40,
+        "commercial": 55,
+        "transactional": 3,
+        "comparison": 2
+      },
+      "formatRecommendation": "Hybrid Guide/Listicle",
+      "toneGuidelines": "Authoritative, helpful, practical, solution-oriented, and slightly persuasive towards the benefits of AI automation and specific solutions.",
+      "structureGuidelines": "Clear, logical flow from problem/concept to solution/tools. Utilize H2s and H3s for readability. Employ bullet points and numbered lists for features, benefits, and best practices. Include dedicated sections for 'What it is,' 'Why it's important,' 'How it works,' 'Key features to look for,' and 'Top software options.' Consider incorporating real-world examples or case studies. An FAQ section could also be beneficial.",
+      "recommendedOutlineSections": [
+        {
+          "heading": "What is AI Automation for SaaS Customer Support?",
+          "level": "H2",
+          "purpose": "To provide a foundational understanding of the concept, its definition, and core components, satisfying the initial informational need."
+        },
+        {
+          "heading": "Why Implement AI Automation in SaaS Customer Support?",
+          "level": "H2",
+          "purpose": "To highlight the benefits, challenges it solves, and the business impact, building a case for adoption and addressing user pain points."
+        },
+        {
+          "heading": "Key Features to Look for in AI Customer Support Software",
+          "level": "H2",
+          "purpose": "To guide users in evaluating potential solutions, addressing the commercial intent by providing criteria for selection."
+        },
+        {
+          "heading": "Top AI Automation Software for SaaS Customer Support",
+          "level": "H2",
+          "purpose": "To directly address the commercial intent by listing and briefly reviewing leading tools, helping users find specific solutions."
+        },
+        {
+          "heading": "Best Practices for Implementing AI in SaaS Customer Support",
+          "level": "H2",
+          "purpose": "To provide actionable advice and strategies for successful deployment, further satisfying informational needs and ensuring user success with chosen tools."
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 1202,
+      "inputTokenDetails": {
+        "noCacheTokens": 1202,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 4404,
+      "outputTokenDetails": {
+        "textTokens": 509,
+        "reasoningTokens": 3895
+      },
+      "totalTokens": 5606,
+      "raw": {
+        "thoughtsTokenCount": 3895,
+        "promptTokenCount": 1202,
+        "candidatesTokenCount": 509,
+        "totalTokenCount": 5606,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1202
+          }
+        ]
+      },
+      "reasoningTokens": 3895,
+      "cachedInputTokens": 0
+    }
+  }
+}

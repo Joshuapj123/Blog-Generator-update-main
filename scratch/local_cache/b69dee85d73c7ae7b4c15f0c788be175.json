@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-08-23T06:53:02.252Z",
+  "data": {
+    "object": {
+      "hasFeaturedSnippet": true,
+      "snippetType": "definition",
+      "targetQuery": "topical authority",
+      "extractedSnippetText": "Topical authority refers to a website's expertise and credibility on a particular subject. It is established by consistently providing high-quality, comprehensive content that covers a full range of related queries within a topic. This helps search engines recognize the site as an expert source, improving rankings and earning audience trust.",
+      "optimizedSnippetRecommendation": "Topical authority is a website's recognized expertise and credibility on a specific subject, established by consistently publishing high-quality, comprehensive content that covers a full range of related queries. It signals to search engines that your site is a trusted, go-to resource for that topic, leading to improved search rankings, increased visibility, and enhanced audience trust.",
+      "generationDirectives": "Place this definition immediately after an H2 heading 'What is Topical Authority?'. Keep the definition exactly 55 words. Bold the key phrase 'Topical authority' at the beginning of the definition."
+    },
+    "usage": {
+      "inputTokens": 1175,
+      "inputTokenDetails": {
+        "noCacheTokens": 1175,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 757,
+      "outputTokenDetails": {
+        "textTokens": 227,
+        "reasoningTokens": 530
+      },
+      "totalTokens": 1932,
+      "raw": {
+        "thoughtsTokenCount": 530,
+        "promptTokenCount": 1175,
+        "candidatesTokenCount": 227,
+        "totalTokenCount": 1932,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1175
+          }
+        ]
+      },
+      "reasoningTokens": 530,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,292 @@
+{
+  "timestamp": "2026-08-30T09:31:06.449Z",
+  "data": {
+    "object": {
+      "headingFrequency": [
+        {
+          "heading": "SaaS Customer Onboarding Best Practices",
+          "competitorRanks": [
+            2,
+            3,
+            4,
+            6,
+            7
+          ]
+        },
+        {
+          "heading": "SaaS Customer Onboarding Metrics",
+          "competitorRanks": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "heading": "What is SaaS Customer Onboarding?",
+          "competitorRanks": [
+            2,
+            4,
+            5,
+            8
+          ]
+        },
+        {
+          "heading": "Why is SaaS Customer Onboarding Important?",
+          "competitorRanks": [
+            2,
+            3,
+            5,
+            8
+          ]
+        },
+        {
+          "heading": "SaaS Customer Onboarding Process/Steps/Stages",
+          "competitorRanks": [
+            2,
+            3,
+            8
+          ]
+        },
+        {
+          "heading": "SaaS Customer Onboarding Examples",
+          "competitorRanks": [
+            2,
+            5,
+            7
+          ]
+        },
+        {
+          "heading": "SaaS Customer Onboarding Checklist",
+          "competitorRanks": [
+            2,
+            5,
+            8
+          ]
+        },
+        {
+          "heading": "SaaS Customer Onboarding Models",
+          "competitorRanks": [
+            3,
+            4
+          ]
+        },
+        {
+          "heading": "SaaS Customer Onboarding Software/Tools",
+          "competitorRanks": [
+            2,
+            3
+          ]
+        },
+        {
+          "heading": "Conclusion",
+          "competitorRanks": [
+            1,
+            2,
+            4,
+            5
+          ]
+        },
+        {
+          "heading": "Post-Onboarding/Ongoing Support",
+          "competitorRanks": [
+            2,
+            5
+          ]
+        },
+        {
+          "heading": "FAQs",
+          "competitorRanks": [
+            8
+          ]
+        }
+      ],
+      "tableDetection": {
+        "recommendedTables": [
+          {
+            "name": "SaaS Customer Onboarding Models Comparison",
+            "type": "Comparison",
+            "columns": [
+              "Model Name",
+              "Description",
+              "Best For",
+              "Pros",
+              "Cons"
+            ],
+            "purpose": "To help readers understand and choose the most suitable onboarding model (e.g., high-touch, low-touch, hybrid) for their SaaS product."
+          },
+          {
+            "name": "SaaS Customer Onboarding Software Comparison",
+            "type": "Comparison",
+            "columns": [
+              "Software Name",
+              "Key Features",
+              "Pricing Model",
+              "Best For",
+              "Integrations"
+            ],
+            "purpose": "To provide a clear overview of different tools available for managing and enhancing the SaaS customer onboarding process."
+          }
+        ]
+      },
+      "paaClustered": [
+        {
+          "question": "What is SaaS onboarding?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "What are the best practices for SaaS onboarding?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "What are the 5 C's of effective onboarding?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "What are the 5 pillars of onboarding?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Why is SaaS customer onboarding important?",
+          "frequency": 4,
+          "snippet": ""
+        },
+        {
+          "question": "How to create a SaaS onboarding process?",
+          "frequency": 3,
+          "snippet": ""
+        },
+        {
+          "question": "What metrics should I track for SaaS onboarding?",
+          "frequency": 6,
+          "snippet": ""
+        },
+        {
+          "question": "What are different SaaS onboarding models?",
+          "frequency": 2,
+          "snippet": ""
+        },
+        {
+          "question": "What are some SaaS onboarding examples?",
+          "frequency": 3,
+          "snippet": ""
+        },
+        {
+          "question": "How to choose SaaS onboarding software?",
+          "frequency": 2,
+          "snippet": ""
+        },
+        {
+          "question": "When a feature isn’t getting used, how do you figure out if it’s an onboarding problem or a product problem?",
+          "frequency": 1,
+          "snippet": ""
+        }
+      ],
+      "contentGapReport": {
+        "commonTopics": [
+          "SaaS Customer Onboarding Best Practices",
+          "SaaS Customer Onboarding Metrics",
+          "What is SaaS Customer Onboarding?",
+          "Why is SaaS Customer Onboarding Important?",
+          "SaaS Customer Onboarding Process/Steps/Stages",
+          "SaaS Customer Onboarding Examples",
+          "SaaS Customer Onboarding Checklist",
+          "SaaS Customer Onboarding Models",
+          "SaaS Customer Onboarding Software/Tools"
+        ],
+        "uniqueHeadings": [
+          "8 customer onboarding templates you can steal today",
+          "User onboarding in 2026: What’s changed and what hasn’t",
+          "Use AI to personalize the onboarding path",
+          "How to hold customers accountable in the journey",
+          "How to design your customer onboarding methodology"
+        ],
+        "missingTopics": [
+          "Common pitfalls or mistakes in SaaS customer onboarding",
+          "The specific roles and collaboration of different teams (Sales, Product, Customer Success) in the onboarding process",
+          "The direct ROI and business impact of effective SaaS onboarding",
+          "Detailed guidance on change management for customers during onboarding",
+          "Explicit coverage of the '5 C's' or '5 Pillars' of onboarding"
+        ],
+        "recommendedNewSections": [
+          {
+            "heading": "Common Pitfalls in SaaS Customer Onboarding and How to Avoid Them",
+            "level": "H2",
+            "reason": "Addresses a critical pain point for businesses and provides actionable solutions, enhancing the practical value of the guide.",
+            "suggestedOutline": "Discuss common mistakes like overwhelming users, lack of personalization, poor handoffs, and offer strategies to prevent them."
+          },
+          {
+            "heading": "The Role of Different Teams in a Successful SaaS Onboarding Strategy",
+            "level": "H2",
+            "reason": "Clarifies internal collaboration and responsibilities, which is crucial for a cohesive and effective onboarding experience, a topic not deeply covered by competitors.",
+            "suggestedOutline": "Detail the specific contributions and handoffs between Sales, Product, Customer Success, and Support teams throughout the onboarding journey."
+          },
+          {
+            "heading": "Measuring the ROI and Business Impact of Effective SaaS Onboarding",
+            "level": "H2",
+            "reason": "Provides a business-centric perspective, justifying investment in onboarding by linking it directly to revenue, retention, and customer lifetime value.",
+            "suggestedOutline": "Explain how to calculate the return on investment for onboarding initiatives, focusing on key metrics and long-term benefits."
+          },
+          {
+            "heading": "SaaS Customer Onboarding Templates and Resources",
+            "level": "H2",
+            "reason": "Offers highly practical and valuable assets (templates, checklists) that directly assist readers in implementing their onboarding strategy, inspired by a unique competitor offering.",
+            "suggestedOutline": "Provide downloadable templates for welcome emails, kickoff agendas, onboarding checklists, and explain how to customize and use them effectively."
+          },
+          {
+            "heading": "Future Trends and Innovations in SaaS Onboarding (e.g., AI, Hyper-Personalization)",
+            "level": "H2",
+            "reason": "Incorporates forward-looking insights and advanced strategies, making the content more current, comprehensive, and authoritative, drawing from unique competitor mentions.",
+            "suggestedOutline": "Explore emerging technologies like AI, advanced personalization techniques, and proactive support models that are shaping the future of SaaS onboarding."
+          }
+        ],
+        "unansweredQuestions": [
+          "What are the 5 C's of effective onboarding?",
+          "What are the 5 pillars of onboarding?",
+          "When a feature isn’t getting used, how do you figure out if it’s an onboarding problem or a product problem?"
+        ],
+        "shouldIncludeFaq": true,
+        "faqQuestions": [
+          "What is SaaS customer onboarding and why is it important?",
+          "What are the best practices for SaaS customer onboarding?",
+          "What metrics should you track for SaaS customer onboarding success?",
+          "What are the different models of SaaS customer onboarding?",
+          "What are the 5 C's or pillars of effective onboarding?"
+        ]
+      }
+    },
+    "usage": {
+      "inputTokens": 3757,
+      "inputTokenDetails": {
+        "noCacheTokens": 3757,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 6718,
+      "outputTokenDetails": {
+        "textTokens": 1987,
+        "reasoningTokens": 4731
+      },
+      "totalTokens": 10475,
+      "raw": {
+        "thoughtsTokenCount": 4731,
+        "promptTokenCount": 3757,
+        "candidatesTokenCount": 1987,
+        "totalTokenCount": 10475,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3757
+          }
+        ]
+      },
+      "reasoningTokens": 4731,
+      "cachedInputTokens": 0
+    }
+  }
+}

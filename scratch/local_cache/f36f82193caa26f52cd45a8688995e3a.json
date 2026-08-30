@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-08-19T13:30:30.429Z",
+  "data": {
+    "text": "Sorry, you have been blocked\n\nYou are unable to access medium.com.\n\n### Why have I been blocked?\nThis website is using a security service to protect itself from online attacks. The action you just performed triggered the security solution. There are several actions that could trigger this block including submitting a certain word or phrase, a SQL command, or malformed data.\n\n### What can I do to resolve this?\nYou can email the site owner to let them know you were blocked. Please include what you were doing when this page came up and the Cloudflare Ray ID found at the bottom of this page.\n\nCloudflare Ray ID: a2d983396cd57f1f\nYour IP: 122.164.86.107",
+    "usage": {
+      "inputTokens": 306,
+      "inputTokenDetails": {
+        "noCacheTokens": 306,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 994,
+      "outputTokenDetails": {
+        "textTokens": 165,
+        "reasoningTokens": 829
+      },
+      "totalTokens": 1300,
+      "raw": {
+        "thoughtsTokenCount": 829,
+        "promptTokenCount": 306,
+        "candidatesTokenCount": 165,
+        "totalTokenCount": 1300,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 306
+          }
+        ]
+      },
+      "reasoningTokens": 829,
+      "cachedInputTokens": 0
+    }
+  }
+}

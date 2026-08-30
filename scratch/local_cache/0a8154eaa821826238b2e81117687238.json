@@ -1,0 +1,82 @@
+{
+  "timestamp": "2026-08-18T17:11:35.237Z",
+  "data": {
+    "object": {
+      "title": "Best Lead Scoring Software Tools",
+      "title_tag": "lead scoring software Guide: Boost Your Business Efficiency",
+      "slug": "lead-scoring-software-guide",
+      "intent": "informational",
+      "schema_markup": "{\"@context\": \"https://schema.org\", \"@type\": \"BlogPosting\"}",
+      "open_graph_tags": [
+        "<meta property=\"og:title\" content=\"Best Lead Scoring Software Tools\" />"
+      ],
+      "intro": {
+        "hook": "Looking to master lead scoring software? Here is the exact strategy to win.",
+        "transition": "In this guide, we will break down the core components.",
+        "thesis": "Topical authority is the key to ranking."
+      },
+      "section_outlines": [
+        {
+          "heading": "What is lead scoring software?",
+          "level": "H2",
+          "core_concept": "Define lead scoring software",
+          "min_word_budget": 150,
+          "target_word_budget": 250,
+          "target_entities": [
+            "lead scoring software",
+            "Automation",
+            "Workflows"
+          ],
+          "generate_table": false
+        },
+        {
+          "heading": "Core Benefits of lead scoring software",
+          "level": "H2",
+          "core_concept": "Explain benefits",
+          "min_word_budget": 150,
+          "target_word_budget": 250,
+          "target_entities": [
+            "Efficiency",
+            "ROI",
+            "Scaling"
+          ],
+          "generate_table": false
+        },
+        {
+          "heading": "Top lead scoring software Tools Compared",
+          "level": "H2",
+          "core_concept": "Compare software tools",
+          "min_word_budget": 150,
+          "target_word_budget": 250,
+          "target_entities": [
+            "SEMrush",
+            "Ahrefs"
+          ],
+          "generate_table": true
+        },
+        {
+          "heading": "Frequently Asked Questions",
+          "level": "H2",
+          "core_concept": "FAQ list",
+          "min_word_budget": 150,
+          "target_word_budget": 250,
+          "target_entities": [
+            "Cost",
+            "Beginners"
+          ],
+          "generate_table": false
+        }
+      ],
+      "cta": {
+        "heading": "Ready to Scale Your lead scoring software?",
+        "body": "Get in touch with our experts today to get started.",
+        "button_text": "Contact Us",
+        "button_url": "/contact"
+      }
+    },
+    "usage": {
+      "promptTokens": 3000,
+      "completionTokens": 2000
+    }
+  }
+}

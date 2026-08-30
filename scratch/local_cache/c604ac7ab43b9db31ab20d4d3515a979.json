@@ -1,0 +1,72 @@
+{
+  "timestamp": "2026-08-30T10:08:44.120Z",
+  "data": {
+    "object": {
+      "intent": "informational",
+      "confidenceScore": 65,
+      "intentConfidence": {
+        "informational": 65,
+        "commercial": 30,
+        "transactional": 5,
+        "comparison": 0
+      },
+      "formatRecommendation": "A comprehensive guide or an in-depth listicle that combines explanations of concepts and benefits with practical examples and recommended tools.",
+      "toneGuidelines": "Authoritative, helpful, practical, and encouraging. The tone should empower small business owners by demystifying AI automation and highlighting its tangible benefits.",
+      "structureGuidelines": "Begin with a clear definition and the 'why' for small businesses. Follow with practical applications and examples, then transition into a curated list of tools. Ensure a logical flow from understanding to implementation.",
+      "recommendedOutlineSections": [
+        {
+          "heading": "What is AI Workflow Automation for Small Businesses?",
+          "level": "H2",
+          "purpose": "To define AI workflow automation in simple terms relevant to small businesses, addressing the foundational 'what' question."
+        },
+        {
+          "heading": "Why Small Businesses Need AI Automation: Key Benefits & Advantages",
+          "level": "H2",
+          "purpose": "To explain the core benefits and value proposition of AI automation for small businesses, addressing the 'why' and 'how it helps' aspects."
+        },
+        {
+          "heading": "Practical AI Workflow Automation Examples & Use Cases for SMBs",
+          "level": "H2",
+          "purpose": "To provide concrete, actionable examples of how small businesses can implement AI automation across various departments, satisfying the 'how' and 'examples' intent."
+        },
+        {
+          "heading": "Top AI Automation Tools & Platforms for Small Businesses",
+          "level": "H2",
+          "purpose": "To address the commercial intent by recommending specific AI automation tools, helping users find solutions after understanding the concept."
+        },
+        {
+          "heading": "How to Get Started with AI Automation in Your Small Business",
+          "level": "H2",
+          "purpose": "To offer practical advice and a roadmap for small businesses to begin their AI automation journey, moving towards actionable steps."
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 825,
+      "inputTokenDetails": {
+        "noCacheTokens": 825,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 1839,
+      "outputTokenDetails": {
+        "textTokens": 502,
+        "reasoningTokens": 1337
+      },
+      "totalTokens": 2664,
+      "raw": {
+        "thoughtsTokenCount": 1337,
+        "promptTokenCount": 825,
+        "candidatesTokenCount": 502,
+        "totalTokenCount": 2664,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 825
+          }
+        ]
+      },
+      "reasoningTokens": 1337,
+      "cachedInputTokens": 0
+    }
+  }
+}

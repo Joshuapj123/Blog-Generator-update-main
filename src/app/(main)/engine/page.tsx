@@ -116,6 +116,7 @@ function EnginePageContent() {
           }
         }
     } else {
+        engine.setCurrentArticleId(matched.id!);
         // Legacy JSON format check
         try {
             if (matched.content) {

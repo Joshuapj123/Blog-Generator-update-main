@@ -59,6 +59,9 @@ export async function POST(request: Request) {
       let extractionMethod = 'playwright'; // Default method
 
       try {
+        console.log('[INTELLIGENCE] START');
+        console.log('[REFERENCE] START');
+        console.log('[REFERENCE] CONNECT START');
         browser = await chromium.launch({ 
           headless: true,
           args: [
@@ -67,12 +70,17 @@ export async function POST(request: Request) {
           ],
           ignoreDefaultArgs: ['--enable-automation']
         });
+        console.log('[REFERENCE] CONNECT END');
 
         emit('stage', { stage: 2, label: 'Navigating to URL…', percent: 20 });
         const page = await browser.newPage({ 
           viewport: { width: 1280, height: 800 },
           userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
         });
+
+        // Enforce safe default timeouts for all Playwright actions on this page
+        page.setDefaultTimeout(20000);
+        page.setDefaultNavigationTimeout(20000);
 
         await page.setExtraHTTPHeaders({
           'Accept-Language': 'en-US,en;q=0.9',
@@ -87,16 +95,24 @@ export async function POST(request: Request) {
         });
 
         let navigationTimeout = false;
+        console.log('[LAYOUT] START');
+        console.log('[LAYOUT] PLAYWRIGHT GOTO START');
         try {
           await page.goto(url, { waitUntil: 'networkidle', timeout: 25000 });
+          console.log('[LAYOUT] PLAYWRIGHT GOTO END (networkidle)');
         } catch (e) {
           navigationTimeout = true;
+          console.log('[LAYOUT] PLAYWRIGHT GOTO TIMEOUT (networkidle)');
           emit('stage', { stage: 2, label: 'Retrying with faster load strategy…', percent: 28 });
-          await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 }).catch(() => {});
+          console.log('[LAYOUT] PLAYWRIGHT RETRY GOTO START');
+          await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => {});
+          console.log('[LAYOUT] PLAYWRIGHT RETRY GOTO END');
           await page.waitForTimeout(1500);
         }
 
+        console.log('[LAYOUT] GET TITLE START');
         let currentTitle = await page.title().catch(() => '');
+        console.log('[LAYOUT] GET TITLE END:', currentTitle);
         if (currentTitle.includes('Just a moment') || currentTitle.includes('Cloudflare') || currentTitle.includes('Attention Required')) {
           emit('stage', { stage: 2, label: 'Bypassing security checks…', percent: 35 });
           try {
@@ -171,7 +187,10 @@ export async function POST(request: Request) {
         }
 
         emit('stage', { stage: 3, label: 'Parsing article with Readability…', percent: 45 });
+        console.log('[LAYOUT] DOM EXTRACTION START');
+        console.log('[LAYOUT] PLAYWRIGHT CONTENT START');
         const html = await page.content();
+        console.log('[LAYOUT] PLAYWRIGHT CONTENT END');
         
         let doc;
         try {
@@ -184,10 +203,14 @@ export async function POST(request: Request) {
           doc = new JSDOM(cleanHtml, { url }).window.document;
         }
 
+        console.log('[LAYOUT] DOM EXTRACTION END');
+        console.log('[SEO EXTRACTION] START');
+        console.log('[SEO EXTRACTION] READABILITY START');
         // Parse readability on the raw document before pruning to avoid losing the main article wrapper
         const readabilityDoc = new JSDOM(html, { url }).window.document;
         const reader = new Readability(readabilityDoc);
         let article = reader.parse();
+        console.log('[SEO EXTRACTION] READABILITY END');
 
         let text = '';
         let readabilitySuccess = false;
@@ -235,10 +258,13 @@ export async function POST(request: Request) {
           return;
         }
 
+        console.log('[SEO EXTRACTION] END');
         emit('stage', { stage: 4, label: 'Extracting styles, colors & SEO data…', percent: 65 });
 
-        const desktopData = await page.evaluate(() => {
-          const getStylesInternal = (element: Element | null) => {
+        console.log('[VISUAL HIERARCHY] START');
+        console.log('[VISUAL HIERARCHY] DESKTOP EVALUATE START');
+        const desktopData = (await page.evaluate(`(() => {
+          const getStylesInternal = (element) => {
             if (!element) return null;
             const s = window.getComputedStyle(element);
             return {
@@ -250,7 +276,7 @@ export async function POST(request: Request) {
           };
 
           const rootStyles = window.getComputedStyle(document.documentElement);
-          const cssVariables: Record<string, string> = {};
+          const cssVariables = {};
           try {
             for (const sheet of Array.from(document.styleSheets)) {
               try {
@@ -283,10 +309,10 @@ export async function POST(request: Request) {
             .filter(h => h.text.length > 0);
 
           const baseUrlOrigin = new URL(window.location.href).origin;
-          const internalLinks: string[] = [];
-          const externalLinks: string[] = [];
+          const internalLinks = [];
+          const externalLinks = [];
           document.querySelectorAll('a[href]').forEach(tag => {
-            const href = (tag as HTMLAnchorElement).href;
+            const href = tag.href;
             try {
               if (href.startsWith(baseUrlOrigin) || href.startsWith('/')) {
                 if (href && !href.startsWith('#')) internalLinks.push(href);
@@ -304,7 +330,7 @@ export async function POST(request: Request) {
           const paragraphCount = document.querySelectorAll('p').length;
           const missingAltCount = document.querySelectorAll('img:not([alt]), img[alt=""]').length;
 
-          const openGraphTags: Record<string, string> = {};
+          const openGraphTags = {};
           document.querySelectorAll('meta[property^="og:"], meta[name^="twitter:"]').forEach(tag => {
             const prop = tag.getAttribute('property') || tag.getAttribute('name');
             const content = tag.getAttribute('content');
@@ -312,12 +338,12 @@ export async function POST(request: Request) {
           });
 
           const mainTextContent = main.textContent || '';
-          const words = mainTextContent.split(/\s+/).filter(w => w.length > 2);
+          const words = mainTextContent.split(/\\s+/).filter(w => w.length > 2);
           const wordCount = words.length;
 
           // Simple top terms extraction (filtering common short words)
           const stopWords = new Set(['the', 'and', 'for', 'that', 'with', 'this', 'from', 'are', 'not', 'have', 'but', 'was', 'they', 'you', 'all']);
-          const termFreq: Record<string, number> = {};
+          const termFreq = {};
           words.forEach(w => {
             const clean = w.toLowerCase().replace(/[^a-z0-9]/g, '');
             if (clean.length > 3 && !stopWords.has(clean)) {
@@ -370,13 +396,17 @@ export async function POST(request: Request) {
               imageCount: document.querySelectorAll('img').length
             }
           };
-        });
+        })()`) as any);
+        console.log('[VISUAL HIERARCHY] DESKTOP EVALUATE END');
 
         emit('stage', { stage: 5, label: 'Analysing mobile layout…', percent: 85 });
+        console.log('[VISUAL HIERARCHY] MOBILE VIEWPORT START');
         await page.setViewportSize({ width: 375, height: 812 });
         await page.waitForTimeout(500);
+        console.log('[VISUAL HIERARCHY] MOBILE VIEWPORT END');
 
-        const mobileData = await page.evaluate(() => {
+        console.log('[VISUAL HIERARCHY] MOBILE EVALUATE START');
+        const mobileData = await page.evaluate(`(() => {
           const rootVal = window.getComputedStyle(document.documentElement);
           const p = document.querySelector('p');
           const h2 = document.querySelector('h2');
@@ -390,31 +420,41 @@ export async function POST(request: Request) {
               headingMargin: h2 ? window.getComputedStyle(h2).marginBottom : '0px'
             }
           };
-        });
+        })()`);
+        console.log('[VISUAL HIERARCHY] MOBILE EVALUATE END');
+        console.log('[VISUAL HIERARCHY] END');
 
-        const mediaContext = await page.evaluate(() => {
+        console.log('[TEXT/NLP ANALYSIS] START');
+        console.log('[TEXT/NLP ANALYSIS] MEDIA EVALUATE START');
+        const mediaContext = await page.evaluate(`(() => {
           const images = Array.from(document.querySelectorAll('img')).map(img => {
             const alt = img.alt || 'no alt';
             const figcaption = img.closest('figure')?.querySelector('figcaption')?.textContent || '';
-            return `Image: [alt=${alt}] [caption=${figcaption}]`;
+            return 'Image: [alt=' + alt + '] [caption=' + figcaption + ']';
           }).filter(s => s !== 'Image: [alt=no alt] [caption=]' && s !== 'Image: [alt=] [caption=]');
 
           const videos = Array.from(document.querySelectorAll('iframe, video')).map(v => {
             const title = v.getAttribute('title') || 'unknown video';
             const srcVar = v.getAttribute('src') || '';
             const isVideoUrl = srcVar.includes('youtube') || srcVar.includes('vimeo') || srcVar.includes('.mp4');
-            return isVideoUrl ? `Video: [title=${title}] [src=${srcVar}]` : null;
+            return isVideoUrl ? 'Video: [title=' + title + '] [src=' + srcVar + ']' : null;
           }).filter(Boolean);
 
           return { images, videos };
-        });
+        })()`);
+        console.log('[TEXT/NLP ANALYSIS] MEDIA EVALUATE END');
+        console.log('[TEXT/NLP ANALYSIS] END');
 
         emit('stage', { stage: 5.5, label: 'AI Entity Extraction…', percent: 92 });
+        console.log('[REFERENCE] FINALIZATION START');
+        console.log('[REFERENCE] ENTITY EXTRACTION START');
         const extractedEntities = article.textContent 
             ? await extractEntitiesWithGemini(article.textContent, 15000)
             : [];
+        console.log('[REFERENCE] ENTITY EXTRACTION END');
             
         emit('stage', { stage: 6, label: 'Assembling results…', percent: 97 });
+        console.log('[REFERENCE] ASSEMBLING RESULTS START');
 
         const result = {
           metadata: {
@@ -460,7 +500,11 @@ export async function POST(request: Request) {
           extractedEntities // LLM entities
         };
 
+        console.log('[REFERENCE] ASSEMBLING RESULTS END');
+        console.log('[REFERENCE] END');
+
         emit('done', { data: result, percent: 100 });
+        console.log('[INTELLIGENCE] COMPLETED');
         console.log(`[extract] Successfully completed extraction using ${extractionMethod}.`);
       } catch (error: any) {
         console.error('[extract] error during processing:', error);
@@ -473,7 +517,9 @@ export async function POST(request: Request) {
             : `Extraction failed: ${msg}`
         });
       } finally {
+        console.log('[REFERENCE] BROWSER CLOSE START');
         if (browser) await browser.close().catch(() => {});
+        console.log('[REFERENCE] BROWSER CLOSE END');
         controller.close();
       }
     }

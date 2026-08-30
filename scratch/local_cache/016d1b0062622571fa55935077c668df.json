@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-08-30T09:30:34.661Z",
+  "data": {
+    "object": {
+      "hasFeaturedSnippet": true,
+      "snippetType": "definition",
+      "targetQuery": "SaaS customer onboarding strategy",
+      "extractedSnippetText": "SaaS onboarding is a method of introducing new buyers to the product and guiding them on how to properly use it. This increases the chances of them adopting it as their go-to tool for a specific problem. The onboarding process aims at new-c",
+      "optimizedSnippetRecommendation": "A SaaS customer onboarding strategy is a structured approach to guide new users through a software-as-a-service product, ensuring they quickly understand its value and functionality. It encompasses initial setup, feature education, and ongoing support to maximize product adoption, reduce churn, and foster long-term customer success. An effective strategy streamlines the user journey from sign-up to becoming a proficient, satisfied customer.",
+      "generationDirectives": "Place this definition immediately under an H2 heading titled 'What is a SaaS Customer Onboarding Strategy?'. Ensure the definition is between 50-60 words and bold key terms like 'structured approach', 'product adoption', and 'customer success'."
+    },
+    "usage": {
+      "inputTokens": 2195,
+      "inputTokenDetails": {
+        "noCacheTokens": 2195,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 1050,
+      "outputTokenDetails": {
+        "textTokens": 239,
+        "reasoningTokens": 811
+      },
+      "totalTokens": 3245,
+      "raw": {
+        "thoughtsTokenCount": 811,
+        "promptTokenCount": 2195,
+        "candidatesTokenCount": 239,
+        "totalTokenCount": 3245,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2195
+          }
+        ]
+      },
+      "reasoningTokens": 811,
+      "cachedInputTokens": 0
+    }
+  }
+}

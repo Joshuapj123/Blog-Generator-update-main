@@ -1,5 +1,11 @@
 import { google } from '@ai-sdk/google';
 import { generateObjectWithTelemetry, generateTextWithTelemetry, logPipelineCheckpoint } from '@/lib/gemini-telemetry';
+import { GeminiProvider } from '@/lib/content/GeminiProvider';
+import { SerperProvider } from '@/lib/research/SerperProvider';
+import { SaaSProfileService } from '@/lib/saas-intelligence/SaaSProfileService';
+import { CompetitorDiscoveryService } from '@/lib/saas-intelligence/CompetitorDiscoveryService';
+import { MarketIntelligenceService } from '@/lib/saas-intelligence/MarketIntelligenceService';
+import { SearchOpportunityService } from '@/lib/saas-intelligence/SearchOpportunityService';
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
 
@@ -113,6 +119,68 @@ RULES:
     // Ensure stable defaults for the frontend
     const output = result.object;
     logPipelineCheckpoint('strategy_generation', productDescription, coreQuery, true);
+
+    // Run SaaS Intelligence Services
+    let saasIntelligenceProfile: any = null;
+    try {
+      const llm = new GeminiProvider();
+      const search = new SerperProvider();
+
+      const profileService = new SaaSProfileService(llm);
+      const normalized = await profileService.normalizeProfile({
+        name: coreQuery,
+        description: productDescription
+      }, { runId });
+
+      const compService = new CompetitorDiscoveryService(search, llm);
+      const competitors = await compService.discoverCompetitors({
+        name: coreQuery,
+        category: normalized.product?.category || 'SaaS',
+        description: productDescription
+      }, { runId });
+
+      const marketService = new MarketIntelligenceService(llm);
+      const marketData = await marketService.extractMarketIntelligence({
+        name: coreQuery,
+        description: productDescription,
+        features: normalized.product?.features || []
+      }, { runId });
+
+      const oppService = new SearchOpportunityService(search, llm);
+      const seedKeywords = [
+        coreQuery,
+        `${normalized.product?.category || 'SaaS'} software`,
+        `best ${normalized.product?.category || 'SaaS'} tools`,
+        `${coreQuery} alternatives`
+      ];
+      const opportunities = await oppService.analyzeOpportunities(
+        coreQuery,
+        normalized.product?.category || 'SaaS',
+        seedKeywords,
+        competitors.map(c => c.domain),
+        { runId }
+      );
+
+      saasIntelligenceProfile = {
+        product: {
+          ...normalized.product,
+          name: coreQuery,
+          description: productDescription
+        },
+        audience: marketData.audience,
+        market: {
+          competitors,
+          competitorProducts: competitors.map(c => c.name),
+          alternatives: competitors.map(c => c.name),
+          adjacentCategories: [normalized.product?.category || 'SaaS'],
+          positioning: marketData.positioning
+        },
+        opportunities
+      };
+    } catch (err: any) {
+      console.warn('[generate-plan] Failed to generate SaaS Intelligence profile:', err.message);
+    }
+
     const plan = {
       ...output,
       actionPlan: (output.actionPlan || []).map((goal: any) => ({
@@ -122,7 +190,8 @@ RULES:
            completed: !!task.completed
         }))
       })),
-      recommendedPages: (output.recommendedPages || []).map((rp: any) => ({ ...rp, selected: true }))
+      recommendedPages: (output.recommendedPages || []).map((rp: any) => ({ ...rp, selected: true })),
+      saasIntelligenceProfile
     };
 
     return NextResponse.json(plan);

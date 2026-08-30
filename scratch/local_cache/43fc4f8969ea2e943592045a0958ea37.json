@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-08-26T10:55:54.578Z",
+  "data": {
+    "object": {
+      "hasFeaturedSnippet": true,
+      "snippetType": "list",
+      "targetQuery": "AI content writing tools for SaaS",
+      "extractedSnippetText": "💡 Quick Answer: The best AI tools for SaaS content generation and SEO in 2026 are Jasper AI, Copy.ai, Writesonic, Content at Scale, Surfer SEO, Rytr, Hypotenuse AI, and Scalenut. These platforms help B2B SaaS teams create SEO-ready blogs, landing pages, and social posts at scale (while keeping costs low and conversion funnels healthy).",
+      "optimizedSnippetRecommendation": "The best AI content writing tools for SaaS in 2026 are **Jasper AI**, **Copy.ai**, **Writesonic**, **Content at Scale**, **Surfer SEO**, **Rytr**, **Hypotenuse AI**, and **Scalenut**. These platforms enable B2B SaaS teams to efficiently generate SEO-optimized blogs, landing pages, and social content at scale, ensuring brand consistency and driving conversions.",
+      "generationDirectives": "Place this optimized snippet immediately under an H2 titled 'Quick Answer: Best AI Content Writing Tools for SaaS'. Present it as a concise paragraph, bolding each tool name. Ensure the entire snippet, including the introductory sentence and the list of tools, adheres strictly to the 40-60 word count for optimal featured snippet capture."
+    },
+    "usage": {
+      "inputTokens": 1915,
+      "inputTokenDetails": {
+        "noCacheTokens": 1915,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 1383,
+      "outputTokenDetails": {
+        "textTokens": 299,
+        "reasoningTokens": 1084
+      },
+      "totalTokens": 3298,
+      "raw": {
+        "thoughtsTokenCount": 1084,
+        "promptTokenCount": 1915,
+        "candidatesTokenCount": 299,
+        "totalTokenCount": 3298,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1915
+          }
+        ]
+      },
+      "reasoningTokens": 1084,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -89,13 +89,36 @@ export function toMarkdown(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]):
     lines.push('');
   }
 
+  const isDefaultMetaText = (text: string, heading?: string): boolean => {
+    if (!text) return true;
+    const t = text.trim().toLowerCase();
+    const cleanT = t.endsWith('.') ? t.slice(0, -1) : t;
+
+    if (cleanT.includes("this section details key execution processes and guidelines")) return true;
+    if (cleanT.includes("key execution processes and guidelines")) return true;
+    if (cleanT.includes("factual research on")) return true;
+    if (cleanT.startsWith("factual research")) return true;
+    if (cleanT.includes("takeaway for")) return true;
+    if (cleanT.startsWith("takeaway for")) return true;
+
+    if (heading) {
+      const hNorm = heading.trim().toLowerCase();
+      const cleanHNorm = hNorm.endsWith('.') ? hNorm.slice(0, -1) : hNorm;
+      if (cleanT === `factual research on ${cleanHNorm}`) return true;
+      if (cleanT === `takeaway for ${cleanHNorm}`) return true;
+    }
+    return false;
+  };
+
   for (const sec of secs) {
     const level = (sec as any).level === 'H3' ? '###' : '##';
     lines.push(`${level} ${sec.heading}`);
     lines.push('');
     if (sec.what_it_is) lines.push(md(sec.what_it_is) + '\n');
-    if (sec.why_it_works) lines.push(md(sec.why_it_works) + '\n');
-    if (sec.experience_or_data_point) lines.push(`> **Expert Insight:** ${sec.experience_or_data_point}\n`);
+    if (sec.why_it_works && !isDefaultMetaText(sec.why_it_works)) lines.push(md(sec.why_it_works) + '\n');
+    if (sec.experience_or_data_point && !isDefaultMetaText(sec.experience_or_data_point, sec.heading)) {
+      lines.push(`> **Expert Insight:** ${sec.experience_or_data_point}\n`);
+    }
     if (sec.example_brands?.length) lines.push(`**Examples:** ${sec.example_brands.join(', ')}\n`);
     if (Array.isArray(sec.copy_formula) && sec.copy_formula.length) {
       lines.push('**Copy Formula:**');
@@ -106,7 +129,7 @@ export function toMarkdown(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]):
       lines.push((sec as any).markdown_table);
       lines.push('');
     }
-    if (sec.takeaway) lines.push(`✅ **Takeaway:** ${sec.takeaway}\n`);
+    if (sec.takeaway && !isDefaultMetaText(sec.takeaway, sec.heading)) lines.push(`✅ **Takeaway:** ${sec.takeaway}\n`);
     if ((sec as any).outbound_authority_link?.resolved_url) {
       lines.push(`📎 [${(sec as any).outbound_authority_link.resolved_title || 'Source'}](${(sec as any).outbound_authority_link.resolved_url})\n`);
     }
@@ -146,6 +169,27 @@ export function toHtml(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]): str
   const render = (t: string) =>
     (t || '').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n\n/g, '</p><p>');
 
+  const isDefaultMetaText = (text: string, heading?: string): boolean => {
+    if (!text) return true;
+    const t = text.trim().toLowerCase();
+    const cleanT = t.endsWith('.') ? t.slice(0, -1) : t;
+
+    if (cleanT.includes("this section details key execution processes and guidelines")) return true;
+    if (cleanT.includes("key execution processes and guidelines")) return true;
+    if (cleanT.includes("factual research on")) return true;
+    if (cleanT.startsWith("factual research")) return true;
+    if (cleanT.includes("takeaway for")) return true;
+    if (cleanT.startsWith("takeaway for")) return true;
+
+    if (heading) {
+      const hNorm = heading.trim().toLowerCase();
+      const cleanHNorm = hNorm.endsWith('.') ? hNorm.slice(0, -1) : hNorm;
+      if (cleanT === `factual research on ${cleanHNorm}`) return true;
+      if (cleanT === `takeaway for ${cleanHNorm}`) return true;
+    }
+    return false;
+  };
+
   const sectionsHtml = secs.map((sec) => {
     const tag = (sec as any).level === 'H3' ? 'h3' : 'h2';
     const media = (sec as any).rich_media_query;
@@ -170,16 +214,26 @@ export function toHtml(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]): str
             : '';
       }
     }
+    const whyItWorksHtml = sec.why_it_works && !isDefaultMetaText(sec.why_it_works)
+      ? `<p>${render(sec.why_it_works)}</p>`
+      : '';
+    const experienceHtml = sec.experience_or_data_point && !isDefaultMetaText(sec.experience_or_data_point, sec.heading)
+      ? `<blockquote><strong>Expert Insight:</strong> ${sec.experience_or_data_point}</blockquote>`
+      : '';
+    const takeawayHtml = sec.takeaway && !isDefaultMetaText(sec.takeaway, sec.heading)
+      ? `<div class="takeaway">✅ ${sec.takeaway}</div>`
+      : '';
+
     return `
     <section class="section">
       <${tag}>${sec.heading}</${tag}>
       <p>${render(sec.what_it_is)}</p>
-      <p>${render(sec.why_it_works)}</p>
-      ${sec.experience_or_data_point ? `<blockquote><strong>Expert Insight:</strong> ${sec.experience_or_data_point}</blockquote>` : ''}
+      ${whyItWorksHtml}
+      ${experienceHtml}
       ${sec.example_brands?.length ? `<p><strong>Examples:</strong> ${sec.example_brands.join(', ')}</p>` : ''}
       ${Array.isArray(sec.copy_formula) && sec.copy_formula.length ? `<ul>${sec.copy_formula.map((f) => `<li>${f}</li>`).join('')}</ul>` : ''}
       ${(sec as any).markdown_table ? markdownTableToHtml((sec as any).markdown_table) : ''}
-      ${sec.takeaway ? `<div class="takeaway">✅ ${sec.takeaway}</div>` : ''}
+      ${takeawayHtml}
       ${(sec as any).outbound_authority_link?.resolved_url ? `<p>📎 <a href="${(sec as any).outbound_authority_link.resolved_url}" target="_blank">${(sec as any).outbound_authority_link.resolved_title || 'Source'}</a></p>` : ''}
       ${mediaEmbed}
     </section>`;

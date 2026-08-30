@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-08-30T07:59:38.049Z",
+  "data": {
+    "object": {
+      "hasFeaturedSnippet": true,
+      "snippetType": "definition",
+      "targetQuery": "project management software for small business",
+      "extractedSnippetText": "Project management software for small businesses transforms challenges into a competitive advantage by providing visibility into who is doing what, preventing bottlenecks, and keeping teams focused. It replaces multiple apps, keeping everything organized from client conversations to progress updates. The right platform is powerful yet simple enough for fast adoption, integrates with existing tools, and scales as teams grow.",
+      "optimizedSnippetRecommendation": "Project management software for small businesses centralizes tasks, communication, and resources, providing a structured system to track progress and prevent bottlenecks. It enhances team collaboration, ensures deadlines are met, and offers clear visibility into project status. The right solution is user-friendly, scalable, and integrates with existing tools, empowering small teams to achieve their goals efficiently.",
+      "generationDirectives": "Place this definition immediately after the H1 or in an H2 section. Keep it exactly 59 words. Use bolding for key terms like \"centralizes tasks,\" \"team collaboration,\" \"clear visibility,\" \"user-friendly,\" and \"scalable.\" Ensure it directly addresses the \"for small business\" aspect."
+    },
+    "usage": {
+      "inputTokens": 1186,
+      "inputTokenDetails": {
+        "noCacheTokens": 1186,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 1395,
+      "outputTokenDetails": {
+        "textTokens": 259,
+        "reasoningTokens": 1136
+      },
+      "totalTokens": 2581,
+      "raw": {
+        "thoughtsTokenCount": 1136,
+        "promptTokenCount": 1186,
+        "candidatesTokenCount": 259,
+        "totalTokenCount": 2581,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1186
+          }
+        ]
+      },
+      "reasoningTokens": 1136,
+      "cachedInputTokens": 0
+    }
+  }
+}

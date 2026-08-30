@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-08-30T06:15:25.184Z",
+  "data": {
+    "text": "We’ll have you designing again soon. If you can’t get past this page, visit the Help Centre to see why this is happening.",
+    "usage": {
+      "inputTokens": 153,
+      "inputTokenDetails": {
+        "noCacheTokens": 153,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 1350,
+      "outputTokenDetails": {
+        "textTokens": 30,
+        "reasoningTokens": 1320
+      },
+      "totalTokens": 1503,
+      "raw": {
+        "thoughtsTokenCount": 1320,
+        "promptTokenCount": 153,
+        "candidatesTokenCount": 30,
+        "totalTokenCount": 1503,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 153
+          }
+        ]
+      },
+      "reasoningTokens": 1320,
+      "cachedInputTokens": 0
+    }
+  }
+}

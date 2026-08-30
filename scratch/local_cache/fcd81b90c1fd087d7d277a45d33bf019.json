@@ -1,0 +1,282 @@
+{
+  "timestamp": "2026-08-30T09:29:49.682Z",
+  "data": {
+    "object": {
+      "keywords": [
+        {
+          "term": "SaaS customer onboarding strategy",
+          "category": "basic"
+        },
+        {
+          "term": "SaaS onboarding",
+          "category": "basic"
+        },
+        {
+          "term": "user onboarding",
+          "category": "basic"
+        },
+        {
+          "term": "customer onboarding process",
+          "category": "basic"
+        },
+        {
+          "term": "B2B SaaS onboarding",
+          "category": "basic"
+        },
+        {
+          "term": "SaaS customer onboarding",
+          "category": "basic"
+        },
+        {
+          "term": "user onboarding strategies",
+          "category": "basic"
+        },
+        {
+          "term": "customer onboarding guide",
+          "category": "basic"
+        },
+        {
+          "term": "SaaS onboarding process",
+          "category": "basic"
+        },
+        {
+          "term": "how to create a SaaS onboarding process",
+          "category": "supplementary"
+        },
+        {
+          "term": "B2B SaaS onboarding best practices",
+          "category": "supplementary"
+        },
+        {
+          "term": "SaaS customer onboarding checklist",
+          "category": "supplementary"
+        },
+        {
+          "term": "customer onboarding models",
+          "category": "supplementary"
+        },
+        {
+          "term": "what to include in customer onboarding",
+          "category": "supplementary"
+        },
+        {
+          "term": "measure customer onboarding success",
+          "category": "supplementary"
+        },
+        {
+          "term": "best user onboarding experiences",
+          "category": "supplementary"
+        },
+        {
+          "term": "SaaS onboarding metrics",
+          "category": "supplementary"
+        },
+        {
+          "term": "personalize onboarding process",
+          "category": "supplementary"
+        },
+        {
+          "term": "reduce signup friction",
+          "category": "supplementary"
+        },
+        {
+          "term": "onboarding checklists",
+          "category": "supplementary"
+        },
+        {
+          "term": "interactive product walkthroughs",
+          "category": "supplementary"
+        },
+        {
+          "term": "contextual onboarding",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI personalized onboarding",
+          "category": "supplementary"
+        },
+        {
+          "term": "self-serve support",
+          "category": "supplementary"
+        },
+        {
+          "term": "product adoption strategies",
+          "category": "supplementary"
+        },
+        {
+          "term": "reduce churn rate",
+          "category": "supplementary"
+        },
+        {
+          "term": "improve customer satisfaction",
+          "category": "supplementary"
+        },
+        {
+          "term": "customer retention strategies",
+          "category": "supplementary"
+        },
+        {
+          "term": "increase customer lifetime value",
+          "category": "supplementary"
+        },
+        {
+          "term": "customer success strategies",
+          "category": "supplementary"
+        },
+        {
+          "term": "user experience design",
+          "category": "supplementary"
+        },
+        {
+          "term": "product tours",
+          "category": "supplementary"
+        },
+        {
+          "term": "welcome surveys",
+          "category": "supplementary"
+        },
+        {
+          "term": "onboarding phases",
+          "category": "supplementary"
+        },
+        {
+          "term": "user invitation feature",
+          "category": "supplementary"
+        },
+        {
+          "term": "high-touch onboarding model",
+          "category": "supplementary"
+        },
+        {
+          "term": "low-touch onboarding model",
+          "category": "supplementary"
+        },
+        {
+          "term": "hybrid onboarding model",
+          "category": "supplementary"
+        },
+        {
+          "term": "Auth0 Organizations",
+          "category": "contextual"
+        },
+        {
+          "term": "Blazor application",
+          "category": "contextual"
+        },
+        {
+          "term": "Product Fruits",
+          "category": "contextual"
+        },
+        {
+          "term": "AI-assisted onboarding",
+          "category": "contextual"
+        },
+        {
+          "term": "customer support tickets",
+          "category": "contextual"
+        },
+        {
+          "term": "customer journey",
+          "category": "contextual"
+        },
+        {
+          "term": "customer success manager (CSM)",
+          "category": "contextual"
+        }
+      ],
+      "clusters": [
+        {
+          "clusterName": "Core Concepts & Importance",
+          "keywords": [
+            "SaaS customer onboarding strategy",
+            "SaaS onboarding",
+            "user onboarding",
+            "customer onboarding process",
+            "B2B SaaS onboarding",
+            "SaaS customer onboarding",
+            "user onboarding strategies",
+            "customer onboarding guide",
+            "SaaS onboarding process",
+            "product adoption strategies",
+            "reduce churn rate",
+            "improve customer satisfaction",
+            "customer retention strategies",
+            "increase customer lifetime value",
+            "customer success strategies",
+            "customer journey"
+          ]
+        },
+        {
+          "clusterName": "Onboarding Process & Models",
+          "keywords": [
+            "how to create a SaaS onboarding process",
+            "what to include in customer onboarding",
+            "customer onboarding models",
+            "onboarding phases",
+            "high-touch onboarding model",
+            "low-touch onboarding model",
+            "hybrid onboarding model",
+            "user invitation feature",
+            "Auth0 Organizations",
+            "Blazor application"
+          ]
+        },
+        {
+          "clusterName": "Best Practices & Optimization",
+          "keywords": [
+            "B2B SaaS onboarding best practices",
+            "best user onboarding experiences",
+            "personalize onboarding process",
+            "reduce signup friction",
+            "onboarding checklists",
+            "interactive product walkthroughs",
+            "contextual onboarding",
+            "AI personalized onboarding",
+            "self-serve support",
+            "user experience design",
+            "product tours",
+            "welcome surveys",
+            "customer support tickets"
+          ]
+        },
+        {
+          "clusterName": "Measurement & Tools",
+          "keywords": [
+            "SaaS onboarding metrics",
+            "measure customer onboarding success",
+            "Product Fruits",
+            "AI-assisted onboarding",
+            "customer success manager (CSM)"
+          ]
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 2838,
+      "inputTokenDetails": {
+        "noCacheTokens": 2838,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 4515,
+      "outputTokenDetails": {
+        "textTokens": 1609,
+        "reasoningTokens": 2906
+      },
+      "totalTokens": 7353,
+      "raw": {
+        "thoughtsTokenCount": 2906,
+        "promptTokenCount": 2838,
+        "candidatesTokenCount": 1609,
+        "totalTokenCount": 7353,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2838
+          }
+        ]
+      },
+      "reasoningTokens": 2906,
+      "cachedInputTokens": 0
+    }
+  }
+}

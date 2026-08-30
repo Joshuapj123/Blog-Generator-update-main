@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-08-30T06:02:00.446Z",
+  "data": {
+    "object": {
+      "hasFeaturedSnippet": true,
+      "snippetType": "definition",
+      "targetQuery": "AI resume builder",
+      "extractedSnippetText": "An AI resume builder is a digital tool that leverages artificial intelligence to help users create, optimize, and tailor their resumes for specific job applications. It often includes features like keyword targeting, content analysis, and ATS-friendly formatting to increase a candidate's chances of getting hired.",
+      "optimizedSnippetRecommendation": "An AI resume builder is a sophisticated online tool that utilizes artificial intelligence to streamline the resume creation process. It helps users generate, optimize, and customize their CVs by suggesting relevant keywords, improving phrasing, and ensuring ATS compatibility. These builders aim to enhance a job seeker's application, increasing their likelihood of securing interviews and landing their desired role.",
+      "generationDirectives": "Place this definition immediately under an H2 heading like 'What is an AI Resume Builder?' or 'Understanding AI Resume Builders'. Ensure the definition is exactly 59 words, as provided. Consider bolding key terms like 'artificial intelligence', 'optimize', 'ATS compatibility', and 'job seeker's application' for emphasis and scannability."
+    },
+    "usage": {
+      "inputTokens": 1117,
+      "inputTokenDetails": {
+        "noCacheTokens": 1117,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 1484,
+      "outputTokenDetails": {
+        "textTokens": 250,
+        "reasoningTokens": 1234
+      },
+      "totalTokens": 2601,
+      "raw": {
+        "thoughtsTokenCount": 1234,
+        "promptTokenCount": 1117,
+        "candidatesTokenCount": 250,
+        "totalTokenCount": 2601,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1117
+          }
+        ]
+      },
+      "reasoningTokens": 1234,
+      "cachedInputTokens": 0
+    }
+  }
+}

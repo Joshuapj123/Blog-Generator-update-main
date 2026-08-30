@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-08-19T13:30:36.416Z",
+  "data": {
+    "text": "### What Are SEO Topical Maps?\nSEO topical maps are visual representations of the relationships between topics and subtopics on a website. They provide a clear structure for search engines to understand the content hierarchy, making it easier for them to crawl and index web pages. By using SEO topical maps, website owners can optimize their sites for better search engine rankings and user experience.\n\nTopical maps are essential for content planning. They help plan out your content strategy so that you can optimize SEO performance by targeting relevant subtopics for your niche. They also help identify content gaps as you can easily see what you haven’t already covered. The trouble is it can be difficult and time-consuming to manually generate all of these ideas and subtopics.\n\n### How Do Topical Maps Help SEO?\nTopical maps help SEO as they form a content plan for you to follow. These ensure you cover all possible angles with your blog content. This helps expand your topical coverage and your semantic SEO. Search engines will be able to see you cover your niche thoroughly, which helps demonstrate your expertise in your space.",
+    "usage": {
+      "inputTokens": 484,
+      "inputTokenDetails": {
+        "noCacheTokens": 484,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 2193,
+      "outputTokenDetails": {
+        "textTokens": 218,
+        "reasoningTokens": 1975
+      },
+      "totalTokens": 2677,
+      "raw": {
+        "thoughtsTokenCount": 1975,
+        "promptTokenCount": 484,
+        "candidatesTokenCount": 218,
+        "totalTokenCount": 2677,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 484
+          }
+        ]
+      },
+      "reasoningTokens": 1975,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,253 @@
+{
+  "timestamp": "2026-08-30T11:58:54.357Z",
+  "data": {
+    "object": {
+      "keywords": [
+        {
+          "term": "AI automation for SaaS customer support",
+          "category": "basic"
+        },
+        {
+          "term": "AI customer support for SaaS",
+          "category": "basic"
+        },
+        {
+          "term": "AI in customer service",
+          "category": "basic"
+        },
+        {
+          "term": "SaaS customer support automation",
+          "category": "basic"
+        },
+        {
+          "term": "AI tools for customer support",
+          "category": "basic"
+        },
+        {
+          "term": "AI software for customer service",
+          "category": "basic"
+        },
+        {
+          "term": "automate SaaS customer support",
+          "category": "basic"
+        },
+        {
+          "term": "AI for customer service teams",
+          "category": "basic"
+        },
+        {
+          "term": "scaling SaaS customer support with AI",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI chatbots for SaaS customer support",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI agents for customer service",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI-powered ticket triage and routing",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI knowledge base and self-service support",
+          "category": "supplementary"
+        },
+        {
+          "term": "human plus AI hybrid support models",
+          "category": "supplementary"
+        },
+        {
+          "term": "reduce churn with AI customer support",
+          "category": "supplementary"
+        },
+        {
+          "term": "accelerate onboarding with AI",
+          "category": "supplementary"
+        },
+        {
+          "term": "support automation ROI for SaaS",
+          "category": "supplementary"
+        },
+        {
+          "term": "benefits of AI customer support for SaaS",
+          "category": "supplementary"
+        },
+        {
+          "term": "how to use AI customer support for SaaS",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI in SaaS customer success",
+          "category": "supplementary"
+        },
+        {
+          "term": "proactive customer success with AI",
+          "category": "supplementary"
+        },
+        {
+          "term": "intelligent ticket routing",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI for subscription billing",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI chatbot for SaaS onboarding",
+          "category": "supplementary"
+        },
+        {
+          "term": "customer experience with AI",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI to resolve customer inquiries faster",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI to reduce response times",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI to deflect routine inquiries",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI to scale support operations",
+          "category": "supplementary"
+        },
+        {
+          "term": "best AI customer support software",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI for customer support workflows",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI to summarize emails and suggest drafts",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI to recover failed renewals",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI to surface at-risk accounts",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI to detect topics in support tickets",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI to update help centers automatically",
+          "category": "supplementary"
+        },
+        {
+          "term": "machine learning for customer support",
+          "category": "contextual"
+        },
+        {
+          "term": "natural language processing for customer service",
+          "category": "contextual"
+        },
+        {
+          "term": "robotics process automation in support",
+          "category": "contextual"
+        },
+        {
+          "term": "generative AI capabilities in customer service",
+          "category": "contextual"
+        }
+      ],
+      "clusters": [
+        {
+          "clusterName": "Core Concepts & Benefits of AI in SaaS Support",
+          "keywords": [
+            "AI automation for SaaS customer support",
+            "AI customer support for SaaS",
+            "AI in customer service",
+            "SaaS customer support automation",
+            "AI tools for customer support",
+            "AI software for customer service",
+            "automate SaaS customer support",
+            "AI for customer service teams",
+            "benefits of AI customer support for SaaS",
+            "how to use AI customer support for SaaS",
+            "customer experience with AI"
+          ]
+        },
+        {
+          "clusterName": "AI Technologies, Features & Specific Applications",
+          "keywords": [
+            "AI chatbots for SaaS customer support",
+            "AI agents for customer service",
+            "AI-powered ticket triage and routing",
+            "AI knowledge base and self-service support",
+            "intelligent ticket routing",
+            "AI for subscription billing",
+            "AI chatbot for SaaS onboarding",
+            "AI to summarize emails and suggest drafts",
+            "AI to detect topics in support tickets",
+            "AI to update help centers automatically",
+            "machine learning for customer support",
+            "natural language processing for customer service",
+            "robotics process automation in support",
+            "generative AI capabilities in customer service"
+          ]
+        },
+        {
+          "clusterName": "Strategic Outcomes, Scaling & Implementation",
+          "keywords": [
+            "scaling SaaS customer support with AI",
+            "human plus AI hybrid support models",
+            "reduce churn with AI customer support",
+            "accelerate onboarding with AI",
+            "support automation ROI for SaaS",
+            "AI in SaaS customer success",
+            "proactive customer success with AI",
+            "AI to scale support operations",
+            "AI for customer support workflows",
+            "AI to recover failed renewals",
+            "AI to surface at-risk accounts",
+            "best AI customer support software",
+            "AI to resolve customer inquiries faster",
+            "AI to reduce response times",
+            "AI to deflect routine inquiries"
+          ]
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 2939,
+      "inputTokenDetails": {
+        "noCacheTokens": 2939,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 4707,
+      "outputTokenDetails": {
+        "textTokens": 1588,
+        "reasoningTokens": 3119
+      },
+      "totalTokens": 7646,
+      "raw": {
+        "thoughtsTokenCount": 3119,
+        "promptTokenCount": 2939,
+        "candidatesTokenCount": 1588,
+        "totalTokenCount": 7646,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2939
+          }
+        ]
+      },
+      "reasoningTokens": 3119,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,289 @@
+{
+  "timestamp": "2026-08-30T12:00:30.638Z",
+  "data": {
+    "object": {
+      "headingFrequency": [
+        {
+          "heading": "What is AI Customer Support/Service for SaaS?",
+          "competitorRanks": [
+            1,
+            2,
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "heading": "Benefits/Importance of AI in Customer Support",
+          "competitorRanks": [
+            1,
+            2,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "heading": "How to Implement/Improve AI Customer Support",
+          "competitorRanks": [
+            2,
+            3,
+            5,
+            6
+          ]
+        },
+        {
+          "heading": "Examples/Use Cases of AI in Customer Support",
+          "competitorRanks": [
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "heading": "AI Tools/Software/Platforms for Customer Support",
+          "competitorRanks": [
+            3,
+            4,
+            8
+          ]
+        },
+        {
+          "heading": "Frequently Asked Questions (FAQ)",
+          "competitorRanks": [
+            3,
+            4,
+            5,
+            6,
+            8
+          ]
+        },
+        {
+          "heading": "The Future of AI in Customer Support",
+          "competitorRanks": [
+            3,
+            6,
+            7
+          ]
+        },
+        {
+          "heading": "Limitations/Challenges of AI Customer Support",
+          "competitorRanks": [
+            2,
+            7
+          ]
+        },
+        {
+          "heading": "AI Chatbots/Agents for Customer Support",
+          "competitorRanks": [
+            2,
+            6,
+            7
+          ]
+        },
+        {
+          "heading": "AI for Knowledge Base and Self-Service",
+          "competitorRanks": [
+            2,
+            5,
+            7
+          ]
+        },
+        {
+          "heading": "AI for Ticket Triage and Routing",
+          "competitorRanks": [
+            2,
+            5,
+            7
+          ]
+        },
+        {
+          "heading": "Key Metrics to Measure AI Effectiveness/Success",
+          "competitorRanks": [
+            3,
+            5
+          ]
+        },
+        {
+          "heading": "Human vs AI / Hybrid Support Models",
+          "competitorRanks": [
+            2,
+            3
+          ]
+        }
+      ],
+      "tableDetection": {
+        "recommendedTables": [
+          {
+            "name": "AI Customer Support Software Comparison for SaaS",
+            "type": "Comparison",
+            "columns": [
+              "Platform Name",
+              "Key Features",
+              "Pros",
+              "Cons",
+              "Best For",
+              "Pricing Model"
+            ],
+            "purpose": "To help users compare different AI customer support solutions for SaaS businesses side-by-side, aiding in their decision-making process."
+          }
+        ]
+      },
+      "paaClustered": [
+        {
+          "question": "How to automate customer support with AI?",
+          "frequency": 2,
+          "snippet": ""
+        },
+        {
+          "question": "Which AI tool is best for SaaS?",
+          "frequency": 3,
+          "snippet": ""
+        },
+        {
+          "question": "How is AI used in customer support?",
+          "frequency": 2,
+          "snippet": ""
+        },
+        {
+          "question": "Is AI replacing customer service?",
+          "frequency": 2,
+          "snippet": ""
+        },
+        {
+          "question": "What customer support tools summarize emails and suggest drafts?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "What AI solutions offer detailed analytics on customer interactions for service managers?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "What criteria did we use when ranking these AI customer service platforms?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "What to consider when implementing AI-powered customer service?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "How do you use AI to engage customers?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "How can you keep your data secure when using AI for customer service?",
+          "frequency": 1,
+          "snippet": ""
+        }
+      ],
+      "contentGapReport": {
+        "commonTopics": [
+          "Definition of AI Customer Support for SaaS",
+          "Benefits and Importance of AI in Customer Support",
+          "How to Implement AI Customer Support",
+          "Examples and Use Cases of AI in Customer Support",
+          "AI Tools and Platforms for Customer Support",
+          "Limitations and Challenges of AI Customer Support",
+          "The Future of AI in Customer Support",
+          "Key Metrics for AI Effectiveness",
+          "Frequently Asked Questions (FAQ)",
+          "AI Chatbots and Agents",
+          "AI for Knowledge Base and Self-Service",
+          "AI for Ticket Triage and Routing"
+        ],
+        "uniqueHeadings": [
+          "What to Look for in the Best AI Customer Support Agent for SaaS",
+          "Why SaaS Customer Support Breaks as You Scale",
+          "Tasks AI Should Handle vs. Humans Should Own",
+          "3 Key AI Technologies for Customer Support",
+          "Challenges and Ethical Considerations of AI in SaaS Support"
+        ],
+        "missingTopics": [
+          "Detailed ROI analysis and cost savings specific to AI automation in SaaS",
+          "Practical guidance on integrating AI with existing CRM/helpdesk systems",
+          "In-depth discussion on data privacy, security, and ethical AI use",
+          "A comprehensive guide on how to choose the best AI software, beyond just listing options",
+          "Strategies for maintaining the 'human touch' and personalization in an AI-driven support environment",
+          "Customization and training of AI models for specific business needs"
+        ],
+        "recommendedNewSections": [
+          {
+            "heading": "Measuring the ROI of AI Automation in SaaS Customer Support",
+            "level": "H2",
+            "reason": "While benefits are mentioned, a dedicated section on quantifiable ROI and cost savings is crucial for businesses making investment decisions.",
+            "suggestedOutline": "Discuss metrics like reduced resolution time, lower operational costs, improved customer satisfaction, and churn reduction. Provide frameworks for calculating ROI."
+          },
+          {
+            "heading": "Integrating AI with Your Existing SaaS Support Ecosystem",
+            "level": "H2",
+            "reason": "Practical implementation is a key concern for businesses. This addresses how AI tools fit into current workflows and tech stacks.",
+            "suggestedOutline": "Cover API integrations, compatibility with popular CRM/helpdesk platforms, data synchronization, and avoiding common implementation pitfalls."
+          },
+          {
+            "heading": "Data Privacy, Security, and Ethical AI in Customer Support",
+            "level": "H2",
+            "reason": "A critical and often overlooked aspect of AI implementation, especially with sensitive customer data. Addresses a key unanswered question from PAA.",
+            "suggestedOutline": "Discuss data encryption, compliance (GDPR, CCPA), responsible AI development, bias mitigation, and building customer trust."
+          },
+          {
+            "heading": "A Buyer's Guide: How to Choose the Best AI Customer Support Software",
+            "level": "H2",
+            "reason": "Many competitors list tools, but a guide on *how* to evaluate and select the right one, including criteria and common mistakes, provides immense value and addresses PAA questions about choosing tools.",
+            "suggestedOutline": "Key features to look for, scalability, integration capabilities, vendor support, pricing models, and a checklist for evaluation. This section can also house the comparison table."
+          },
+          {
+            "heading": "Maintaining the Human Touch: Hybrid AI and Human Support Models",
+            "level": "H2",
+            "reason": "Several competitors hint at this, but a dedicated section on balancing automation with personalized human interaction is vital for customer experience and addresses a common concern.",
+            "suggestedOutline": "Explore strategies for seamless handoffs, empowering human agents with AI tools, and ensuring empathy and complex problem-solving remain central."
+          }
+        ],
+        "unansweredQuestions": [
+          "How can you keep your data secure when using AI for customer service?",
+          "What criteria should be used when ranking or choosing AI customer service platforms?",
+          "How do you effectively use AI to engage customers proactively?"
+        ],
+        "shouldIncludeFaq": true,
+        "faqQuestions": [
+          "What is AI customer support for SaaS and how is it used?",
+          "Which are the best AI tools for SaaS customer support?",
+          "Will AI replace human customer service agents?",
+          "What should I consider when implementing AI for customer support?"
+        ]
+      }
+    },
+    "usage": {
+      "inputTokens": 3866,
+      "inputTokenDetails": {
+        "noCacheTokens": 3866,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 8582,
+      "outputTokenDetails": {
+        "textTokens": 1984,
+        "reasoningTokens": 6598
+      },
+      "totalTokens": 12448,
+      "raw": {
+        "thoughtsTokenCount": 6598,
+        "promptTokenCount": 3866,
+        "candidatesTokenCount": 1984,
+        "totalTokenCount": 12448,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3866
+          }
+        ]
+      },
+      "reasoningTokens": 6598,
+      "cachedInputTokens": 0
+    }
+  }
+}

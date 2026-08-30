@@ -1,0 +1,73 @@
+{
+  "timestamp": "2026-08-30T07:59:29.462Z",
+  "data": {
+    "object": {
+      "intent": "commercial",
+      "confidenceScore": 90,
+      "intentConfidence": {
+        "informational": 15,
+        "commercial": 70,
+        "transactional": 10,
+        "comparison": 5
+      },
+      "formatRecommendation": "A comprehensive listicle or 'best of' guide, featuring multiple software options with detailed reviews and comparison points.",
+      "toneGuidelines": "Authoritative, helpful, practical, and slightly persuasive. Focus on addressing the specific needs and challenges of small businesses.",
+      "structureGuidelines": "Utilize clear, scannable headings and subheadings. Include bullet points for features, pros, and cons. Consider comparison tables or dedicated sections for different use cases (e.g., 'best for freelancers', 'best for growing teams'). Ensure a strong introduction that sets the stage and a conclusion that guides the user towards a decision.",
+      "recommendedOutlineSections": [
+        {
+          "heading": "Why Small Businesses Need Project Management Software",
+          "level": "H2",
+          "purpose": "To establish the importance and benefits of PM software for small businesses, setting context for the recommendations."
+        },
+        {
+          "heading": "Key Features to Look for in Small Business Project Management Software",
+          "level": "H2",
+          "purpose": "To educate users on critical criteria for selecting software, empowering them to make informed decisions."
+        },
+        {
+          "heading": "The Best Project Management Software for Small Businesses",
+          "level": "H2",
+          "purpose": "To present the primary recommendations, detailing each software's strengths, weaknesses, and ideal use cases."
+        },
+        {
+          "heading": "Choosing the Right Software for Your Small Business Team",
+          "level": "H2",
+          "purpose": "To provide actionable advice and a decision-making framework to help users select the most suitable software for their specific needs."
+        },
+        {
+          "heading": "Frequently Asked Questions About PM Software for Small Businesses",
+          "level": "H2",
+          "purpose": "To address common queries and concerns, providing additional value and reinforcing authority."
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 721,
+      "inputTokenDetails": {
+        "noCacheTokens": 325,
+        "cacheReadTokens": 396
+      },
+      "outputTokens": 1898,
+      "outputTokenDetails": {
+        "textTokens": 489,
+        "reasoningTokens": 1409
+      },
+      "totalTokens": 2619,
+      "raw": {
+        "cachedContentTokenCount": 396,
+        "thoughtsTokenCount": 1409,
+        "promptTokenCount": 721,
+        "candidatesTokenCount": 489,
+        "totalTokenCount": 2619,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 721
+          }
+        ]
+      },
+      "reasoningTokens": 1409,
+      "cachedInputTokens": 396
+    }
+  }
+}

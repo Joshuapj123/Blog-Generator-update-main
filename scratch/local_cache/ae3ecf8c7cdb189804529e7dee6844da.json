@@ -1,0 +1,320 @@
+{
+  "timestamp": "2026-08-30T09:30:13.278Z",
+  "data": {
+    "object": {
+      "entities": [
+        {
+          "name": "SaaS",
+          "type": "concept"
+        },
+        {
+          "name": "B2B SaaS applications",
+          "type": "product"
+        },
+        {
+          "name": "User Onboarding",
+          "type": "concept"
+        },
+        {
+          "name": "Customer Onboarding",
+          "type": "concept"
+        },
+        {
+          "name": "Customer Satisfaction",
+          "type": "concept"
+        },
+        {
+          "name": "Customer Adoption",
+          "type": "concept"
+        },
+        {
+          "name": "Churn Rate",
+          "type": "concept"
+        },
+        {
+          "name": "Customer Retention",
+          "type": "concept"
+        },
+        {
+          "name": "Customer Lifetime Value (CLTV)",
+          "type": "concept"
+        },
+        {
+          "name": "Time-to-Value (TTV)",
+          "type": "concept"
+        },
+        {
+          "name": "Customer Success",
+          "type": "concept"
+        },
+        {
+          "name": "Sales Process",
+          "type": "concept"
+        },
+        {
+          "name": "Product Adoption",
+          "type": "concept"
+        },
+        {
+          "name": "Onboarding Process",
+          "type": "concept"
+        },
+        {
+          "name": "Self-Service Onboarding",
+          "type": "concept"
+        },
+        {
+          "name": "Admin Provisioning",
+          "type": "concept"
+        },
+        {
+          "name": "Approval Workflow",
+          "type": "concept"
+        },
+        {
+          "name": "Customer Support",
+          "type": "concept"
+        },
+        {
+          "name": "Product Implementation",
+          "type": "concept"
+        },
+        {
+          "name": "Onboarding Metrics",
+          "type": "concept"
+        },
+        {
+          "name": "Auth0",
+          "type": "brand"
+        },
+        {
+          "name": "Product Fruits",
+          "type": "brand"
+        },
+        {
+          "name": "ProductLed",
+          "type": "brand"
+        },
+        {
+          "name": "AI-assisted Onboarding",
+          "type": "concept"
+        },
+        {
+          "name": "Sales Team",
+          "type": "organization"
+        },
+        {
+          "name": "Customer Success Team",
+          "type": "organization"
+        },
+        {
+          "name": "Onboarding Team",
+          "type": "organization"
+        },
+        {
+          "name": "Free Trial",
+          "type": "concept"
+        },
+        {
+          "name": "Personalized Welcome Flows",
+          "type": "concept"
+        },
+        {
+          "name": "Implementation Checklist",
+          "type": "concept"
+        }
+      ],
+      "relationships": [
+        {
+          "source": "SaaS",
+          "target": "B2B SaaS applications",
+          "type": "encompasses"
+        },
+        {
+          "source": "User Onboarding",
+          "target": "Customer Satisfaction",
+          "type": "is crucial for"
+        },
+        {
+          "source": "User Onboarding",
+          "target": "Customer Adoption",
+          "type": "drives"
+        },
+        {
+          "source": "User Onboarding",
+          "target": "Churn Rate",
+          "type": "reduces"
+        },
+        {
+          "source": "Customer Onboarding",
+          "target": "Customer Retention",
+          "type": "improves"
+        },
+        {
+          "source": "Customer Onboarding",
+          "target": "Customer Lifetime Value (CLTV)",
+          "type": "increases"
+        },
+        {
+          "source": "Customer Onboarding",
+          "target": "Time-to-Value (TTV)",
+          "type": "accelerates"
+        },
+        {
+          "source": "Customer Onboarding",
+          "target": "Customer Success",
+          "type": "enables"
+        },
+        {
+          "source": "Sales Process",
+          "target": "Customer Onboarding",
+          "type": "leads to"
+        },
+        {
+          "source": "Onboarding Process",
+          "target": "Product Adoption",
+          "type": "supports"
+        },
+        {
+          "source": "Self-Service Onboarding",
+          "target": "Onboarding Process",
+          "type": "is a type of"
+        },
+        {
+          "source": "Admin Provisioning",
+          "target": "Onboarding Process",
+          "type": "is a type of"
+        },
+        {
+          "source": "Approval Workflow",
+          "target": "Self-Service Onboarding",
+          "type": "can be part of"
+        },
+        {
+          "source": "Customer Support",
+          "target": "Customer Onboarding",
+          "type": "is related to"
+        },
+        {
+          "source": "Product Implementation",
+          "target": "Customer Onboarding",
+          "type": "is a phase of"
+        },
+        {
+          "source": "Onboarding Metrics",
+          "target": "Customer Onboarding",
+          "type": "measure success of"
+        },
+        {
+          "source": "Auth0",
+          "target": "User Onboarding",
+          "type": "offers solutions for"
+        },
+        {
+          "source": "Product Fruits",
+          "target": "User Onboarding",
+          "type": "helps implement"
+        },
+        {
+          "source": "ProductLed",
+          "target": "User Onboarding",
+          "type": "advocates for strategies for"
+        },
+        {
+          "source": "AI-assisted Onboarding",
+          "target": "User Onboarding",
+          "type": "enhances"
+        },
+        {
+          "source": "Sales Team",
+          "target": "Sales Process",
+          "type": "initiates"
+        },
+        {
+          "source": "Sales Team",
+          "target": "Customer Success Team",
+          "type": "hands off to"
+        },
+        {
+          "source": "Customer Success Team",
+          "target": "Customer Onboarding",
+          "type": "manages"
+        },
+        {
+          "source": "Onboarding Team",
+          "target": "Customer Onboarding",
+          "type": "executes"
+        },
+        {
+          "source": "Free Trial",
+          "target": "Customer Onboarding",
+          "type": "precedes"
+        },
+        {
+          "source": "Personalized Welcome Flows",
+          "target": "User Onboarding",
+          "type": "are a component of"
+        },
+        {
+          "source": "Implementation Checklist",
+          "target": "Customer Onboarding",
+          "type": "is a tool for"
+        },
+        {
+          "source": "B2B SaaS applications",
+          "target": "User Onboarding",
+          "type": "require"
+        },
+        {
+          "source": "Customer Success Team",
+          "target": "Onboarding Team",
+          "type": "collaborates with"
+        },
+        {
+          "source": "Customer Success",
+          "target": "Customer Onboarding",
+          "type": "is the goal of"
+        }
+      ],
+      "recommendedConnections": [
+        "User Onboarding -> Product-Led Growth",
+        "Customer Onboarding -> Upselling",
+        "Customer Onboarding -> Referrals",
+        "Customer Onboarding -> Brand Loyalty",
+        "Customer Onboarding -> Customer Journey",
+        "AI-assisted Onboarding -> Personalization",
+        "Onboarding Process -> Customer Experience",
+        "B2B SaaS applications -> Customer Experience",
+        "Sales-to-Service Handoff -> Customer Onboarding",
+        "Onboarding Metrics -> Continuous Improvement"
+      ]
+    },
+    "usage": {
+      "inputTokens": 2783,
+      "inputTokenDetails": {
+        "noCacheTokens": 2783,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 4263,
+      "outputTokenDetails": {
+        "textTokens": 1933,
+        "reasoningTokens": 2330
+      },
+      "totalTokens": 7046,
+      "raw": {
+        "thoughtsTokenCount": 2330,
+        "promptTokenCount": 2783,
+        "candidatesTokenCount": 1933,
+        "totalTokenCount": 7046,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2783
+          }
+        ]
+      },
+      "reasoningTokens": 2330,
+      "cachedInputTokens": 0
+    }
+  }
+}

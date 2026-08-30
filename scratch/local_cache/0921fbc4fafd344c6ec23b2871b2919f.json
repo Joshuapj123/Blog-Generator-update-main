@@ -1,0 +1,72 @@
+{
+  "timestamp": "2026-08-27T17:00:43.653Z",
+  "data": {
+    "object": {
+      "intent": "commercial",
+      "confidenceScore": 90,
+      "intentConfidence": {
+        "informational": 0,
+        "commercial": 55,
+        "transactional": 15,
+        "comparison": 30
+      },
+      "formatRecommendation": "A comprehensive listicle or guide featuring detailed reviews and comparison tables of various AI content writing tools.",
+      "toneGuidelines": "The tone should be helpful, authoritative, and objective, guiding users through the evaluation process. It should be engaging and practical, focusing on the benefits and real-world applications of each tool, with a slightly persuasive undertone to encourage consideration of recommended options.",
+      "structureGuidelines": "The content should begin with a clear introduction setting the stage for the evaluation of AI writing tools. It must include a summary comparison table for quick reference, followed by detailed individual reviews for each tool (covering features, pros, cons, pricing, and best use cases). A section outlining key criteria for evaluating AI writing tools is essential. Conclude with a strong call to action, encouraging users to try the tools or learn more.",
+      "recommendedOutlineSections": [
+        {
+          "heading": "Introduction: Navigating the World of AI Content Writing Tools",
+          "level": "H2",
+          "purpose": "To hook the reader, introduce the topic of AI writing tools, and explain what the guide will cover to help them make an informed decision."
+        },
+        {
+          "heading": "What to Look for in an AI Content Writing Tool",
+          "level": "H2",
+          "purpose": "To establish clear criteria and evaluation points (e.g., features, pricing, ease of use, output quality, integrations) that readers should consider when choosing a tool."
+        },
+        {
+          "heading": "Top AI Content Writing Tools: Detailed Reviews & Comparison",
+          "level": "H2",
+          "purpose": "To provide in-depth analysis of leading AI writing tools, including their unique features, benefits, drawbacks, and ideal use cases. This section will contain multiple H3 sub-sections for each tool."
+        },
+        {
+          "heading": "AI Writing Tools Comparison Table: Features at a Glance",
+          "level": "H2",
+          "purpose": "To offer a quick-reference table that summarizes key aspects, pricing, and ratings of the reviewed tools, enabling easy comparison for users."
+        },
+        {
+          "heading": "Choosing the Best AI Tool for Your Specific Needs",
+          "level": "H2",
+          "purpose": "To provide concluding advice and recommendations, helping users synthesize the information and select the most suitable AI writing tool based on their individual requirements and budget."
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 833,
+      "inputTokenDetails": {
+        "noCacheTokens": 833,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 3407,
+      "outputTokenDetails": {
+        "textTokens": 601,
+        "reasoningTokens": 2806
+      },
+      "totalTokens": 4240,
+      "raw": {
+        "thoughtsTokenCount": 2806,
+        "promptTokenCount": 833,
+        "candidatesTokenCount": 601,
+        "totalTokenCount": 4240,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 833
+          }
+        ]
+      },
+      "reasoningTokens": 2806,
+      "cachedInputTokens": 0
+    }
+  }
+}

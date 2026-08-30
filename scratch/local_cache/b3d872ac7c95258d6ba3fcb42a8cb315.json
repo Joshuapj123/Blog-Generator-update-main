@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-08-30T10:08:58.652Z",
+  "data": {
+    "object": {
+      "hasFeaturedSnippet": true,
+      "snippetType": "list",
+      "targetQuery": "AI workflow automation for small business",
+      "extractedSnippetText": "AI workflow automation for small businesses helps manage repetitive tasks like CRM, email marketing, payroll, and invoicing, saving an average of 114 hours per employee annually. It enables small teams to focus on higher-value work, reduces errors, and allows businesses to scale by automating processes in areas such as HR onboarding, project management, and time tracking.",
+      "optimizedSnippetRecommendation": "AI workflow automation for small businesses uses artificial intelligence to streamline operations and boost efficiency. Key benefits include:<ul><li><b>Automating Repetitive Tasks:</b> Handles lead sorting, invoicing, email campaigns, and data entry.</li><li><b>Saving Time & Resources:</b> Frees up employees for strategic, high-value work.</li><li><b>Reducing Errors:</b> Minimizes human mistakes in routine processes.</li><li><b>Improving Customer Experience:</b> Enables faster responses and personalized interactions.</li><li><b>Scaling Operations:</b> Allows businesses to grow without proportionally increasing headcount.</li></ul>",
+      "generationDirectives": "Place this bulleted list prominently at the beginning of the article, ideally under an H2 titled 'Key Benefits of AI Workflow Automation for Small Businesses'. Use bolding for the key phrase at the start of each bullet point. Ensure the language is clear and directly addresses the needs of small business owners."
+    },
+    "usage": {
+      "inputTokens": 1490,
+      "inputTokenDetails": {
+        "noCacheTokens": 1490,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 2713,
+      "outputTokenDetails": {
+        "textTokens": 304,
+        "reasoningTokens": 2409
+      },
+      "totalTokens": 4203,
+      "raw": {
+        "thoughtsTokenCount": 2409,
+        "promptTokenCount": 1490,
+        "candidatesTokenCount": 304,
+        "totalTokenCount": 4203,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1490
+          }
+        ]
+      },
+      "reasoningTokens": 2409,
+      "cachedInputTokens": 0
+    }
+  }
+}

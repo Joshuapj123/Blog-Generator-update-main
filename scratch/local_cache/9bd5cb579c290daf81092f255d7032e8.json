@@ -1,0 +1,223 @@
+{
+  "timestamp": "2026-08-30T10:09:16.486Z",
+  "data": {
+    "object": {
+      "headingFrequency": [
+        {
+          "heading": "What is AI/Small Business Automation?",
+          "competitorRanks": [
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "heading": "Benefits of Small Business Automation",
+          "competitorRanks": [
+            1,
+            3,
+            4
+          ]
+        },
+        {
+          "heading": "AI Automation Ideas/Examples for Small Businesses",
+          "competitorRanks": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "heading": "AI Automation Tools/Software for Small Businesses",
+          "competitorRanks": [
+            1,
+            4,
+            5
+          ]
+        },
+        {
+          "heading": "Best Practices for Implementing Automation",
+          "competitorRanks": [
+            1,
+            2,
+            5
+          ]
+        },
+        {
+          "heading": "Frequently Asked Questions (FAQ)",
+          "competitorRanks": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "heading": "How to Evaluate AI Automation Tools",
+          "competitorRanks": [
+            5
+          ]
+        },
+        {
+          "heading": "Risks/Challenges with AI Automation",
+          "competitorRanks": [
+            5
+          ]
+        }
+      ],
+      "tableDetection": {
+        "recommendedTables": [
+          {
+            "name": "AI Automation Tools Comparison Table",
+            "type": "Comparison",
+            "columns": [
+              "Tool Name",
+              "Key Features",
+              "Best For",
+              "Pricing Model",
+              "AI Capabilities"
+            ],
+            "purpose": "To help small businesses quickly compare different AI automation tools based on their features, target audience, and cost."
+          },
+          {
+            "name": "AI Workflow Automation Examples Table",
+            "type": "Examples",
+            "columns": [
+              "Business Area",
+              "Workflow Example",
+              "AI Task",
+              "Benefit for Small Business"
+            ],
+            "purpose": "To provide clear, actionable examples of how AI can automate specific workflows across various business functions."
+          }
+        ]
+      },
+      "paaClustered": [
+        {
+          "question": "What is AI workflow automation for small businesses?",
+          "frequency": 3,
+          "snippet": "AI workflow automation involves using artificial intelligence to streamline and optimize repetitive tasks and processes within a small business, leading to increased efficiency and reduced manual effort."
+        },
+        {
+          "question": "How can I automate my workflows using AI?",
+          "frequency": 4,
+          "snippet": "To automate workflows with AI, identify repetitive tasks, choose appropriate AI tools (e.g., for CRM, marketing, HR), integrate them into your existing systems, and define rules for AI to execute tasks autonomously."
+        },
+        {
+          "question": "Which AI is best for workflow automation?",
+          "frequency": 1,
+          "snippet": "The 'best' AI for workflow automation depends on specific business needs. Popular options include Zapier, HubSpot, Microsoft Copilot, and specialized tools for accounting, customer service, or marketing automation."
+        },
+        {
+          "question": "What are the benefits of AI workflow automation for small businesses?",
+          "frequency": 2,
+          "snippet": "Benefits include saving time, reducing operational costs, improving accuracy, enhancing customer experience, and enabling scalability by automating routine tasks and freeing up staff for strategic work."
+        },
+        {
+          "question": "Do I need technical skills to implement AI automation?",
+          "frequency": 1,
+          "snippet": "Many modern AI automation tools are designed to be user-friendly with low-code or no-code interfaces, making them accessible to small business owners without extensive technical skills. However, understanding your processes is key."
+        }
+      ],
+      "contentGapReport": {
+        "commonTopics": [
+          "Definition of AI Workflow Automation",
+          "Benefits of Automation for Small Businesses",
+          "Examples/Ideas of AI Workflows",
+          "AI Automation Tools and Software",
+          "Best Practices for Implementation",
+          "Frequently Asked Questions"
+        ],
+        "uniqueHeadings": [
+          "What's new: AI-powered automation in 2026",
+          "Audit before you automate",
+          "The 3-question time audit (find your biggest wins first)",
+          "How to know when an automation is failing",
+          "Real-world time and cost savings: what to expect",
+          "Why small businesses need AI automation",
+          "How Workflow Automation Works for Business Processes",
+          "Common risks SMBs face with AI automation tools",
+          "A practical framework for secure AI adoption"
+        ],
+        "missingTopics": [
+          "Measuring ROI of AI Automation",
+          "Ethical Considerations of AI in Small Business",
+          "Specific Case Studies/Success Stories",
+          "Future Trends and Predictions beyond 2026",
+          "Data Privacy and Security in AI Workflows",
+          "Integration Challenges and Solutions"
+        ],
+        "recommendedNewSections": [
+          {
+            "heading": "Measuring the ROI of AI Workflow Automation for Small Businesses",
+            "level": "H2",
+            "reason": "Competitors discuss benefits and cost savings but lack a dedicated section on how to quantify the return on investment, which is crucial for small businesses.",
+            "suggestedOutline": "Define key metrics (time saved, cost reduction, error rate reduction, customer satisfaction); explain how to track and calculate ROI; provide examples of ROI calculations."
+          },
+          {
+            "heading": "Real-World Case Studies: AI Automation in Action for Small Businesses",
+            "level": "H2",
+            "reason": "While examples are given, concrete case studies with specific business types and outcomes would provide more tangible proof and inspiration for readers.",
+            "suggestedOutline": "Present 2-3 diverse case studies (e.g., e-commerce, service-based, manufacturing) detailing the problem, AI solution implemented, and measurable results."
+          },
+          {
+            "heading": "Navigating the Challenges: Data Privacy, Security, and Integration in AI Automation",
+            "level": "H2",
+            "reason": "Competitor 5 touches on risks, but a more comprehensive section on common challenges like data privacy, security, and integration complexities, along with solutions, would be highly valuable.",
+            "suggestedOutline": "Discuss data privacy concerns (GDPR, CCPA), security best practices, common integration hurdles with existing systems, and strategies to overcome them."
+          },
+          {
+            "heading": "The Future of AI Workflow Automation for Small Businesses",
+            "level": "H2",
+            "reason": "Competitor 1 mentions '2026', but a broader look at emerging trends, future capabilities, and what small businesses can expect in the coming years would position the content as forward-thinking.",
+            "suggestedOutline": "Explore advancements in generative AI, hyperautomation, AI agents, and how these will impact small business operations."
+          }
+        ],
+        "unansweredQuestions": [
+          "How can small businesses measure the actual ROI of AI automation?",
+          "What are the ethical considerations when implementing AI in small business workflows?",
+          "What are the biggest data privacy and security concerns with AI automation tools?",
+          "How do I integrate new AI automation tools with my existing legacy systems?",
+          "What are the long-term maintenance requirements for AI-driven workflows?"
+        ],
+        "shouldIncludeFaq": true,
+        "faqQuestions": [
+          "What is AI workflow automation for small businesses?",
+          "How can small businesses implement AI workflow automation?",
+          "What are the best AI automation tools for small businesses?",
+          "What are common examples of AI workflow automation?",
+          "Do I need technical skills to automate workflows with AI?"
+        ]
+      }
+    },
+    "usage": {
+      "inputTokens": 3223,
+      "inputTokenDetails": {
+        "noCacheTokens": 3223,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 3172,
+      "outputTokenDetails": {
+        "textTokens": 1746,
+        "reasoningTokens": 1426
+      },
+      "totalTokens": 6395,
+      "raw": {
+        "thoughtsTokenCount": 1426,
+        "promptTokenCount": 3223,
+        "candidatesTokenCount": 1746,
+        "totalTokenCount": 6395,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3223
+          }
+        ]
+      },
+      "reasoningTokens": 1426,
+      "cachedInputTokens": 0
+    }
+  }
+}

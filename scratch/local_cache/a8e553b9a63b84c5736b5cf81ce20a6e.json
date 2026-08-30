@@ -1,0 +1,271 @@
+{
+  "timestamp": "2026-08-30T06:02:53.476Z",
+  "data": {
+    "object": {
+      "headingFrequency": [
+        {
+          "heading": "AI Resume Builder / Writer",
+          "competitorRanks": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "heading": "ATS Compatibility / Optimization",
+          "competitorRanks": [
+            1,
+            3
+          ]
+        },
+        {
+          "heading": "Resume Templates / Formats",
+          "competitorRanks": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "heading": "Frequently Asked Questions / FAQ",
+          "competitorRanks": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "heading": "Tools / Career Toolbox",
+          "competitorRanks": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "heading": "Pricing / Plans",
+          "competitorRanks": [
+            2,
+            3
+          ]
+        },
+        {
+          "heading": "Cover Letter Builder",
+          "competitorRanks": [
+            1,
+            2
+          ]
+        },
+        {
+          "heading": "Keyword Optimization",
+          "competitorRanks": [
+            1,
+            2
+          ]
+        },
+        {
+          "heading": "Mock Interview",
+          "competitorRanks": [
+            2,
+            3
+          ]
+        },
+        {
+          "heading": "Resume Examples",
+          "competitorRanks": [
+            1,
+            3
+          ]
+        },
+        {
+          "heading": "Resume Scoring / Review",
+          "competitorRanks": [
+            2,
+            3
+          ]
+        },
+        {
+          "heading": "Tailored Content Generation",
+          "competitorRanks": [
+            1,
+            3
+          ]
+        }
+      ],
+      "tableDetection": {
+        "recommendedTables": [
+          {
+            "name": "AI Resume Builder Comparison",
+            "type": "Comparison",
+            "columns": [
+              "Builder Name",
+              "Key Features",
+              "Pricing (Free/Paid)",
+              "ATS Optimization",
+              "Cover Letter Support",
+              "Pros",
+              "Cons"
+            ],
+            "purpose": "To help users compare different AI resume builders side-by-side and make an informed decision based on features, pricing, and specific needs."
+          }
+        ]
+      },
+      "paaClustered": [
+        {
+          "question": "Which AI resume builder is best?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Can ChatGPT create my resume?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Do employers check if a CV is AI?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Can I build my resume using AI?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Why would I use an AI resume builder?",
+          "frequency": 2,
+          "snippet": ""
+        },
+        {
+          "question": "What’s the best way to use an AI resume builder?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Will employers know I used AI to write a resume?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Can I use AI to optimize an existing resume?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Aren’t all resumes written with AI similar?",
+          "frequency": 1,
+          "snippet": ""
+        }
+      ],
+      "contentGapReport": {
+        "commonTopics": [
+          "AI Resume Builder features and benefits",
+          "ATS compatibility and optimization",
+          "Resume templates and formats",
+          "Frequently asked questions",
+          "Career tools and resources",
+          "Pricing and plans",
+          "Cover letter generation",
+          "Keyword targeting and optimization",
+          "Mock interview practice",
+          "Resume examples",
+          "Resume scoring and review",
+          "Tailored content generation"
+        ],
+        "uniqueHeadings": [
+          "Effortless translation",
+          "AI Resignation Letter Builder",
+          "Resume Mobile App",
+          "Website Builder",
+          "Resume Proofreading",
+          "Career Map",
+          "AI Skills Explorer",
+          "Linkedin Profile Importing",
+          "Version Management",
+          "Integrated Video Guides",
+          "AI Job Matching",
+          "Find real open jobs and get hired fast"
+        ],
+        "missingTopics": [
+          "A comprehensive guide on how to choose the best AI resume builder",
+          "A step-by-step process for using an AI resume builder from start to finish",
+          "A balanced discussion of the pros and cons/limitations of AI resume builders",
+          "Ethical considerations or potential downsides of relying solely on AI for resumes",
+          "A comparison between dedicated AI resume builders and general AI tools like ChatGPT for resume creation"
+        ],
+        "recommendedNewSections": [
+          {
+            "heading": "How to Choose the Best AI Resume Builder",
+            "level": "H2",
+            "reason": "Directly addresses a top PAA question ('Which AI resume builder is best?') and helps users navigate the market, providing objective value beyond promoting a single tool.",
+            "suggestedOutline": "Key features to look for; Pricing models (free vs. paid); Ease of use and interface; ATS compatibility claims; Customer support and reviews."
+          },
+          {
+            "heading": "Step-by-Step: Creating Your Resume with AI",
+            "level": "H2",
+            "reason": "Provides practical guidance for users new to AI resume builders, improving user experience and demonstrating expertise through a clear process.",
+            "suggestedOutline": "Choosing your template; Inputting your information; Leveraging AI suggestions; Optimizing for keywords; Reviewing and exporting."
+          },
+          {
+            "heading": "Pros and Cons of Using an AI Resume Builder",
+            "level": "H2",
+            "reason": "Offers a balanced perspective, building trust with the audience by acknowledging both benefits and limitations, which is often overlooked by competitors.",
+            "suggestedOutline": "Advantages (speed, optimization, templates); Disadvantages (lack of personal touch, potential for generic content, over-reliance); When to use AI vs. human review."
+          },
+          {
+            "heading": "Can Employers Detect AI-Generated Resumes?",
+            "level": "H2",
+            "reason": "Directly addresses a significant user concern and PAA question, providing reassurance or guidance on how to avoid detection issues.",
+            "suggestedOutline": "How ATS works; AI detection tools (if any); Best practices to make your AI resume sound human; Focus on personalization."
+          },
+          {
+            "heading": "AI Resume Builders vs. ChatGPT: Which is Better?",
+            "level": "H2",
+            "reason": "Directly addresses a common PAA question, clarifying the differences and use cases for each tool to help users make an informed choice.",
+            "suggestedOutline": "Key differences in functionality; Pros and cons of each approach; When to use a dedicated builder; When to use a general AI like ChatGPT."
+          }
+        ],
+        "unansweredQuestions": [
+          "Which AI resume builder is best?",
+          "Can ChatGPT create my resume?",
+          "Do employers check if a CV is AI?"
+        ],
+        "shouldIncludeFaq": true,
+        "faqQuestions": [
+          "What is an AI resume builder and why should I use one?",
+          "Which AI resume builder is best for me?",
+          "Can employers detect if I used AI to write my resume?",
+          "How does an AI resume builder compare to using ChatGPT?",
+          "Can I optimize an existing resume with an AI builder?"
+        ]
+      }
+    },
+    "usage": {
+      "inputTokens": 2868,
+      "inputTokenDetails": {
+        "noCacheTokens": 2868,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 6032,
+      "outputTokenDetails": {
+        "textTokens": 1788,
+        "reasoningTokens": 4244
+      },
+      "totalTokens": 8900,
+      "raw": {
+        "thoughtsTokenCount": 4244,
+        "promptTokenCount": 2868,
+        "candidatesTokenCount": 1788,
+        "totalTokenCount": 8900,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2868
+          }
+        ]
+      },
+      "reasoningTokens": 4244,
+      "cachedInputTokens": 0
+    }
+  }
+}

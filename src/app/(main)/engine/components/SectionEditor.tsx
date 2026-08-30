@@ -215,6 +215,27 @@ export function SectionEditor() {
   // Live Editor Updates
   useEffect(() => {
     if (engine.isRunning && engine.blueprint && (engine.blueprint as any).section_outlines) {
+      const isDefaultMetaText = (text: string, heading?: string): boolean => {
+        if (!text) return true;
+        const t = text.trim().toLowerCase();
+        const cleanT = t.endsWith('.') ? t.slice(0, -1) : t;
+
+        if (cleanT.includes("this section details key execution processes and guidelines")) return true;
+        if (cleanT.includes("key execution processes and guidelines")) return true;
+        if (cleanT.includes("factual research on")) return true;
+        if (cleanT.startsWith("factual research")) return true;
+        if (cleanT.includes("takeaway for")) return true;
+        if (cleanT.startsWith("takeaway for")) return true;
+
+        if (heading) {
+          const hNorm = heading.trim().toLowerCase();
+          const cleanHNorm = hNorm.endsWith('.') ? hNorm.slice(0, -1) : hNorm;
+          if (cleanT === `factual research on ${cleanHNorm}`) return true;
+          if (cleanT === `takeaway for ${cleanHNorm}`) return true;
+        }
+        return false;
+      };
+
       const rawMarkdown = (engine.blueprint as any).section_outlines.map((blueprintSec: any, i: number) => {
           const generatedSec = engine.sections[i];
           
@@ -225,8 +246,12 @@ export function SectionEditor() {
           
           if (generatedSec) {
             if (generatedSec.what_it_is) lines.push(generatedSec.what_it_is.replace(/\*\*(.*?)\*\*/g, '**$1**').trim() + '\n');
-            if (generatedSec.why_it_works) lines.push(generatedSec.why_it_works.replace(/\*\*(.*?)\*\*/g, '**$1**').trim() + '\n');
-            if (generatedSec.experience_or_data_point) lines.push(`> **Expert Insight:** ${generatedSec.experience_or_data_point}\n`);
+            if (generatedSec.why_it_works && !isDefaultMetaText(generatedSec.why_it_works)) {
+              lines.push(generatedSec.why_it_works.replace(/\*\*(.*?)\*\*/g, '**$1**').trim() + '\n');
+            }
+            if (generatedSec.experience_or_data_point && !isDefaultMetaText(generatedSec.experience_or_data_point, blueprintSec.heading)) {
+              lines.push(`> **Expert Insight:** ${generatedSec.experience_or_data_point}\n`);
+            }
             if (generatedSec.example_brands?.length) lines.push(`**Examples:** ${generatedSec.example_brands.join(', ')}\n`);
             if (generatedSec.takeaway) {
               // We skip adding takeaway to editor body as requested, 
@@ -266,6 +291,27 @@ export function SectionEditor() {
       (engine.blueprint as any).section_outlines && 
       finalAssemblyDoneRef.current !== (engine.currentArticleId || 'default')
     ) {
+      const isDefaultMetaText = (text: string, heading?: string): boolean => {
+        if (!text) return true;
+        const t = text.trim().toLowerCase();
+        const cleanT = t.endsWith('.') ? t.slice(0, -1) : t;
+
+        if (cleanT.includes("this section details key execution processes and guidelines")) return true;
+        if (cleanT.includes("key execution processes and guidelines")) return true;
+        if (cleanT.includes("factual research on")) return true;
+        if (cleanT.startsWith("factual research")) return true;
+        if (cleanT.includes("takeaway for")) return true;
+        if (cleanT.startsWith("takeaway for")) return true;
+
+        if (heading) {
+          const hNorm = heading.trim().toLowerCase();
+          const cleanHNorm = hNorm.endsWith('.') ? hNorm.slice(0, -1) : hNorm;
+          if (cleanT === `factual research on ${cleanHNorm}`) return true;
+          if (cleanT === `takeaway for ${cleanHNorm}`) return true;
+        }
+        return false;
+      };
+
       const rawMarkdown = (engine.blueprint as any).section_outlines.map((blueprintSec: any, i: number) => {
         const sec = engine.sections[i];
         if (!sec) return `## ${blueprintSec.heading}\n\n*Content missing.*`;
@@ -275,8 +321,12 @@ export function SectionEditor() {
         lines.push(`${level} ${sec.heading}`);
         lines.push('');
         if (sec.what_it_is) lines.push(sec.what_it_is.replace(/\*\*(.*?)\*\*/g, '**$1**').trim() + '\n');
-        if (sec.why_it_works) lines.push(sec.why_it_works.replace(/\*\*(.*?)\*\*/g, '**$1**').trim() + '\n');
-        if (sec.experience_or_data_point) lines.push(`> **Expert Insight:** ${sec.experience_or_data_point}\n`);
+        if (sec.why_it_works && !isDefaultMetaText(sec.why_it_works)) {
+          lines.push(sec.why_it_works.replace(/\*\*(.*?)\*\*/g, '**$1**').trim() + '\n');
+        }
+        if (sec.experience_or_data_point && !isDefaultMetaText(sec.experience_or_data_point, blueprintSec.heading)) {
+          lines.push(`> **Expert Insight:** ${sec.experience_or_data_point}\n`);
+        }
         if (sec.example_brands?.length) lines.push(`**Examples:** ${sec.example_brands.join(', ')}\n`);
         if (sec.takeaway) {
           // Skip takeaway in editor body

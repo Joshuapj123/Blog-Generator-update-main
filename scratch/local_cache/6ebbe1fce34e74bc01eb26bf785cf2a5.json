@@ -1,0 +1,231 @@
+{
+  "timestamp": "2026-08-30T08:00:06.670Z",
+  "data": {
+    "object": {
+      "headingFrequency": [
+        {
+          "heading": "Best Project Management Software for Small Business (List/Comparison)",
+          "competitorRanks": [
+            1,
+            3,
+            4
+          ]
+        },
+        {
+          "heading": "Free vs. Paid Project Management Software",
+          "competitorRanks": [
+            1,
+            4
+          ]
+        },
+        {
+          "heading": "How to Choose Project Management Software",
+          "competitorRanks": [
+            1
+          ]
+        },
+        {
+          "heading": "Key Features of Project Management Software",
+          "competitorRanks": [
+            1
+          ]
+        },
+        {
+          "heading": "Integrations for Project Management Software",
+          "competitorRanks": [
+            1,
+            2
+          ]
+        },
+        {
+          "heading": "Implementation and Adoption of PM Software",
+          "competitorRanks": [
+            1
+          ]
+        },
+        {
+          "heading": "Project Management Software for Specific Use Cases/Teams",
+          "competitorRanks": [
+            4
+          ]
+        },
+        {
+          "heading": "FAQ about Project Management Software",
+          "competitorRanks": [
+            1
+          ]
+        }
+      ],
+      "tableDetection": {
+        "recommendedTables": [
+          {
+            "name": "Project Management Software Comparison Table for Small Businesses",
+            "type": "Comparison",
+            "columns": [
+              "Software Name",
+              "Key Features",
+              "Pricing Model",
+              "Integrations",
+              "Best For",
+              "Pros",
+              "Cons"
+            ],
+            "purpose": "To allow small businesses to quickly compare different project management solutions based on their core needs, budget, and specific use cases."
+          },
+          {
+            "name": "Free Project Management Software Features & Limitations",
+            "type": "Features",
+            "columns": [
+              "Software Name",
+              "Free Plan Limitations",
+              "Key Free Features",
+              "Upgrade Cost (starting)"
+            ],
+            "purpose": "To help small businesses identify the best free options and understand their limitations before committing to a paid plan."
+          }
+        ]
+      },
+      "paaClustered": [
+        {
+          "question": "What are the top 5 project management software?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "What is the best free project management software?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Does Microsoft Office 365 have a project management tool?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "How quickly can a small business implement project management software?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Which project management platforms integrate with QuickBooks and accounting software?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "What separates project management from basic task management applications?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Can small teams use PM software without hiring a project manager?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "How do small businesses migrate from spreadsheets to project management platforms?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Which PM software provides the most comprehensive support for small business teams?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Will PMP be replaced by AI?",
+          "frequency": 1,
+          "snippet": ""
+        }
+      ],
+      "contentGapReport": {
+        "commonTopics": [
+          "Best Project Management Software (lists/reviews)",
+          "Free vs. Paid Project Management Software",
+          "How to Choose Project Management Software",
+          "Key Features of Project Management Software",
+          "Integrations for Project Management Software"
+        ],
+        "uniqueHeadings": [
+          "4-week implementation roadmap for small business teams",
+          "Project Management Software for Specific Use Cases/Teams (e.g., visual, spreadsheet-like, agile)",
+          "Advanced resource management",
+          "Financial tracking that connects projects to profitability"
+        ],
+        "missingTopics": [
+          "Industry-specific use cases for project management software (e.g., marketing, construction, IT services)",
+          "Detailed evaluation of customer support and training resources for small businesses",
+          "Security and data privacy considerations for PM software",
+          "Quantifying the Return on Investment (ROI) of PM software for small businesses",
+          "Common pitfalls and mistakes to avoid when selecting and implementing PM software"
+        ],
+        "recommendedNewSections": [
+          {
+            "heading": "Project Management Software for Specific Small Business Industries",
+            "level": "H2",
+            "reason": "Competitors generally list software but don't deeply explore how different industries (e.g., marketing, construction, IT, consulting) might have unique needs that specific PM tools address better. This adds practical, targeted value.",
+            "suggestedOutline": "H3: For Marketing Agencies; H3: For IT & Software Development; H3: For Consulting Firms; H3: For Creative Teams"
+          },
+          {
+            "heading": "Beyond Features: Evaluating Customer Support and Training for Small Businesses",
+            "level": "H2",
+            "reason": "Small businesses often lack dedicated IT or project management staff, making robust customer support, onboarding, and training resources critical for successful adoption and long-term use. This is a common pain point not explicitly covered.",
+            "suggestedOutline": "H3: Types of Support Available (Chat, Email, Phone); H3: Onboarding & Training Resources; H3: Community & Knowledge Base"
+          },
+          {
+            "heading": "Maximizing ROI: Measuring the Impact of PM Software on Your Small Business",
+            "level": "H2",
+            "reason": "While some competitors mention 'calculate total value,' a dedicated section on how small businesses can actually measure the return on investment (time saved, increased efficiency, better project outcomes) would be highly valuable and differentiate the content.",
+            "suggestedOutline": "H3: Key Metrics to Track; H3: Case Studies & Success Stories; H3: Long-Term Benefits"
+          },
+          {
+            "heading": "Common Pitfalls to Avoid When Choosing Project Management Software",
+            "level": "H2",
+            "reason": "Competitor 1 touches on 'avoid costly errors' but a dedicated section outlining common mistakes (e.g., over-featuring, ignoring user adoption, not planning for scalability) would help readers make informed decisions and prevent costly mistakes.",
+            "suggestedOutline": "H3: Over-Complicating Your Needs; H3: Neglecting User Adoption; H3: Underestimating Integration Requirements; H3: Ignoring Scalability"
+          }
+        ],
+        "unansweredQuestions": [
+          "What are the common pitfalls when implementing project management software in a small business?",
+          "How important is customer support for small business PM software users?",
+          "What are the security and data privacy considerations for project management software?",
+          "How can a small business measure the ROI of project management software?"
+        ],
+        "shouldIncludeFaq": true,
+        "faqQuestions": [
+          "What is the best project management software for a small business?",
+          "What are the key features a small business needs in PM software?",
+          "Is free project management software sufficient for small businesses?",
+          "How long does it take to implement project management software for a small team?",
+          "Can small teams use PM software without a dedicated project manager?"
+        ]
+      }
+    },
+    "usage": {
+      "inputTokens": 2867,
+      "inputTokenDetails": {
+        "noCacheTokens": 2867,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 6512,
+      "outputTokenDetails": {
+        "textTokens": 1749,
+        "reasoningTokens": 4763
+      },
+      "totalTokens": 9379,
+      "raw": {
+        "thoughtsTokenCount": 4763,
+        "promptTokenCount": 2867,
+        "candidatesTokenCount": 1749,
+        "totalTokenCount": 9379,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2867
+          }
+        ]
+      },
+      "reasoningTokens": 4763,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,283 @@
+{
+  "timestamp": "2026-08-30T10:07:55.954Z",
+  "data": {
+    "object": {
+      "keywords": [
+        {
+          "term": "AI workflow automation for small business",
+          "category": "basic"
+        },
+        {
+          "term": "AI automation for small business",
+          "category": "basic"
+        },
+        {
+          "term": "workflow automation for small business",
+          "category": "basic"
+        },
+        {
+          "term": "small business AI automation",
+          "category": "basic"
+        },
+        {
+          "term": "AI tools for small business automation",
+          "category": "basic"
+        },
+        {
+          "term": "small business automation",
+          "category": "basic"
+        },
+        {
+          "term": "AI for small business",
+          "category": "basic"
+        },
+        {
+          "term": "benefits of AI automation for small business",
+          "category": "basic"
+        },
+        {
+          "term": "how AI automation helps small businesses",
+          "category": "basic"
+        },
+        {
+          "term": "AI workflow automation examples for small businesses",
+          "category": "basic"
+        },
+        {
+          "term": "small business automation ideas",
+          "category": "basic"
+        },
+        {
+          "term": "AI-powered automation small business",
+          "category": "basic"
+        },
+        {
+          "term": "workflow automation tools for small business",
+          "category": "basic"
+        },
+        {
+          "term": "why small businesses need AI automation",
+          "category": "supplementary"
+        },
+        {
+          "term": "automate repetitive tasks small business",
+          "category": "supplementary"
+        },
+        {
+          "term": "streamline business processes with AI",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI automation to scale small business",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI automation to compete with big companies",
+          "category": "supplementary"
+        },
+        {
+          "term": "common automated workflows small business",
+          "category": "supplementary"
+        },
+        {
+          "term": "top workflow automation tools small business",
+          "category": "supplementary"
+        },
+        {
+          "term": "audit workflows before automation",
+          "category": "supplementary"
+        },
+        {
+          "term": "digital workflow automation",
+          "category": "supplementary"
+        },
+        {
+          "term": "business process automation for small business",
+          "category": "supplementary"
+        },
+        {
+          "term": "save time with AI automation",
+          "category": "supplementary"
+        },
+        {
+          "term": "reduce costs with AI automation",
+          "category": "supplementary"
+        },
+        {
+          "term": "enhance customer experience with AI",
+          "category": "supplementary"
+        },
+        {
+          "term": "improve accuracy and consistency with automation",
+          "category": "supplementary"
+        },
+        {
+          "term": "support scalability with AI automation",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI automation for customer service",
+          "category": "contextual"
+        },
+        {
+          "term": "personalize customer experiences with AI",
+          "category": "contextual"
+        },
+        {
+          "term": "AI for marketing campaigns and content creation",
+          "category": "contextual"
+        },
+        {
+          "term": "automate workflows to improve productivity",
+          "category": "contextual"
+        },
+        {
+          "term": "AI for data analysis and decision-making",
+          "category": "contextual"
+        },
+        {
+          "term": "CRM automation for small business",
+          "category": "contextual"
+        },
+        {
+          "term": "email marketing automation for small business",
+          "category": "contextual"
+        },
+        {
+          "term": "HR onboarding automation",
+          "category": "contextual"
+        },
+        {
+          "term": "project management automation",
+          "category": "contextual"
+        },
+        {
+          "term": "finance automation for small business",
+          "category": "contextual"
+        },
+        {
+          "term": "sales automation for small business",
+          "category": "contextual"
+        },
+        {
+          "term": "customer support automation for small business",
+          "category": "contextual"
+        },
+        {
+          "term": "no-code automation tools",
+          "category": "contextual"
+        },
+        {
+          "term": "invoice automation small business",
+          "category": "contextual"
+        },
+        {
+          "term": "payroll automation small business",
+          "category": "contextual"
+        },
+        {
+          "term": "social media automation small business",
+          "category": "contextual"
+        },
+        {
+          "term": "inventory automation small business",
+          "category": "contextual"
+        }
+      ],
+      "clusters": [
+        {
+          "clusterName": "Understanding AI Automation for Small Business",
+          "keywords": [
+            "AI workflow automation for small business",
+            "AI automation for small business",
+            "workflow automation for small business",
+            "small business AI automation",
+            "AI tools for small business automation",
+            "small business automation",
+            "AI for small business",
+            "digital workflow automation",
+            "business process automation for small business",
+            "AI-powered automation small business",
+            "why small businesses need AI automation"
+          ]
+        },
+        {
+          "clusterName": "Benefits & Strategic Impact of AI Automation",
+          "keywords": [
+            "benefits of AI automation for small business",
+            "how AI automation helps small businesses",
+            "AI automation to scale small business",
+            "AI automation to compete with big companies",
+            "save time with AI automation",
+            "reduce costs with AI automation",
+            "enhance customer experience with AI",
+            "improve accuracy and consistency with automation",
+            "support scalability with AI automation",
+            "automate workflows to improve productivity"
+          ]
+        },
+        {
+          "clusterName": "Implementing AI Automation: Examples & Tools",
+          "keywords": [
+            "AI workflow automation examples for small businesses",
+            "small business automation ideas",
+            "workflow automation tools for small business",
+            "top workflow automation tools small business",
+            "common automated workflows small business",
+            "audit workflows before automation",
+            "no-code automation tools",
+            "automate repetitive tasks small business",
+            "streamline business processes with AI"
+          ]
+        },
+        {
+          "clusterName": "AI Automation Across Business Functions",
+          "keywords": [
+            "AI automation for customer service",
+            "personalize customer experiences with AI",
+            "AI for marketing campaigns and content creation",
+            "AI for data analysis and decision-making",
+            "CRM automation for small business",
+            "email marketing automation for small business",
+            "HR onboarding automation",
+            "project management automation",
+            "finance automation for small business",
+            "sales automation for small business",
+            "customer support automation for small business",
+            "invoice automation small business",
+            "payroll automation small business",
+            "social media automation small business",
+            "inventory automation small business"
+          ]
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 1613,
+      "inputTokenDetails": {
+        "noCacheTokens": 1613,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 5192,
+      "outputTokenDetails": {
+        "textTokens": 1765,
+        "reasoningTokens": 3427
+      },
+      "totalTokens": 6805,
+      "raw": {
+        "thoughtsTokenCount": 3427,
+        "promptTokenCount": 1613,
+        "candidatesTokenCount": 1765,
+        "totalTokenCount": 6805,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1613
+          }
+        ]
+      },
+      "reasoningTokens": 3427,
+      "cachedInputTokens": 0
+    }
+  }
+}

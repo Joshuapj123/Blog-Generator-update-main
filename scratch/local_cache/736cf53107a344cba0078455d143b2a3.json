@@ -1,0 +1,249 @@
+{
+  "timestamp": "2026-08-30T06:01:29.096Z",
+  "data": {
+    "object": {
+      "keywords": [
+        {
+          "term": "AI resume builder",
+          "category": "basic"
+        },
+        {
+          "term": "best AI resume builder",
+          "category": "basic"
+        },
+        {
+          "term": "free AI resume builder",
+          "category": "basic"
+        },
+        {
+          "term": "AI CV builder",
+          "category": "basic"
+        },
+        {
+          "term": "AI resume writer",
+          "category": "basic"
+        },
+        {
+          "term": "AI-powered resume builder",
+          "category": "basic"
+        },
+        {
+          "term": "resume template",
+          "category": "basic"
+        },
+        {
+          "term": "ATS compatibility",
+          "category": "basic"
+        },
+        {
+          "term": "keyword optimization",
+          "category": "basic"
+        },
+        {
+          "term": "generate resume with AI",
+          "category": "basic"
+        },
+        {
+          "term": "ATS optimize resume",
+          "category": "basic"
+        },
+        {
+          "term": "AI keyword targeting",
+          "category": "basic"
+        },
+        {
+          "term": "score resume",
+          "category": "basic"
+        },
+        {
+          "term": "AI cover letter",
+          "category": "basic"
+        },
+        {
+          "term": "resume review",
+          "category": "basic"
+        },
+        {
+          "term": "applicant tracking system",
+          "category": "basic"
+        },
+        {
+          "term": "AI resume builder trusted by job seekers",
+          "category": "supplementary"
+        },
+        {
+          "term": "tailor resume to role",
+          "category": "supplementary"
+        },
+        {
+          "term": "resume format pass ATS",
+          "category": "supplementary"
+        },
+        {
+          "term": "improve interview rate with AI",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI write resume bullet points",
+          "category": "supplementary"
+        },
+        {
+          "term": "create resume to land dream job",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI resume agent get hired",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI tools to get hired",
+          "category": "supplementary"
+        },
+        {
+          "term": "use AI resume builder to land dream job",
+          "category": "supplementary"
+        },
+        {
+          "term": "AI resume builder for landing jobs",
+          "category": "supplementary"
+        },
+        {
+          "term": "good resume template",
+          "category": "supplementary"
+        },
+        {
+          "term": "right keywords for resume",
+          "category": "supplementary"
+        },
+        {
+          "term": "resume best practices",
+          "category": "supplementary"
+        },
+        {
+          "term": "quantify resume achievements",
+          "category": "supplementary"
+        },
+        {
+          "term": "resume content analysis",
+          "category": "supplementary"
+        },
+        {
+          "term": "modern resume templates",
+          "category": "supplementary"
+        },
+        {
+          "term": "resume formats PDF DOCX",
+          "category": "supplementary"
+        },
+        {
+          "term": "GPT-4.1",
+          "category": "contextual"
+        },
+        {
+          "term": "ATS",
+          "category": "contextual"
+        },
+        {
+          "term": "Kickresume",
+          "category": "contextual"
+        },
+        {
+          "term": "ResumeBuild",
+          "category": "contextual"
+        },
+        {
+          "term": "Rezi",
+          "category": "contextual"
+        }
+      ],
+      "clusters": [
+        {
+          "clusterName": "AI Resume Core Functionality",
+          "keywords": [
+            "AI resume builder",
+            "AI resume writer",
+            "AI-powered resume builder",
+            "generate resume with AI",
+            "AI CV builder",
+            "AI write resume bullet points",
+            "GPT-4.1"
+          ]
+        },
+        {
+          "clusterName": "Resume Optimization & ATS Compliance",
+          "keywords": [
+            "ATS compatibility",
+            "keyword optimization",
+            "ATS optimize resume",
+            "AI keyword targeting",
+            "score resume",
+            "applicant tracking system",
+            "resume format pass ATS",
+            "resume content analysis",
+            "right keywords for resume",
+            "resume review",
+            "resume best practices",
+            "quantify resume achievements",
+            "ATS"
+          ]
+        },
+        {
+          "clusterName": "Resume Templates & Supporting Documents",
+          "keywords": [
+            "resume template",
+            "good resume template",
+            "modern resume templates",
+            "resume formats PDF DOCX",
+            "AI cover letter"
+          ]
+        },
+        {
+          "clusterName": "Job Search Success & Platform Features",
+          "keywords": [
+            "best AI resume builder",
+            "free AI resume builder",
+            "AI resume builder trusted by job seekers",
+            "tailor resume to role",
+            "improve interview rate with AI",
+            "create resume to land dream job",
+            "AI resume agent get hired",
+            "AI tools to get hired",
+            "use AI resume builder to land dream job",
+            "AI resume builder for landing jobs",
+            "mock interview practice",
+            "Kickresume",
+            "ResumeBuild",
+            "Rezi"
+          ]
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 1368,
+      "inputTokenDetails": {
+        "noCacheTokens": 1368,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 7370,
+      "outputTokenDetails": {
+        "textTokens": 1395,
+        "reasoningTokens": 5975
+      },
+      "totalTokens": 8738,
+      "raw": {
+        "thoughtsTokenCount": 5975,
+        "promptTokenCount": 1368,
+        "candidatesTokenCount": 1395,
+        "totalTokenCount": 8738,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1368
+          }
+        ]
+      },
+      "reasoningTokens": 5975,
+      "cachedInputTokens": 0
+    }
+  }
+}

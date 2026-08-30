@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-08-18T17:38:16.185Z",
+  "data": {
+    "text": "**Troubleshoot Your Wifi**\n*   Check for Outages\n*   Prepare to Talk to Your ISP\n\n**How Much Speed Do You Need?**",
+    "usage": {
+      "inputTokens": 172,
+      "inputTokenDetails": {
+        "noCacheTokens": 172,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 698,
+      "outputTokenDetails": {
+        "textTokens": 33,
+        "reasoningTokens": 665
+      },
+      "totalTokens": 870,
+      "raw": {
+        "thoughtsTokenCount": 665,
+        "promptTokenCount": 172,
+        "candidatesTokenCount": 33,
+        "totalTokenCount": 870,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 172
+          }
+        ]
+      },
+      "reasoningTokens": 665,
+      "cachedInputTokens": 0
+    }
+  }
+}

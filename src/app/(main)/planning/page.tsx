@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { Loader2, Sparkles, CheckCircle2, AlertCircle, Target, Map, BookOpen, AlertTriangle, ArrowRight, Zap, Scale, LayoutDashboard, ChevronDown, ChevronUp, ClipboardList, CheckSquare, BookmarkPlus, Trash2, Plus, Link2, Pencil, Settings2 } from 'lucide-react';
+import { Loader2, Sparkles, CheckCircle2, AlertCircle, Target, Map, BookOpen, AlertTriangle, ArrowRight, Zap, Scale, LayoutDashboard, ChevronDown, ChevronUp, ClipboardList, CheckSquare, BookmarkPlus, Trash2, Plus, Link2, Pencil, Settings2, Compass } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ContentPlan, RecommendedPage, KeywordTarget, saveContentPlan, deleteContentPlan, saveArticle, Article, getContentPlans, getArticles, getExternalLinks, saveExternalLink, deleteExternalLink, ExternalLink as ExternalLinkType } from '@/lib/firebase/firestore';
 import { useRouter } from 'next/navigation';
@@ -33,7 +33,7 @@ export default function PlanningPage() {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [planTitle, setPlanTitle] = useState('Your Strategy Dashboard');
   const [expandedGoals, setExpandedGoals] = useState<Record<number, boolean>>({ 0: true }); // Expand first goal by default
-  const [activeTab, setActiveTab] = useState<'strategy' | 'planner'>('strategy');
+  const [activeTab, setActiveTab] = useState<'strategy' | 'planner' | 'saas_intel'>('strategy');
 
   const [globalReferences, setGlobalReferences] = useState<ExternalLinkType[]>([]);
   const [newRefUrl, setNewRefUrl] = useState('');
@@ -379,6 +379,12 @@ export default function PlanningPage() {
                     <Map className="w-4 h-4" /> Preferences
                   </button>
                   <button 
+                    onClick={() => setActiveTab('saas_intel')}
+                    className={`px-8 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'saas_intel' ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200/50' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'}`}
+                  >
+                    <Sparkles className="w-4 h-4" /> SaaS Intel
+                  </button>
+                  <button 
                     onClick={() => setActiveTab('planner')}
                     className={`px-8 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${activeTab === 'planner' ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200/50' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'}`}
                   >
@@ -417,7 +423,7 @@ export default function PlanningPage() {
           </div>
 
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-            {activeTab === 'strategy' ? (
+            {activeTab === 'strategy' && (
               <div className="space-y-8">
                 {/* Target Keywords Master List */}
                 <div className="p-6 rounded-xl border bg-white shadow-sm">
@@ -723,10 +729,215 @@ export default function PlanningPage() {
                           </button>
                         </div>
                       </div>
-                   </div>
+                    </div>
                 </div>
               </div>
-            ) : (
+            )}
+
+            {activeTab === 'saas_intel' && (
+              <div className="space-y-8">
+                {!plan.saasIntelligenceProfile ? (
+                  <div className="p-12 text-center border border-dashed rounded-2xl bg-white shadow-sm">
+                    <Sparkles className="w-8 h-8 text-slate-300 mx-auto mb-3" />
+                    <h3 className="font-bold text-slate-600">No SaaS Intelligence Data Available</h3>
+                    <p className="text-xs text-slate-400 mt-1">Please re-generate your strategy to build the structured SaaS Profile.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Left Column: Product & Market Profile */}
+                    <div className="lg:col-span-2 space-y-6">
+                      {/* Product Profile */}
+                      <div className="p-6 rounded-xl border bg-white shadow-sm space-y-4">
+                        <div className="pb-3 border-b flex items-center justify-between">
+                          <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                            <Sparkles className="w-5 h-5 text-indigo-500" /> SaaS Product Profile
+                          </h3>
+                          <span className="text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded border border-indigo-100">
+                            {plan.saasIntelligenceProfile.product.category}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Product Name</span>
+                            <span className="font-semibold text-slate-700">{plan.saasIntelligenceProfile.product.name}</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Website URL</span>
+                            <a href={plan.saasIntelligenceProfile.product.website} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline break-all font-semibold">
+                              {plan.saasIntelligenceProfile.product.website || 'Not specified'}
+                            </a>
+                          </div>
+                          <div className="md:col-span-2">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Positioning Statement</span>
+                            <p className="italic text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                              "{plan.saasIntelligenceProfile.market?.positioning || 'SaaS Growth Optimization Platform.'}"
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Features, Differentiators, Integrations */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                          <div>
+                            <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest block mb-2">Key Features</span>
+                            <ul className="space-y-1 text-xs">
+                              {plan.saasIntelligenceProfile.product.features?.map((f: string, i: number) => (
+                                <li key={i} className="flex items-center gap-1.5 text-slate-600">
+                                  <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full shrink-0"></div>
+                                  {f}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold text-fuchsia-600 uppercase tracking-widest block mb-2">Differentiators</span>
+                            <ul className="space-y-1 text-xs">
+                              {plan.saasIntelligenceProfile.product.differentiators?.map((d: string, i: number) => (
+                                <li key={i} className="flex items-center gap-1.5 text-slate-600">
+                                  <div className="w-1.5 h-1.5 bg-fuchsia-500 rounded-full shrink-0"></div>
+                                  {d}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest block mb-2">Integrations</span>
+                            <ul className="space-y-1 text-xs">
+                              {plan.saasIntelligenceProfile.product.integrations?.length === 0 ? (
+                                <li className="text-slate-400 italic">None specified</li>
+                              ) : (
+                                plan.saasIntelligenceProfile.product.integrations?.map((int: string, i: number) => (
+                                  <li key={i} className="flex items-center gap-1.5 text-slate-600">
+                                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full shrink-0"></div>
+                                    {int}
+                                  </li>
+                                ))
+                              )}
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Audience Profile */}
+                      <div className="p-6 rounded-xl border bg-white shadow-sm space-y-4">
+                        <div className="pb-3 border-b">
+                          <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                            <Target className="w-5 h-5 text-fuchsia-500" /> Target Audience & Pain Points
+                          </h3>
+                        </div>
+                        <div className="text-sm">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Ideal Customer Profile (ICP)</span>
+                          <p className="text-slate-600">{plan.saasIntelligenceProfile.audience.icp}</p>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Target Personas & Roles</span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {plan.saasIntelligenceProfile.audience.personas?.map((p: string, i: number) => (
+                                <span key={i} className="px-2 py-1 bg-slate-50 border rounded text-xs text-slate-600 font-medium">
+                                  {p}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Addressed Pain Points</span>
+                            <ul className="space-y-1 text-xs">
+                              {plan.saasIntelligenceProfile.audience.painPoints?.map((pp: string, i: number) => (
+                                <li key={i} className="flex items-start gap-1.5 text-slate-600">
+                                  <span className="text-red-500 mt-0.5">⚠️</span>
+                                  <span>{pp}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                        <div className="pt-2">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Jobs-To-Be-Done (JTBD)</span>
+                          <ul className="space-y-2 text-xs">
+                            {plan.saasIntelligenceProfile.audience.jtbd?.map((j: string, i: number) => (
+                              <li key={i} className="p-2.5 bg-slate-50 border border-slate-100 rounded-lg text-slate-600 italic">
+                                "{j}"
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+
+                      {/* Discovered Opportunities & Scoring */}
+                      <div className="p-6 rounded-xl border bg-white shadow-sm space-y-4">
+                        <div className="pb-3 border-b flex items-center justify-between">
+                          <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                            <Compass className="w-5 h-5 text-emerald-500" /> Discovered Search Opportunities
+                          </h3>
+                          <span className="text-xs font-bold text-slate-400 uppercase">Prioritized by Opportunity Score</span>
+                        </div>
+                        <div className="space-y-4">
+                          {plan.saasIntelligenceProfile.opportunities?.map((opp: any, i: number) => (
+                            <div key={i} className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors shadow-sm flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                              <div className="min-w-0 flex-1">
+                                <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                                  <span className="font-bold text-slate-800 text-base">{opp.keyword}</span>
+                                  <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-indigo-50 border border-indigo-100 text-indigo-700 rounded">
+                                    {opp.intent}
+                                  </span>
+                                  <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-emerald-50 border border-emerald-100 text-emerald-700 rounded">
+                                    {opp.contentType}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-slate-500 font-medium italic">"{opp.explanation}"</p>
+                                <div className="flex items-center gap-4 mt-2 text-[10px] text-slate-400 font-bold uppercase tracking-wide">
+                                  <span>Relevance: {opp.businessRelevance}/10</span>
+                                  <span>Difficulty: {opp.estimatedDifficulty}/10</span>
+                                  <span>Competitors: {opp.competitorPresence}/10</span>
+                                </div>
+                              </div>
+                              <div className="flex flex-col items-center justify-center bg-white p-3 rounded-lg border shadow-sm min-w-[70px] shrink-0">
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none">Score</span>
+                                <span className={`text-2xl font-black mt-1 ${opp.opportunityScore >= 70 ? 'text-emerald-600' : opp.opportunityScore >= 40 ? 'text-amber-500' : 'text-slate-400'}`}>
+                                  {opp.opportunityScore}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Column: Discovered Competitors */}
+                    <div className="lg:col-span-1 space-y-6">
+                      <div className="p-6 rounded-xl border bg-white shadow-sm space-y-4">
+                        <div className="pb-3 border-b">
+                          <h3 className="font-bold flex items-center gap-2 text-slate-800">
+                            <BookOpen className="w-5 h-5 text-indigo-500" /> Discovered Competitors
+                          </h3>
+                        </div>
+                        <p className="text-xs text-slate-400">Top market competitors detected based on product category SERP signals.</p>
+                        <div className="space-y-3">
+                          {plan.saasIntelligenceProfile.market.competitors?.map((comp: any, i: number) => (
+                            <div key={i} className="p-3.5 bg-slate-50 border rounded-lg hover:border-indigo-200 transition-all">
+                              <div className="flex items-center justify-between mb-1.5">
+                                <span className="font-bold text-xs text-slate-800">{comp.name}</span>
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${comp.relevanceScore >= 80 ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500'}`}>
+                                  {comp.relevanceScore}% match
+                                </span>
+                              </div>
+                              <a href={`https://${comp.domain}`} target="_blank" rel="noopener noreferrer" className="text-[10px] text-indigo-600 hover:underline block truncate font-medium mb-1">
+                                {comp.domain}
+                              </a>
+                              <p className="text-[10px] text-slate-400 font-semibold leading-relaxed">
+                                {comp.discoveryReason}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'planner' && (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Column: Playbook & Roadmap */}
                 <div className="lg:col-span-2 space-y-6">

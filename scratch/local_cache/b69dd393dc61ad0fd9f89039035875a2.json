@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-08-18T17:46:00.575Z",
+  "data": {
+    "text": "Build a B2B Lead Gen System in Under 30 Minutes (n8n Free Template)\n\nWebsite Learners\n\nWebsite Learners was created to make building websites faster and easier. Our goal with WebsiteLearners is to make your online business journey simpler and fun. With this channel, we want to make 'Learning' as simple as possible and make it easy for you to do the things you want to do online.",
+    "usage": {
+      "inputTokens": 341,
+      "inputTokenDetails": {
+        "noCacheTokens": 341,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 1307,
+      "outputTokenDetails": {
+        "textTokens": 85,
+        "reasoningTokens": 1222
+      },
+      "totalTokens": 1648,
+      "raw": {
+        "thoughtsTokenCount": 1222,
+        "promptTokenCount": 341,
+        "candidatesTokenCount": 85,
+        "totalTokenCount": 1648,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 341
+          }
+        ]
+      },
+      "reasoningTokens": 1222,
+      "cachedInputTokens": 0
+    }
+  }
+}

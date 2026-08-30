@@ -1,0 +1,72 @@
+{
+  "timestamp": "2026-08-30T09:30:26.712Z",
+  "data": {
+    "object": {
+      "intent": "informational",
+      "confidenceScore": 95,
+      "intentConfidence": {
+        "informational": 90,
+        "commercial": 8,
+        "transactional": 2,
+        "comparison": 0
+      },
+      "formatRecommendation": "Comprehensive Guide or Definitive Guide, potentially incorporating elements of a listicle for best practices or steps.",
+      "toneGuidelines": "Authoritative, helpful, practical, and expert. The content should provide clear explanations and actionable advice.",
+      "structureGuidelines": "Use clear H2s for main topics and H3s for sub-topics. Include definitions, real-world examples, and actionable steps. Consider a table of contents for long-form content and incorporate checklists or templates where appropriate.",
+      "recommendedOutlineSections": [
+        {
+          "heading": "What is a SaaS Customer Onboarding Strategy?",
+          "level": "H2",
+          "purpose": "To define the core concept, explain its components, and set the foundational understanding for the reader."
+        },
+        {
+          "heading": "Why a Strong SaaS Onboarding Strategy is Crucial for Success",
+          "level": "H2",
+          "purpose": "To highlight the importance and benefits of an effective strategy, such as reducing churn, increasing product adoption, and improving customer lifetime value."
+        },
+        {
+          "heading": "Key SaaS Customer Onboarding Models and Approaches",
+          "level": "H2",
+          "purpose": "To detail different strategic models (e.g., high-touch, low-touch, tech-touch, hybrid) with examples to provide practical options for implementation."
+        },
+        {
+          "heading": "Best Practices for Developing and Implementing Your Strategy",
+          "level": "H2",
+          "purpose": "To offer actionable advice, tips, and a step-by-step guide for creating and executing an effective customer onboarding process."
+        },
+        {
+          "heading": "Measuring the Success of Your Onboarding Strategy",
+          "level": "H2",
+          "purpose": "To guide readers on how to track key performance indicators (KPIs) and evaluate the effectiveness of their implemented onboarding strategies."
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 1127,
+      "inputTokenDetails": {
+        "noCacheTokens": 1127,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 1941,
+      "outputTokenDetails": {
+        "textTokens": 496,
+        "reasoningTokens": 1445
+      },
+      "totalTokens": 3068,
+      "raw": {
+        "thoughtsTokenCount": 1445,
+        "promptTokenCount": 1127,
+        "candidatesTokenCount": 496,
+        "totalTokenCount": 3068,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1127
+          }
+        ]
+      },
+      "reasoningTokens": 1445,
+      "cachedInputTokens": 0
+    }
+  }
+}

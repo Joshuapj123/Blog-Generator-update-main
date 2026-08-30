@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-08-30T06:15:39.417Z",
+  "data": {
+    "text": "Resume.ai – AI Resume Builder\n\n*   No data shared with third parties. Learn more about how developers declare sharing.\n*   This app may collect these data types: Personal info, Photos and videos, and 3 others.\n*   Data is encrypted in transit.\n*   You can request that data be deleted.",
+    "usage": {
+      "inputTokens": 273,
+      "inputTokenDetails": {
+        "noCacheTokens": 273,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 508,
+      "outputTokenDetails": {
+        "textTokens": 68,
+        "reasoningTokens": 440
+      },
+      "totalTokens": 781,
+      "raw": {
+        "thoughtsTokenCount": 440,
+        "promptTokenCount": 273,
+        "candidatesTokenCount": 68,
+        "totalTokenCount": 781,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 273
+          }
+        ]
+      },
+      "reasoningTokens": 440,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-08-27T16:59:22.520Z",
+  "data": {
+    "text": "You now have access to all our free tools to make your work simpler. Join over 1 million users.\n\n### PDF Tools\n\n**Featured Tools**\n*   Edit PDF: Free PDF Editor\n*   PDF to Word: Convert a PDF to Word Document\n*   JPG to PDF: Upload images and receive as a PDF\n*   Merge PDF: Merge 2 or more PDF files into a single PDF file\n\n**Other PDF Tools**\n*   Create PDF\n*   PDF to JPG\n*   Compress PDF\n*   Word to PDF\n*   Split into one or multiple PDF files\n*   Remove Password\n*   PDF Translator\n*   eSign\n*   Convert Excel to PDF\n\n### Image Tools\n\n**AI Tools**\n*   Background Remover: Easily Remove the Background from an image\n*   Restore Photos\n*   Profile Photo Maker\n*   Remove Person from Photo\n*   Extract Text From Image\n*   AI Image Generator\n*   Remove Objects Photo\n\n**Featured Tools**\n*   Resize Dimensions: Resize your image\n*   Compress: Compress your image\n*   Increase Image Resolution: increase the resolution of your image\n\n### Free AI Writing Tools - No Sign-Up, No Limit\n\n*   Easily create an essay with AI\n*   Easily fix the grammar in a block of text\n*   Create an article from a title\n*   Use the AI Humanizer to makes AI text sound more human\n*   Tone of Voice Tool\n*   Generate a YouTube script\n*   Generate instagram caption for your post\n*   Explain it like i’m five\n*   AI SEO Optimized Article Generator\n*   Rewrite your article title\n*   Generate linkedin post for your profile\n*   AI SEO Post Generator\n*   Generate a business name for your idea\n*   Write Blog Post Ideas\n*   Generate business plan for you\n*   Write cold email for you\n*   Generate a meta description for your article\n*   Generate Real Estate Descriptions for your\n*   Generate a blog post\n*   Generate a simple content plan\n*   Generator content brief for your article title\n*   Generate business slogan for you\n*   Generate instagram story ideas for you\n*   Generate facebook ad headlines for your company\n*   Generate a press release\n*   Generate FAQ for a blog\n*   Rephrase a blog post\n*   Generate landing page copy\n*   Generate bill of sale for your\n*   Generate purchase agreement for your\n*   Generate NDA for your\n*   Generate privacy policy for your\n\n### Video & Audio Tools\n\n*   Lessen the file size of a Video file\n*   Upload an MP4 and convert to animated GIF\n*   Select a start and stop of a video and download the trimmed video\n*   Convert MP4 to MP3 audio\n\n### Other Conversion & Utility Tools\n\n*   Split into one or multiple Excel files\n*   Convert XML to Excel\n*   Convert Excel to XML\n*   Convert CSV to Excel\n*   Convert XML to CSV\n*   Convert XML to JSON\n*   Count words in your text\n\nUpgrade to Premium for: unlimited access to 250+ productivity tools with advanced AI models and more!",
+    "usage": {
+      "inputTokens": 1497,
+      "inputTokenDetails": {
+        "noCacheTokens": 1497,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 4989,
+      "outputTokenDetails": {
+        "textTokens": 669,
+        "reasoningTokens": 4320
+      },
+      "totalTokens": 6486,
+      "raw": {
+        "thoughtsTokenCount": 4320,
+        "promptTokenCount": 1497,
+        "candidatesTokenCount": 669,
+        "totalTokenCount": 6486,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1497
+          }
+        ]
+      },
+      "reasoningTokens": 4320,
+      "cachedInputTokens": 0
+    }
+  }
+}

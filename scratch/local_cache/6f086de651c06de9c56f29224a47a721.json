@@ -1,0 +1,335 @@
+{
+  "timestamp": "2026-08-26T10:55:58.028Z",
+  "data": {
+    "object": {
+      "entities": [
+        {
+          "name": "Jasper AI",
+          "type": "tool"
+        },
+        {
+          "name": "Copy.ai",
+          "type": "tool"
+        },
+        {
+          "name": "Writesonic",
+          "type": "tool"
+        },
+        {
+          "name": "Rytr",
+          "type": "tool"
+        },
+        {
+          "name": "Frase",
+          "type": "tool"
+        },
+        {
+          "name": "Surfer SEO",
+          "type": "tool"
+        },
+        {
+          "name": "ChatGPT",
+          "type": "tool"
+        },
+        {
+          "name": "Writer",
+          "type": "tool"
+        },
+        {
+          "name": "Sight AI",
+          "type": "tool"
+        },
+        {
+          "name": "Content at Scale",
+          "type": "tool"
+        },
+        {
+          "name": "Scalenut",
+          "type": "tool"
+        },
+        {
+          "name": "B2B SaaS",
+          "type": "concept"
+        },
+        {
+          "name": "SEO",
+          "type": "concept"
+        },
+        {
+          "name": "Content Generation",
+          "type": "concept"
+        },
+        {
+          "name": "Conversion Funnels",
+          "type": "concept"
+        },
+        {
+          "name": "Keywords",
+          "type": "concept"
+        },
+        {
+          "name": "Brand Voice",
+          "type": "concept"
+        },
+        {
+          "name": "SaaS Marketing Team",
+          "type": "concept"
+        },
+        {
+          "name": "AI Agents",
+          "type": "software"
+        },
+        {
+          "name": "Growth KPIs",
+          "type": "concept"
+        },
+        {
+          "name": "Sales Teams",
+          "type": "concept"
+        },
+        {
+          "name": "Customer Success Experts",
+          "type": "concept"
+        },
+        {
+          "name": "Pain Point SEO",
+          "type": "concept"
+        },
+        {
+          "name": "CMS",
+          "type": "software"
+        },
+        {
+          "name": "AI-powered discovery platforms",
+          "type": "concept"
+        },
+        {
+          "name": "LLM innovation",
+          "type": "concept"
+        },
+        {
+          "name": "Long-form blog posts",
+          "type": "concept"
+        },
+        {
+          "name": "Buyer-intent keywords",
+          "type": "concept"
+        },
+        {
+          "name": "Security posture",
+          "type": "concept"
+        },
+        {
+          "name": "Workflow integration",
+          "type": "concept"
+        }
+      ],
+      "relationships": [
+        {
+          "source": "Jasper AI",
+          "target": "Content Generation",
+          "type": "supports"
+        },
+        {
+          "source": "Copy.ai",
+          "target": "Content Generation",
+          "type": "supports"
+        },
+        {
+          "source": "Writesonic",
+          "target": "Content Generation",
+          "type": "supports"
+        },
+        {
+          "source": "Rytr",
+          "target": "Content Generation",
+          "type": "supports"
+        },
+        {
+          "source": "Frase",
+          "target": "SEO",
+          "type": "optimizes for"
+        },
+        {
+          "source": "Surfer SEO",
+          "target": "SEO",
+          "type": "optimizes for"
+        },
+        {
+          "source": "ChatGPT",
+          "target": "Content Generation",
+          "type": "enables"
+        },
+        {
+          "source": "Writer",
+          "target": "Brand Voice",
+          "type": "maintains"
+        },
+        {
+          "source": "Sight AI",
+          "target": "Content Generation",
+          "type": "provides"
+        },
+        {
+          "source": "Sight AI",
+          "target": "AI-powered discovery platforms",
+          "type": "monitors"
+        },
+        {
+          "source": "Content at Scale",
+          "target": "Content Generation",
+          "type": "specializes in"
+        },
+        {
+          "source": "Scalenut",
+          "target": "Content Generation",
+          "type": "specializes in"
+        },
+        {
+          "source": "B2B SaaS",
+          "target": "Content Generation",
+          "type": "leverages"
+        },
+        {
+          "source": "SEO",
+          "target": "Keywords",
+          "type": "leverages"
+        },
+        {
+          "source": "Content Generation",
+          "target": "Conversion Funnels",
+          "type": "drives"
+        },
+        {
+          "source": "Content Generation",
+          "target": "Growth KPIs",
+          "type": "impacts"
+        },
+        {
+          "source": "Content Generation",
+          "target": "Long-form blog posts",
+          "type": "produces"
+        },
+        {
+          "source": "Content Generation",
+          "target": "Brand Voice",
+          "type": "requires"
+        },
+        {
+          "source": "SaaS Marketing Team",
+          "target": "Content Generation",
+          "type": "leverages"
+        },
+        {
+          "source": "AI Agents",
+          "target": "Content Generation",
+          "type": "automate"
+        },
+        {
+          "source": "Growth KPIs",
+          "target": "Sales Teams",
+          "type": "inform"
+        },
+        {
+          "source": "Pain Point SEO",
+          "target": "Buyer-intent keywords",
+          "type": "targets"
+        },
+        {
+          "source": "CMS",
+          "target": "Long-form blog posts",
+          "type": "publishes"
+        },
+        {
+          "source": "AI-powered discovery platforms",
+          "target": "SEO",
+          "type": "impacts"
+        },
+        {
+          "source": "LLM innovation",
+          "target": "Jasper AI",
+          "type": "advances"
+        },
+        {
+          "source": "Writer",
+          "target": "AI Agents",
+          "type": "employs"
+        },
+        {
+          "source": "Writer",
+          "target": "Security posture",
+          "type": "integrates with"
+        },
+        {
+          "source": "Pain Point SEO",
+          "target": "B2B SaaS",
+          "type": "benefits"
+        },
+        {
+          "source": "Workflow integration",
+          "target": "Jasper AI",
+          "type": "is crucial for"
+        },
+        {
+          "source": "Long-form blog posts",
+          "target": "Buyer-intent keywords",
+          "type": "rank for"
+        },
+        {
+          "source": "Security posture",
+          "target": "Jasper AI",
+          "type": "is critical for"
+        },
+        {
+          "source": "Customer Success Experts",
+          "target": "Content Generation",
+          "type": "provide insights for"
+        },
+        {
+          "source": "Sales Teams",
+          "target": "Content Generation",
+          "type": "utilize"
+        }
+      ],
+      "recommendedConnections": [
+        "Workflow integration -> SaaS Marketing Team",
+        "Content Generation -> Growth KPIs",
+        "Brand Voice -> AI Agents",
+        "SEO -> AI-powered discovery platforms",
+        "Security posture -> Jasper AI",
+        "B2B SaaS -> Content Generation",
+        "Buyer-intent keywords -> Conversion Funnels",
+        "Customer Success Experts -> Pain Point SEO",
+        "LLM innovation -> Content Generation",
+        "Sales Teams -> Growth KPIs"
+      ]
+    },
+    "usage": {
+      "inputTokens": 2257,
+      "inputTokenDetails": {
+        "noCacheTokens": 2257,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 9536,
+      "outputTokenDetails": {
+        "textTokens": 1948,
+        "reasoningTokens": 7588
+      },
+      "totalTokens": 11793,
+      "raw": {
+        "thoughtsTokenCount": 7588,
+        "promptTokenCount": 2257,
+        "candidatesTokenCount": 1948,
+        "totalTokenCount": 11793,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2257
+          }
+        ]
+      },
+      "reasoningTokens": 7588,
+      "cachedInputTokens": 0
+    }
+  }
+}

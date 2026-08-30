@@ -1,0 +1,62 @@
+{
+  "timestamp": "2026-08-26T10:55:45.969Z",
+  "data": {
+    "object": {
+      "intent": "commercial",
+      "confidenceScore": 95,
+      "intentConfidence": {
+        "informational": 7,
+        "commercial": 55,
+        "transactional": 3,
+        "comparison": 35
+      },
+      "formatRecommendation": "A comprehensive listicle or 'best of' guide comparing multiple AI content writing tools specifically tailored for SaaS companies. Include a quick comparison table.",
+      "toneGuidelines": "Authoritative, objective, helpful, and analytical. Focus on providing value to SaaS professionals looking to optimize their content strategy. Maintain a professional yet engaging voice.",
+      "structureGuidelines": "Start with an introduction that highlights the importance of AI content tools for SaaS. Include a methodology section to build trust. Feature a quick comparison table of the top tools. Dedicate detailed sections to each recommended tool, covering features, pros, cons, pricing, and ideal use cases for SaaS. Conclude with a guide on how to choose the best tool and a summary of key takeaways.",
+      "recommendedOutlineSections": [
+        {
+          "heading": "Best AI Content Writing Tools for SaaS: An Overview",
+          "level": "H2",
+          "purpose": "To immediately satisfy the commercial and comparison intent by presenting a summary of the top tools and their primary benefits for SaaS."
+        },
+        {
+          "heading": "In-Depth Reviews: Features, Pricing, and Use Cases for SaaS",
+          "level": "H2",
+          "purpose": "To provide detailed analysis of each recommended tool, addressing specific features, advantages, disadvantages, and how they cater to the unique needs of SaaS content creation, fulfilling commercial and comparison intent."
+        },
+        {
+          "heading": "How to Choose the Right AI Content Tool for Your SaaS Business",
+          "level": "H2",
+          "purpose": "To guide the user through the decision-making process, offering criteria and considerations to help them select the most suitable tool based on their specific requirements, reinforcing commercial intent."
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 1004,
+      "inputTokenDetails": {
+        "noCacheTokens": 1004,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 2045,
+      "outputTokenDetails": {
+        "textTokens": 446,
+        "reasoningTokens": 1599
+      },
+      "totalTokens": 3049,
+      "raw": {
+        "thoughtsTokenCount": 1599,
+        "promptTokenCount": 1004,
+        "candidatesTokenCount": 446,
+        "totalTokenCount": 3049,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1004
+          }
+        ]
+      },
+      "reasoningTokens": 1599,
+      "cachedInputTokens": 0
+    }
+  }
+}

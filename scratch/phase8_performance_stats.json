@@ -1,0 +1,99 @@
+{
+  "totalDurationMs": 177086,
+  "successCount": 10,
+  "failureCount": 0,
+  "avgDurationMs": 17708.4,
+  "maxDurationMs": 71312,
+  "runs": [
+    {
+      "keyword": "SEO topical map",
+      "status": "SUCCESS",
+      "durationMs": 71312,
+      "llmCalls": 3,
+      "searchCalls": 1,
+      "scrapeCalls": 3,
+      "errors": []
+    },
+    {
+      "keyword": "SaaS CRM workflows",
+      "status": "SUCCESS",
+      "durationMs": 42280,
+      "llmCalls": 3,
+      "searchCalls": 1,
+      "scrapeCalls": 3,
+      "errors": []
+    },
+    {
+      "keyword": "HubSpot vs ClickUp",
+      "status": "SUCCESS",
+      "durationMs": 60494,
+      "llmCalls": 3,
+      "searchCalls": 1,
+      "scrapeCalls": 3,
+      "errors": []
+    },
+    {
+      "keyword": "Salesforce lead score",
+      "status": "SUCCESS",
+      "durationMs": 491,
+      "llmCalls": 3,
+      "searchCalls": 1,
+      "scrapeCalls": 1,
+      "errors": []
+    },
+    {
+      "keyword": "B2B organic traffic",
+      "status": "SUCCESS",
+      "durationMs": 289,
+      "llmCalls": 3,
+      "searchCalls": 1,
+      "scrapeCalls": 1,
+      "errors": []
+    },
+    {
+      "keyword": "Content brief builder",
+      "status": "SUCCESS",
+      "durationMs": 633,
+      "llmCalls": 3,
+      "searchCalls": 1,
+      "scrapeCalls": 1,
+      "errors": []
+    },
+    {
+      "keyword": "AI copyeditor tips",
+      "status": "SUCCESS",
+      "durationMs": 325,
+      "llmCalls": 3,
+      "searchCalls": 1,
+      "scrapeCalls": 1,
+      "errors": []
+    },
+    {
+      "keyword": "Search intent analysis",
+      "status": "SUCCESS",
+      "durationMs": 430,
+      "llmCalls": 3,
+      "searchCalls": 1,
+      "scrapeCalls": 1,
+      "errors": []
+    },
+    {
+      "keyword": "SEO content gaps",
+      "status": "SUCCESS",
+      "durationMs": 462,
+      "llmCalls": 3,
+      "searchCalls": 1,
+      "scrapeCalls": 1,
+      "errors": []
+    },
+    {
+      "keyword": "SaaS marketing funnel",
+      "status": "SUCCESS",
+      "durationMs": 368,
+      "llmCalls": 3,
+      "searchCalls": 1,
+      "scrapeCalls": 1,
+      "errors": []
+    }
+  ]
+}

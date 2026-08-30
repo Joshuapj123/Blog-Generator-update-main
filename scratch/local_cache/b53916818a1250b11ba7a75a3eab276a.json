@@ -1,0 +1,286 @@
+{
+  "timestamp": "2026-08-26T11:00:09.931Z",
+  "data": {
+    "object": {
+      "headingFrequency": [
+        {
+          "heading": "Best AI Content Writing Tools for SaaS",
+          "competitorRanks": [
+            1,
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "heading": "Specific AI Tool Reviews (e.g., Jasper, Copy.ai, Writesonic)",
+          "competitorRanks": [
+            1,
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "heading": "How to Choose the Right AI Content Tool",
+          "competitorRanks": [
+            1,
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "heading": "Pricing Comparison",
+          "competitorRanks": [
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "heading": "Matching AI Tools to Funnel Stages/Use Cases",
+          "competitorRanks": [
+            1,
+            2
+          ]
+        },
+        {
+          "heading": "Common Mistakes When Choosing AI Content Software",
+          "competitorRanks": [
+            2,
+            3
+          ]
+        },
+        {
+          "heading": "AI Content Workflow for SaaS",
+          "competitorRanks": [
+            1
+          ]
+        },
+        {
+          "heading": "Gaps AI Can't Fill / Human Strategy",
+          "competitorRanks": [
+            1
+          ]
+        },
+        {
+          "heading": "Frequently Asked Questions (FAQ)",
+          "competitorRanks": [
+            1,
+            2,
+            3,
+            5
+          ]
+        },
+        {
+          "heading": "SEO-First Features / Rankability",
+          "competitorRanks": [
+            1
+          ]
+        },
+        {
+          "heading": "Integration-Ready",
+          "competitorRanks": [
+            1
+          ]
+        },
+        {
+          "heading": "Content Quality",
+          "competitorRanks": [
+            1
+          ]
+        },
+        {
+          "heading": "Scalability",
+          "competitorRanks": [
+            1
+          ]
+        },
+        {
+          "heading": "Value vs. Cost",
+          "competitorRanks": [
+            1
+          ]
+        },
+        {
+          "heading": "AI Search Visibility / GEO Optimization",
+          "competitorRanks": [
+            2,
+            5
+          ]
+        }
+      ],
+      "tableDetection": {
+        "recommendedTables": [
+          {
+            "name": "AI Content Writing Tools for SaaS Comparison Table",
+            "type": "Comparison",
+            "columns": [
+              "Tool Name",
+              "Best For",
+              "Key Features",
+              "Pricing (Starting)",
+              "Pros",
+              "Cons"
+            ],
+            "purpose": "To allow users to quickly compare features, pricing, and ideal use cases for various AI content writing tools tailored for SaaS."
+          },
+          {
+            "name": "AI Content Tool Pricing Table",
+            "type": "Pricing",
+            "columns": [
+              "Tool Name",
+              "Free Plan",
+              "Starter Price",
+              "Team/Enterprise Price",
+              "Key Differentiator"
+            ],
+            "purpose": "To provide a clear overview of the cost structure for different AI content tools, helping SaaS teams make budget-conscious decisions."
+          },
+          {
+            "name": "AI Content Tool Features by SaaS Funnel Stage",
+            "type": "Features",
+            "columns": [
+              "Tool Name",
+              "TOFU (Blogs/Awareness)",
+              "MOFU (Guides/Leads)",
+              "BOFU (Product Pages/Conversions)",
+              "Social Media/Ads"
+            ],
+            "purpose": "To help SaaS operators identify tools best suited for specific stages of their marketing funnel or content types."
+          }
+        ]
+      },
+      "paaClustered": [
+        {
+          "question": "Which AI tool is best for SaaS content writing?",
+          "frequency": 3,
+          "snippet": "Many AI tools cater to SaaS, with Jasper, Copy.ai, and Writesonic frequently cited for their capabilities in generating various content types, from long-form blogs to ad copy."
+        },
+        {
+          "question": "Can AI content rank on Google for SaaS keywords?",
+          "frequency": 2,
+          "snippet": "Yes, AI-generated content can rank on Google, especially when optimized for SEO, fact-checked, and refined by human editors to ensure quality and unique insights relevant to SaaS audiences."
+        },
+        {
+          "question": "Do AI content writing tools replace human writers in SaaS marketing?",
+          "frequency": 2,
+          "snippet": "AI tools are powerful assistants that automate parts of the content creation process, but they do not fully replace human writers. Human strategy, unique insights, and brand voice remain crucial for high-quality SaaS marketing."
+        },
+        {
+          "question": "What are the key features to look for in an AI content writer for SaaS?",
+          "frequency": 1,
+          "snippet": "Key features include SEO optimization capabilities, integration with existing tech stacks, high content quality, scalability for multi-channel use, and strong brand voice control."
+        },
+        {
+          "question": "What is the cheapest AI writing tool for SaaS startups?",
+          "frequency": 1,
+          "snippet": "Rytr and Writesonic are often recommended as budget-friendly options for startups and solopreneurs looking for cost-effective AI content generation."
+        },
+        {
+          "question": "How do I use AI for blog writing without sounding generic?",
+          "frequency": 1,
+          "snippet": "To avoid generic AI content, focus on providing detailed prompts, incorporating unique data and insights, and heavily editing/refining the AI output to infuse human expertise and brand voice."
+        },
+        {
+          "question": "What is AI search visibility and GEO content optimization?",
+          "frequency": 1,
+          "snippet": "AI search visibility refers to optimizing content for AI-powered search experiences (like LLMs and answer engines), while GEO content optimization involves tailoring content for specific geographic audiences or local search intent."
+        }
+      ],
+      "contentGapReport": {
+        "commonTopics": [
+          "Best AI Content Writing Tools for SaaS",
+          "Individual Tool Reviews (Jasper, Copy.ai, Writesonic, Rytr, Frase, Anyword, Writer, Surfer SEO)",
+          "How to Choose an AI Content Tool",
+          "Pricing Comparison of AI Tools",
+          "FAQ about AI Content Tools"
+        ],
+        "uniqueHeadings": [
+          "The Gaps AI Can’t Fill in SaaS Marketing (and Why Human Strategy Still Matters)",
+          "How to Build an AI Content Workflow for SaaS (7 Steps)",
+          "The SaaS Operator’s Checklist for Choosing the Right AI Content & SEO Tool",
+          "Matching AI Tools to SaaS Funnel Stages: TOFU, MOFU, BOFU, and Beyond",
+          "AI search visibility and GEO coverage",
+          "Recommended tool stacks",
+          "Which AI Content Tool Should You Avoid?"
+        ],
+        "missingTopics": [
+          "Future trends in AI content for SaaS (beyond 2026)",
+          "Ethical considerations of using AI for SaaS content",
+          "Case studies or examples of successful AI content implementation in SaaS",
+          "Integration challenges and solutions for AI tools in SaaS tech stacks",
+          "Measuring ROI and performance of AI-generated content for SaaS"
+        ],
+        "recommendedNewSections": [
+          {
+            "heading": "Building an Effective AI Content Workflow for SaaS",
+            "level": "H2",
+            "reason": "Competitor 1 covers this, indicating its importance for practical implementation. This provides actionable advice beyond just tool selection.",
+            "suggestedOutline": "Outline a step-by-step process for integrating AI into a SaaS content strategy, from brief creation to optimization and measurement. Include tips for prompt engineering and human oversight."
+          },
+          {
+            "heading": "The Human Element: Where AI Falls Short in SaaS Content",
+            "level": "H2",
+            "reason": "Competitor 1 touches on this, highlighting a crucial nuanced perspective. This addresses concerns about AI replacing humans and emphasizes strategic value.",
+            "suggestedOutline": "Discuss the limitations of AI in generating truly unique insights, brand voice, and strategic thinking. Emphasize the irreplaceable role of human creativity, empathy, and strategic direction in SaaS marketing."
+          },
+          {
+            "heading": "Measuring the ROI of AI Content for SaaS",
+            "level": "H2",
+            "reason": "This is a critical business concern for SaaS companies that is not explicitly covered by competitors. It adds a strong value proposition.",
+            "suggestedOutline": "Explain how SaaS companies can track the performance of AI-generated content, including metrics like organic traffic, conversions, time saved, and cost efficiency. Provide frameworks for calculating ROI."
+          },
+          {
+            "heading": "Advanced Features: AI Content Tools for Enterprise SaaS",
+            "level": "H2",
+            "reason": "While some competitors mention 'Writer' for enterprise, a dedicated section on enterprise-level features and considerations would be valuable for larger SaaS companies.",
+            "suggestedOutline": "Explore features like advanced governance, brand voice control, team collaboration, security, and integrations that are crucial for large SaaS enterprises. Highlight tools that excel in these areas."
+          }
+        ],
+        "unansweredQuestions": [
+          "What are the best practices for prompt engineering when using AI for SaaS content?",
+          "How do AI content tools handle different content formats (e.g., whitepapers, email sequences, landing pages) specifically for SaaS?",
+          "What are the legal or ethical implications of using AI-generated content in a regulated SaaS industry?",
+          "How can AI content tools help with content localization for global SaaS markets?"
+        ],
+        "shouldIncludeFaq": true,
+        "faqQuestions": [
+          "Which AI tool is best for SaaS content writing?",
+          "Can AI-generated content rank on Google for SaaS keywords?",
+          "Do AI content writing tools replace human writers in SaaS marketing?",
+          "What are the key features to look for in an AI content writer for SaaS?",
+          "What is the cheapest AI writing tool for SaaS startups?"
+        ]
+      }
+    },
+    "usage": {
+      "inputTokens": 3995,
+      "inputTokenDetails": {
+        "noCacheTokens": 3995,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 65166,
+      "outputTokenDetails": {
+        "textTokens": 2253,
+        "reasoningTokens": 62913
+      },
+      "totalTokens": 69161,
+      "raw": {
+        "thoughtsTokenCount": 62913,
+        "promptTokenCount": 3995,
+        "candidatesTokenCount": 2253,
+        "totalTokenCount": 69161,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3995
+          }
+        ]
+      },
+      "reasoningTokens": 62913,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-08-19T13:30:52.260Z",
+  "data": {
+    "text": "HubSpot vs ClickUp (I Found the Best One for YOU)",
+    "usage": {
+      "inputTokens": 209,
+      "inputTokenDetails": {
+        "noCacheTokens": 209,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 538,
+      "outputTokenDetails": {
+        "textTokens": 14,
+        "reasoningTokens": 524
+      },
+      "totalTokens": 747,
+      "raw": {
+        "thoughtsTokenCount": 524,
+        "promptTokenCount": 209,
+        "candidatesTokenCount": 14,
+        "totalTokenCount": 747,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 209
+          }
+        ]
+      },
+      "reasoningTokens": 524,
+      "cachedInputTokens": 0
+    }
+  }
+}

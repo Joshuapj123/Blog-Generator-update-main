@@ -1,0 +1,67 @@
+{
+  "timestamp": "2026-08-23T06:52:57.046Z",
+  "data": {
+    "object": {
+      "intent": "informational",
+      "confidenceScore": 95,
+      "intentConfidence": {
+        "informational": 90,
+        "commercial": 5,
+        "transactional": 0,
+        "comparison": 5
+      },
+      "formatRecommendation": "A comprehensive guide or in-depth article that defines, explains the importance of, and provides actionable strategies for building topical authority.",
+      "toneGuidelines": "Educational, authoritative, and helpful. The tone should be professional yet accessible, providing clear explanations and practical advice without being overly academic.",
+      "structureGuidelines": "The content should follow a logical progression, starting with a clear definition, moving to its importance, and then detailing actionable strategies. Utilize clear H2 and H3 subheadings, bullet points, and numbered lists to enhance readability and break down complex information. Include an introduction that hooks the reader and a conclusion that summarizes key takeaways.",
+      "recommendedOutlineSections": [
+        {
+          "heading": "What is Topical Authority?",
+          "level": "H2",
+          "purpose": "To provide a clear and concise definition of topical authority, establishing foundational understanding for the reader."
+        },
+        {
+          "heading": "Why Topical Authority Matters for SEO and User Trust",
+          "level": "H2",
+          "purpose": "To explain the benefits and significance of developing topical authority, linking it to improved search rankings, user engagement, and overall online credibility."
+        },
+        {
+          "heading": "Strategies to Build Strong Topical Authority",
+          "level": "H2",
+          "purpose": "To offer actionable, step-by-step methods and best practices for readers to implement and cultivate topical authority for their own websites and content."
+        },
+        {
+          "heading": "Topical Authority vs. Related SEO Concepts",
+          "level": "H2",
+          "purpose": "To clarify common misconceptions by differentiating topical authority from similar concepts like domain authority or keyword research, providing a more nuanced understanding."
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 713,
+      "inputTokenDetails": {
+        "noCacheTokens": 713,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 1898,
+      "outputTokenDetails": {
+        "textTokens": 449,
+        "reasoningTokens": 1449
+      },
+      "totalTokens": 2611,
+      "raw": {
+        "thoughtsTokenCount": 1449,
+        "promptTokenCount": 713,
+        "candidatesTokenCount": 449,
+        "totalTokenCount": 2611,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 713
+          }
+        ]
+      },
+      "reasoningTokens": 1449,
+      "cachedInputTokens": 0
+    }
+  }
+}

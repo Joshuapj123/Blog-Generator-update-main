@@ -1,0 +1,272 @@
+{
+  "timestamp": "2026-08-23T06:53:25.423Z",
+  "data": {
+    "object": {
+      "headingFrequency": [
+        {
+          "heading": "What is Topical Authority?",
+          "competitorRanks": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "heading": "Why Topical Authority Matters",
+          "competitorRanks": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "heading": "How to Build Topical Authority",
+          "competitorRanks": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "heading": "How Search Engines Measure Topical Authority",
+          "competitorRanks": [
+            1,
+            2
+          ]
+        },
+        {
+          "heading": "Measuring and Tracking Topical Authority",
+          "competitorRanks": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "heading": "Topic Clusters and Pillar Pages",
+          "competitorRanks": [
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "heading": "Topical Authority vs. Domain Authority",
+          "competitorRanks": [
+            3
+          ]
+        },
+        {
+          "heading": "Topical Authority and AI Search / LLMs",
+          "competitorRanks": [
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "heading": "Keyword Research for Topical Authority",
+          "competitorRanks": [
+            1,
+            2
+          ]
+        },
+        {
+          "heading": "Link Building for Topical Authority",
+          "competitorRanks": [
+            1,
+            2
+          ]
+        },
+        {
+          "heading": "Frequently Asked Questions about Topical Authority",
+          "competitorRanks": [
+            2
+          ]
+        }
+      ],
+      "tableDetection": {
+        "recommendedTables": [
+          {
+            "name": "Topical Authority vs. Domain Authority Comparison",
+            "type": "Comparison",
+            "columns": [
+              "Feature",
+              "Topical Authority",
+              "Domain Authority"
+            ],
+            "purpose": "To clearly differentiate between topical authority and domain authority, helping users understand their distinct roles in SEO."
+          },
+          {
+            "name": "Steps to Build Topical Authority",
+            "type": "Process/Steps",
+            "columns": [
+              "Step",
+              "Description",
+              "Key Actions"
+            ],
+            "purpose": "To provide a concise, actionable summary of the process for building topical authority, making it easy for readers to follow."
+          },
+          {
+            "name": "Tools for Measuring Topical Authority",
+            "type": "Comparison/Features",
+            "columns": [
+              "Tool Name",
+              "Key Features",
+              "How it Helps with TA"
+            ],
+            "purpose": "To list and compare specific tools that can assist in analyzing and tracking topical authority, offering practical resources to the reader."
+          }
+        ]
+      },
+      "paaClustered": [
+        {
+          "question": "What does \"topical authority\" mean?",
+          "frequency": 2,
+          "snippet": ""
+        },
+        {
+          "question": "What is a topical authority strategy and how does it work?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "How to build topical authority?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "How long does it take to build topical authority?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "How many articles do you need to build topical authority?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Can a new site build topical authority?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Is topical authority the same as domain authority or does it replace backlinks?",
+          "frequency": 2,
+          "snippet": ""
+        },
+        {
+          "question": "How does topical authority impact AI search visibility?",
+          "frequency": 2,
+          "snippet": ""
+        },
+        {
+          "question": "How do I find my domain authority?",
+          "frequency": 1,
+          "snippet": ""
+        }
+      ],
+      "contentGapReport": {
+        "commonTopics": [
+          "What is Topical Authority?",
+          "Why Topical Authority Matters",
+          "How to Build Topical Authority",
+          "How Search Engines Measure Topical Authority",
+          "Measuring and Tracking Topical Authority",
+          "Topic Clusters and Pillar Pages",
+          "Topical Authority and AI Search / LLMs",
+          "Keyword Research for Topical Authority",
+          "Link Building for Topical Authority"
+        ],
+        "uniqueHeadings": [
+          "It Can Reduce Marketing Spend",
+          "Keeping your content fresh and your clusters complete",
+          "Topical Authority Is the New Keyword Research",
+          "More on Understanding User Intent",
+          "Conclusion: Topical Authority = A Better Internet",
+          "Does topical authority replace the need for backlinks?",
+          "How long does it take to build topical authority?",
+          "How many articles do you need?",
+          "Can a new site build topical authority?"
+        ],
+        "missingTopics": [
+          "Specific tools for measuring topical authority (beyond general categories)",
+          "Real-world case studies or examples of successful topical authority implementation",
+          "Common pitfalls or mistakes to avoid when building topical authority",
+          "The explicit connection between Topical Authority and E-E-A-T (Expertise, Experience, Authoritativeness, Trustworthiness)",
+          "Detailed steps for auditing existing content for topical gaps"
+        ],
+        "recommendedNewSections": [
+          {
+            "heading": "Topical Authority and E-E-A-T: Building Holistic Authority",
+            "level": "H2",
+            "reason": "This is a crucial, modern SEO concept that ties directly into authority. Competitors do not explicitly cover this connection, offering a unique value proposition.",
+            "suggestedOutline": "Explain E-E-A-T, how topical authority contributes to each component (Expertise, Experience, Authoritativeness, Trustworthiness), and practical tips for demonstrating E-E-A-T through content strategy."
+          },
+          {
+            "heading": "Case Studies: Real-World Examples of Topical Authority Success",
+            "level": "H2",
+            "reason": "Provides practical, tangible evidence and inspiration for readers, which is often missing in theoretical articles. This helps solidify understanding and demonstrate impact.",
+            "suggestedOutline": "Include 2-3 brief case studies (hypothetical or real if possible) showing how a site built topical authority, the strategies employed, and the results achieved (e.g., traffic growth, ranking improvements)."
+          },
+          {
+            "heading": "Common Mistakes to Avoid When Building Topical Authority",
+            "level": "H2",
+            "reason": "Helps readers prevent common pitfalls, adding practical value and demonstrating expertise by guiding them away from ineffective strategies.",
+            "suggestedOutline": "Discuss mistakes like keyword stuffing, neglecting internal linking, not updating content, focusing on too many topics at once, or failing to understand user intent. Provide solutions for each."
+          },
+          {
+            "heading": "Tools to Measure and Monitor Your Topical Authority",
+            "level": "H2",
+            "reason": "While some competitors mention tools generally, a dedicated section with specific tool recommendations and how to use them would be highly valuable and actionable for readers.",
+            "suggestedOutline": "List specific SEO tools (e.g., Semrush, Ahrefs, MarketMuse, Clearscope) and explain how each can be used to analyze content gaps, track keyword rankings, monitor backlinks, and ultimately assess topical authority."
+          }
+        ],
+        "unansweredQuestions": [
+          "How do I find my domain authority?",
+          "What are the best tools to measure topical authority?",
+          "What are common mistakes when building topical authority?",
+          "How does topical authority impact E-E-A-T?"
+        ],
+        "shouldIncludeFaq": true,
+        "faqQuestions": [
+          "What is topical authority and why does it matter?",
+          "How do you build topical authority?",
+          "How long does it take to build topical authority?",
+          "Does topical authority replace backlinks or domain authority?",
+          "How does topical authority relate to AI search?"
+        ]
+      }
+    },
+    "usage": {
+      "inputTokens": 1740,
+      "inputTokenDetails": {
+        "noCacheTokens": 1740,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 5685,
+      "outputTokenDetails": {
+        "textTokens": 1893,
+        "reasoningTokens": 3792
+      },
+      "totalTokens": 7425,
+      "raw": {
+        "thoughtsTokenCount": 3792,
+        "promptTokenCount": 1740,
+        "candidatesTokenCount": 1893,
+        "totalTokenCount": 7425,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1740
+          }
+        ]
+      },
+      "reasoningTokens": 3792,
+      "cachedInputTokens": 0
+    }
+  }
+}

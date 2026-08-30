@@ -1,0 +1,259 @@
+{
+  "timestamp": "2026-08-23T06:52:25.002Z",
+  "data": {
+    "object": {
+      "keywords": [
+        {
+          "term": "topical authority",
+          "category": "basic"
+        },
+        {
+          "term": "what is topical authority",
+          "category": "basic"
+        },
+        {
+          "term": "how to build topical authority",
+          "category": "basic"
+        },
+        {
+          "term": "why topical authority matters",
+          "category": "basic"
+        },
+        {
+          "term": "topical authority SEO",
+          "category": "basic"
+        },
+        {
+          "term": "topic clusters",
+          "category": "basic"
+        },
+        {
+          "term": "topic-based keyword research",
+          "category": "basic"
+        },
+        {
+          "term": "improve search engine rankings",
+          "category": "basic"
+        },
+        {
+          "term": "SEO strategy",
+          "category": "basic"
+        },
+        {
+          "term": "content gaps",
+          "category": "basic"
+        },
+        {
+          "term": "authority content",
+          "category": "basic"
+        },
+        {
+          "term": "pillar pages",
+          "category": "basic"
+        },
+        {
+          "term": "how Google measures topical authority",
+          "category": "supplementary"
+        },
+        {
+          "term": "how topical authority influences AI search",
+          "category": "supplementary"
+        },
+        {
+          "term": "building topical authority for long-term SEO success",
+          "category": "supplementary"
+        },
+        {
+          "term": "how to optimize for topical authority",
+          "category": "supplementary"
+        },
+        {
+          "term": "how search engines prioritize sites with topical authority",
+          "category": "supplementary"
+        },
+        {
+          "term": "strategies for building topical relevance",
+          "category": "supplementary"
+        },
+        {
+          "term": "implement a topic cluster architecture",
+          "category": "supplementary"
+        },
+        {
+          "term": "track topical authority over time",
+          "category": "supplementary"
+        },
+        {
+          "term": "why does topical authority matter in SEO",
+          "category": "supplementary"
+        },
+        {
+          "term": "topical authority impacts natural language processing",
+          "category": "supplementary"
+        },
+        {
+          "term": "website expertise and credibility",
+          "category": "supplementary"
+        },
+        {
+          "term": "establish expertise and credibility",
+          "category": "supplementary"
+        },
+        {
+          "term": "earning audience trust",
+          "category": "supplementary"
+        },
+        {
+          "term": "natural link building",
+          "category": "supplementary"
+        },
+        {
+          "term": "comprehensive content",
+          "category": "supplementary"
+        },
+        {
+          "term": "content quality and relevance",
+          "category": "supplementary"
+        },
+        {
+          "term": "depth of expertise",
+          "category": "supplementary"
+        },
+        {
+          "term": "user intent",
+          "category": "supplementary"
+        },
+        {
+          "term": "search engine trust",
+          "category": "supplementary"
+        },
+        {
+          "term": "drive more traffic",
+          "category": "supplementary"
+        },
+        {
+          "term": "Google AI overviews",
+          "category": "contextual"
+        },
+        {
+          "term": "LLMs (Large Language Models)",
+          "category": "contextual"
+        },
+        {
+          "term": "Natural Language Processing",
+          "category": "contextual"
+        },
+        {
+          "term": "Google algorithm updates",
+          "category": "contextual"
+        },
+        {
+          "term": "domain authority",
+          "category": "contextual"
+        },
+        {
+          "term": "internal links",
+          "category": "contextual"
+        },
+        {
+          "term": "external links",
+          "category": "contextual"
+        },
+        {
+          "term": "MarketMuse",
+          "category": "contextual"
+        }
+      ],
+      "clusters": [
+        {
+          "clusterName": "Understanding Topical Authority",
+          "keywords": [
+            "topical authority",
+            "what is topical authority",
+            "why topical authority matters",
+            "topical authority SEO",
+            "website expertise and credibility",
+            "establish expertise and credibility",
+            "depth of expertise",
+            "search engine trust",
+            "why does topical authority matter in SEO",
+            "domain authority"
+          ]
+        },
+        {
+          "clusterName": "Building & Implementing Topical Authority",
+          "keywords": [
+            "how to build topical authority",
+            "topic clusters",
+            "topic-based keyword research",
+            "authority content",
+            "pillar pages",
+            "implement a topic cluster architecture",
+            "strategies for building topical relevance",
+            "comprehensive content",
+            "content quality and relevance",
+            "natural link building",
+            "internal links",
+            "external links",
+            "building topical authority for long-term SEO success",
+            "how to optimize for topical authority"
+          ]
+        },
+        {
+          "clusterName": "Impact & Measurement of Topical Authority",
+          "keywords": [
+            "how Google measures topical authority",
+            "improve search engine rankings",
+            "SEO strategy",
+            "content gaps",
+            "measure topical authority",
+            "how search engines prioritize sites with topical authority",
+            "track topical authority over time",
+            "earning audience trust",
+            "drive more traffic"
+          ]
+        },
+        {
+          "clusterName": "Advanced & Related Concepts",
+          "keywords": [
+            "how topical authority influences AI search",
+            "Google AI overviews",
+            "LLMs (Large Language Models)",
+            "Natural Language Processing",
+            "Google algorithm updates",
+            "user intent",
+            "topical authority impacts natural language processing",
+            "MarketMuse"
+          ]
+        }
+      ]
+    },
+    "usage": {
+      "inputTokens": 1549,
+      "inputTokenDetails": {
+        "noCacheTokens": 1549,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 4986,
+      "outputTokenDetails": {
+        "textTokens": 1484,
+        "reasoningTokens": 3502
+      },
+      "totalTokens": 6535,
+      "raw": {
+        "thoughtsTokenCount": 3502,
+        "promptTokenCount": 1549,
+        "candidatesTokenCount": 1484,
+        "totalTokenCount": 6535,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1549
+          }
+        ]
+      },
+      "reasoningTokens": 3502,
+      "cachedInputTokens": 0
+    }
+  }
+}

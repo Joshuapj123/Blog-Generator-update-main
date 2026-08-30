@@ -1,0 +1,409 @@
+{
+  "timestamp": "2026-08-30T11:59:32.057Z",
+  "data": {
+    "object": {
+      "entities": [
+        {
+          "name": "IrisAgent",
+          "type": "brand"
+        },
+        {
+          "name": "SiliconFlow",
+          "type": "brand"
+        },
+        {
+          "name": "Zendesk",
+          "type": "brand"
+        },
+        {
+          "name": "HappyFox",
+          "type": "brand"
+        },
+        {
+          "name": "Freshdesk",
+          "type": "brand"
+        },
+        {
+          "name": "Intercom",
+          "type": "brand"
+        },
+        {
+          "name": "Zoho",
+          "type": "brand"
+        },
+        {
+          "name": "Tidio",
+          "type": "brand"
+        },
+        {
+          "name": "AI Customer Support",
+          "type": "software"
+        },
+        {
+          "name": "Helpdesk",
+          "type": "software"
+        },
+        {
+          "name": "AI Chatbots",
+          "type": "software"
+        },
+        {
+          "name": "AI-Powered Ticket Triage",
+          "type": "software"
+        },
+        {
+          "name": "AI Knowledge Base",
+          "type": "software"
+        },
+        {
+          "name": "CRM",
+          "type": "software"
+        },
+        {
+          "name": "Machine Learning (ML)",
+          "type": "software"
+        },
+        {
+          "name": "Natural Language Processing (NLP)",
+          "type": "software"
+        },
+        {
+          "name": "Predictive Analytics",
+          "type": "software"
+        },
+        {
+          "name": "Generative AI",
+          "type": "software"
+        },
+        {
+          "name": "Onboarding",
+          "type": "concept"
+        },
+        {
+          "name": "Churn",
+          "type": "concept"
+        },
+        {
+          "name": "Lifetime Value",
+          "type": "concept"
+        },
+        {
+          "name": "Resolution rate",
+          "type": "concept"
+        },
+        {
+          "name": "Customer support automation",
+          "type": "concept"
+        },
+        {
+          "name": "Customer journey",
+          "type": "concept"
+        },
+        {
+          "name": "Customer experience",
+          "type": "concept"
+        },
+        {
+          "name": "Revenue",
+          "type": "concept"
+        },
+        {
+          "name": "Customer success",
+          "type": "concept"
+        },
+        {
+          "name": "Support workflows",
+          "type": "concept"
+        },
+        {
+          "name": "Personalised support",
+          "type": "concept"
+        },
+        {
+          "name": "Human touch",
+          "type": "concept"
+        },
+        {
+          "name": "Self-Service Support",
+          "type": "concept"
+        },
+        {
+          "name": "Operational efficiency",
+          "type": "concept"
+        },
+        {
+          "name": "Response times",
+          "type": "concept"
+        }
+      ],
+      "relationships": [
+        {
+          "source": "AI Customer Support",
+          "target": "Customer support automation",
+          "type": "enables"
+        },
+        {
+          "source": "AI Customer Support",
+          "target": "Customer experience",
+          "type": "improves"
+        },
+        {
+          "source": "AI Customer Support",
+          "target": "Churn",
+          "type": "reduces"
+        },
+        {
+          "source": "AI Customer Support",
+          "target": "Lifetime Value",
+          "type": "increases"
+        },
+        {
+          "source": "AI Customer Support",
+          "target": "Helpdesk",
+          "type": "integrates with"
+        },
+        {
+          "source": "AI Customer Support",
+          "target": "Machine Learning (ML)",
+          "type": "leverages"
+        },
+        {
+          "source": "AI Customer Support",
+          "target": "Natural Language Processing (NLP)",
+          "type": "leverages"
+        },
+        {
+          "source": "AI Customer Support",
+          "target": "Predictive Analytics",
+          "type": "leverages"
+        },
+        {
+          "source": "AI Customer Support",
+          "target": "Generative AI",
+          "type": "leverages"
+        },
+        {
+          "source": "AI Customer Support",
+          "target": "Personalised support",
+          "type": "enables"
+        },
+        {
+          "source": "AI Customer Support",
+          "target": "Resolution rate",
+          "type": "improves"
+        },
+        {
+          "source": "AI Customer Support",
+          "target": "Response times",
+          "type": "improves"
+        },
+        {
+          "source": "AI Customer Support",
+          "target": "Support workflows",
+          "type": "enhances"
+        },
+        {
+          "source": "AI Customer Support",
+          "target": "Operational efficiency",
+          "type": "contributes to"
+        },
+        {
+          "source": "AI Customer Support",
+          "target": "Revenue",
+          "type": "drives"
+        },
+        {
+          "source": "AI Customer Support",
+          "target": "Customer success",
+          "type": "supports"
+        },
+        {
+          "source": "AI Customer Support",
+          "target": "Human touch",
+          "type": "complements"
+        },
+        {
+          "source": "AI Customer Support",
+          "target": "Self-Service Support",
+          "type": "powers"
+        },
+        {
+          "source": "AI Chatbots",
+          "target": "AI Customer Support",
+          "type": "are part of"
+        },
+        {
+          "source": "AI-Powered Ticket Triage",
+          "target": "AI Customer Support",
+          "type": "is part of"
+        },
+        {
+          "source": "AI Knowledge Base",
+          "target": "AI Customer Support",
+          "type": "is part of"
+        },
+        {
+          "source": "CRM",
+          "target": "AI Customer Support",
+          "type": "integrates with"
+        },
+        {
+          "source": "IrisAgent",
+          "target": "AI Customer Support",
+          "type": "provides"
+        },
+        {
+          "source": "SiliconFlow",
+          "target": "AI Customer Support",
+          "type": "provides"
+        },
+        {
+          "source": "Zendesk",
+          "target": "AI Customer Support",
+          "type": "provides"
+        },
+        {
+          "source": "HappyFox",
+          "target": "AI Customer Support",
+          "type": "provides"
+        },
+        {
+          "source": "Freshdesk",
+          "target": "AI Customer Support",
+          "type": "provides"
+        },
+        {
+          "source": "Intercom",
+          "target": "AI Customer Support",
+          "type": "provides"
+        },
+        {
+          "source": "Zoho",
+          "target": "AI Customer Support",
+          "type": "provides"
+        },
+        {
+          "source": "Tidio",
+          "target": "AI Customer Support",
+          "type": "provides"
+        },
+        {
+          "source": "Customer support automation",
+          "target": "Operational efficiency",
+          "type": "improves"
+        },
+        {
+          "source": "Customer support automation",
+          "target": "Response times",
+          "type": "improves"
+        },
+        {
+          "source": "Customer support automation",
+          "target": "Personalised support",
+          "type": "enables"
+        },
+        {
+          "source": "Customer support automation",
+          "target": "Churn",
+          "type": "reduces"
+        },
+        {
+          "source": "Customer support automation",
+          "target": "Customer experience",
+          "type": "enhances"
+        },
+        {
+          "source": "Customer support automation",
+          "target": "Customer success",
+          "type": "supports"
+        },
+        {
+          "source": "Self-Service Support",
+          "target": "Customer experience",
+          "type": "improves"
+        },
+        {
+          "source": "Human touch",
+          "target": "Customer experience",
+          "type": "is essential for"
+        },
+        {
+          "source": "Onboarding",
+          "target": "Customer journey",
+          "type": "is part of"
+        },
+        {
+          "source": "Customer experience",
+          "target": "Revenue",
+          "type": "impacts"
+        },
+        {
+          "source": "Customer success",
+          "target": "Revenue",
+          "type": "drives"
+        },
+        {
+          "source": "Customer success",
+          "target": "Lifetime Value",
+          "type": "improves"
+        },
+        {
+          "source": "Support workflows",
+          "target": "Response times",
+          "type": "impacts"
+        },
+        {
+          "source": "Support workflows",
+          "target": "Operational efficiency",
+          "type": "impacts"
+        },
+        {
+          "source": "Personalised support",
+          "target": "Customer experience",
+          "type": "improves"
+        }
+      ],
+      "recommendedConnections": [
+        "AI Customer Support -> Revenue",
+        "AI Customer Support -> Customer success",
+        "AI Customer Support -> Human touch",
+        "AI Customer Support -> Onboarding",
+        "AI Customer Support -> Churn",
+        "AI Customer Support -> Lifetime Value",
+        "AI Customer Support -> Operational efficiency",
+        "AI Customer Support -> Personalised support",
+        "AI Customer Support -> Resolution rate",
+        "CRM -> AI Customer Support",
+        "AI Knowledge Base -> Self-Service Support",
+        "Machine Learning (ML) -> Predictive Analytics"
+      ]
+    },
+    "usage": {
+      "inputTokens": 2646,
+      "inputTokenDetails": {
+        "noCacheTokens": 2646,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 7911,
+      "outputTokenDetails": {
+        "textTokens": 2470,
+        "reasoningTokens": 5441
+      },
+      "totalTokens": 10557,
+      "raw": {
+        "thoughtsTokenCount": 5441,
+        "promptTokenCount": 2646,
+        "candidatesTokenCount": 2470,
+        "totalTokenCount": 10557,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2646
+          }
+        ]
+      },
+      "reasoningTokens": 5441,
+      "cachedInputTokens": 0
+    }
+  }
+}

@@ -1,0 +1,72 @@
+[
+  {
+    "title": "How to Build Topical Authority in SEO",
+    "status": "FAILED",
+    "durationMs": 29646,
+    "wordCount": 0,
+    "sectionsCount": 0,
+    "seoScore": 0,
+    "llmCalls": 0,
+    "searchCalls": 0,
+    "scrapeCalls": 0,
+    "errors": [
+      "Orchestration execution failed: [Orchestrator Budget Exceeded] Scrape calls limit exceeded: 3 > 1"
+    ]
+  },
+  {
+    "title": "Best SaaS Content Strategy Tools",
+    "status": "FAILED",
+    "durationMs": 28388,
+    "wordCount": 0,
+    "sectionsCount": 0,
+    "seoScore": 0,
+    "llmCalls": 0,
+    "searchCalls": 0,
+    "scrapeCalls": 0,
+    "errors": [
+      "Orchestration execution failed: [Orchestrator Budget Exceeded] Scrape calls limit exceeded: 3 > 1"
+    ]
+  },
+  {
+    "title": "HubSpot vs Salesforce Pricing Comparison",
+    "status": "FAILED",
+    "durationMs": 43561,
+    "wordCount": 0,
+    "sectionsCount": 0,
+    "seoScore": 0,
+    "llmCalls": 0,
+    "searchCalls": 0,
+    "scrapeCalls": 0,
+    "errors": [
+      "Orchestration execution failed: [Orchestrator Budget Exceeded] Scrape calls limit exceeded: 3 > 1"
+    ]
+  },
+  {
+    "title": "ClickUp Alternatives for Development Teams",
+    "status": "FAILED",
+    "durationMs": 32641,
+    "wordCount": 0,
+    "sectionsCount": 0,
+    "seoScore": 0,
+    "llmCalls": 0,
+    "searchCalls": 0,
+    "scrapeCalls": 0,
+    "errors": [
+      "Orchestration execution failed: [Orchestrator Budget Exceeded] Scrape calls limit exceeded: 3 > 1"
+    ]
+  },
+  {
+    "title": "B2B Lead Generation Automation Workflow",
+    "status": "FAILED",
+    "durationMs": 31165,
+    "wordCount": 0,
+    "sectionsCount": 0,
+    "seoScore": 0,
+    "llmCalls": 0,
+    "searchCalls": 0,
+    "scrapeCalls": 0,
+    "errors": [
+      "Orchestration execution failed: [Orchestrator Budget Exceeded] Scrape calls limit exceeded: 3 > 1"
+    ]
+  }
+]

@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-08-30T05:58:25.370Z",
+  "data": {
+    "text": "Sorry, you have been blocked\nYou are unable to access tealhq.com\n\nWhy have I been blocked?\nThis website is using a security service to protect itself from online attacks. The action you just performed triggered the security solution. There are several actions that could trigger this block including submitting a certain word or phrase, a SQL command or malformed data.\n\nWhat can I do to resolve this?\nYou can email the site owner to let them know you were blocked. Please include what you were doing when this page came up and the Cloudflare Ray ID found at the bottom of this page.\n\nCloudflare Ray ID: a3318f3159493984\nYour IP: 2401:4900:1cd1:ac15:adac:e3e1:8d8:d231",
+    "usage": {
+      "inputTokens": 328,
+      "inputTokenDetails": {
+        "noCacheTokens": 328,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 816,
+      "outputTokenDetails": {
+        "textTokens": 183,
+        "reasoningTokens": 633
+      },
+      "totalTokens": 1144,
+      "raw": {
+        "thoughtsTokenCount": 633,
+        "promptTokenCount": 328,
+        "candidatesTokenCount": 183,
+        "totalTokenCount": 1144,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 328
+          }
+        ]
+      },
+      "reasoningTokens": 633,
+      "cachedInputTokens": 0
+    }
+  }
+}

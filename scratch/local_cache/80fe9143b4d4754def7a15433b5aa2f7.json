@@ -1,0 +1,323 @@
+{
+  "timestamp": "2026-08-23T06:52:45.610Z",
+  "data": {
+    "object": {
+      "entities": [
+        {
+          "name": "Topical Authority",
+          "type": "concept"
+        },
+        {
+          "name": "Website",
+          "type": "concept"
+        },
+        {
+          "name": "Content",
+          "type": "concept"
+        },
+        {
+          "name": "Search Engine Rankings",
+          "type": "concept"
+        },
+        {
+          "name": "SEO",
+          "type": "concept"
+        },
+        {
+          "name": "Google",
+          "type": "brand"
+        },
+        {
+          "name": "Search Engines",
+          "type": "concept"
+        },
+        {
+          "name": "SERPs",
+          "type": "concept"
+        },
+        {
+          "name": "Brand",
+          "type": "concept"
+        },
+        {
+          "name": "Amazon",
+          "type": "brand"
+        },
+        {
+          "name": "Shopify",
+          "type": "brand"
+        },
+        {
+          "name": "Ecommerce",
+          "type": "concept"
+        },
+        {
+          "name": "Rankings",
+          "type": "concept"
+        },
+        {
+          "name": "AI Search Results",
+          "type": "concept"
+        },
+        {
+          "name": "Algorithm Updates",
+          "type": "concept"
+        },
+        {
+          "name": "E-E-A-T",
+          "type": "concept"
+        },
+        {
+          "name": "Expertise",
+          "type": "concept"
+        },
+        {
+          "name": "Authoritativeness",
+          "type": "concept"
+        },
+        {
+          "name": "Trustworthiness",
+          "type": "concept"
+        },
+        {
+          "name": "Pillar Pages",
+          "type": "concept"
+        },
+        {
+          "name": "Cluster Content",
+          "type": "concept"
+        },
+        {
+          "name": "Internal Links",
+          "type": "concept"
+        },
+        {
+          "name": "Domain Authority",
+          "type": "concept"
+        },
+        {
+          "name": "Ahrefs",
+          "type": "tool"
+        },
+        {
+          "name": "Backlinks",
+          "type": "concept"
+        },
+        {
+          "name": "Keyword Research",
+          "type": "concept"
+        },
+        {
+          "name": "Content Strategy",
+          "type": "concept"
+        },
+        {
+          "name": "Topic Clustering",
+          "type": "concept"
+        },
+        {
+          "name": "Traffic",
+          "type": "concept"
+        },
+        {
+          "name": "Google AI Overviews",
+          "type": "concept"
+        }
+      ],
+      "relationships": [
+        {
+          "source": "Topical Authority",
+          "target": "Website",
+          "type": "refers to expertise of"
+        },
+        {
+          "source": "Topical Authority",
+          "target": "Content",
+          "type": "built through"
+        },
+        {
+          "source": "Content",
+          "target": "Search Engine Rankings",
+          "type": "improves"
+        },
+        {
+          "source": "Content",
+          "target": "SEO",
+          "type": "is fundamental to"
+        },
+        {
+          "source": "Topical Authority",
+          "target": "SEO",
+          "type": "improves performance in"
+        },
+        {
+          "source": "Google",
+          "target": "Search Engines",
+          "type": "is a type of"
+        },
+        {
+          "source": "Google",
+          "target": "SERPs",
+          "type": "ranks in"
+        },
+        {
+          "source": "Topical Authority",
+          "target": "Brand",
+          "type": "builds confidence in"
+        },
+        {
+          "source": "Topical Authority",
+          "target": "Search Engines",
+          "type": "builds trust with"
+        },
+        {
+          "source": "Amazon",
+          "target": "Ecommerce",
+          "type": "demonstrates authority in"
+        },
+        {
+          "source": "Shopify",
+          "target": "Ecommerce",
+          "type": "demonstrates authority in"
+        },
+        {
+          "source": "Topical Authority",
+          "target": "Rankings",
+          "type": "improves"
+        },
+        {
+          "source": "Topical Authority",
+          "target": "AI Search Results",
+          "type": "improves visibility in"
+        },
+        {
+          "source": "Topical Authority",
+          "target": "Algorithm Updates",
+          "type": "provides resilience against"
+        },
+        {
+          "source": "Topical Authority",
+          "target": "E-E-A-T",
+          "type": "is closely tied to"
+        },
+        {
+          "source": "E-E-A-T",
+          "target": "Expertise",
+          "type": "evaluates"
+        },
+        {
+          "source": "E-E-A-T",
+          "target": "Authoritativeness",
+          "type": "evaluates"
+        },
+        {
+          "source": "E-E-A-T",
+          "target": "Trustworthiness",
+          "type": "evaluates"
+        },
+        {
+          "source": "Pillar Pages",
+          "target": "Topic Clustering",
+          "type": "are a strategy for"
+        },
+        {
+          "source": "Cluster Content",
+          "target": "Topic Clustering",
+          "type": "is a strategy for"
+        },
+        {
+          "source": "Internal Links",
+          "target": "Content",
+          "type": "connects"
+        },
+        {
+          "source": "Internal Links",
+          "target": "Topic Clustering",
+          "type": "are essential for"
+        },
+        {
+          "source": "Topical Authority",
+          "target": "Domain Authority",
+          "type": "is distinct from"
+        },
+        {
+          "source": "Domain Authority",
+          "target": "Backlinks",
+          "type": "measures strength from"
+        },
+        {
+          "source": "Ahrefs",
+          "target": "Domain Authority",
+          "type": "measures"
+        },
+        {
+          "source": "Keyword Research",
+          "target": "Content Strategy",
+          "type": "informs"
+        },
+        {
+          "source": "Topical Authority",
+          "target": "Content Strategy",
+          "type": "adapts"
+        },
+        {
+          "source": "Topical Authority",
+          "target": "Traffic",
+          "type": "drives"
+        },
+        {
+          "source": "Google AI Overviews",
+          "target": "Search Algorithms",
+          "type": "influences"
+        },
+        {
+          "source": "Search Algorithms",
+          "target": "Content",
+          "type": "evaluate"
+        },
+        {
+          "source": "Topic Clustering",
+          "target": "Topical Authority",
+          "type": "achieves"
+        }
+      ],
+      "recommendedConnections": [
+        "Topical Authority -> E-E-A-T (is a specific application of)",
+        "Pillar Pages -> Cluster Content (organizes)",
+        "Internal Links -> Content (establishes relationships between)",
+        "Topical Authority -> Google AI Overviews (influences visibility in)",
+        "Content Strategy -> Topic Clustering (implements)",
+        "SEO -> Search Engine Rankings (aims to improve)",
+        "Domain Authority -> Backlinks (is measured by)",
+        "Topical Authority -> User Trust (builds)"
+      ]
+    },
+    "usage": {
+      "inputTokens": 1481,
+      "inputTokenDetails": {
+        "noCacheTokens": 1481,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 5952,
+      "outputTokenDetails": {
+        "textTokens": 1215,
+        "reasoningTokens": 4737
+      },
+      "totalTokens": 7433,
+      "raw": {
+        "thoughtsTokenCount": 4737,
+        "promptTokenCount": 1481,
+        "candidatesTokenCount": 1215,
+        "totalTokenCount": 7433,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1481
+          }
+        ]
+      },
+      "reasoningTokens": 4737,
+      "cachedInputTokens": 0
+    }
+  }
+}

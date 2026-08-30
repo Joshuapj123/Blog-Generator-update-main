@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-08-22T18:43:49.735Z",
+  "data": {
+    "text": "Example Domain. This domain is for use in documentation examples without needing permission. Avoid use in operations.",
+    "usage": {
+      "inputTokens": 129,
+      "inputTokenDetails": {
+        "noCacheTokens": 129,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 807,
+      "outputTokenDetails": {
+        "textTokens": 20,
+        "reasoningTokens": 787
+      },
+      "totalTokens": 936,
+      "raw": {
+        "thoughtsTokenCount": 787,
+        "promptTokenCount": 129,
+        "candidatesTokenCount": 20,
+        "totalTokenCount": 936,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 129
+          }
+        ]
+      },
+      "reasoningTokens": 787,
+      "cachedInputTokens": 0
+    }
+  }
+}

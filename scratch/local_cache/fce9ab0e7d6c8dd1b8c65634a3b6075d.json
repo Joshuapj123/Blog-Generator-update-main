@@ -1,0 +1,34 @@
+{
+  "timestamp": "2026-08-30T09:29:11.930Z",
+  "data": {
+    "url": "https://www.gainsight.com/glossary/entry/customer-onboarding/",
+    "title": "Customer Onboarding | Gainsight",
+    "wordCount": 536,
+    "h2Count": 3,
+    "headings": [
+      {
+        "tag": "h2",
+        "text": "Customer Success Glossary"
+      },
+      {
+        "tag": "h2",
+        "text": "What are some customer onboarding process best practices?"
+      },
+      {
+        "tag": "h2",
+        "text": "How do you measure success with your customer onboarding process?"
+      }
+    ],
+    "text": "For B2B SaaS companies, customer onboarding is a distinct and structured process that users go through as they start using a product or service to get them acquainted and comfortable with its functionality. After what seemed like countless hours, a lot of effort from across your sales and marketing team, and perhaps even investment in a free trial, the last thing you want to do is provide the next subscriber to your SaaS platform with a bad experience. Whether it is failing to show them the ropes — how to use the full potential of your application — or not providing them with the tools and support to fully integrate the new service into their everyday workflow, you have lost a golden opportunity. That is where creating a more formal process and structure around customer onboarding comes in. However, many companies go one step further and provide extra support, reminders, communications and materials to encourage and demonstrate to new subscribers how they can make the best use out of their product or service and ingrain it into their own habits. Not only does this ease the transition for a new subscriber, but it can also help to foster brand loyalty. What are some customer onboarding process best practices? To enhance and accelerate the customer onboarding process, here is a quick summary of some key best practices for B2B SaaS companies to consider: Maintain Momentum It’s easy to use a new tool or process within the first couple of days of signing up, but once old habits kick in, it can be easy to fall back to old routines. Instead, maintain — or even increase — momentum after the sale by creating personal connections within your new customer’s first day, highlight opportunities based on their usage data and spend the time getting to know how they will be using your products and services. Utilize Automation In coordination with marketing, sales and customer success teams, tap into the built-in functionality of your customer success platform to trigger communications, key milestones to encourage use, reinforce key benefits and share tips or training resources using the media they feel most comfortable with. Know Your Audience Your customer chose to subscribe for a reason. Use what you know about their journey and user segmentation to customize your onboarding experience, content and communications methods to meet them where they are. This could mean helping to modify their previous processes to integrate your new solution, promoting features that fit their needs or highlighting key outcomes that helped to lead them to the sale in the first place. Demonstrate Value Early Every decision-maker wants to get validation that the move they made was the right one. In addition to taking the time to get to know your new subscriber, make sure to have consultants available to help with the initial configuration, generate new reports or process data. How do you measure success with your customer onboarding process? SaaS services are driven by data and metrics, and the same can be true when evaluating your customer onboarding process. While it can seem like a more nebulous or subjective process, you can actually use customer data, engagement metrics and other surveys such as NPS scores to measure how things are going. For example, create a view of customer logins to monitor how often new customers are engaging with your product compared to historical trends or even established users. Also take a look at the length of time spent on the platform, the number of features or tools used and interactions with customer service resources. Data such as this can help to flag potentially waning interest or pinpoint areas where individual customers — or even groups of customers — may be having trouble understanding or getting started with their new subscription. This information can then be used to initiate customized conversations as well as to refine your overall customer onboarding process.",
+    "hasTables": false,
+    "tableCount": 0,
+    "readabilitySuccess": true,
+    "fallbackUsed": false,
+    "fallbackType": "none",
+    "quality": "medium",
+    "qualityScore": 60,
+    "extractionConfidence": 100,
+    "weight": 0.35,
+    "paragraphCount": 13
+  }
+}

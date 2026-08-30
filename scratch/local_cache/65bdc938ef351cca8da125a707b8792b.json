@@ -1,0 +1,288 @@
+{
+  "timestamp": "2026-08-27T17:01:39.255Z",
+  "data": {
+    "object": {
+      "headingFrequency": [
+        {
+          "heading": "Best AI Writing Tools Overview/List",
+          "competitorRanks": [
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "heading": "Individual AI Tool Reviews/Capabilities",
+          "competitorRanks": [
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "heading": "FAQ / Frequently Asked Questions",
+          "competitorRanks": [
+            2,
+            3,
+            5
+          ]
+        },
+        {
+          "heading": "How AI Writing Tools Work",
+          "competitorRanks": [
+            3,
+            5
+          ]
+        },
+        {
+          "heading": "Selection Criteria for AI Writing Tools",
+          "competitorRanks": [
+            2,
+            3
+          ]
+        },
+        {
+          "heading": "Specific AI Content Generation Use Cases",
+          "competitorRanks": [
+            1,
+            5
+          ]
+        },
+        {
+          "heading": "What is an AI Writing Tool?",
+          "competitorRanks": [
+            3
+          ]
+        },
+        {
+          "heading": "Choosing the Right AI Writing Tool",
+          "competitorRanks": [
+            3
+          ]
+        },
+        {
+          "heading": "AI Content and SEO Strategy",
+          "competitorRanks": [
+            4
+          ]
+        },
+        {
+          "heading": "AI-Assisted vs AI-Generated Content",
+          "competitorRanks": [
+            4
+          ]
+        },
+        {
+          "heading": "AI as an Assistant, Not a Replacement",
+          "competitorRanks": [
+            2
+          ]
+        }
+      ],
+      "tableDetection": {
+        "recommendedTables": [
+          {
+            "name": "AI Content Writing Tools Comparison",
+            "type": "Comparison",
+            "columns": [
+              "Tool Name",
+              "Best For",
+              "Key Features",
+              "Pricing Model (Free/Paid)",
+              "Pros",
+              "Cons",
+              "Rating"
+            ],
+            "purpose": "To allow users to quickly compare features, pricing, and suitability of different AI writing tools at a glance."
+          }
+        ]
+      },
+      "paaClustered": [
+        {
+          "question": "Which AI tool is best for content writers?",
+          "frequency": 2,
+          "snippet": ""
+        },
+        {
+          "question": "Which AI writing tool is best for writing?",
+          "frequency": 2,
+          "snippet": ""
+        },
+        {
+          "question": "Can ChatGPT be used for content writing?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Which AI is better than ChatGPT for writing?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Which free AI writing tool is best?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "What is the easiest AI tool for content writers?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Which AI tool helps most with SEO?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Can AI tools help with social media content?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Are AI writing tools suitable for professional writers?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Can AI tools write content without a human?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Which AI tool helps in writing?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Is AI writing free?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Does Google penalize AI writing?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Is Rytr free?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Is Jasper free?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "What is the best AI tool for writing essays?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Is it illegal to use AI to write an essay?",
+          "frequency": 1,
+          "snippet": ""
+        },
+        {
+          "question": "Is Grammarly an AI?",
+          "frequency": 1,
+          "snippet": ""
+        }
+      ],
+      "contentGapReport": {
+        "commonTopics": [
+          "Best AI Writing Tools Overview/List",
+          "Individual AI Tool Reviews/Capabilities",
+          "FAQ / Frequently Asked Questions",
+          "How AI Writing Tools Work",
+          "Selection Criteria for AI Writing Tools"
+        ],
+        "uniqueHeadings": [
+          "Specific AI Content Generation Use Cases",
+          "AI Content and SEO Strategy",
+          "AI-Assisted vs AI-Generated Content",
+          "AI as an Assistant, Not a Replacement",
+          "Why you should trust us: 11 AI content generation tools tested"
+        ],
+        "missingTopics": [
+          "Ethical considerations (plagiarism, AI detection, originality, bias)",
+          "Future trends in AI writing",
+          "Integration with other platforms/workflows",
+          "Training/learning curve for using these tools effectively",
+          "The role of human editing/oversight",
+          "Specific niche applications (e.g., academic writing, technical documentation, creative storytelling)",
+          "Data privacy and security with AI tools"
+        ],
+        "recommendedNewSections": [
+          {
+            "heading": "Ethical Considerations and Best Practices for AI Content",
+            "level": "H2",
+            "reason": "Addresses critical user concerns about plagiarism, Google penalties, and responsible AI use, which are touched upon in PAA but not deeply covered as a main section.",
+            "suggestedOutline": "Discuss AI detection, originality, potential biases, the importance of human oversight, and how to use AI tools ethically to enhance content, not replace critical thinking."
+          },
+          {
+            "heading": "The Future of AI in Content Creation",
+            "level": "H2",
+            "reason": "Provides forward-looking value, positions the content as authoritative, and addresses the evolving nature of AI tools.",
+            "suggestedOutline": "Explore upcoming trends, advancements in AI capabilities, and how content creators can prepare for future changes."
+          },
+          {
+            "heading": "Integrating AI Writing Tools into Your Workflow",
+            "level": "H2",
+            "reason": "Offers practical advice for users, moving beyond just listing tools to showing how to use them effectively in a professional context.",
+            "suggestedOutline": "Discuss best practices for integrating AI tools with existing content strategies, collaboration, and maximizing efficiency."
+          },
+          {
+            "heading": "Deep Dive: AI-Assisted vs. AI-Generated Content",
+            "level": "H2",
+            "reason": "Competitor 4 touches on this, but it's a crucial distinction for users to understand the different applications and implications for quality and SEO.",
+            "suggestedOutline": "Clearly define both concepts, provide examples of when to use each, and discuss the benefits and drawbacks of each approach."
+          }
+        ],
+        "unansweredQuestions": [
+          "Does Google penalize AI writing?",
+          "Is it illegal to use AI to write an essay?",
+          "How do AI writing tools handle plagiarism and originality?",
+          "What are the ethical considerations of using AI for content?",
+          "What is the future of AI in content writing?",
+          "How to choose the right AI writing tool for specific needs (beyond general criteria)?"
+        ],
+        "shouldIncludeFaq": true,
+        "faqQuestions": [
+          "Which AI writing tool is best for content writers?",
+          "Can AI tools write content without a human, and is it ethical?",
+          "Are there good free AI writing tools available?",
+          "Which AI tools are best for SEO and social media content?",
+          "How do AI writing tools like ChatGPT compare to others?"
+        ]
+      }
+    },
+    "usage": {
+      "inputTokens": 4169,
+      "inputTokenDetails": {
+        "noCacheTokens": 4169,
+        "cacheReadTokens": 0
+      },
+      "outputTokens": 8360,
+      "outputTokenDetails": {
+        "textTokens": 1921,
+        "reasoningTokens": 6439
+      },
+      "totalTokens": 12529,
+      "raw": {
+        "thoughtsTokenCount": 6439,
+        "promptTokenCount": 4169,
+        "candidatesTokenCount": 1921,
+        "totalTokenCount": 12529,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 4169
+          }
+        ]
+      },
+      "reasoningTokens": 6439,
+      "cachedInputTokens": 0
+    }
+  }
+}

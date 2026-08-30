@@ -1,0 +1,82 @@
+{
+  "timestamp": "2026-08-18T17:11:52.690Z",
+  "data": {
+    "object": {
+      "title": "How to Build a SaaS Marketing Strategy",
+      "title_tag": "saas marketing strategy Guide: Boost Your Business Efficiency",
+      "slug": "saas-marketing-strategy-guide",
+      "intent": "informational",
+      "schema_markup": "{\"@context\": \"https://schema.org\", \"@type\": \"BlogPosting\"}",
+      "open_graph_tags": [
+        "<meta property=\"og:title\" content=\"How to Build a SaaS Marketing Strategy\" />"
+      ],
+      "intro": {
+        "hook": "Looking to master saas marketing strategy? Here is the exact strategy to win.",
+        "transition": "In this guide, we will break down the core components.",
+        "thesis": "Topical authority is the key to ranking."
+      },
+      "section_outlines": [
+        {
+          "heading": "What is saas marketing strategy?",
+          "level": "H2",
+          "core_concept": "Define saas marketing strategy",
+          "min_word_budget": 150,
+          "target_word_budget": 250,
+          "target_entities": [
+            "saas marketing strategy",
+            "Automation",
+            "Workflows"
+          ],
+          "generate_table": false
+        },
+        {
+          "heading": "Core Benefits of saas marketing strategy",
+          "level": "H2",
+          "core_concept": "Explain benefits",
+          "min_word_budget": 150,
+          "target_word_budget": 250,
+          "target_entities": [
+            "Efficiency",
+            "ROI",
+            "Scaling"
+          ],
+          "generate_table": false
+        },
+        {
+          "heading": "Top saas marketing strategy Tools Compared",
+          "level": "H2",
+          "core_concept": "Compare software tools",
+          "min_word_budget": 150,
+          "target_word_budget": 250,
+          "target_entities": [
+            "SEMrush",
+            "Ahrefs"
+          ],
+          "generate_table": true
+        },
+        {
+          "heading": "Frequently Asked Questions",
+          "level": "H2",
+          "core_concept": "FAQ list",
+          "min_word_budget": 150,
+          "target_word_budget": 250,
+          "target_entities": [
+            "Cost",
+            "Beginners"
+          ],
+          "generate_table": false
+        }
+      ],
+      "cta": {
+        "heading": "Ready to Scale Your saas marketing strategy?",
+        "body": "Get in touch with our experts today to get started.",
+        "button_text": "Contact Us",
+        "button_url": "/contact"
+      }
+    },
+    "usage": {
+      "promptTokens": 3000,
+      "completionTokens": 2000
+    }
+  }
+}
