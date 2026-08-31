@@ -124,7 +124,7 @@ export class GenerationPipelineAdapter {
     console.log(`[PIPELINE] ADAPTER START - runId=${runId} elapsed=${Date.now() - startTime}ms`);
 
     // 3. Build SaaSProfile and inputs
-    const saasProfile: SaaSProfile = {
+    const saasProfile: SaaSProfile = payload.saasProfile || {
       name: payload.campaignMode === 'guest_post' ? (payload.guestPostTargetPublication || 'Target Publication') : 'Our Blog',
       description: payload.customInsights || 'AI-Powered SaaS Growth and Content Platform.',
       targetAudience: 'SaaS decision makers',
@@ -227,7 +227,8 @@ export class GenerationPipelineAdapter {
     const result = await orchestrator.run({
       saasProfile,
       targetKeyword: primaryKeyword,
-      targetAudience: 'SaaS Decision Makers',
+      targetAudience: payload.targetAudience || 'SaaS Decision Makers',
+      contentType: payload.contentType || undefined,
       competitorUrls: payload.referenceData?.url ? [payload.referenceData.url] : [],
       maxHeadings: payload.maxHeadings ?? (options?.overrideBudget?.maxLLMCalls ? 2 : undefined)
     });

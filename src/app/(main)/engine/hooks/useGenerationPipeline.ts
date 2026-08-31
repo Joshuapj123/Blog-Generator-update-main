@@ -309,6 +309,94 @@ export function useGenerationPipeline() {
     }
   };
 
+  const startAutopilotPipeline = async (url: string) => {
+    engine.setIsRunning(true);
+    engine.setGenStatus('Analyzing website URL and verifying safety...');
+    engine.setGenProgress(5);
+    engine.setBlueprint(null);
+    engine.setSections([]);
+    engine.setTiptapContent('');
+    engine.setGenError(null);
+
+    const controller = new AbortController();
+    engine.setAbortController(controller);
+
+    try {
+      const res = await fetch('/api/generate-from-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+        signal: controller.signal,
+      });
+
+      if (!res.body) throw new Error('No readable stream.');
+      if (!res.ok) throw new Error(`Server error ${res.status}`);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+      let buffer = '';
+
+      while (!done) {
+        const { value, done: rd } = await reader.read();
+        done = rd;
+        if (value) {
+          buffer += decoder.decode(value, { stream: !done });
+          const parts = buffer.split('\n\n');
+          buffer = parts.pop() || '';
+          
+          for (const part of parts) {
+            const trimmed = part.trim();
+            if (!trimmed) continue;
+            if (trimmed.startsWith('data: ')) {
+              try {
+                const parsed = JSON.parse(trimmed.substring(6));
+                if (parsed.type === 'status') {
+                  engine.setGenStatus(parsed.message);
+                  if (parsed.progress) engine.setGenProgress(parsed.progress);
+                } else if (parsed.type === 'outline') {
+                  engine.setBlueprint(parsed.data);
+                } else if (parsed.type === 'section') {
+                  engine.setSections((prev: any) => {
+                    const next = [...prev];
+                    next[parsed.index] = parsed.data;
+                    return next;
+                  });
+                } else if (parsed.type === 'complete') {
+                  engine.setBlueprint((prev: any) => ({ ...prev, ...parsed.data }));
+                  if (parsed.data.sections) {
+                    engine.setSections(parsed.data.sections);
+                  }
+                  engine.setGenProgress(100);
+                  engine.setGenStatus('Generation complete');
+                  engine.setIsGenerated(true);
+                  engine.setActiveQaTab('score');
+
+                  if (parsed.data.sections) {
+                    runPostGenerationAnalysis(parsed.data.sections, parsed.data);
+                  }
+                } else if (parsed.type === 'error') {
+                  throw new Error(parsed.message);
+                }
+              } catch (e) {
+                console.warn('[useGenerationPipeline] Parse error for chunk:', e);
+              }
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        engine.setGenStatus('Cancelled');
+      } else {
+        engine.setGenError(err.message || 'Generation failed.');
+        engine.setGenStatus('Failed');
+      }
+    } finally {
+      engine.setIsRunning(false);
+    }
+  };
+
   const cancelPipeline = () => {
     engine.abortGeneration();
     engine.setIsRunning(false);
@@ -320,6 +408,7 @@ export function useGenerationPipeline() {
 
   return {
     startPipeline,
+    startAutopilotPipeline,
     cancelPipeline,
   };
 }

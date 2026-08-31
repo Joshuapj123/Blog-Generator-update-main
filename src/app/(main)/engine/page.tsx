@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Globe, Sparkles, Wand2, ArrowRight } from 'lucide-react';
 import { useEngine, EngineProvider } from './context/EngineContext';
 import { WizardStepIndicator } from './components/WizardStepIndicator';
 import { StepTopicKeywords } from './components/WizardSteps/StepTopicKeywords';
@@ -13,12 +13,17 @@ import { StepFinalConfig } from './components/WizardSteps/StepFinalConfig';
 import { SectionEditor } from './components/SectionEditor';
 import { GoogleAdsModal } from './components/GoogleAdsModal';
 import { getArticles, getFolders, getExternalLinks } from '@/lib/firebase/firestore';
+import { Button } from '@/components/ui/button';
+import { useGenerationPipeline } from './hooks/useGenerationPipeline';
 
 function EnginePageContent() {
   const engine = useEngine();
   const searchParams = useSearchParams();
   const todoId = searchParams.get('todo_id');
   const [mounted, setMounted] = useState(false);
+  const [useAutopilot, setUseAutopilot] = useState(true);
+  const [autopilotUrl, setAutopilotUrl] = useState('');
+  const { startAutopilotPipeline } = useGenerationPipeline();
 
   useEffect(() => {
     setMounted(true);
@@ -195,8 +200,40 @@ function EnginePageContent() {
     <main className="flex-1 flex flex-col h-screen overflow-hidden relative selection:bg-indigo-100 selection:text-indigo-900">
       <div className="flex-1 overflow-y-auto scroll-smooth">
         <div className={(!engine.isGenerated && !engine.isRunning) ? 'max-w-4xl mx-auto' : 'max-w-[1400px] mx-auto h-full'}>
-          {/* Navigation Header */}
+          {/* Mode Switcher Header */}
           {(!engine.isGenerated && !engine.isRunning) && (
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b border-slate-200 mt-8 mb-6">
+              <div>
+                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Create New Article</h1>
+                <p className="text-slate-500 text-sm">Choose between fully autonomous mode or granular setup steps.</p>
+              </div>
+              <div className="flex p-1 bg-slate-100 rounded-full shadow-inner border border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setUseAutopilot(true)}
+                  className={`px-4 py-2 rounded-full text-xs font-semibold transition-all duration-300 flex items-center gap-1.5 ${
+                    useAutopilot ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Autonomous Autopilot
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUseAutopilot(false)}
+                  className={`px-4 py-2 rounded-full text-xs font-semibold transition-all duration-300 flex items-center gap-1.5 ${
+                    !useAutopilot ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <Wand2 className="w-3.5 h-3.5" />
+                  Manual Setup Wizard
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Navigation Header for Wizard */}
+          {(!engine.isGenerated && !engine.isRunning && !useAutopilot) && (
             <WizardStepIndicator
               currentStep={engine.currentStep}
               isRunning={engine.isRunning}
@@ -206,13 +243,66 @@ function EnginePageContent() {
 
           {/* Content Area */}
           {(!engine.isGenerated && !engine.isRunning) ? (
-            <div className="space-y-12 pb-24 mt-12">
-              {engine.currentStep === 0 && <StepTopicKeywords />}
-              {engine.currentStep === 1 && <StepSerpResults />}
-              {engine.currentStep === 2 && <StepExtraction />}
-              {engine.currentStep === 3 && <StepAuthor />}
-              {engine.currentStep === 4 && <StepFinalConfig />}
-            </div>
+            useAutopilot ? (
+              <div className="mt-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="bg-white rounded-[2rem] p-10 shadow-xl shadow-slate-100 border border-slate-200 space-y-8">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center shrink-0 border border-indigo-100 shadow-sm">
+                      <Globe className="w-6 h-6 text-indigo-600" />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
+                        <Sparkles className="w-3 h-3" /> Recommended Mode
+                      </div>
+                      <h2 className="text-xl font-bold text-slate-900 mt-2">Generate Your Blog Autonomously</h2>
+                      <p className="text-slate-500 text-sm font-light leading-relaxed">
+                        Enter your website's URL. The AI agent will crawl your site, extract your product positioning, discover search keywords, query SERP and GEO intelligence, and draft a high-scoring article in one click.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Website Home URL</label>
+                    <div className="flex gap-4">
+                      <input
+                        type="url"
+                        placeholder="https://yourwebsite.com"
+                        value={autopilotUrl}
+                        onChange={(e) => setAutopilotUrl(e.target.value)}
+                        className="flex-1 px-4 py-3.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 text-sm font-medium shadow-inner"
+                      />
+                      <Button
+                        onClick={() => {
+                          if (autopilotUrl.trim()) {
+                            startAutopilotPipeline(autopilotUrl.trim());
+                          }
+                        }}
+                        disabled={!autopilotUrl.trim()}
+                        className="px-6 rounded-xl font-semibold bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white gap-2 shadow-lg shadow-indigo-200 border-none shrink-0"
+                      >
+                        Generate Blog
+                        <ArrowRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {engine.genError && (
+                    <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm font-medium flex items-center gap-3">
+                      <span className="shrink-0 font-bold bg-rose-200 text-rose-800 w-5 h-5 rounded-full flex items-center justify-center text-xs">!</span>
+                      <span>{engine.genError}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-12 pb-24 mt-12">
+                {engine.currentStep === 0 && <StepTopicKeywords />}
+                {engine.currentStep === 1 && <StepSerpResults />}
+                {engine.currentStep === 2 && <StepExtraction />}
+                {engine.currentStep === 3 && <StepAuthor />}
+                {engine.currentStep === 4 && <StepFinalConfig />}
+              </div>
+            )
           ) : (
             <div className="flex h-full">
               <SectionEditor />
