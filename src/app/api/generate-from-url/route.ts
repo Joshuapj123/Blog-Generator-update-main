@@ -87,7 +87,7 @@ export async function POST(req: Request) {
           console.error('[API Route] URL Autopilot failed:', err.message);
           sendChunk({ 
             type: 'error', 
-            message: 'Autopilot generation failed.',
+            message: err.message || 'Autopilot generation failed.',
             reason: err.message || 'Unknown generation error'
           });
         } finally {

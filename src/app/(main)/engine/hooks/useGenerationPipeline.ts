@@ -252,7 +252,7 @@ export function useGenerationPipeline() {
                     runPostGenerationAnalysis(parsed.data.sections, parsed.data);
                   }
                 } else if (parsed.type === 'error') {
-                  throw new Error(parsed.message);
+                  throw new Error(parsed.reason || parsed.message || 'Generation failed.');
                 }
               } catch (e) {
                 console.warn('[useGenerationPipeline] Parse error for chunk:', e);
@@ -292,7 +292,7 @@ export function useGenerationPipeline() {
                 runPostGenerationAnalysis(parsed.data.sections, parsed.data);
               }
             } else if (parsed.type === 'error') {
-              throw new Error(parsed.message);
+              throw new Error(parsed.reason || parsed.message || 'Generation failed.');
             }
           } catch (e) {
             console.warn('[useGenerationPipeline] Parse error for leftover buffer:', e);
@@ -376,7 +376,7 @@ export function useGenerationPipeline() {
                     runPostGenerationAnalysis(parsed.data.sections, parsed.data);
                   }
                 } else if (parsed.type === 'error') {
-                  throw new Error(parsed.message);
+                  throw new Error(parsed.reason || parsed.message || 'Generation failed.');
                 }
               } catch (e) {
                 console.warn('[useGenerationPipeline] Parse error for chunk:', e);

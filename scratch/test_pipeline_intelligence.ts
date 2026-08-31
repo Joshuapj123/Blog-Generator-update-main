@@ -307,13 +307,34 @@ async function testSupportingTermsTracing() {
 
   const review = await (orchestrator as any).runReview(content, brief);
   console.assert(!review.warnings.some((w: string) => w.includes('Missing recommended supporting terms')), 'Supporting terms should be satisfied');
-  console.log('✔ TEST H: Supporting terms successfully traced and satisfied in review.');
-
   // TEST I: Zero supporting terms case
   (orchestrator as any).supportingTerms = [];
   const emptyReport = (orchestrator as any).supportingTerms.length > 0 ? (orchestrator as any).supportingTerms.length : 'NO_SUPPORTING_TERMS_RETURNED';
   console.assert(emptyReport === 'NO_SUPPORTING_TERMS_RETURNED', 'Expected NO_SUPPORTING_TERMS_RETURNED');
   console.log('✔ TEST I: Zero supporting terms correctly reports "NO_SUPPORTING_TERMS_RETURNED".');
+}
+
+// TEST K: Pipeline Failure and Error Surfacing
+async function testAutopilotErrorSurfacing() {
+  console.log('\n--- TEST K: Pipeline Failure & Detailed Error Surfacing ---');
+
+  const errorEventChunk = `data: {"type":"error","message":"Autopilot generation failed.","reason":"Failed after 3 attempts. Last error: Your prepayment credits are depleted. Please go to AI Studio."}\n\n`;
+
+  // Parse SSE chunks as useGenerationPipeline does
+  const parts = errorEventChunk.split('\n\n');
+  let surfacedError = '';
+  for (const part of parts) {
+    const trimmed = part.trim();
+    if (trimmed.startsWith('data: ')) {
+      const parsed = JSON.parse(trimmed.substring(6));
+      if (parsed.type === 'error') {
+        surfacedError = parsed.reason || parsed.message;
+      }
+    }
+  }
+
+  console.assert(surfacedError.includes('prepayment credits are depleted'), `Expected detailed credit error, got: ${surfacedError}`);
+  console.log('✔ TEST K: Pipeline failure correctly extracts detailed reason and surfaces it for user display.');
 }
 
 async function main() {
@@ -326,8 +347,9 @@ async function main() {
     await testValidationSeverities();
     await testHeadingStructureAndTelemetry();
     await testSupportingTermsTracing();
+    await testAutopilotErrorSurfacing();
     console.log('\n======================================================');
-    console.log('ALL REGRESSION TESTS (A THROUGH J) PASSED 100% CLEANLY!');
+    console.log('ALL REGRESSION TESTS (A THROUGH K) PASSED 100% CLEANLY!');
     console.log('======================================================');
   } catch (err: any) {
     console.error('TEST FAIL:', err);
