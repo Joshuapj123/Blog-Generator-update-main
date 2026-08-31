@@ -58,6 +58,7 @@ export const ContentBriefSchema = z.object({
   competitorGaps: z.array(z.string()).optional().default([]),
   serpFeatures: z.array(z.string()).optional().default([]),
   geoRequirements: z.array(z.string()).optional().default([]),
+  supportingTerms: z.array(z.string()).optional().default([]),
   internalLinks: z.array(z.string()).optional().default([]),
   ctaStrategy: z.string().optional().default('')
 });
@@ -175,6 +176,7 @@ export const SearchOpportunitySchema = z.object({
   rankingDomains: z.array(z.string()).default([]),
   competitors: z.array(z.string()).default([]),
   searchFeatures: z.array(z.string()).default([]),
+  supportingTerms: z.array(z.string()).optional().default([]),
   contentGap: z.string().default(''),
   recommendedAssetType: z.string().default(''),
   priority: z.enum(['High', 'Medium', 'Low']).default('Medium'),

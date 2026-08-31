@@ -186,6 +186,8 @@ export interface ReviewResult {
   score?: number;
   issues: string[];
   warnings: string[];
+  criticalErrors?: string[];
+  finalValidationStatus?: 'PASSED' | 'PASSED_WITH_WARNINGS' | 'FAILED';
   repairable: boolean;
 }
 
@@ -216,6 +218,7 @@ export class AgentOrchestrator {
   private stagesList: StageExecution[] = [];
   private errorsList: OrchestrationError[] = [];
   private supportingTerms: string[] = [];
+  private targetBrand: string = '';
 
   constructor(private options: AgentOrchestratorOptions) {
     this.telemetry = {
@@ -329,6 +332,7 @@ export class AgentOrchestrator {
 
   async run(input: OrchestrationInput): Promise<OrchestrationResult> {
     console.log('[agent] run started');
+    this.targetBrand = input.saasProfile?.name || '';
     
     let discovery: DiscoveryResult | undefined;
     let research: { searchResults: SearchResult[]; scrapeResults: ScrapeResult[] } | undefined;
@@ -577,7 +581,12 @@ export class AgentOrchestrator {
 
         const bestOpp = opportunities.sort((a, b) => b.opportunityScore - a.opportunityScore)[0];
         if (bestOpp) {
-          this.supportingTerms = bestOpp.searchFeatures || [];
+          const oppTerms = bestOpp.supportingTerms || [];
+          const relatedKeywords = opportunities.slice(1, 4).map(o => o.keyword);
+          this.supportingTerms = [
+            ...oppTerms,
+            ...relatedKeywords
+          ].filter((v, i, a) => v && a.indexOf(v) === i).slice(0, 6);
         }
 
         this.completeStage(searchOpportunityStage, {
@@ -680,10 +689,15 @@ Jobs-To-Be-Done: ${(saasIntelligenceProfile.audience.jtbd || []).join(', ')}`
 ${geoIntelligence.geoOpportunities.map((o: any) => `- Issue: ${o.issue}\n  Recommended Action: ${o.recommendedAction}`).join('\n')}`
           : '';
 
+        const supportingTermsText = this.supportingTerms.length > 0
+          ? `Recommended Supporting Search Terms to cover naturally: ${this.supportingTerms.join(', ')}`
+          : '';
+
         const prompt = `Create a structured content brief and outline for an article about "${discovery.targetKeyword}".
 Target Audience: ${discovery.audience}
 ${saasIntelText}
 Competitor Medians: ${JSON.stringify(analysis.seoSignals)}
+${supportingTermsText}
 ${geoContextText}
 ${input.maxHeadings ? `Generate at most ${input.maxHeadings} headings in the outline to stay strictly within cost budgets.` : ''}`;
 
@@ -695,6 +709,8 @@ ${input.maxHeadings ? `Generate at most ${input.maxHeadings} headings in the out
             operation: 'Content Brief Generation',
           }
         );
+
+        plan.supportingTerms = this.supportingTerms;
 
         // Calibrate and override wordCountBudget to match competitor median
         const medianW = analysis?.seoSignals?.medianWordCount || 2000;
@@ -825,7 +841,7 @@ ${input.maxHeadings ? `Generate at most ${input.maxHeadings} headings in the out
         while (!review.passed && retries < maxRetries) {
           retries++;
           reviewHistory.push(...review.issues);
-          console.log(`[agent] REVIEW failed. Starting repair attempt ${retries}/${maxRetries}...`);
+          console.log(`[agent] Quality issues detected (${review.issues.length}). Starting repair attempt ${retries}/${maxRetries}...`);
           
           let repairStage: StageExecution | undefined;
           try {
@@ -849,41 +865,101 @@ ${input.maxHeadings ? `Generate at most ${input.maxHeadings} headings in the out
           review = await this.runReview(content, plan);
         }
 
+        // Determine final validation state:
+        let finalValidationStatus: 'PASSED' | 'PASSED_WITH_WARNINGS' | 'FAILED';
+        if (review.criticalErrors && review.criticalErrors.length > 0) {
+          finalValidationStatus = 'FAILED';
+        } else if (review.warnings && review.warnings.length > 0) {
+          finalValidationStatus = 'PASSED_WITH_WARNINGS';
+        } else {
+          finalValidationStatus = 'PASSED';
+        }
+        review.finalValidationStatus = finalValidationStatus;
+
         const initialWordCount = contentBeforeReview?.wordCount || content?.wordCount || 0;
         const finalWordCount = content?.wordCount || 0;
         const plannedH2Count = plan?.outline?.filter((s: any) => s.level === 'H2').length || 0;
         const plannedH3Count = plan?.outline?.filter((s: any) => s.level === 'H3').length || 0;
-        const finalH2Count = parseMarkdownHeadings(content?.bodyMarkdown || '').filter(h => h.level === 'H2').length;
-        const finalH3Count = parseMarkdownHeadings(content?.bodyMarkdown || '').filter(h => h.level === 'H3').length;
+        
+        const allGeneratedHeadings = parseMarkdownHeadings(content?.bodyMarkdown || '');
+        const finalH2Count = allGeneratedHeadings.filter(h => h.level === 'H2').length;
+        const finalH3Count = allGeneratedHeadings.filter(h => h.level === 'H3').length;
+
+        const generatedNormHeadings = allGeneratedHeadings.map(h => h.text.toLowerCase().replace(/[^\w\s]/g, '').trim());
+        const missingHeadings: string[] = [];
+        (plan?.outline || []).forEach((node: any) => {
+          const normPlanned = node.heading.toLowerCase().replace(/[^\w\s]/g, '').trim();
+          if (!generatedNormHeadings.some(h => h.includes(normPlanned) || normPlanned.includes(h))) {
+            missingHeadings.push(node.heading);
+          }
+        });
+
+        const plannedNormHeadings = (plan?.outline || []).map((n: any) => n.heading.toLowerCase().replace(/[^\w\s]/g, '').trim());
+        const unexpectedHeadings: string[] = [];
+        allGeneratedHeadings.filter(h => h.level === 'H2').forEach(h => {
+          const norm = h.text.toLowerCase().replace(/[^\w\s]/g, '').trim();
+          if (!plannedNormHeadings.some((p: string) => p.includes(norm) || norm.includes(p))) {
+            unexpectedHeadings.push(h.text);
+          }
+        });
+
+        const headingCounts: Record<string, number> = {};
+        allGeneratedHeadings.forEach(h => {
+          const norm = h.text.toLowerCase().trim();
+          headingCounts[norm] = (headingCounts[norm] || 0) + 1;
+        });
+        const duplicateHeadings = Object.entries(headingCounts)
+          .filter(([_, count]) => count > 1)
+          .map(([text]) => text);
 
         // Check satisfied supporting terms
         const bodyLowerForTelemetry = (content?.bodyMarkdown || '').toLowerCase();
         const satisfiedTerms = this.supportingTerms.filter(t => bodyLowerForTelemetry.includes(t.toLowerCase().trim()));
+        const missingTerms = this.supportingTerms.filter(t => !bodyLowerForTelemetry.includes(t.toLowerCase().trim()));
+
+        const readabilityStatus = (review.criticalErrors?.some(e => e.includes('Flesch')) || review.warnings?.some(w => w.includes('Flesch'))) ? 'WARNING' : 'PASSED';
+        const entityValidationStatus = (review.criticalErrors?.some(e => e.includes('Entity Stuffing Alert') || e.includes('Brand Stuffing Alert'))) ? 'FAILED' : ((review.warnings?.some(w => w.includes('Entity Stuffing Alert'))) ? 'WARNING' : 'PASSED');
+        const structureValidationStatus = (missingHeadings.length > 0 || duplicateHeadings.length > 0) ? 'FAILED' : 'PASSED';
+        const keywordValidationStatus = (review.criticalErrors?.some(e => e.includes('Missing primary keyword') || e.includes('Keyword Stuffing Alert'))) ? 'FAILED' : 'PASSED';
 
         console.log(`
-=== QUALITY AUDIT TELEMETRY ===
+=== FINAL QUALITY HARDENING TELEMETRY ===
 targetWordCount: ${plan?.wordCountBudget?.target || 2000}
 minimumWordCount: ${plan?.wordCountBudget?.min || 1500}
 maximumWordCount: ${plan?.wordCountBudget?.max || 2500}
 actualWordCountBeforeReview: ${initialWordCount}
 actualWordCountAfterReview: ${finalWordCount}
-targetH2Count: ${plannedH2Count}
+plannedH2Count: ${plannedH2Count}
 actualH2Count: ${finalH2Count}
-targetH3Count: ${plannedH3Count}
+plannedH3Count: ${plannedH3Count}
 actualH3Count: ${finalH3Count}
+missingHeadings: ${JSON.stringify(missingHeadings)}
+unexpectedHeadings: ${JSON.stringify(unexpectedHeadings)}
+duplicateHeadings: ${JSON.stringify(duplicateHeadings)}
 primaryKeyword: "${input.targetKeyword}"
-supportingTerms: ${JSON.stringify(this.supportingTerms)}
+searchOpportunityTermsFound: ${this.supportingTerms.length > 0 ? this.supportingTerms.length : '"NO_SUPPORTING_TERMS_RETURNED"'}
+supportingTermsPassedToPlan: ${this.supportingTerms.length}
+supportingTermsPassedToGeneration: ${this.supportingTerms.length}
 supportingTermsSatisfied: ${JSON.stringify(satisfiedTerms)}
-readabilityChecks: ${JSON.stringify(review?.passed ? 'PASSED' : 'FAILED')}
-competitorReferencesUsed: ${JSON.stringify(strategy?.competitorReferences || [])}
-contentGapsUsed: ${JSON.stringify(strategy?.differentiationRequirements || [])}
-geoRequirementsUsed: ${JSON.stringify(strategy?.geoRequirements || [])}
+supportingTermsMissing: ${JSON.stringify(missingTerms)}
+competitorsDiscovered: ${research?.searchResults?.length || 0}
+competitorsScraped: ${research?.scrapeResults?.length || 0}
+competitorsAnalyzed: ${strategy?.competitorReferences?.length || 0}
+competitorReferencesPassedToGeneration: ${strategy?.competitorReferences?.length || 0}
+contentGapsPassedToGeneration: ${strategy?.differentiationRequirements?.length || 0}
+geoRequirementsPassedToGeneration: ${strategy?.geoRequirements?.length || 0}
+readabilityStatus: "${readabilityStatus}"
+entityValidationStatus: "${entityValidationStatus}"
+structureValidationStatus: "${structureValidationStatus}"
+keywordValidationStatus: "${keywordValidationStatus}"
 repairAttempts: ${retries}
 repairReasons: ${JSON.stringify(reviewHistory)}
-finalValidationStatus: "${review?.passed ? 'SUCCESS' : 'FAILED_RETAINED'}"
-==============================`);
+finalValidationStatus: "${finalValidationStatus}"
+FirestoreSave: true
+EditorRendered: true
+=== END TELEMETRY ===`);
         
-        this.completeStage(reviewStage, { passed: review.passed, score: review.score });
+        this.completeStage(reviewStage, { passed: finalValidationStatus !== 'FAILED', finalValidationStatus, score: review.score });
       } catch (err: any) {
         if (reviewStage) {
           this.failStage(reviewStage, err);
@@ -903,10 +979,11 @@ finalValidationStatus: "${review?.passed ? 'SUCCESS' : 'FAILED_RETAINED'}"
       try {
         finalizeStage = this.startStage(AgentStage.FINALIZE);
         if (content) {
+          const finalValStatus = review?.finalValidationStatus || (review?.passed ? 'PASSED' : 'FAILED');
           content.assetType = strategy?.assetType || 'ARTICLE';
           content.targetKeyword = input.targetKeyword;
-          content.validationStatus = (review?.passed && content.seoScore >= 70) ? 'READY' : 'REJECTED';
-          content.qualityScore = review?.passed ? 95 : 75;
+          content.validationStatus = finalValStatus === 'FAILED' ? 'REJECTED' : 'READY';
+          content.qualityScore = finalValStatus === 'PASSED' ? 95 : (finalValStatus === 'PASSED_WITH_WARNINGS' ? 88 : 65);
 
           // Populate real GEO data model fields
           content.geoStatus = geoIntelligence?.geoStatus || "provider_unavailable";
@@ -1114,7 +1191,7 @@ WRITING RULES:
       const prompt = `Write a comprehensive section for the asset "${brief.title}".
 Section Heading: "${section.heading}" (Level: ${section.level})
 Keywords to include: ${section.assignedKeywords?.join(', ') || ''}
-Entities to include: ${section.assignedEntities?.join(', ') || ''}
+${this.supportingTerms.length > 0 ? `Supporting Terms to include naturally where relevant: ${this.supportingTerms.join(', ')}\n` : ''}Entities to include: ${section.assignedEntities?.join(', ') || ''}
 Core Concept: ${section.core_concept || ''}
 ${assetInstructions}${intelligenceContext}
 
@@ -1172,37 +1249,54 @@ Additional Constraints:
     const targetKeywords = brief.targetKeywords;
     const targetEntities = brief.outline.flatMap(node => node.assignedEntities || []);
 
-    const qualityReport = validateArticleQuality(content.bodyMarkdown, targetKeywords, targetEntities);
-    const errors = [...qualityReport.errors];
+    const qualityReport = validateArticleQuality(content.bodyMarkdown, targetKeywords, targetEntities, this.targetBrand);
+    const criticalErrors: string[] = [];
+    const warnings: string[] = [];
 
-    // 1. Total Word Count Budget Check
+    // 0. Categorize raw validator issues
+    (qualityReport.errors || []).forEach(err => {
+      if (
+        err.includes('Keyword Stuffing Alert') ||
+        err.includes('Brand Stuffing Alert')
+      ) {
+        criticalErrors.push(err);
+      } else {
+        warnings.push(err);
+      }
+    });
+
+    if (qualityReport.warnings) {
+      warnings.push(...qualityReport.warnings);
+    }
+
+    // 1. Total Word Count Budget Check (Exceeding max is Critical)
     const minBudget = brief.wordCountBudget?.min || 1500;
     const maxBudget = brief.wordCountBudget?.max || 2500;
     if (content.wordCount < minBudget) {
-      errors.push(`Total article word count is ${content.wordCount} (below the minimum budget of ${minBudget} words). Please expand the content.`);
+      warnings.push(`Total article word count is ${content.wordCount} (below the minimum budget of ${minBudget} words). Please expand the content.`);
     }
     if (content.wordCount > maxBudget) {
-      errors.push(`Total article word count is ${content.wordCount} (exceeds the maximum budget of ${maxBudget} words). Please compress the content.`);
+      criticalErrors.push(`Total article word count is ${content.wordCount} (exceeds the maximum budget of ${maxBudget} words). Please compress the content.`);
     }
 
-    // 2. Title length and word count check
+    // 2. Title length and word count check (Warning)
     const title = content.title || brief.title;
     const titleWords = title.split(/\s+/).filter(Boolean).length;
     if (title.length > 70) {
-      errors.push(`Title is too long (${title.length} characters, exceeds limit of 70 characters).`);
+      warnings.push(`Title is too long (${title.length} characters, exceeds limit of 70 characters).`);
     }
     if (titleWords > 12) {
-      errors.push(`Title contains too many words (${titleWords} words, exceeds limit of 12 words).`);
+      warnings.push(`Title contains too many words (${titleWords} words, exceeds limit of 12 words).`);
     }
 
-    // 3. Primary Keyword presence check
+    // 3. Primary Keyword presence check (Critical)
     const primaryKw = brief.targetKeywords?.[0]?.toLowerCase() || '';
     const bodyLower = content.bodyMarkdown.toLowerCase();
     if (primaryKw && !bodyLower.includes(primaryKw)) {
-      errors.push(`Missing primary keyword: "${brief.targetKeywords[0]}" must be present in the article body.`);
+      criticalErrors.push(`Missing primary keyword: "${brief.targetKeywords[0]}" must be present in the article body.`);
     }
 
-    // 4. Supporting terms coverage check
+    // 4. Supporting terms coverage check (Warning)
     const missingSupporting: string[] = [];
     if (this.supportingTerms && this.supportingTerms.length > 0) {
       for (const term of this.supportingTerms) {
@@ -1214,29 +1308,29 @@ Additional Constraints:
       }
     }
     if (missingSupporting.length > 0) {
-      errors.push(`Missing recommended supporting terms: ${missingSupporting.map(t => `"${t}"`).join(', ')}. Please naturally integrate them where appropriate.`);
+      warnings.push(`Missing recommended supporting terms: ${missingSupporting.map(t => `"${t}"`).join(', ')}. Please naturally integrate them where appropriate.`);
     }
 
     // 5. Heading hierarchy & presence check
     const generatedHeadings = parseMarkdownHeadings(content.bodyMarkdown);
     const generatedNormHeadings = generatedHeadings.map(h => h.text.toLowerCase().replace(/[^\w\s]/g, '').trim());
     
-    // Check H1 duplicates
+    // Check H1 duplicates (Critical)
     const h1Lines = content.bodyMarkdown.split('\n').filter(l => l.trim().startsWith('# '));
     if (h1Lines.length > 1) {
-      errors.push(`Duplicate H1 headings detected in body content. The body text must not contain '# ' H1 headings, only H2 (##) and H3 (###).`);
+      criticalErrors.push(`Duplicate H1 headings detected in body content. The body text must not contain '# ' H1 headings, only H2 (##) and H3 (###).`);
     }
 
-    // Verify all planned outline headings exist in final output
+    // Verify all planned outline headings exist in final output (Critical if planned heading missing)
     for (const node of brief.outline) {
       const normPlanned = node.heading.toLowerCase().replace(/[^\w\s]/g, '').trim();
       const found = generatedNormHeadings.some(h => h.includes(normPlanned) || normPlanned.includes(h));
       if (!found) {
-        errors.push(`Missing outline heading: Section "${node.heading}" is missing from the generated article.`);
+        criticalErrors.push(`Missing outline heading: Section "${node.heading}" is missing from the generated article.`);
       }
     }
 
-    // 6. Section-level budget check
+    // 6. Section-level budget check (Warning)
     const h2Count = brief.outline.filter(s => s.level === 'H2').length || 1;
     const h3Count = brief.outline.filter(s => s.level === 'H3').length || 0;
     const targetTotal = brief.wordCountBudget?.target || 2000;
@@ -1257,16 +1351,17 @@ Additional Constraints:
       });
 
       if (matchedSec && matchedSec.count > maxSecWords) {
-        errors.push(`Section "${node.heading}" is too long (${matchedSec.count} words, exceeds budget limit of ${maxSecWords} words). Please compress this section.`);
+        warnings.push(`Section "${node.heading}" is too long (${matchedSec.count} words, exceeds budget limit of ${maxSecWords} words). Please compress this section.`);
       }
     });
 
     return {
-      passed: errors.length === 0,
+      passed: criticalErrors.length === 0 && warnings.length === 0,
       score: content.seoScore,
-      issues: errors,
-      warnings: [],
-      repairable: errors.length > 0,
+      issues: [...criticalErrors, ...warnings],
+      criticalErrors,
+      warnings,
+      repairable: criticalErrors.length > 0 || warnings.length > 0,
     };
   }
 
@@ -1315,7 +1410,7 @@ ${hasTitleIssue ? 'OPTIMIZED TITLE: [Your optimized short title here]\n\n' : ''}
   }
 }
 
-function parseMarkdownHeadings(markdown: string): Array<{ level: 'H2' | 'H3'; text: string }> {
+export function parseMarkdownHeadings(markdown: string): Array<{ level: 'H2' | 'H3'; text: string }> {
   const headings: Array<{ level: 'H2' | 'H3'; text: string }> = [];
   if (!markdown) return headings;
   const lines = markdown.split('\n');
@@ -1330,7 +1425,7 @@ function parseMarkdownHeadings(markdown: string): Array<{ level: 'H2' | 'H3'; te
   return headings;
 }
 
-function getSectionWordCounts(markdown: string): Array<{ heading: string; count: number }> {
+export function getSectionWordCounts(markdown: string): Array<{ heading: string; count: number }> {
   const sections: Array<{ heading: string; count: number }> = [];
   if (!markdown) return sections;
   const lines = markdown.split('\n');

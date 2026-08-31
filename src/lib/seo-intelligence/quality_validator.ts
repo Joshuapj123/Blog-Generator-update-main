@@ -1,6 +1,7 @@
 export interface QualityValidationReport {
   valid: boolean;
   errors: string[];
+  warnings?: string[];
   metrics: {
     averageSentenceLength: number;
     passiveVoicePercent: number;
@@ -148,9 +149,11 @@ export function calculateFleschReadingEase(text: string): number {
 export function validateArticleQuality(
   text: string,
   keywords: string[],
-  entities: string[]
+  entities: string[],
+  targetBrand?: string
 ): QualityValidationReport {
   const errors: string[] = [];
+  const warnings: string[] = [];
 
   // Parse paragraphs and sentences
   // Exclude empty paragraphs and headings (since headings are short and skew counts)
@@ -262,15 +265,36 @@ export function validateArticleQuality(
     errors.push(`Keyword Stuffing Alert: Keyword "${maxKeyword}" has density of ${maxDensity.toFixed(2)}% (exceeds limit of 3%).`);
   }
 
-  // 9. Entity stuffing check (repeated >12 times)
+  // 9. Entity stuffing check (repeated >12 times for non-brand entities)
   let maxEntity = '';
   let maxEntCount = 0;
+  const brandNormalized = (targetBrand || '').toLowerCase().trim();
+
   for (const ent of entities) {
     if (!ent || ent.trim().length === 0) continue;
     const entLower = ent.toLowerCase().trim();
+    
+    // Check if this entity is the primary target brand / product name
+    const isBrand = brandNormalized && (
+      entLower === brandNormalized ||
+      entLower.includes(brandNormalized) ||
+      brandNormalized.includes(entLower)
+    );
+
     const escapedEnt = entLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`\\b${escapedEnt}\\b`, 'gi');
     const occurrences = (text.match(regex) || []).length;
+
+    if (isBrand) {
+      // For target brand, allow natural occurrence but check if density exceeds 3.5%
+      const entWords = entLower.split(/\s+/).length;
+      const brandDensity = totalWordCount > 0 ? (occurrences * entWords / totalWordCount) * 100 : 0;
+      if (brandDensity > 3.5) {
+        errors.push(`Brand Stuffing Alert: Target brand "${ent}" has excessive density of ${brandDensity.toFixed(2)}% (exceeds limit of 3.5%).`);
+      }
+      continue;
+    }
+
     if (occurrences > maxEntCount) {
       maxEntCount = occurrences;
       maxEntity = ent;
@@ -278,7 +302,7 @@ export function validateArticleQuality(
   }
 
   if (maxEntCount > 12) {
-    errors.push(`Entity Stuffing Alert: Entity "${maxEntity}" is repeated ${maxEntCount} times (exceeds limit of 12).`);
+    errors.push(`Entity Stuffing Alert: Non-brand entity "${maxEntity}" is repeated ${maxEntCount} times (exceeds limit of 12).`);
   }
 
   // 10. Sentence pattern repeats
@@ -290,6 +314,7 @@ export function validateArticleQuality(
   return {
     valid: errors.length === 0,
     errors,
+    warnings,
     metrics: {
       averageSentenceLength: avgSentenceLength,
       passiveVoicePercent: passivePercent,

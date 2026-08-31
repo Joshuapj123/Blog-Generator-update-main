@@ -104,7 +104,8 @@ Tasks:
 9. Perform a Content Gap analysis: explain what currently ranks, what the current pages are missing, and what student/developer/use-case gap we can exploit.
 10. Recommend the most appropriate asset type to create: e.g. 'Use-case landing page', 'Comparison page', 'Alternative page', 'Listicle', 'Guide', 'Educational article'.
 11. Classify Priority: 'High', 'Medium', or 'Low'.
-12. Provide a 1-sentence explanation of the opportunity and a detailed reasoning breakdown.`;
+12. Provide a 1-sentence explanation of the opportunity and a detailed reasoning breakdown.
+13. Extract 3-6 natural supporting search terms and related entity keywords commonly searched alongside this topic (e.g., ["business management platform", "business owners", "small business tools", "crm integration"]).`;
 
         const classificationSchema = z.object({
           normalizedKeyword: z.string(),
@@ -115,6 +116,7 @@ Tasks:
             count: z.number().min(0).max(10)
           })),
           searchFeatures: z.array(z.string()),
+          supportingTerms: z.array(z.string()).default([]),
           competitors: z.array(z.string()),
           businessRelevance: z.number().min(1).max(100),
           competitorPresence: z.number().min(1).max(100),
@@ -165,6 +167,7 @@ Tasks:
           rankingDomains: rankingDomains.length > 0 ? rankingDomains : result.competitors,
           competitors: result.competitors.filter(c => competitorDomains.includes(c) || competitorDomains.some(cd => cd.includes(c) || c.includes(cd))),
           searchFeatures: result.searchFeatures,
+          supportingTerms: result.supportingTerms || [],
           contentGap: result.contentGap,
           recommendedAssetType: result.recommendedAssetType,
           priority: result.priority,
@@ -187,6 +190,7 @@ Tasks:
           rankingDomains: [],
           competitors: [],
           searchFeatures: [],
+          supportingTerms: [],
           contentGap: 'Unable to evaluate content gaps due to connection issues.',
           recommendedAssetType: 'Guide',
           priority: 'Medium',
