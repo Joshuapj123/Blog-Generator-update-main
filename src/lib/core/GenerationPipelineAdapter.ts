@@ -14,12 +14,51 @@ import {
 } from '@/core/contracts/providers';
 
 // Local Mock Providers for DRY_RUN mode
-class DryRunLLMProvider implements LLMProvider {
+export class DryRunLLMProvider implements LLMProvider {
   async generate(prompt: string, options?: any): Promise<string> {
     return "This is a dry run content generation. We write clean, active voice text. SaaS platforms grow with topical authority.";
   }
 
   async structuredGenerate<T>(prompt: string, schema: any, options?: any): Promise<T> {
+    const shape = schema?.shape || {};
+    
+    // SaaSProfileSchema detection
+    if ('targetAudience' in shape || 'keyFeatures' in shape) {
+      return {
+        name: "Dry Run HubSpot",
+        description: "Dry run SaaS customer platform.",
+        targetAudience: "Small businesses",
+        keyFeatures: ["CRM", "Marketing Sales"],
+        primaryCompetitors: [],
+        website: "https://www.hubspot.com/",
+        tone: "professional",
+        customInsights: "Dry run custom insights"
+      } as unknown as T;
+    }
+
+    // Seed Keyword list detection
+    if ('keywords' in shape) {
+      return {
+        keywords: [
+          "best crm software for small business",
+          "marketing sales service platform",
+          "hubspot vs salesforce"
+        ]
+      } as unknown as T;
+    }
+
+    // Search opportunity detection
+    if ('intent' in shape && 'businessRelevance' in shape) {
+      return {
+        keyword: "dry run keyword",
+        intent: "Informational",
+        contentType: "Guide",
+        businessRelevance: 80,
+        estimatedDifficulty: 30,
+        opportunityScore: 75
+      } as unknown as T;
+    }
+
     return {
       title: "Dry Run Outline Title",
       targetKeywords: ["dry run keyword"],
@@ -43,7 +82,7 @@ class DryRunLLMProvider implements LLMProvider {
   }
 }
 
-class DryRunSearchProvider implements SearchProvider {
+export class DryRunSearchProvider implements SearchProvider {
   async search(query: string, options?: any): Promise<SearchResult[]> {
     return [
       { title: "Dry Run Resource", link: "https://example.com/dry-run", snippet: "Dry run search listing." }

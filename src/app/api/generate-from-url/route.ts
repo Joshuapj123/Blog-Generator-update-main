@@ -3,7 +3,7 @@ import { WebsiteIntelligenceService } from '@/lib/saas-intelligence/website-inte
 import { SearchOpportunityService } from '@/lib/saas-intelligence/SearchOpportunityService';
 import { GeminiProvider } from '@/lib/content/GeminiProvider';
 import { SerperProvider } from '@/lib/research/SerperProvider';
-import { GenerationPipelineAdapter } from '@/lib/core/GenerationPipelineAdapter';
+import { GenerationPipelineAdapter, DryRunLLMProvider, DryRunSearchProvider } from '@/lib/core/GenerationPipelineAdapter';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
@@ -44,8 +44,9 @@ export async function POST(req: Request) {
           // Finding search opportunities & choosing the best one
           sendChunk({ type: 'status', message: 'Analyzing keyword search opportunities...', progress: 25 });
           
-          const llm = new GeminiProvider();
-          const search = new SerperProvider();
+          const dryRun = process.env.ENABLE_DRY_RUN === 'true';
+          const llm = dryRun ? new DryRunLLMProvider() : new GeminiProvider();
+          const search = dryRun ? new DryRunSearchProvider() : new SerperProvider();
           const oppService = new SearchOpportunityService(search, llm);
           
           const competitorDomains = profile.primaryCompetitors || [];

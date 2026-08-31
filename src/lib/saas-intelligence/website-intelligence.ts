@@ -1,16 +1,38 @@
 import { chromium } from 'playwright';
 import { JSDOM } from 'jsdom';
-import { cleanHtmlContent, cleanDom } from '../seo-intelligence/content_cleaner';
+import { cleanHtmlContent } from '../seo-intelligence/content_cleaner';
 import { GeminiProvider } from '../content/GeminiProvider';
+import { DryRunLLMProvider } from '../core/GenerationPipelineAdapter';
 import { verifyUrlSafety } from '../research/url-verifier';
 import { SaaSProfileSchema, SaaSProfile } from '@/core/contracts/schemas';
+import { LLMProvider } from '@/core/contracts/providers';
 import { z } from 'zod';
 
 export class WebsiteIntelligenceService {
-  private llm: GeminiProvider;
+  private llm: LLMProvider;
 
   constructor() {
-    this.llm = new GeminiProvider();
+    const dryRun = process.env.ENABLE_DRY_RUN === 'true';
+    this.llm = (dryRun ? new DryRunLLMProvider() : new GeminiProvider()) as LLMProvider;
+  }
+
+  private cleanHomepageDom(doc: Document): void {
+    const selectorsToPrune = [
+      'script', 'style', 'noscript', 'svg', 'template', 'iframe',
+      '.cookie', '.cookie-consent', '#cookie-consent', '.onetrust-consent-sdk',
+      '[class*="consent"]', '[id*="consent"]',
+      '[class*="privacy"]', '[id*="privacy"]',
+      '.ad', '.ads', '.ad-box', '.advertisement',
+      '.social-share', '.share', '[class*="social"]',
+      '.popover', '.tooltip'
+    ];
+    selectorsToPrune.forEach(selector => {
+      try {
+        doc.querySelectorAll(selector).forEach(el => el.remove());
+      } catch (e) {
+        // ignore invalid selectors
+      }
+    });
   }
 
   async crawlUrl(url: string): Promise<string> {
@@ -24,12 +46,40 @@ export class WebsiteIntelligenceService {
       const html = await page.content();
       
       const cleanHtml = cleanHtmlContent(html);
-      const dom = new JSDOM(cleanHtml, { url });
-      const doc = dom.window.document;
-      cleanDom(doc);
       
-      const textContent = doc.body?.textContent || '';
-      return textContent.replace(/\s+/g, ' ').trim();
+      // Strategy 1: Safe homepage DOM cleaning (retaining nav, header, footer, and class*="widget" layout elements)
+      const dom1 = new JSDOM(cleanHtml, { url });
+      const doc1 = dom1.window.document;
+      this.cleanHomepageDom(doc1);
+      let textContent = doc1.body?.textContent || '';
+      let cleanedText = textContent.replace(/\s+/g, ' ').trim();
+
+      // Safeguard 1: If extracted text is suspiciously small (< 40 chars), fall back to raw JSDOM text without pruning
+      if (cleanedText.length < 40) {
+        console.log(`[website-intelligence] Safe homepage DOM extracted text is too short (${cleanedText.length} chars). Running Strategy 2 (raw DOM text without pruning)...`);
+        
+        const dom2 = new JSDOM(cleanHtml, { url });
+        const doc2 = dom2.window.document;
+        // Prune only script/style/svg/iframe tags
+        doc2.querySelectorAll('script, style, noscript, svg, iframe').forEach(el => el.remove());
+        const rawText = doc2.body?.textContent || '';
+        const cleanedRawText = rawText.replace(/\s+/g, ' ').trim();
+        
+        if (cleanedRawText.length > cleanedText.length) {
+          cleanedText = cleanedRawText;
+        }
+      }
+
+      // Safeguard 2: If still too short (< 20 chars), fall back to basic regex stripping from raw cleaned HTML
+      if (cleanedText.length < 20) {
+        console.log(`[website-intelligence] Strategy 2 text is too short (${cleanedText.length} chars). Running Strategy 3 (regex html tag strip)...`);
+        const regexStripped = cleanHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        if (regexStripped.length > cleanedText.length) {
+          cleanedText = regexStripped;
+        }
+      }
+      
+      return cleanedText;
     } finally {
       await browser.close();
     }

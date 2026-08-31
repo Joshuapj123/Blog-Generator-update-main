@@ -1,7 +1,7 @@
 import fetch from 'node-fetch';
 
 async function runE2E() {
-  console.log('--- STARTING REAL E2E TEST ON LOCALHOST:3000 ---');
+  console.log('--- STARTING E2E TEST ON LOCALHOST:3000 FOR HUBSPOT ---');
   const targetUrl = 'http://localhost:3000/api/generate-from-url';
 
   try {
@@ -11,7 +11,7 @@ async function runE2E() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        url: 'https://example.com',
+        url: 'https://www.hubspot.com/',
       }),
     });
 
@@ -29,6 +29,7 @@ async function runE2E() {
       process.exit(1);
     }
 
+    let lastProgress = 0;
     body.on('data', (chunk: Buffer) => {
       const text = chunk.toString();
       const lines = text.split('\n');
@@ -37,6 +38,7 @@ async function runE2E() {
           try {
             const data = JSON.parse(line.substring(6));
             if (data.type === 'status') {
+              lastProgress = data.progress || lastProgress;
               console.log(`[Status] (${data.progress}%): ${data.message}`);
             } else if (data.type === 'outline') {
               console.log(`[Outline] Title: ${data.data.title}`);
@@ -46,6 +48,7 @@ async function runE2E() {
               console.log('🎉 [Complete] Autopilot Generation finished successfully!');
               console.log('Final Article Blueprint Title:', data.data.title);
               console.log('Persisted Document ID:', data.data.id || 'N/A');
+              console.log(`Final Progress Reached: ${lastProgress}%`);
               process.exit(0);
             } else if (data.type === 'error') {
               console.error(`❌ [Error] Received error chunk: ${data.message}`);
