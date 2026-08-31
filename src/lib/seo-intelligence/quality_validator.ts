@@ -210,6 +210,23 @@ export function validateArticleQuality(
     errors.push(`Average paragraph length is ${avgParagraphLength.toFixed(1)} words (exceeds limit of 180).`);
   }
 
+  // 6.1. Individual Paragraph Length (limit of 150)
+  paragraphs.forEach((p, idx) => {
+    const wCount = countWords(p);
+    if (wCount > 150) {
+      errors.push(`Paragraph ${idx + 1} is too long (${wCount} words, exceeds limit of 150 words). Please break it into shorter paragraphs.`);
+    }
+
+    // 6.2. Individual Sentence Length (limit of 35)
+    const pSentences = p.split(/[.!?]+/).map(s => s.trim()).filter(s => s.length > 0);
+    pSentences.forEach(s => {
+      const sWords = countWords(s);
+      if (sWords > 35) {
+        errors.push(`Sentence is too long (${sWords} words, exceeds limit of 35): "${s.slice(0, 40)}..."`);
+      }
+    });
+  });
+
   // 7. Paragraph Similarities (>75% Jaccard similarity)
   const paragraphSimilarities = checkParagraphSimilarity(paragraphs);
   if (paragraphSimilarities.length > 0) {

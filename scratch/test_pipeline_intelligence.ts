@@ -123,20 +123,23 @@ async function testHandoffToWriter() {
     budget: { maxLLMCalls: 25, maxSearchCalls: 5 }
   });
 
-  const mockBrief: ContentBrief = {
+  const mockBrief = {
     title: 'Test Blog Post',
     targetKeywords: ['test-kw'],
     outline: [
       {
         heading: 'Introduction',
         level: 'H2',
+        generate_table: false,
         core_concept: 'Test intro',
         assignedKeywords: ['test-kw'],
         assignedEntities: []
       }
     ],
-    assetType: 'ARTICLE'
-  };
+    assetType: 'ARTICLE',
+    wordCountBudget: { min: 1000, max: 2000, target: 1500 },
+    intent: 'Informational'
+  } as any as ContentBrief;
 
   const mockStrategy = {
     assetType: 'ARTICLE',
@@ -153,12 +156,98 @@ async function testHandoffToWriter() {
   console.log('✔ Handoff to writer passed successfully.');
 }
 
+async function testQualityValidationAndRepair() {
+  console.log('\n--- Test Quality Validation & Bounded Repair ---');
+  
+  const mockLlm: LLMProvider = {
+    generate: async (prompt: string, options?: any) => {
+      // Mock repair response
+      if (options?.operation === 'Content Quality Repair') {
+        return `OPTIMIZED TITLE: Optimized Short Title\n\nREPAIRED BODY:\n## Introduction\nWe designed this tool to help you write blog posts. The software is easy to use and fast. You can write your first article today with templates. It contains the primary keyword test-kw. We naturally integrated the supporting keyword here. This is a very clean sentence that helps businesses grow. All operations are direct and simple.`;
+      }
+      return 'Draft text content';
+    },
+    structuredGenerate: async () => ({}) as any
+  };
+
+  const orchestrator = new AgentOrchestrator({
+    llm: mockLlm,
+    search: {
+      search: async () => []
+    } as any,
+    scraper: {
+      scrape: async () => []
+    } as any
+  });
+
+  // Inject supporting terms
+  (orchestrator as any).supportingTerms = ['supporting keyword'];
+
+  const brief = {
+    title: 'An Extremely Long Title That Exceeds The Maximum Words Allowed For SEO Title Validation Check',
+    targetKeywords: ['test-kw'],
+    outline: [
+      {
+        heading: 'Introduction',
+        level: 'H2',
+        generate_table: false,
+        core_concept: 'Test intro',
+        assignedKeywords: ['test-kw'],
+        assignedEntities: []
+      }
+    ],
+    wordCountBudget: { min: 10, max: 100, target: 50 },
+    intent: 'Informational'
+  } as any as ContentBrief;
+
+  // Let's create an asset that violates several rules:
+  // - Title is too long (above 70 chars)
+  // - Missing primary keyword
+  // - Missing supporting terms
+  // - Section is too long (e.g. 200 words, exceeds max allocation for intro which is ~50 * 1.35)
+  // - Paragraph is too long (contains 200 words)
+  const longParagraph = Array(200).fill('word').join(' ');
+  const contentAsset: ContentAsset = {
+    title: 'An Extremely Long Title That Exceeds The Maximum Words Allowed For SEO Title Validation Check',
+    bodyMarkdown: `## Introduction\n\n${longParagraph}\n\nThis is another paragraph that does not contain keywords.`,
+    wordCount: 220,
+    seoScore: 85,
+    references: [],
+    outline: brief.outline,
+    validationStatus: 'READY'
+  } as any as ContentAsset;
+
+  // Verify review captures all issues
+  const review = await (orchestrator as any).runReview(contentAsset, brief);
+  console.log('Detected validation issues count:', review.issues.length);
+
+  // Assert that issues contains the expected violations
+  console.assert(review.issues.some((i: string) => i.includes('Title is too long')), 'Expected title length warning');
+  console.assert(review.issues.some((i: string) => i.includes('Total article word count is 220')), 'Expected total word count exceeds warning');
+  console.assert(review.issues.some((i: string) => i.includes('Paragraph 1 is too long')), 'Expected paragraph too long warning');
+  console.assert(review.issues.some((i: string) => i.includes('Missing primary keyword')), 'Expected missing primary keyword warning');
+  console.assert(review.issues.some((i: string) => i.includes('Missing recommended supporting terms')), 'Expected missing supporting terms warning');
+  console.assert(review.issues.some((i: string) => i.includes('Section "Introduction" is too long')), 'Expected section-level budget warning');
+
+  // Verify repair pass executes and addresses the issues
+  const repaired = await (orchestrator as any).runRepair(contentAsset, brief, review.issues);
+  console.log('Repaired Title:', repaired.title);
+
+  // Re-verify repaired asset (should be clean now)
+  const secondReview = await (orchestrator as any).runReview(repaired, brief);
+  console.log('Second Review Status (passed):', secondReview.passed);
+  console.assert(secondReview.issues.length === 0, `Expected 0 issues after repair, got ${secondReview.issues.length}: ${secondReview.issues.join(', ')}`);
+
+  console.log('✔ Quality validation & repair passed successfully.');
+}
+
 async function main() {
   try {
     await testMedianCalculations();
     await testContentGapDetection();
     await testZeroCompetitorsEdgeCase();
     await testHandoffToWriter();
+    await testQualityValidationAndRepair();
     console.log('\n=====================================');
     console.log('ALL REGRESSION TESTS PASSED!');
     console.log('=====================================');
