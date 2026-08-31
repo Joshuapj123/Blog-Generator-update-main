@@ -3,6 +3,70 @@ import { SaaSProfileService } from '../../lib/saas-intelligence/SaaSProfileServi
 import { CompetitorDiscoveryService } from '../../lib/saas-intelligence/CompetitorDiscoveryService';
 import { MarketIntelligenceService } from '../../lib/saas-intelligence/MarketIntelligenceService';
 import { SearchOpportunityService } from '../../lib/saas-intelligence/SearchOpportunityService';
+import { getLocalCache } from '../../lib/local-cache';
+
+export function calculateMedian(arr: number[]): number {
+  if (!arr.length) return 0;
+  const sorted = [...arr].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0
+    ? Math.round((sorted[mid - 1] + sorted[mid]) / 2)
+    : sorted[mid];
+}
+
+export function analyzeContentGaps(saasProfile: any, competitors: any[]): string[] {
+  if (!competitors || competitors.length === 0) {
+    return [];
+  }
+
+  const gaps: string[] = [];
+  
+  const normalize = (text: string) => {
+    return text
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
+  const allHeadingsText = normalize(
+    competitors
+      .flatMap(c => c.headings || [])
+      .map((h: any) => h.text || h)
+      .join(' ')
+  );
+
+  if (saasProfile?.keyFeatures && saasProfile.keyFeatures.length > 0) {
+    for (const feature of saasProfile.keyFeatures) {
+      const cleanFeature = feature.split(/[(\[]/)[0].trim();
+      const normFeature = normalize(cleanFeature);
+      
+      // Full match check
+      if (normFeature.length > 3 && allHeadingsText.includes(normFeature)) {
+        continue;
+      }
+
+      // Token overlap match check for multi-word features
+      const tokens = normFeature.split(/\s+/).filter(t => t.length > 3 && !['with', 'from', 'your', 'that', 'this'].includes(t));
+      if (tokens.length > 0) {
+        const matchingTokens = tokens.filter(t => allHeadingsText.includes(t));
+        const matchRatio = matchingTokens.length / tokens.length;
+        if (matchRatio >= 0.5) {
+          continue;
+        }
+      }
+      
+      gaps.push(`Competitor coverage appears limited for: ${cleanFeature}`);
+    }
+  }
+
+  const anyCompetitorHasTables = competitors.some(c => c.hasTables || c.tableCount > 0);
+  if (competitors.length > 0 && !anyCompetitorHasTables) {
+    gaps.push('Consider adding a structured comparison table where useful.');
+  }
+
+  return gaps;
+}
 import { GeoVisibilityService } from '../../lib/intelligence/GeoVisibilityService';
 import { GeminiVisibilityProvider, PerplexityVisibilityProvider } from '../../lib/intelligence/AIVisibilityProvider';
 import { 
@@ -419,30 +483,64 @@ export class AgentOrchestrator {
       let analyzeStage: StageExecution | undefined;
       try {
         analyzeStage = this.startStage(AgentStage.ANALYZE);
-        const competitorStats = research.scrapeResults.map(r => {
+        
+        // Retrieve full competitor cache structures if available
+        const fullCompetitors = research.scrapeResults.map(r => {
+          const cacheKey = 'competitor_' + r.url;
+          const cached = getLocalCache(cacheKey);
+          if (cached) {
+            return cached;
+          }
+          // Fallback if not cached (e.g. Dry Run or first run)
           const words = r.textContent.split(/\s+/).filter(Boolean).length;
           return {
             url: r.url,
+            title: r.title || 'Scraped Competitor',
             wordCount: words,
-            title: r.title,
+            h2Count: 6,
+            headings: [],
+            hasTables: false,
+            tableCount: 0,
+            text: r.textContent
           };
         });
 
-        const medianWordCount = competitorStats.length > 0
-          ? Math.round(competitorStats.reduce((sum, c) => sum + c.wordCount, 0) / competitorStats.length)
-          : 2000;
+        const wordCounts = fullCompetitors.map(c => c.wordCount);
+        const h2Counts = fullCompetitors.map(c => c.h2Count || 6);
+
+        const medianWordCount = calculateMedian(wordCounts) || 2000;
+        const medianH2Count = calculateMedian(h2Counts) || 6;
+
+        // Deterministic content gap analysis
+        const contentGaps = analyzeContentGaps(input.saasProfile, fullCompetitors);
+
+        // Expose telemetry fields for verification
+        console.log(`[Telemetry] competitorsDiscovered: ${saasIntelligenceProfile?.market?.competitors?.length || 0}`);
+        console.log(`[Telemetry] competitorsScraped: ${research.scrapeResults.length}`);
+        console.log(`[Telemetry] competitorsAnalyzed: ${fullCompetitors.length}`);
+        console.log(`[Telemetry] medianWordCount: ${medianWordCount}`);
+        console.log(`[Telemetry] medianH2Count: ${medianH2Count}`);
+        console.log(`[Telemetry] contentGaps: ${JSON.stringify(contentGaps)}`);
 
         analysis = {
           contentType: discovery.contentType,
-          competitors: competitorStats,
+          competitors: fullCompetitors.map(c => ({
+            url: c.url,
+            wordCount: c.wordCount,
+            title: c.title,
+            h2Count: c.h2Count || 6,
+            headings: c.headings || [],
+            hasTables: c.hasTables || false,
+            tableCount: c.tableCount || 0
+          })),
           keywordOpportunities: [],
-          contentGaps: [],
+          contentGaps: contentGaps,
           seoSignals: {
             medianWordCount,
-            medianH2Count: 6,
+            medianH2Count,
           }
         };
-        this.completeStage(analyzeStage, { medianWordCount });
+        this.completeStage(analyzeStage, { medianWordCount, medianH2Count, contentGapsCount: contentGaps.length });
       } catch (err: any) {
         if (analyzeStage) {
           this.failStage(analyzeStage, err);
@@ -639,6 +737,26 @@ ${input.maxHeadings ? `Generate at most ${input.maxHeadings} headings in the out
           opportunity,
           geoIntelligence
         );
+
+        // Merge analysis contentGaps into strategy's differentiation requirements
+        strategy.differentiationRequirements = [
+          ...(strategy.differentiationRequirements || []),
+          ...(analysis?.contentGaps || [])
+        ].filter((v, i, a) => a.indexOf(v) === i);
+
+        // Merge actual scraped/analyzed competitor domains into strategy's competitor references
+        const scrapedDomains = (analysis?.competitors || []).map((c: any) => {
+          try {
+            return new URL(c.url).hostname.toLowerCase().replace('www.', '');
+          } catch {
+            return c.url.toLowerCase().replace('www.', '');
+          }
+        });
+        strategy.competitorReferences = [
+          ...(strategy.competitorReferences || []),
+          ...scrapedDomains
+        ].filter((v, i, a) => a.indexOf(v) === i).slice(0, 3);
+
         this.completeStage(assetStrategyStage, { assetType: strategy.assetType });
       } catch (err: any) {
         if (assetStrategyStage) {
@@ -883,6 +1001,40 @@ Asset Type: ARTICLE
 Guidelines: Maintain an educational structure, write in an active voice, and provide clear definitions, industry examples, and practical recommendations.`;
     }
 
+    const competitorReferencesPassed = strategy?.competitorReferences || [];
+    const contentGapsPassed = strategy?.differentiationRequirements || [];
+    const geoRequirementsPassed = strategy?.geoRequirements || [];
+
+    console.log(`[Telemetry] competitorReferencesPassedToGeneration: ${competitorReferencesPassed.length}`);
+    console.log(`[Telemetry] contentGapsPassedToGeneration: ${contentGapsPassed.length}`);
+    console.log(`[Telemetry] differentiationRequirementsPassedToGeneration: ${contentGapsPassed.length}`);
+    console.log(`[Telemetry] geoRequirementsPassedToGeneration: ${geoRequirementsPassed.length}`);
+
+    let intelligenceContext = '';
+    if (strategy) {
+      if (competitorReferencesPassed.length > 0 || contentGapsPassed.length > 0 || geoRequirementsPassed.length > 0) {
+        intelligenceContext = `
+
+=== SEO AND GEO INTELLIGENCE WRITING CONSTRAINTS ===
+Analyze competitor coverage to identify opportunities for differentiation and completeness. Do not reproduce competitor wording or structure verbatim.
+
+${competitorReferencesPassed.length > 0 ? `Top Ranking Competitors:\n${competitorReferencesPassed.map((c: any) => `- ${c}`).join('\n')}` : ''}
+${contentGapsPassed.length > 0 ? `Competitive Gaps / Opportunities:\n${contentGapsPassed.map((d: any) => `- ${d}`).join('\n')}` : ''}
+${geoRequirementsPassed.length > 0 ? `GEO AI Search Visibility Requirements:\n${geoRequirementsPassed.map((g: any) => `- ${g}`).join('\n')}` : ''}
+
+WRITING RULES:
+- Use competitor information to improve completeness and differentiation.
+- Do NOT copy competitor wording.
+- Do NOT reproduce competitor article structures verbatim.
+- Do NOT mention competitors unless contextually appropriate.
+- Do NOT fabricate competitor claims.
+- Use GEO recommendations where relevant to the section.
+- Prioritize factual accuracy and the user's product positioning.
+- Treat competitor observations as strategic signals, not authoritative facts.
+===================================================`;
+      }
+    }
+
     for (let i = 0; i < brief.outline.length; i++) {
       const section = brief.outline[i];
       const prompt = `Write a comprehensive section for the asset "${brief.title}".
@@ -890,7 +1042,7 @@ Section Heading: "${section.heading}" (Level: ${section.level})
 Keywords to include: ${section.assignedKeywords?.join(', ') || ''}
 Entities to include: ${section.assignedEntities?.join(', ') || ''}
 Core Concept: ${section.core_concept || ''}
-${assetInstructions}
+${assetInstructions}${intelligenceContext}
 
 Additional Constraints:
 - Do NOT fabricate statistics, pricing, customer reviews, or features that cannot be verified.

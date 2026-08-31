@@ -52,6 +52,7 @@ The system is split into two primary components:
 *   **Search Call Budget Optimization**: Skips the keyword-discovery expansion block when a valid seed keyword is already provided for single-article generation, preventing the orchestrator from exceeding the target limit of 5 search/SERP API calls.
 *   **Workspace Context Alignment**: Ensures the active `currentArticleId` is set when loading legacy outlines and Todo ideas prior to launching the generator wizard, resolving the bug that reset the UI to the Final Configuration page instead of launching the editor.
 *   **Autonomous URL Autopilot**: Introduced a single-input autonomous creation flow (Phases 2-14). Users provide their website URL, and the system performs SSRF-safe crawling, constructs a SaaS/Business profile using Gemini structured output, queries candidate search opportunities, scores competitor gaps using SERP intelligence, picks the best target keyword, and initiates the complete writing and review pipeline in one click.
+*   **Connected SEO & GEO Competitor Handoff**: Connected competitor references, statistical medians (word count and heading count), deterministic key feature gap checks, and GEO visibility recommendations directly into the section generation prompts. Appends explicit intelligence writing constraints in the section editor prompt (enforcing *differentiation, not copying*). Added proper statistical median math and robust token-overlap gap matching.
 
 ---
 
