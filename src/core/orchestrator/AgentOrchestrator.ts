@@ -693,19 +693,27 @@ ${geoIntelligence.geoOpportunities.map((o: any) => `- Issue: ${o.issue}\n  Recom
           ? `Recommended Supporting Search Terms to cover naturally: ${this.supportingTerms.join(', ')}`
           : '';
 
-        const prompt = `Create a structured content brief and outline for an article about "${discovery.targetKeyword}".
+        const prompt = `Create a structured content brief and outline for an article targeting the canonical primary keyword: "${discovery.targetKeyword}".
 Target Audience: ${discovery.audience}
 ${saasIntelText}
 Competitor Medians: ${JSON.stringify(analysis.seoSignals)}
 ${supportingTermsText}
 ${geoContextText}
-${input.maxHeadings ? `Generate at most ${input.maxHeadings} headings in the outline to stay strictly within cost budgets.` : ''}`;
+${input.maxHeadings ? `Generate at most ${input.maxHeadings} headings in the outline to stay strictly within cost budgets.` : ''}
+
+=== CRITICAL SEO TITLE & OUTLINE CONTRACTS ===
+1. CANONICAL PRIMARY KEYWORD: The canonical primary keyword is "${discovery.targetKeyword}".
+2. SEO TITLE: The generated title MUST contain the exact canonical primary keyword "${discovery.targetKeyword}" without splitting it with internal commas or hyphens, substituting synonyms, or changing word order. Title length must be 5-12 words, <= 60 characters preferred (<= 70 characters maximum).
+3. OUTLINE STRUCTURE:
+   - Generate 4–7 logical H2 sections.
+   - Design at least one section suited for a practical comparison/feature breakdown table.
+   - Design sections that cover concrete practitioner workflows (e.g. managing sales pipelines, assigning tasks, lead scoring, marketing automation, customer conversations).`;
 
         plan = await this.options.llm.structuredGenerate<ContentBrief>(
           prompt,
           ContentBriefSchema,
           {
-            systemInstruction: 'You are an expert SEO content planner. Generate a structured Content Brief schema.',
+            systemInstruction: 'You are an expert SEO content planner. Generate a structured Content Brief schema with an exact keyword title.',
             operation: 'Content Brief Generation',
           }
         );
@@ -1107,28 +1115,29 @@ EditorRendered: true
   private async runGeneration(brief: ContentBrief, strategy?: any): Promise<ContentAsset> {
     let bodyMarkdown = `# ${brief.title}\n\n`;
     const assetType = strategy?.assetType || brief.assetType || 'ARTICLE';
+    const primaryKeyword = brief.targetKeywords?.[0] || '';
 
     let assetInstructions = '';
     if (assetType === 'COMPARISON') {
       assetInstructions = `
 Asset Type: COMPARISON
-Guidelines: Compare competing solutions objectively. Highlight feature matrices, comparison criteria, clear strengths and weaknesses, objective differentiators, and use-case recommendations. Avoid biased claims and focus on factual, feature-based contrast.`;
+Guidelines: Compare solutions objectively with clear criteria, factual feature matrices, strengths, and use-case recommendations. Avoid biased claims and focus on factual, feature-based contrast.`;
     } else if (assetType === 'ALTERNATIVE') {
       assetInstructions = `
 Asset Type: ALTERNATIVE
-Guidelines: Focus on listing and detailing alternative tools. Outline comparison criteria, who each alternative is best for, key features, pricing highlights, and switching considerations. Show how our product serves as a modern, superior alternative.`;
+Guidelines: Detail alternative tools, comparison criteria, who each alternative is best for, key features, and switching considerations.`;
     } else if (assetType === 'USE_CASE_LANDING_PAGE') {
       assetInstructions = `
 Asset Type: USE-CASE LANDING PAGE
-Guidelines: Address the target audience persona directly. Emphasize the core problem, detail our product's solution workflow, showcase main benefits, present proof points, and integrate contextual, action-oriented CTAs.`;
+Guidelines: Address the target audience directly, explain the core problem, detail the solution workflow, showcase main benefits, and present clear proof points.`;
     } else if (assetType === 'GUIDE') {
       assetInstructions = `
 Asset Type: GUIDE
-Guidelines: Maintain an actionable, step-by-step tutorial structure. Provide clear instructions, practical examples, common mistakes to avoid, and structured FAQ sections where appropriate.`;
+Guidelines: Maintain an actionable, step-by-step tutorial structure with clear instructions, practical examples, common mistakes to avoid, and structured FAQ sections.`;
     } else if (assetType === 'FAQ') {
       assetInstructions = `
 Asset Type: FAQ
-Guidelines: Write direct questions followed by concise, structured, and factual answers. Expose key concepts and avoid unnecessary introductory fluff.`;
+Guidelines: Write direct questions followed by concise, structured, and factual answers without introductory fluff.`;
     } else {
       assetInstructions = `
 Asset Type: ARTICLE
@@ -1188,21 +1197,56 @@ WRITING RULES:
     for (let i = 0; i < brief.outline.length; i++) {
       const section = brief.outline[i];
       const budget = sectionBudgets[i];
-      const prompt = `Write a comprehensive section for the asset "${brief.title}".
+      const isFirstSection = i === 0;
+
+      const prompt = `Write a clear, practical, and highly readable section for the article "${brief.title}".
 Section Heading: "${section.heading}" (Level: ${section.level})
-Keywords to include: ${section.assignedKeywords?.join(', ') || ''}
-${this.supportingTerms.length > 0 ? `Supporting Terms to include naturally where relevant: ${this.supportingTerms.join(', ')}\n` : ''}Entities to include: ${section.assignedEntities?.join(', ') || ''}
+Section Position: ${i + 1} of ${brief.outline.length}
+Canonical Primary Keyword: "${primaryKeyword}"
+Assigned Section Keywords: ${section.assignedKeywords?.join(', ') || primaryKeyword}
+${this.supportingTerms.length > 0 ? `Available Supporting Terms (use naturally where relevant): ${this.supportingTerms.join(', ')}\n` : ''}Assigned Entities: ${section.assignedEntities?.join(', ') || ''}
 Core Concept: ${section.core_concept || ''}
 ${assetInstructions}${intelligenceContext}
 
-WORD BUDGET CONSTRAINTS:
-- Your target word count for this section is: ${budget.target} words.
-- You must write at least ${budget.min} words and at most ${budget.max} words.
-- Stay strictly within this word count range. Write concisely and avoid fluff.
+=== 18 EDITORIAL WRITING & READABILITY CONTRACTS ===
+1. CANONICAL PRIMARY KEYWORD CONTRACT:
+${isFirstSection ? `   - FIRST PARAGRAPH CONTRACT: The very first paragraph of this opening section MUST contain the exact primary keyword "${primaryKeyword}" naturally without splitting it with punctuation or changing word order.
+   - Immediately explain what the product/subject is, who it is for, and why the reader should care.
+   - BAN generic filler intros like "In today's fast-paced digital landscape...", "Businesses today face unprecedented challenges...", "In the modern business environment...". Start directly with useful, practical facts.` : `   - Naturally mention or reinforce the primary keyword "${primaryKeyword}" where contextually appropriate without keyword stuffing.`}
 
-Additional Constraints:
-- Do NOT fabricate statistics, pricing, customer reviews, or features that cannot be verified.
-- Focus on demonstrating value through clear, concrete examples.`;
+2. PLAIN-LANGUAGE & 8TH-GRADE READING CONTRACT:
+   - Target an 8th-grade reading level (Flesch Reading Ease score >= 60, minimum 55).
+   - Write in active voice with short, direct sentences.
+   - BAN corporate buzzwords and fluff. AVOID these words: imperative, operationalization, orchestration, departmentalization, optimization framework, synergistic, transformative, holistic, paradigm, ecosystem, leverage, facilitate, robust, comprehensive, seamless, cutting-edge, dynamic landscape, digital transformation, mission-critical, strategic alignment, end-to-end solution.
+   - Use simple words: utilize -> use, facilitate -> help, commence -> start, approximately -> about, numerous -> many, purchase -> buy, assistance -> help.
+
+3. PARAGRAPH CONTRACT:
+   - 1–3 sentences per paragraph, 30–60 words each. HARD MAXIMUM: 80 words per paragraph.
+   - If a paragraph approaches 80 words, split it into two shorter paragraphs.
+   - Vary paragraph rhythm. Do NOT repeat the same 3-sentence structure throughout.
+
+4. SENTENCE CONTRACT:
+   - Average sentence length: 12–18 words. HARD MAXIMUM: 35 words for any single sentence.
+   - Mix short and medium sentences naturally.
+
+5. NATURAL STRUCTURAL VARIETY:
+   - Do NOT begin 3 consecutive sentences or paragraphs with the same word or structure.
+   - Avoid repeating "${this.targetBrand || 'Brand'} provides...", "${this.targetBrand || 'Brand'} helps...", "${this.targetBrand || 'Brand'} allows...".
+   - Use natural phrasing: "the platform", "the CRM", "this tool", "the system".
+
+6. TACTICAL & PRACTITIONER DEPTH:
+   - Include concrete daily workflow actions (e.g. assigning tasks, managing sales pipelines, lead scoring, marketing automation, customer conversations, inbox management, reporting, workflow triggers).
+   - Answer: "What would a real business owner or team member actually do with this in practice?"
+
+7. COMPARISON TABLE CONTRACT:
+${(assetType === 'COMPARISON' || section.heading.toLowerCase().includes('compar') || section.heading.toLowerCase().includes('differentiator') || section.heading.toLowerCase().includes('hub') || section.heading.toLowerCase().includes('feature') || section.heading.toLowerCase().includes('overview') || i === 2) ? `   - Include at least ONE clean, factual Markdown comparison table summarizing features, capabilities, or workflow benefits. Example columns: | Feature / Workflow | Primary Capability | Key Benefit |. Only use factual values.` : `   - If applicable to this topic, include a factual Markdown comparison or summary table.`}
+
+8. IMAGE / MEDIA PLACEHOLDERS:
+   - Include 1 contextual Markdown image placeholder where visual illustration is helpful (e.g. \`![Workflow Diagram: Lead to Deal Lifecycle](lead-workflow-diagram.png)\` or \`![Dashboard Overview: Multi-Hub Central View](hub-dashboard.png)\`).
+
+WORD BUDGET:
+- Target word count for this section: ${budget.target} words.
+- Range: ${budget.min} to ${budget.max} words. Stay strictly within budget. Write concisely.`;
 
       const text = await this.options.llm.generate(prompt, {
         operation: 'Section Generation',
@@ -1237,9 +1281,9 @@ Additional Constraints:
       generatedAt: new Date().toISOString(),
       slug: brief.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
       assetType,
-      targetKeyword: brief.targetKeywords?.[0] || '',
+      targetKeyword: primaryKeyword,
       metaTitle: `${brief.title} | SEO Growth`,
-      metaDescription: `Discover key insights and best practices about ${brief.targetKeywords?.[0] || 'SaaS growth'}.`,
+      metaDescription: `Discover key insights and best practices about ${primaryKeyword || 'SaaS growth'}.`,
       outline: brief.outline,
       validationStatus: 'READY'
     };
@@ -1294,6 +1338,13 @@ Additional Constraints:
     const bodyLower = content.bodyMarkdown.toLowerCase();
     if (primaryKw && !bodyLower.includes(primaryKw)) {
       criticalErrors.push(`Missing primary keyword: "${brief.targetKeywords[0]}" must be present in the article body.`);
+    }
+
+    // 3.1 First paragraph primary keyword check (Warning)
+    const paragraphs = content.bodyMarkdown.split('\n').map(p => p.trim()).filter(p => p.length > 0 && !p.startsWith('#'));
+    const firstParagraph = paragraphs[0]?.toLowerCase() || '';
+    if (primaryKw && !firstParagraph.includes(primaryKw)) {
+      warnings.push(`First paragraph is missing the exact primary keyword: "${brief.targetKeywords[0]}". It must appear in the first paragraph.`);
     }
 
     // 4. Supporting terms coverage check (Warning)
@@ -1366,12 +1417,29 @@ Additional Constraints:
   }
 
   private async runRepair(content: ContentAsset, brief: ContentBrief, issues: string[]): Promise<ContentAsset> {
+    const primaryKeyword = brief.targetKeywords?.[0] || '';
     const hasTitleIssue = issues.some(i => i.toLowerCase().includes('title'));
     
-    const prompt = `Repair the following article to resolve these quality validation issues:
+    const prompt = `You are an elite editorial proofreader and SEO copyeditor. Rewrite and repair the article body to fix ALL of the following validation issues:
 ${issues.map(i => `- ${i}`).join('\n')}
 
-${hasTitleIssue ? 'Note: You must also output an optimized, short title (under 70 characters, under 12 words) that contains the primary keyword naturally.' : ''}
+=== STRICT EDITORIAL REPAIR RULES ===
+1. READABILITY & PLAIN ENGLISH (CRITICAL):
+   - Rewrite complex, dense sentences into clear, active-voice English at an 8th-grade reading level (Flesch Reading Ease score >= 60, minimum 55).
+   - Eliminate corporate buzzwords (imperative, operationalization, orchestration, transformative, synergistic, holistic, paradigm, seamless, ecosystem, leverage). Replace with plain everyday words (help, use, start, many).
+2. PARAGRAPH CONTRACT:
+   - Split ANY paragraph longer than 80 words into 2-3 shorter paragraphs of 30-60 words (1-3 sentences each). NO paragraph may exceed 80 words.
+3. SENTENCE CONTRACT & STRUCTURAL VARIETY:
+   - Split any sentence longer than 35 words into two shorter sentences. Average sentence length must be 12-18 words.
+   - Eliminate repetitive sentence starters (e.g. "HubSpot provides...", "HubSpot helps..."). Vary sentence openings naturally.
+4. CANONICAL PRIMARY KEYWORD:
+   - Ensure the exact primary keyword "${primaryKeyword}" appears naturally in the very first paragraph, in the title, and in the body without alterations, punctuation splits, or word reordering.
+5. OUTLINE HEADINGS:
+   - Preserve all planned H2 (##) and H3 (###) section headings exactly. Do not introduce '# ' H1 headings in the body.
+6. TABLES & MEDIA:
+   - Ensure at least one clean Markdown comparison table and contextual media placeholders (![Caption](...)) are present and well-formatted.
+
+${hasTitleIssue ? `OPTIMIZED TITLE REQUIREMENT: Output an optimized short title (5-12 words, under 70 characters) containing the exact canonical primary keyword "${primaryKeyword}".` : ''}
 
 Original Article Title: ${content.title}
 Original Article Body:

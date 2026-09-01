@@ -213,11 +213,13 @@ export function validateArticleQuality(
     errors.push(`Average paragraph length is ${avgParagraphLength.toFixed(1)} words (exceeds limit of 180).`);
   }
 
-  // 6.1. Individual Paragraph Length (limit of 150)
+  // 6.1. Individual Paragraph Length (limit of 150 error, >80 warning)
   paragraphs.forEach((p, idx) => {
     const wCount = countWords(p);
     if (wCount > 150) {
       errors.push(`Paragraph ${idx + 1} is too long (${wCount} words, exceeds limit of 150 words). Please break it into shorter paragraphs.`);
+    } else if (wCount > 80) {
+      warnings.push(`Paragraph ${idx + 1} is too long (${wCount} words, exceeds recommended limit of 80 words). Please split it into 1-3 sentence paragraphs.`);
     }
 
     // 6.2. Individual Sentence Length (limit of 35)

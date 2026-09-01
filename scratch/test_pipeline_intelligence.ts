@@ -337,6 +337,61 @@ async function testAutopilotErrorSurfacing() {
   console.log('✔ TEST K: Pipeline failure correctly extracts detailed reason and surfaces it for user display.');
 }
 
+// TEST L: Quality-Hardened Prompt Contracts (Plain Language, Buzzword Ban, Comparison Table, First Paragraph)
+async function testQualityHardenedPromptContracts() {
+  console.log('\n--- TEST L: Quality-Hardened Generation Prompt Contracts ---');
+
+  const capturedPrompts: string[] = [];
+  const mockLlm: LLMProvider = {
+    generate: async (prompt: string) => {
+      capturedPrompts.push(prompt);
+      return 'Teams can manage marketing, sales, and service from one all-in-one business growth platform. Users can assign tasks and track deals easily.';
+    },
+    structuredGenerate: async <T>() => ({}) as T
+  };
+
+  const orchestrator = new AgentOrchestrator({
+    llm: mockLlm,
+    search: { search: async () => [] } as any,
+    scraper: { scrape: async () => [] } as any
+  });
+  (orchestrator as any).targetBrand = 'HubSpot';
+  (orchestrator as any).supportingTerms = ['sales pipeline', 'assigning tasks'];
+
+  const brief = {
+    title: 'HubSpot: An All-in-One Business Growth Platform for Teams',
+    targetKeywords: ['all-in-one business growth platform'],
+    outline: [
+      { heading: 'Overview', level: 'H2', assignedKeywords: ['all-in-one business growth platform'], assignedEntities: ['HubSpot'] },
+      { heading: 'Feature Comparison', level: 'H2', assignedKeywords: ['feature comparison'], assignedEntities: ['HubSpot'] }
+    ],
+    wordCountBudget: { min: 100, max: 500, target: 300 },
+    intent: 'Informational'
+  } as any as ContentBrief;
+
+  const content = await (orchestrator as any).runGeneration(brief, {
+    competitorReferences: ['competitor1.com'],
+    differentiationRequirements: ['table breakdown'],
+    geoRequirements: ['ai search visibility']
+  });
+
+  // Verify section 1 prompt contracts
+  const sec1Prompt = capturedPrompts[0];
+  console.assert(sec1Prompt.includes('CANONICAL PRIMARY KEYWORD CONTRACT'), 'Expected canonical keyword contract in prompt');
+  console.assert(sec1Prompt.includes('FIRST PARAGRAPH CONTRACT'), 'Expected first paragraph contract in section 1');
+  console.assert(sec1Prompt.includes('PLAIN-LANGUAGE & 8TH-GRADE READING CONTRACT'), 'Expected plain language contract');
+  console.assert(sec1Prompt.includes('BAN corporate buzzwords and fluff'), 'Expected corporate buzzword ban in prompt');
+  console.assert(sec1Prompt.includes('PARAGRAPH CONTRACT'), 'Expected paragraph contract');
+  console.assert(sec1Prompt.includes('SENTENCE CONTRACT'), 'Expected sentence contract');
+
+  // Verify section 2 prompt (comparison table contract)
+  const sec2Prompt = capturedPrompts[1];
+  console.assert(sec2Prompt.includes('COMPARISON TABLE CONTRACT'), 'Expected comparison table contract in section 2');
+  console.assert(sec2Prompt.includes('IMAGE / MEDIA PLACEHOLDERS'), 'Expected image placeholder contract in prompt');
+
+  console.log('✔ TEST L: Plain language, buzzword ban, keyword preservation, and comparison table contracts verified.');
+}
+
 async function main() {
   try {
     await testMedianCalculations();
@@ -348,8 +403,9 @@ async function main() {
     await testHeadingStructureAndTelemetry();
     await testSupportingTermsTracing();
     await testAutopilotErrorSurfacing();
+    await testQualityHardenedPromptContracts();
     console.log('\n======================================================');
-    console.log('ALL REGRESSION TESTS (A THROUGH K) PASSED 100% CLEANLY!');
+    console.log('ALL REGRESSION TESTS (A THROUGH L) PASSED 100% CLEANLY!');
     console.log('======================================================');
   } catch (err: any) {
     console.error('TEST FAIL:', err);
