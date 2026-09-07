@@ -1,4 +1,3 @@
-import { chromium } from 'playwright';
 import { JSDOM } from 'jsdom';
 import { cleanHtmlContent } from '../seo-intelligence/content_cleaner';
 import { GeminiProvider } from '../content/GeminiProvider';
@@ -36,53 +35,90 @@ export class WebsiteIntelligenceService {
   }
 
   async crawlUrl(url: string): Promise<string> {
-    const browser = await chromium.launch({
-      headless: true,
-      args: ['--disable-blink-features=AutomationControlled']
-    });
+    let html = '';
+
+    // Primary: Fast standard HTTP fetch (Serverless-safe, zero external binary dependency)
     try {
-      const page = await browser.newPage();
-      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => {});
-      const html = await page.content();
-      
-      const cleanHtml = cleanHtmlContent(html);
-      
-      // Strategy 1: Safe homepage DOM cleaning (retaining nav, header, footer, and class*="widget" layout elements)
-      const dom1 = new JSDOM(cleanHtml, { url });
-      const doc1 = dom1.window.document;
-      this.cleanHomepageDom(doc1);
-      let textContent = doc1.body?.textContent || '';
-      let cleanedText = textContent.replace(/\s+/g, ' ').trim();
+      const res = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9'
+        },
+        redirect: 'follow',
+        signal: AbortSignal.timeout(12000)
+      });
 
-      // Safeguard 1: If extracted text is suspiciously small (< 40 chars), fall back to raw JSDOM text without pruning
-      if (cleanedText.length < 40) {
-        console.log(`[website-intelligence] Safe homepage DOM extracted text is too short (${cleanedText.length} chars). Running Strategy 2 (raw DOM text without pruning)...`);
-        
-        const dom2 = new JSDOM(cleanHtml, { url });
-        const doc2 = dom2.window.document;
-        // Prune only script/style/svg/iframe tags
-        doc2.querySelectorAll('script, style, noscript, svg, iframe').forEach(el => el.remove());
-        const rawText = doc2.body?.textContent || '';
-        const cleanedRawText = rawText.replace(/\s+/g, ' ').trim();
-        
-        if (cleanedRawText.length > cleanedText.length) {
-          cleanedText = cleanedRawText;
-        }
+      if (res.ok) {
+        html = await res.text();
+      } else {
+        console.warn(`[website-intelligence] Primary fetch returned status ${res.status} for ${url}`);
       }
-
-      // Safeguard 2: If still too short (< 20 chars), fall back to basic regex stripping from raw cleaned HTML
-      if (cleanedText.length < 20) {
-        console.log(`[website-intelligence] Strategy 2 text is too short (${cleanedText.length} chars). Running Strategy 3 (regex html tag strip)...`);
-        const regexStripped = cleanHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-        if (regexStripped.length > cleanedText.length) {
-          cleanedText = regexStripped;
-        }
-      }
-      
-      return cleanedText;
-    } finally {
-      await browser.close();
+    } catch (fetchErr: any) {
+      console.warn(`[website-intelligence] Primary fetch failed for ${url}:`, fetchErr.message);
     }
+
+    // Secondary / Fallback: Dynamic lazy-loaded Playwright (only attempted if fetch produced no content and running in an environment supporting it)
+    if (!html || html.trim().length < 100) {
+      try {
+        const pw = await import('playwright');
+        if (pw && pw.chromium) {
+          const browser = await pw.chromium.launch({
+            headless: true,
+            args: ['--disable-blink-features=AutomationControlled']
+          });
+          try {
+            const page = await browser.newPage();
+            await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => {});
+            html = await page.content();
+          } finally {
+            await browser.close();
+          }
+        }
+      } catch (pwErr: any) {
+        console.warn('[website-intelligence] Playwright fallback unavailable or failed:', pwErr.message);
+      }
+    }
+
+    if (!html) {
+      return '';
+    }
+
+    const cleanHtml = cleanHtmlContent(html);
+    
+    // Strategy 1: Safe homepage DOM cleaning (retaining nav, header, footer, and class*="widget" layout elements)
+    const dom1 = new JSDOM(cleanHtml, { url });
+    const doc1 = dom1.window.document;
+    this.cleanHomepageDom(doc1);
+    let textContent = doc1.body?.textContent || '';
+    let cleanedText = textContent.replace(/\s+/g, ' ').trim();
+
+    // Safeguard 1: If extracted text is suspiciously small (< 40 chars), fall back to raw JSDOM text without pruning
+    if (cleanedText.length < 40) {
+      console.log(`[website-intelligence] Safe homepage DOM extracted text is too short (${cleanedText.length} chars). Running Strategy 2 (raw DOM text without pruning)...`);
+      
+      const dom2 = new JSDOM(cleanHtml, { url });
+      const doc2 = dom2.window.document;
+      // Prune only script/style/svg/iframe tags
+      doc2.querySelectorAll('script, style, noscript, svg, iframe').forEach(el => el.remove());
+      const rawText = doc2.body?.textContent || '';
+      const cleanedRawText = rawText.replace(/\s+/g, ' ').trim();
+      
+      if (cleanedRawText.length > cleanedText.length) {
+        cleanedText = cleanedRawText;
+      }
+    }
+
+    // Safeguard 2: If still too short (< 20 chars), fall back to basic regex stripping from raw cleaned HTML
+    if (cleanedText.length < 20) {
+      console.log(`[website-intelligence] Strategy 2 text is too short (${cleanedText.length} chars). Running Strategy 3 (regex html tag strip)...`);
+      const regexStripped = cleanHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+      if (regexStripped.length > cleanedText.length) {
+        cleanedText = regexStripped;
+      }
+    }
+    
+    return cleanedText;
   }
 
   async extractBusinessProfile(url: string, runId?: string): Promise<{ profile: SaaSProfile; candidateKeywords: string[] }> {

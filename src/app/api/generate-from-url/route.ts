@@ -4,17 +4,21 @@ import { SearchOpportunityService } from '@/lib/saas-intelligence/SearchOpportun
 import { GeminiProvider } from '@/lib/content/GeminiProvider';
 import { SerperProvider } from '@/lib/research/SerperProvider';
 import { GenerationPipelineAdapter, DryRunLLMProvider, DryRunSearchProvider } from '@/lib/core/GenerationPipelineAdapter';
+import { normalizeUrl } from '@/lib/research/url-verifier';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
 
 export async function POST(req: Request) {
   try {
-    const { url } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const rawUrl = body?.url;
 
-    if (!url) {
+    if (!rawUrl || typeof rawUrl !== 'string' || !rawUrl.trim()) {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 });
     }
+
+    const url = normalizeUrl(rawUrl);
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream({

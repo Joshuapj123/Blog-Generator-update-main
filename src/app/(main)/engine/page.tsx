@@ -265,16 +265,18 @@ function EnginePageContent() {
                     <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Website Home URL</label>
                     <div className="flex gap-4">
                       <input
-                        type="url"
-                        placeholder="https://yourwebsite.com"
+                        type="text"
+                        placeholder="e.g. open.slokas.app or https://yourwebsite.com"
                         value={autopilotUrl}
                         onChange={(e) => setAutopilotUrl(e.target.value)}
                         className="flex-1 px-4 py-3.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50 text-sm font-medium shadow-inner"
                       />
                       <Button
                         onClick={() => {
-                          if (autopilotUrl.trim()) {
-                            startAutopilotPipeline(autopilotUrl.trim());
+                          const trimmed = autopilotUrl.trim();
+                          if (trimmed) {
+                            const normalized = !/^https?:\/\//i.test(trimmed) ? `https://${trimmed}` : trimmed;
+                            startAutopilotPipeline(normalized);
                           }
                         }}
                         disabled={!autopilotUrl.trim()}

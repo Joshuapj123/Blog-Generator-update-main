@@ -83,7 +83,7 @@ async function runPipeline() {
   };
 
   // Import Agent and setGlobalDispatcher from undici to configure custom timeouts globally and prevent UND_ERR_HEADERS_TIMEOUT
-  const { Agent, setGlobalDispatcher } = await import('undici');
+  const { Agent, setGlobalDispatcher } = (await import('undici' as any)) as any;
   setGlobalDispatcher(new Agent({
     headersTimeout: 30 * 60 * 1000, // 30 minutes
     bodyTimeout: 30 * 60 * 1000,

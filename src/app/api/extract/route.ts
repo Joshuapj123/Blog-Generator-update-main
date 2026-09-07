@@ -1,4 +1,3 @@
-import { chromium } from 'playwright';
 import { Readability } from '@mozilla/readability';
 import { JSDOM } from 'jsdom';
 import { extractEntitiesWithGemini } from '@/lib/entity-extraction';
@@ -62,7 +61,8 @@ export async function POST(request: Request) {
         console.log('[INTELLIGENCE] START');
         console.log('[REFERENCE] START');
         console.log('[REFERENCE] CONNECT START');
-        browser = await chromium.launch({ 
+        const pw = await import('playwright');
+        browser = await pw.chromium.launch({ 
           headless: true,
           args: [
             '--disable-blink-features=AutomationControlled',

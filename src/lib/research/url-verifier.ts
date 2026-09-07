@@ -59,9 +59,19 @@ export function isPrivateIP(ip: string): boolean {
   return true; // Unknown IP format is treated as unsafe
 }
 
-export async function verifyUrlSafety(urlString: string): Promise<{ safe: boolean; url?: URL; error?: string }> {
+export function normalizeUrl(rawUrl: string): string {
+  let trimmed = (rawUrl || '').trim();
+  if (!trimmed) return trimmed;
+  if (!/^https?:\/\//i.test(trimmed)) {
+    trimmed = `https://${trimmed}`;
+  }
+  return trimmed;
+}
+
+export async function verifyUrlSafety(urlString: string): Promise<{ safe: boolean; url?: URL; normalizedUrl?: string; error?: string }> {
   try {
-    const url = new URL(urlString);
+    const normalized = normalizeUrl(urlString);
+    const url = new URL(normalized);
 
     // Validate scheme
     if (url.protocol !== 'http:' && url.protocol !== 'https:') {
@@ -89,7 +99,7 @@ export async function verifyUrlSafety(urlString: string): Promise<{ safe: boolea
       return { safe: false, error: `Access to private or local IP address (${resolvedIp}) is prohibited.` };
     }
 
-    return { safe: true, url };
+    return { safe: true, url, normalizedUrl: url.toString() };
   } catch (err: any) {
     return { safe: false, error: `Malformed URL: ${err.message}` };
   }

@@ -1,4 +1,3 @@
-import { chromium } from 'playwright';
 import { Readability } from '@mozilla/readability';
 import { JSDOM } from 'jsdom';
 import { extractLsiKeywords } from '@/lib/serp-nlp-processing';
@@ -82,7 +81,8 @@ export interface ExtractedDesign {
 }
 
 export async function extractReferenceDesign(url: string): Promise<ExtractedDesign | null> {
-  const browser = await chromium.launch({ headless: true });
+  const pw = await import('playwright');
+  const browser = await pw.chromium.launch({ headless: true });
   // Start with Desktop Viewport
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 

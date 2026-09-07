@@ -1,4 +1,3 @@
-import { chromium } from 'playwright';
 import { Readability } from '@mozilla/readability';
 import { JSDOM } from 'jsdom';
 import { google } from '@ai-sdk/google';
@@ -449,10 +448,18 @@ export async function scrapeCompetitors(
   const domainCounts: Record<string, number> = {};
 
   try {
-    browser = await chromium.launch({
-      headless: true,
-      args: ['--disable-blink-features=AutomationControlled']
-    });
+    try {
+      const pw = await import('playwright');
+      if (pw && pw.chromium) {
+        browser = await pw.chromium.launch({
+          headless: true,
+          args: ['--disable-blink-features=AutomationControlled']
+        });
+      }
+    } catch (pwErr: any) {
+      console.warn('[serp_collector] Playwright launch unavailable, using fetch fallback:', pwErr.message);
+      browser = null;
+    }
 
     const batchSize = 3;
     let urlIndex = 0;
@@ -529,10 +536,58 @@ export async function scrapeCompetitors(
           return;
         }
 
-        const page = await browser.newPage();
+        let html = '';
+        if (browser) {
+          try {
+            const page = await browser.newPage();
+            try {
+              await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => {});
+              html = await page.content();
+            } finally {
+              await page.close().catch(() => {});
+            }
+          } catch (pageErr: any) {
+            console.warn(`[serp_collector] Playwright fetch failed for ${url}:`, pageErr.message);
+          }
+        }
+
+        if (!html) {
+          try {
+            const res = await fetch(url, {
+              headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+              },
+              signal: AbortSignal.timeout(10000)
+            });
+            if (res.ok) {
+              html = await res.text();
+            }
+          } catch (fe: any) {
+            console.warn(`[serp_collector] Fetch fallback failed for ${url}:`, fe.message);
+          }
+        }
+
+        if (!html) {
+          auditLogs.push({
+            url,
+            domain,
+            readabilitySuccess: false,
+            fallbackUsed: false,
+            fallbackType: 'none',
+            wordCount: 0,
+            headingCount: 0,
+            paragraphCount: 0,
+            qualityScore: 0,
+            extractionConfidence: 0,
+            weight: 0,
+            rejected: true,
+            rejectionReason: 'Unable to retrieve HTML content'
+          });
+          return;
+        }
+
         try {
-          await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => {});
-          const html = await page.content();
           const cleanHtml = cleanHtmlContent(html);
           
           const dom = new JSDOM(cleanHtml, { url });
@@ -667,13 +722,11 @@ export async function scrapeCompetitors(
             rejected: true,
             rejectionReason: `Scraping error: ${e.message || e}`
           });
-        } finally {
-          await page.close();
         }
       }));
     }
   } catch (error) {
-    console.error('[serp_collector] Playwright batch runner error:', error);
+    console.error('[serp_collector] Scraping batch runner error:', error);
   } finally {
     if (browser) await browser.close().catch(() => {});
   }
