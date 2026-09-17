@@ -83,11 +83,18 @@ Provide keyword ideas covering multiple angles: Listicles ("best X"), Comparison
           .map((r, i) => `[Rank ${i + 1}] Title: ${r.title}\nURL: ${r.link}\nSnippet: ${r.snippet}`)
           .join('\n\n');
 
+        const description = options?.saasProfile?.description || 'N/A';
+        const targetAudience = options?.saasProfile?.targetAudience || 'N/A';
+        const keyFeatures = (options?.saasProfile?.keyFeatures || []).join(', ') || 'N/A';
+
         const classificationPrompt = `You are a search intent and SERP analysis expert. Analyze the search results context below for the keyword "${keyword}" to classify the search opportunity for our SaaS named "${saasName}" in the "${category}" category.
 
 SaaS Context:
 Product: ${saasName}
 Category: ${category}
+Description: ${description}
+Target Audience: ${targetAudience}
+Key Features: ${keyFeatures}
 
 SERP Context:
 ${serpContext || 'No live search results available.'}
@@ -98,7 +105,11 @@ Tasks:
 3. Detail the composition of page types dominating the top 10 results (assign counts out of 10, e.g. Listicle: 5, Product Page: 3, Guide: 2). Page types: 'Listicle', 'How-To', 'Guide', 'Review', 'Comparison', 'Other', 'Product Page', 'Forum'.
 4. Identify any search features present based on URLs/snippets (e.g. "Featured Snippet", "YouTube Video", "People Also Ask", "Local Map").
 5. Identify direct ranking SaaS competitors (domains) and standard ranking domains.
-6. Rate the Business Relevance (1-100, how closely this keyword maps to our product value proposition).
+6. Rate the Business Relevance (1-100):
+   CRITICAL RELEVANCE RULES:
+   - PRIMARY TIER (80-100): Core value proposition, primary product category, main JTBD / problem the company exists to solve.
+   - SECONDARY TIER (40-70): Secondary features, auxiliary integrations, niche use-cases, or one capability among many. Secondary features MUST NOT receive primary scores (>70) regardless of search intent or volume.
+   - IRRELEVANT TIER (1-39): Tangential, fringe, or unrelated queries that do not represent what the business sells.
 7. Rate the Competitor Presence (1-100, how heavily direct SaaS competitors dominate the search results).
 8. Rate the Estimated Difficulty (1-100, based on authority domains like G2, HubSpot, Wikipedia, Reddit, etc.).
 9. Perform a Content Gap analysis: explain what currently ranks, what the current pages are missing, and what student/developer/use-case gap we can exploit.
@@ -135,7 +146,8 @@ Tasks:
         });
 
         // 3. Compute Deterministic Opportunity Score
-        // Score = 0.35 * Business Relevance + 0.25 * Intent Value + 0.20 * Content Gap Score + 0.20 * (100 - Difficulty)
+        // Score = 0.40 * Business Relevance + 0.25 * Intent Value + 0.25 * Content Gap Score + 0.10 * (100 - Difficulty)
+        // Dampened if businessRelevance < DEFAULT_AUTOPILOT_RELEVANCE_THRESHOLD
         let intentValue = 50;
         if (result.intent === 'Commercial' || result.intent === 'Comparison') {
           intentValue = 100;
@@ -145,12 +157,12 @@ Tasks:
           intentValue = 60;
         }
 
-        const contentGapScore = result.contentGap.length > 40 ? 95 : 70;
-        const scoreValue = Math.round(
-          (result.businessRelevance * 0.35) +
-          (intentValue * 0.25) +
-          (contentGapScore * 0.20) +
-          ((100 - result.estimatedDifficulty) * 0.20)
+        const contentGapScore = calculateContentGapScore(result.contentGap, (result.supportingTerms || []).length);
+        const scoreValue = computeOpportunityScore(
+          result.businessRelevance,
+          intentValue,
+          contentGapScore,
+          result.estimatedDifficulty
         );
 
         opportunities.push({
@@ -161,7 +173,7 @@ Tasks:
           businessRelevance: result.businessRelevance,
           estimatedDifficulty: result.estimatedDifficulty,
           competitorPresence: result.competitorPresence,
-          opportunityScore: Math.max(0, Math.min(100, scoreValue)),
+          opportunityScore: scoreValue,
           explanation: result.explanation,
           serpTypes: result.serpTypes,
           rankingDomains: rankingDomains.length > 0 ? rankingDomains : result.competitors,
@@ -184,7 +196,7 @@ Tasks:
           businessRelevance: 50,
           estimatedDifficulty: 50,
           competitorPresence: 50,
-          opportunityScore: 40,
+          opportunityScore: computeOpportunityScore(50, 60, calculateContentGapScore(''), 50),
           explanation: `Fallback analysis due to provider failure: ${err.message}`,
           serpTypes: [],
           rankingDomains: [],
@@ -199,7 +211,94 @@ Tasks:
       }
     }
 
-    // Sort opportunities by score descending
-    return opportunities.sort((a, b) => b.opportunityScore - a.opportunityScore);
+    // Rank opportunities prioritizing autopilot-eligible primary business topics
+    return rankAutopilotOpportunities(opportunities);
   }
+}
+
+export const DEFAULT_AUTOPILOT_RELEVANCE_THRESHOLD = 65;
+
+export function isEligibleForAutopilot(
+  businessRelevance: number,
+  threshold: number = DEFAULT_AUTOPILOT_RELEVANCE_THRESHOLD
+): boolean {
+  return businessRelevance >= threshold;
+}
+
+const GAP_INDICATORS = [
+  'missing', 'lack', 'gap', 'no in-depth', 'weak', 'generic',
+  'opportunity', 'exploit', 'unaddressed', 'shallow', 'needs',
+  'fails to', 'omits', 'outdated', 'absent', 'thin'
+];
+
+export function calculateContentGapScore(
+  contentGap: string,
+  supportingTermsCount: number = 0
+): number {
+  if (!contentGap || contentGap.trim().length === 0) {
+    return 50;
+  }
+
+  const text = contentGap.toLowerCase().trim();
+  let score = 50; // Neutral baseline
+
+  // Evidence of gap analysis & depth
+  const hasIndicators = GAP_INDICATORS.some(ind => text.includes(ind));
+  if (hasIndicators && text.length >= 60) {
+    score += 25;
+  } else if (hasIndicators || text.length >= 40) {
+    score += 15;
+  } else if (text.length >= 20) {
+    score += 5;
+  }
+
+  // Supporting entities / terms evidence (concrete topics to address)
+  const termBonus = Math.min(15, supportingTermsCount * 3);
+  score += termBonus;
+
+  return Math.max(40, Math.min(95, score));
+}
+
+export function computeOpportunityScore(
+  businessRelevance: number,
+  intentValue: number,
+  contentGapScore: number,
+  estimatedDifficulty: number,
+  threshold: number = DEFAULT_AUTOPILOT_RELEVANCE_THRESHOLD
+): number {
+  // Rebalanced weights: Business Relevance 40%, Intent 25%, Content Gap 25%, Difficulty 10%
+  const baseScore =
+    (businessRelevance * 0.40) +
+    (intentValue * 0.25) +
+    (contentGapScore * 0.25) +
+    ((100 - estimatedDifficulty) * 0.10);
+
+  if (businessRelevance < threshold) {
+    // Secondary feature / low-relevance dampening penalty
+    const penaltyFactor = Math.max(0.1, businessRelevance / threshold);
+    const penalizedScore = Math.round(baseScore * penaltyFactor);
+    return Math.max(0, Math.min(100, penalizedScore));
+  }
+
+  return Math.max(0, Math.min(100, Math.round(baseScore)));
+}
+
+export function rankAutopilotOpportunities<T extends { businessRelevance: number; opportunityScore: number }>(
+  opportunities: T[],
+  threshold: number = DEFAULT_AUTOPILOT_RELEVANCE_THRESHOLD
+): T[] {
+  const eligible = opportunities
+    .filter(o => o.businessRelevance >= threshold)
+    .sort((a, b) => b.opportunityScore - a.opportunityScore);
+
+  const nonEligible = opportunities
+    .filter(o => o.businessRelevance < threshold)
+    .sort((a, b) => b.opportunityScore - a.opportunityScore);
+
+  if (eligible.length > 0) {
+    return [...eligible, ...nonEligible];
+  }
+
+  // Graceful fallback if no candidate reached threshold
+  return [...opportunities].sort((a, b) => b.opportunityScore - a.opportunityScore);
 }

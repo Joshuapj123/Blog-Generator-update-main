@@ -151,31 +151,243 @@ Generate a structured business profile matching the requested schema. Ensure the
       systemInstruction: 'Output a valid JSON matching the SaaSProfileSchema.'
     });
 
-    // 4. Generate candidate seed keywords
+    // 4. Generate candidate seed keywords spanning distinct business pillars
     const keywordSchema = z.object({
-      keywords: z.array(z.string().min(1)).min(4).max(6).describe('List of 4-6 high-intent target SEO search terms/keywords for this business.')
+      keywords: z.array(z.string().min(1)).min(4).max(6).describe('List of 4-6 high-intent target SEO search terms covering distinct business pillars.')
     });
 
-    const keywordPrompt = `Based on this business profile, generate 4 to 6 target SEO keywords/search queries that potential customers would search on Google to find products like this.
+    const keywordPrompt = `You are an elite SEO strategist. Based on this business profile, generate 4 to 6 target SEO search queries that represent the company's primary business across distinct strategic pillars.
+
 SaaS Name: ${profile.name}
 Description: ${profile.description}
 Key Features: ${profile.keyFeatures?.join(', ')}
 Target Audience: ${profile.targetAudience}
 
-Ensure the keywords represent high-intent topics, listicles ("best X"), comparison keywords ("X vs Y"), or guide keywords ("how to X"). Return lowercase, search-friendly query strings.`;
+CRITICAL DIVERSIFICATION RULES:
+1. Cover at least 3 distinct conceptual pillars:
+   - Pillar 1: Core Product / Primary Value Proposition (e.g., "best [core product category] app", "[core solution] software")
+   - Pillar 2: Core Problem / JTBD (e.g., "how to [solve primary customer problem]", "manage [core job]")
+   - Pillar 3: Category Alternative / Comparison (e.g., "[brand/category] alternatives", "[brand] vs [competitor]")
+   - Pillar 4: Feature Differentiator (a key unique feature or capability)
+2. SECONDARY FEATURE RULE: Secondary features, integrations, or auxiliary capabilities MUST NOT dominate the candidate set. Novelty or low competition alone must NOT cause a secondary feature to dominate.
+3. DOMINANT CLUSTER RULE: No more than 50% of candidates may belong to the same semantic cluster (e.g., sharing the same feature root like 'podcast' or 'audio' when the core product is an RSS reader).
+4. Ground every keyword in the primary business offering. Return lowercase, search-friendly query strings.`;
 
-    const keywordResult = await this.llm.structuredGenerate<z.infer<typeof keywordSchema>>(keywordPrompt, keywordSchema, {
-      operation: 'Autopilot Seed Keyword Generation',
-      runId,
-      systemInstruction: 'Output a valid JSON containing 4-6 lowercase keyword strings.'
-    });
+    let candidateKeywords: string[] = [];
+    try {
+      const keywordResult = await this.llm.structuredGenerate<z.infer<typeof keywordSchema>>(keywordPrompt, keywordSchema, {
+        operation: 'Autopilot Seed Keyword Generation',
+        runId,
+        systemInstruction: 'Output a valid JSON containing 4-6 lowercase keyword strings spanning distinct strategic pillars.'
+      });
+      candidateKeywords = keywordResult.keywords || [];
+    } catch (err: any) {
+      console.warn('[website-intelligence] Seed keyword generation failed, using profile fallback:', err.message);
+      const name = profile.name.toLowerCase().trim();
+      candidateKeywords = [
+        `best ${name} alternatives`,
+        `how to choose ${name} platform`,
+        `${name} review`,
+        `how to use ${name}`
+      ];
+    }
+
+    // 5. Programmatic cluster concentration detection and enforcement
+    const clusterAnalysis = detectSemanticCluster(candidateKeywords, profile);
+    if (clusterAnalysis.isConcentrated && clusterAnalysis.dominantStem) {
+      console.warn(`[website-intelligence] Secondary cluster dominance detected: "${clusterAnalysis.dominantStem}" (${clusterAnalysis.dominantCount}/${clusterAnalysis.totalCount} keywords). Attempting rebalancing...`);
+      
+      try {
+        const rebalancePrompt = `The previous SEO candidate keywords were overly concentrated on the secondary feature "${clusterAnalysis.dominantStem}" (${clusterAnalysis.dominantCount} of ${clusterAnalysis.totalCount} keywords).
+Regenerate 4 to 6 target SEO keywords for "${profile.name}".
+Primary Business Description: ${profile.description}
+Key Features: ${profile.keyFeatures?.join(', ')}
+
+MANDATORY REBALANCING RULES:
+1. At most 1 keyword may mention or relate to "${clusterAnalysis.dominantStem}".
+2. All other keywords MUST target the primary business value proposition, core problem/JTBD, and category alternatives.
+3. Represent at least 3 distinct conceptual pillars. Return lowercase strings.`;
+
+        const rebalancedResult = await this.llm.structuredGenerate<z.infer<typeof keywordSchema>>(rebalancePrompt, keywordSchema, {
+          operation: 'Autopilot Seed Keyword Generation',
+          runId,
+          systemInstruction: 'Output a valid JSON containing 4-6 balanced lowercase keyword strings.'
+        });
+        
+        if (rebalancedResult.keywords && rebalancedResult.keywords.length >= 4) {
+          candidateKeywords = rebalancedResult.keywords;
+        }
+      } catch (rebalanceErr: any) {
+        console.warn('[website-intelligence] Rebalancing LLM call failed, applying deterministic adjustment:', rebalanceErr.message);
+      }
+    }
+
+    // Deterministic guarantee: enforce maximum cluster concentration rule
+    const { keywords: finalKeywords, wasAdjusted, clusterAnalysis: finalAnalysis } = enforceKeywordDiversification(candidateKeywords, profile);
+    if (wasAdjusted && finalAnalysis.dominantStem) {
+      console.log(`[website-intelligence] Enforced keyword diversification: pruned excess secondary cluster "${finalAnalysis.dominantStem}". Final count: ${finalKeywords.length}`);
+    }
 
     return {
       profile: {
         ...profile,
         website: url
       },
-      candidateKeywords: keywordResult.keywords || []
+      candidateKeywords: finalKeywords
     };
   }
+}
+
+export interface ClusterAnalysis {
+  isConcentrated: boolean;
+  dominantStem?: string;
+  dominantCount: number;
+  totalCount: number;
+  concentrationRatio: number;
+  isPrimaryBusiness: boolean;
+}
+
+const COMMON_SEO_STOPWORDS = new Set([
+  'best', 'top', 'vs', 'versus', 'how', 'to', 'what', 'is', 'for', 'in', 'of',
+  'and', 'or', 'the', 'a', 'an', 'app', 'apps', 'tool', 'tools', 'software',
+  'platform', 'online', 'free', 'guide', 'solutions', 'solution', 'alternatives',
+  'alternative', 'service', 'services', 'system', 'systems', 'review', 'reviews',
+  'with', 'by', 'on', 'at', 'from', 'into', 'use', 'using', 'build', 'create'
+]);
+
+export function normalizeWordStem(word: string): string {
+  let stem = word.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
+  if (stem.length <= 2) return '';
+  if (stem.endsWith('ing') && stem.length > 5) stem = stem.slice(0, -3);
+  else if (stem.endsWith('ies') && stem.length > 4) stem = stem.slice(0, -3) + 'y';
+  else if (stem.endsWith('es') && stem.length > 4) stem = stem.slice(0, -2);
+  else if (stem.endsWith('s') && !stem.endsWith('ss') && stem.length > 3) stem = stem.slice(0, -1);
+  return stem;
+}
+
+export function detectSemanticCluster(keywords: string[], profile: SaaSProfile): ClusterAnalysis {
+  if (!keywords || keywords.length === 0) {
+    return {
+      isConcentrated: false,
+      dominantCount: 0,
+      totalCount: 0,
+      concentrationRatio: 0,
+      isPrimaryBusiness: false
+    };
+  }
+
+  const stemFrequency = new Map<string, number>();
+
+  for (const kw of keywords) {
+    const words = kw.toLowerCase().split(/\s+/);
+    const seenStemsInKw = new Set<string>();
+
+    for (const rawWord of words) {
+      const stem = normalizeWordStem(rawWord);
+      if (stem && !COMMON_SEO_STOPWORDS.has(stem) && !seenStemsInKw.has(stem)) {
+        seenStemsInKw.add(stem);
+      }
+    }
+
+    for (const stem of seenStemsInKw) {
+      stemFrequency.set(stem, (stemFrequency.get(stem) || 0) + 1);
+    }
+  }
+
+  let dominantStem: string | undefined;
+  let maxCount = 0;
+
+  for (const [stem, count] of stemFrequency.entries()) {
+    if (count > maxCount) {
+      maxCount = count;
+      dominantStem = stem;
+    }
+  }
+
+  const totalCount = keywords.length;
+  const concentrationRatio = totalCount > 0 ? maxCount / totalCount : 0;
+
+  // Check if dominant stem genuinely belongs to the primary business offering
+  let isPrimaryBusiness = false;
+  if (dominantStem) {
+    const nameLower = (profile.name || '').toLowerCase();
+    const descLower = (profile.description || '').toLowerCase();
+    const firstSentence = descLower.split(/[.!?]/)[0] || descLower;
+    const normDom = normalizeWordStem(dominantStem);
+
+    const nameMatches = nameLower.split(/\s+/).some(w => normalizeWordStem(w) === normDom);
+    const primaryDescMatches = firstSentence.split(/\s+/).some(w => normalizeWordStem(w) === normDom);
+
+    if (nameMatches || primaryDescMatches) {
+      isPrimaryBusiness = true;
+    }
+  }
+
+  // A cluster is considered overly concentrated if > 50% of candidates share the stem
+  // AND it is NOT the primary business
+  const isConcentrated = concentrationRatio > 0.50 && !isPrimaryBusiness;
+
+  return {
+    isConcentrated,
+    dominantStem,
+    dominantCount: maxCount,
+    totalCount,
+    concentrationRatio,
+    isPrimaryBusiness
+  };
+}
+
+export function enforceKeywordDiversification(
+  keywords: string[],
+  profile: SaaSProfile
+): { keywords: string[]; clusterAnalysis: ClusterAnalysis; wasAdjusted: boolean } {
+  const analysis = detectSemanticCluster(keywords, profile);
+
+  if (!analysis.isConcentrated || !analysis.dominantStem) {
+    return { keywords, clusterAnalysis: analysis, wasAdjusted: false };
+  }
+
+  // Concentration on secondary feature detected!
+  // Enforce max 50% rule: at most Math.floor(keywords.length / 2) candidates may contain the dominant stem.
+  const maxAllowed = Math.floor(keywords.length / 2);
+  const dominantStem = analysis.dominantStem;
+  const preserved: string[] = [];
+  let dominantKept = 0;
+
+  for (const kw of keywords) {
+    const words = kw.toLowerCase().split(/\s+/).map(normalizeWordStem);
+    const hasStem = words.includes(dominantStem);
+    if (hasStem) {
+      if (dominantKept < maxAllowed) {
+        preserved.push(kw);
+        dominantKept++;
+      }
+    } else {
+      preserved.push(kw);
+    }
+  }
+
+  // Backfill with primary business keywords covering Core Product & Problem/JTBD
+  const name = profile.name.toLowerCase().trim();
+  const fallbackCandidates = [
+    `best ${name} alternatives`,
+    `how to choose ${name} platform`,
+    `${name} review for small business`,
+    `how to use ${name}`
+  ];
+
+  for (const fallback of fallbackCandidates) {
+    if (preserved.length >= keywords.length) break;
+    if (!preserved.includes(fallback)) {
+      preserved.push(fallback);
+    }
+  }
+
+  const finalAnalysis = detectSemanticCluster(preserved, profile);
+
+  return {
+    keywords: preserved,
+    clusterAnalysis: finalAnalysis,
+    wasAdjusted: true
+  };
 }
