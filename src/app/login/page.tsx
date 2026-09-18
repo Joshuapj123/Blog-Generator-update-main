@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/firebase/auth-context';
+import { captureEvent } from '@/lib/analytics/posthog';
 import { Zap, Loader2, AlertCircle } from 'lucide-react';
 
 function GoogleIcon() {
@@ -48,6 +49,7 @@ export default function LoginPage() {
     setIsSigningIn(true);
     try {
       await signInWithGoogle();
+      captureEvent('login_completed', { provider: 'google' });
     } catch {
       setError('Sign-in failed. Please try again.');
       setIsSigningIn(false);

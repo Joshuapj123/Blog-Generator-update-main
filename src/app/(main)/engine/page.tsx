@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Loader2, Globe, Sparkles, Wand2, ArrowRight } from 'lucide-react';
 import { useEngine, EngineProvider } from './context/EngineContext';
@@ -13,11 +13,14 @@ import { StepFinalConfig } from './components/WizardSteps/StepFinalConfig';
 import { SectionEditor } from './components/SectionEditor';
 import { GoogleAdsModal } from './components/GoogleAdsModal';
 import { getArticles, getFolders, getExternalLinks } from '@/lib/firebase/firestore';
+import { useAuth } from '@/lib/firebase/auth-context';
+import { captureEvent, extractDomain } from '@/lib/analytics/posthog';
 import { Button } from '@/components/ui/button';
 import { useGenerationPipeline } from './hooks/useGenerationPipeline';
 
 function EnginePageContent() {
   const engine = useEngine();
+  const { user } = useAuth();
   const searchParams = useSearchParams();
   const todoId = searchParams.get('todo_id');
   const [mounted, setMounted] = useState(false);
@@ -25,8 +28,17 @@ function EnginePageContent() {
   const [autopilotUrl, setAutopilotUrl] = useState('');
   const { startAutopilotPipeline } = useGenerationPipeline();
 
+  const hasFiredAppOpened = useRef(false);
+
   useEffect(() => {
     setMounted(true);
+    if (!hasFiredAppOpened.current) {
+      hasFiredAppOpened.current = true;
+      captureEvent('app_opened', {
+        initial_tab: useAutopilot ? 'autopilot' : 'wizard',
+        auth_status: user ? 'authenticated' : 'anonymous',
+      });
+    }
   }, []);
 
   // Load Firestore data on mount
@@ -275,7 +287,16 @@ function EnginePageContent() {
                         onClick={() => {
                           const trimmed = autopilotUrl.trim();
                           if (trimmed) {
-                            const normalized = !/^https?:\/\//i.test(trimmed) ? `https://${trimmed}` : trimmed;
+                            const hasProtocol = /^https?:\/\//i.test(trimmed);
+                            const normalized = !hasProtocol ? `https://${trimmed}` : trimmed;
+                            const domain = extractDomain(trimmed);
+
+                            captureEvent('website_url_submitted', {
+                              website_url_domain: domain,
+                              has_protocol: hasProtocol,
+                              input_length: trimmed.length,
+                            });
+
                             startAutopilotPipeline(normalized);
                           }
                         }}

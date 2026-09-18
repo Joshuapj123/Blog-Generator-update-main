@@ -6,6 +6,8 @@ import { useEngine } from '../context/EngineContext';
 import { toMarkdown } from '@/lib/article-utils';
 import { computeStructuredScore } from '@/lib/content-scoring';
 import { getArticleByGenerationInputs } from '@/lib/firebase/firestore';
+import { calculateFleschReadingEase } from '@/lib/seo-intelligence/quality_validator';
+import { captureEvent, sanitizeErrorMessage } from '@/lib/analytics/posthog';
 
 export function useGenerationPipeline() {
   const engine = useEngine();
@@ -144,6 +146,24 @@ export function useGenerationPipeline() {
     engine.setTiptapContent('');
     engine.setGenError(null);
 
+    const runId = 'run_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+    const runStartTime = Date.now();
+    let hasFiredGenStarted = false;
+    let hasFiredGenCompleted = false;
+    let hasFiredGenFailed = false;
+
+    const recordFailure = (errorObj: any, stage?: string) => {
+      if (hasFiredGenFailed) return;
+      hasFiredGenFailed = true;
+      const rawMsg = errorObj?.reason || errorObj?.message || String(errorObj);
+      captureEvent('generation_failed', {
+        run_id: runId,
+        failing_stage: stage || 'pipeline',
+        error_code: errorObj?.name || errorObj?.code || 'GENERATION_ERROR',
+        error_message: sanitizeErrorMessage(rawMsg),
+      });
+    };
+
     // Auto-Restore logic
     if (!force && engine.targetKeywords && engine.referenceUrl) {
       try {
@@ -212,6 +232,66 @@ export function useGenerationPipeline() {
       let done = false;
       let buffer = '';
 
+      const handleManualChunkParsed = (parsed: any) => {
+        if (parsed.type === 'status') {
+          engine.setGenStatus(parsed.message);
+          if (parsed.progress) engine.setGenProgress(parsed.progress);
+        } else if (parsed.type === 'outline') {
+          engine.setBlueprint(parsed.data);
+          if (!hasFiredGenStarted) {
+            hasFiredGenStarted = true;
+            captureEvent('content_generation_started', {
+              run_id: runId,
+              content_type: parsed.data?.contentType || 'Guide',
+            });
+          }
+        } else if (parsed.type === 'section') {
+          engine.setSections((prev: any) => {
+            const next = [...prev];
+            next[parsed.index] = parsed.data;
+            return next;
+          });
+        } else if (parsed.type === 'complete') {
+          engine.setBlueprint((prev: any) => ({ ...prev, ...parsed.data }));
+          if (parsed.data.sections) {
+            engine.setSections(parsed.data.sections);
+          }
+          engine.setGenProgress(100);
+          engine.setGenStatus('Generation complete');
+          engine.setIsGenerated(true);
+          // Switch QA panel to Score tab
+          engine.setActiveQaTab('score');
+
+          if (!hasFiredGenCompleted) {
+            hasFiredGenCompleted = true;
+            const sections = parsed.data?.sections || [];
+            const textContent = sections.map((s: any) => 
+              `${s.heading || ''}\n${s.what_it_is || ''}\n${s.why_it_works || ''}\n${s.experience_or_data_point || ''}`
+            ).join('\n\n');
+            const wordCount = textContent.trim().split(/\s+/).filter(Boolean).length;
+            let flesch = 0;
+            try {
+              flesch = calculateFleschReadingEase(textContent);
+            } catch {}
+
+            captureEvent('content_generation_completed', {
+              run_id: runId,
+              word_count: wordCount,
+              section_count: sections.length,
+              flesch_reading_ease: flesch,
+              total_duration_ms: Date.now() - runStartTime,
+            });
+          }
+
+          if (parsed.data.sections) {
+            runPostGenerationAnalysis(parsed.data.sections, parsed.data);
+          }
+        } else if (parsed.type === 'error') {
+          recordFailure(parsed);
+          throw new Error(parsed.reason || parsed.message || 'Generation failed.');
+        }
+      };
+
       while (!done) {
         const { value, done: rd } = await reader.read();
         done = rd;
@@ -226,35 +306,11 @@ export function useGenerationPipeline() {
             if (trimmed.startsWith('data: ')) {
               try {
                 const parsed = JSON.parse(trimmed.substring(6));
-                if (parsed.type === 'status') {
-                  engine.setGenStatus(parsed.message);
-                  if (parsed.progress) engine.setGenProgress(parsed.progress);
-                } else if (parsed.type === 'outline') {
-                  engine.setBlueprint(parsed.data);
-                } else if (parsed.type === 'section') {
-                  engine.setSections((prev: any) => {
-                    const next = [...prev];
-                    next[parsed.index] = parsed.data;
-                    return next;
-                  });
-                } else if (parsed.type === 'complete') {
-                  engine.setBlueprint((prev: any) => ({ ...prev, ...parsed.data }));
-                  if (parsed.data.sections) {
-                    engine.setSections(parsed.data.sections);
-                  }
-                  engine.setGenProgress(100);
-                  engine.setGenStatus('Generation complete');
-                  engine.setIsGenerated(true);
-                  // Switch QA panel to Score tab
-                  engine.setActiveQaTab('score');
-
-                  if (parsed.data.sections) {
-                    runPostGenerationAnalysis(parsed.data.sections, parsed.data);
-                  }
-                } else if (parsed.type === 'error') {
-                  throw new Error(parsed.reason || parsed.message || 'Generation failed.');
+                handleManualChunkParsed(parsed);
+              } catch (e: any) {
+                if (e.message && (e.message.includes('Generation failed') || e.message === 'Generation failed.')) {
+                  throw e;
                 }
-              } catch (e) {
                 console.warn('[useGenerationPipeline] Parse error for chunk:', e);
               }
             }
@@ -268,39 +324,18 @@ export function useGenerationPipeline() {
         if (trimmed.startsWith('data: ')) {
           try {
             const parsed = JSON.parse(trimmed.substring(6));
-            if (parsed.type === 'status') {
-              engine.setGenStatus(parsed.message);
-              if (parsed.progress) engine.setGenProgress(parsed.progress);
-            } else if (parsed.type === 'outline') {
-              engine.setBlueprint(parsed.data);
-            } else if (parsed.type === 'section') {
-              engine.setSections((prev: any) => {
-                const next = [...prev];
-                next[parsed.index] = parsed.data;
-                return next;
-              });
-            } else if (parsed.type === 'complete') {
-              engine.setBlueprint((prev: any) => ({ ...prev, ...parsed.data }));
-              if (parsed.data.sections) {
-                engine.setSections(parsed.data.sections);
-              }
-              engine.setGenProgress(100);
-              engine.setGenStatus('Generation complete');
-              engine.setIsGenerated(true);
-              engine.setActiveQaTab('score');
-              if (parsed.data.sections) {
-                runPostGenerationAnalysis(parsed.data.sections, parsed.data);
-              }
-            } else if (parsed.type === 'error') {
-              throw new Error(parsed.reason || parsed.message || 'Generation failed.');
+            handleManualChunkParsed(parsed);
+          } catch (e: any) {
+            if (e.message && (e.message.includes('Generation failed') || e.message === 'Generation failed.')) {
+              throw e;
             }
-          } catch (e) {
             console.warn('[useGenerationPipeline] Parse error for leftover buffer:', e);
           }
         }
       }
     } catch (err: any) {
       if (err.name !== 'AbortError') {
+        recordFailure(err);
         engine.setGenError(err.message || 'Generation failed.');
         engine.setGenStatus('Failed');
       }
@@ -317,6 +352,30 @@ export function useGenerationPipeline() {
     engine.setSections([]);
     engine.setTiptapContent('');
     engine.setGenError(null);
+
+    const runId = 'run_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+    const runStartTime = Date.now();
+    const analysisStartTime = Date.now();
+    let currentStage = 'website_analysis';
+    let hasFiredAnalysisCompleted = false;
+    let hasFiredGenStarted = false;
+    let hasFiredGenCompleted = false;
+    let hasFiredGenFailed = false;
+
+    // 1. Fire website_analysis_started
+    captureEvent('website_analysis_started', { run_id: runId });
+
+    const recordFailure = (errorObj: any, stage?: string) => {
+      if (hasFiredGenFailed) return;
+      hasFiredGenFailed = true;
+      const rawMsg = errorObj?.reason || errorObj?.message || String(errorObj);
+      captureEvent('generation_failed', {
+        run_id: runId,
+        failing_stage: stage || currentStage || 'pipeline',
+        error_code: errorObj?.name || errorObj?.code || 'GENERATION_ERROR',
+        error_message: sanitizeErrorMessage(rawMsg),
+      });
+    };
 
     const controller = new AbortController();
     engine.setAbortController(controller);
@@ -337,6 +396,101 @@ export function useGenerationPipeline() {
       let done = false;
       let buffer = '';
 
+      const handleChunkParsed = (parsed: any) => {
+        if (parsed.type === 'status') {
+          engine.setGenStatus(parsed.message);
+          if (parsed.progress) engine.setGenProgress(parsed.progress);
+
+          // 2. Detect opportunity selection to fire website_analysis_completed
+          if (!hasFiredAnalysisCompleted && parsed.message?.includes('Selected best content opportunity keyword:')) {
+            hasFiredAnalysisCompleted = true;
+            currentStage = 'content_generation';
+            const kwMatch = parsed.message.match(/Selected best content opportunity keyword:\s*"([^"]+)"/i);
+            const scoreMatch = parsed.message.match(/\(Score:\s*([\d.]+)\)/i);
+            const selectedKeyword = kwMatch ? kwMatch[1] : '';
+            const oppScore = scoreMatch ? parseFloat(scoreMatch[1]) : 0;
+            const analysisDuration = Date.now() - analysisStartTime;
+            const tier = oppScore >= 70 ? 'High' : oppScore >= 40 ? 'Medium' : 'Low';
+
+            captureEvent('website_analysis_completed', {
+              run_id: runId,
+              selected_keyword: selectedKeyword,
+              opportunity_score: oppScore,
+              relevance_tier: tier,
+              candidates_count: 5,
+              analysis_duration_ms: analysisDuration,
+            });
+          }
+
+          // 3. Detect content generation start if status indicates adapter run
+          if (!hasFiredGenStarted && parsed.message?.includes('Initializing pipeline')) {
+            hasFiredGenStarted = true;
+            currentStage = 'content_generation';
+            captureEvent('content_generation_started', {
+              run_id: runId,
+              content_type: 'Guide',
+            });
+          }
+        } else if (parsed.type === 'outline') {
+          currentStage = 'outline';
+          engine.setBlueprint(parsed.data);
+
+          if (!hasFiredGenStarted) {
+            hasFiredGenStarted = true;
+            captureEvent('content_generation_started', {
+              run_id: runId,
+              content_type: parsed.data?.contentType || 'Guide',
+            });
+          }
+        } else if (parsed.type === 'section') {
+          currentStage = 'sections';
+          engine.setSections((prev: any) => {
+            const next = [...prev];
+            next[parsed.index] = parsed.data;
+            return next;
+          });
+        } else if (parsed.type === 'complete') {
+          currentStage = 'complete';
+          engine.setBlueprint((prev: any) => ({ ...prev, ...parsed.data }));
+          if (parsed.data.sections) {
+            engine.setSections(parsed.data.sections);
+          }
+          engine.setGenProgress(100);
+          engine.setGenStatus('Generation complete');
+          engine.setIsGenerated(true);
+          engine.setActiveQaTab('score');
+
+          // 4. Fire content_generation_completed
+          if (!hasFiredGenCompleted) {
+            hasFiredGenCompleted = true;
+            const sections = parsed.data?.sections || [];
+            const textContent = sections.map((s: any) => 
+              `${s.heading || ''}\n${s.what_it_is || ''}\n${s.why_it_works || ''}\n${s.experience_or_data_point || ''}`
+            ).join('\n\n');
+            const wordCount = textContent.trim().split(/\s+/).filter(Boolean).length;
+            let flesch = 0;
+            try {
+              flesch = calculateFleschReadingEase(textContent);
+            } catch {}
+
+            captureEvent('content_generation_completed', {
+              run_id: runId,
+              word_count: wordCount,
+              section_count: sections.length,
+              flesch_reading_ease: flesch,
+              total_duration_ms: Date.now() - runStartTime,
+            });
+          }
+
+          if (parsed.data.sections) {
+            runPostGenerationAnalysis(parsed.data.sections, parsed.data);
+          }
+        } else if (parsed.type === 'error') {
+          recordFailure(parsed, currentStage);
+          throw new Error(parsed.reason || parsed.message || 'Generation failed.');
+        }
+      };
+
       while (!done) {
         const { value, done: rd } = await reader.read();
         done = rd;
@@ -351,37 +505,30 @@ export function useGenerationPipeline() {
             if (trimmed.startsWith('data: ')) {
               try {
                 const parsed = JSON.parse(trimmed.substring(6));
-                if (parsed.type === 'status') {
-                  engine.setGenStatus(parsed.message);
-                  if (parsed.progress) engine.setGenProgress(parsed.progress);
-                } else if (parsed.type === 'outline') {
-                  engine.setBlueprint(parsed.data);
-                } else if (parsed.type === 'section') {
-                  engine.setSections((prev: any) => {
-                    const next = [...prev];
-                    next[parsed.index] = parsed.data;
-                    return next;
-                  });
-                } else if (parsed.type === 'complete') {
-                  engine.setBlueprint((prev: any) => ({ ...prev, ...parsed.data }));
-                  if (parsed.data.sections) {
-                    engine.setSections(parsed.data.sections);
-                  }
-                  engine.setGenProgress(100);
-                  engine.setGenStatus('Generation complete');
-                  engine.setIsGenerated(true);
-                  engine.setActiveQaTab('score');
-
-                  if (parsed.data.sections) {
-                    runPostGenerationAnalysis(parsed.data.sections, parsed.data);
-                  }
-                } else if (parsed.type === 'error') {
-                  throw new Error(parsed.reason || parsed.message || 'Generation failed.');
+                handleChunkParsed(parsed);
+              } catch (e: any) {
+                if (e.message && (e.message.includes('Generation failed') || e.message === 'Generation failed.')) {
+                  throw e;
                 }
-              } catch (e) {
                 console.warn('[useGenerationPipeline] Parse error for chunk:', e);
               }
             }
+          }
+        }
+      }
+
+      // Check any leftover buffer
+      if (buffer.trim()) {
+        const trimmed = buffer.trim();
+        if (trimmed.startsWith('data: ')) {
+          try {
+            const parsed = JSON.parse(trimmed.substring(6));
+            handleChunkParsed(parsed);
+          } catch (e: any) {
+            if (e.message && (e.message.includes('Generation failed') || e.message === 'Generation failed.')) {
+              throw e;
+            }
+            console.warn('[useGenerationPipeline] Parse error for leftover chunk:', e);
           }
         }
       }
@@ -389,6 +536,7 @@ export function useGenerationPipeline() {
       if (err.name === 'AbortError') {
         engine.setGenStatus('Cancelled');
       } else {
+        recordFailure(err, currentStage);
         engine.setGenError(err.message || 'Generation failed.');
         engine.setGenStatus('Failed');
       }

@@ -2,6 +2,7 @@ import { DM_Sans, Geist_Mono, Fraunces } from "next/font/google";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AuthProvider } from "@/lib/firebase/auth-context";
+import { PostHogProvider } from "@/components/providers/PostHogProvider";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -40,9 +41,11 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
-        <AuthProvider>
-          <Suspense>{children}</Suspense>
-        </AuthProvider>
+        <PostHogProvider>
+          <AuthProvider>
+            <Suspense>{children}</Suspense>
+          </AuthProvider>
+        </PostHogProvider>
       </body>
     </html>
   );

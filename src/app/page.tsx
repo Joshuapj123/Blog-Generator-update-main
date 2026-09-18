@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { ExtractedDesign } from '@/lib/extract-reference-design';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowRight, CheckCircle2, Circle, Loader2, AlertCircle } from 'lucide-react';
+import { captureEvent } from '@/lib/analytics/posthog';
 
 // ─── Progress stages definition ───────────────────────────────────────────────
 
@@ -126,6 +128,19 @@ export default function Home() {
   const [stageLabel, setStageLabel] = useState('');
   const [percent, setPercent] = useState(0);
 
+  const hasFiredPageView = useRef(false);
+
+  useEffect(() => {
+    if (hasFiredPageView.current) return;
+    hasFiredPageView.current = true;
+
+    captureEvent('landing_page_view', {
+      path: typeof window !== 'undefined' ? window.location.pathname : '/',
+      referrer: typeof document !== 'undefined' ? document.referrer || '' : '',
+      viewport_width: typeof window !== 'undefined' ? window.innerWidth : 0,
+    });
+  }, []);
+
   const handleExtract = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url) return;
@@ -192,13 +207,26 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b-0 bg-white/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="container mx-auto px-4 h-16 flex items-center">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 text-primary font-bold text-xl">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white">
               B
             </div>
             Blog Design Extractor
           </div>
+          <Link
+            href="/engine"
+            onClick={() => {
+              captureEvent('cta_clicked', {
+                cta_text: 'Launch Blog Generator',
+                target_href: '/engine',
+              });
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all"
+          >
+            Launch Blog Generator
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
       </header>
 
@@ -211,10 +239,24 @@ export default function Home() {
               Design DNA
             </span>
           </h1>
-          <p className="text-lg text-gray-500">
+          <p className="text-lg text-gray-500 mb-4">
             Input a URL and we&apos;ll extract metadata, typography, colors, layouts and editorial patterns using
             Playwright and Readability.
           </p>
+          <div>
+            <Link
+              href="/engine"
+              onClick={() => {
+                captureEvent('cta_clicked', {
+                  cta_text: 'Start Autonomous Blog Generation',
+                  target_href: '/engine',
+                });
+              }}
+              className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
+            >
+              Or start autonomous generation with ACUTE &rarr;
+            </Link>
+          </div>
         </div>
 
         {/* Input card */}

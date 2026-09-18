@@ -44,6 +44,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
+import { identifyUser, resetUser } from '@/lib/analytics/posthog';
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -55,8 +57,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       if (firebaseUser) {
         setSessionCookie(firebaseUser.uid);
+        identifyUser(firebaseUser.uid);
       } else {
         clearSessionCookie();
+        resetUser();
       }
     });
     return () => unsubscribe();
