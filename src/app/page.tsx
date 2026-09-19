@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/firebase/auth-context';
 import { ExtractedDesign } from '@/lib/extract-reference-design';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -118,6 +120,8 @@ function ExtractionProgress({
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function Home() {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<ExtractedDesign | null>(null);
@@ -129,6 +133,12 @@ export default function Home() {
   const [percent, setPercent] = useState(0);
 
   const hasFiredPageView = useRef(false);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace('/engine');
+    }
+  }, [user, authLoading, router]);
 
   useEffect(() => {
     if (hasFiredPageView.current) return;
@@ -209,22 +219,22 @@ export default function Home() {
       <header className="border-b-0 bg-white/80 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 text-primary font-bold text-xl">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white">
-              B
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black">
+              A
             </div>
-            Blog Design Extractor
+            ACUTE
           </div>
           <Link
             href="/engine"
             onClick={() => {
               captureEvent('cta_clicked', {
-                cta_text: 'Launch Blog Generator',
+                cta_text: 'Launch Content Engine',
                 target_href: '/engine',
               });
             }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all"
           >
-            Launch Blog Generator
+            Launch Content Engine
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
@@ -248,13 +258,13 @@ export default function Home() {
               href="/engine"
               onClick={() => {
                 captureEvent('cta_clicked', {
-                  cta_text: 'Start Autonomous Blog Generation',
+                  cta_text: 'Launch ACUTE Content Engine',
                   target_href: '/engine',
                 });
               }}
               className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
             >
-              Or start autonomous generation with ACUTE &rarr;
+              Enter the ACUTE Content Engine &rarr;
             </Link>
           </div>
         </div>

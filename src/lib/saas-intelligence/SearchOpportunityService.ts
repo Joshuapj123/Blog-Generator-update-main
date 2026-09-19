@@ -19,7 +19,11 @@ export class SearchOpportunityService {
     category: string,
     seedKeywords: string[],
     competitorDomains: string[],
-    options?: { runId?: string; saasProfile?: any }
+    options?: {
+      runId?: string;
+      saasProfile?: any;
+      onProgress?: (completed: number, total: number, keyword: string) => void;
+    }
   ): Promise<z.infer<typeof SearchOpportunitySchema>[]> {
     console.log(`[SearchOpportunityService] Starting opportunities analysis for category: ${category}`);
 
@@ -56,10 +60,8 @@ Provide keyword ideas covering multiple angles: Listicles ("best X"), Comparison
       candidateKeywords = [`best ${category} software`, `${category} alternatives`, `${category} tools`];
     }
 
-    const opportunities: z.infer<typeof SearchOpportunitySchema>[] = [];
-
-    // 2. Loop through candidate keywords and run SERP Collection + classification
-    for (const keyword of candidateKeywords) {
+    // Single keyword evaluation function (preserves identical scoring and fallback behavior)
+    const evaluateKeyword = async (keyword: string): Promise<z.infer<typeof SearchOpportunitySchema>> => {
       console.log(`[SearchOpportunityService] Collecting SERP data for keyword: "${keyword}"`);
       let searchResults: any[] = [];
       let rankingDomains: string[] = [];
@@ -165,7 +167,7 @@ Tasks:
           result.estimatedDifficulty
         );
 
-        opportunities.push({
+        return {
           keyword,
           normalizedKeyword: result.normalizedKeyword.toLowerCase().trim(),
           intent: result.intent,
@@ -184,11 +186,11 @@ Tasks:
           recommendedAssetType: result.recommendedAssetType,
           priority: result.priority,
           reasoning: result.reasoning
-        });
+        };
       } catch (err: any) {
         console.error(`[SearchOpportunityService] Classification failed for "${keyword}":`, err.message);
         // Build fallback opportunities on provider failure so pipeline never crashes
-        opportunities.push({
+        return {
           keyword,
           normalizedKeyword: keyword.toLowerCase().trim(),
           intent: 'Informational',
@@ -207,9 +209,35 @@ Tasks:
           recommendedAssetType: 'Guide',
           priority: 'Medium',
           reasoning: `Telemetry classification failed: ${err.message}`
-        });
+        };
       }
-    }
+    };
+
+    // 2. Evaluate candidate keywords with bounded concurrency = 4, preserving original candidate order
+    const opportunities: z.infer<typeof SearchOpportunitySchema>[] = new Array(candidateKeywords.length);
+    let completedCount = 0;
+    const totalCount = candidateKeywords.length;
+    const queue = candidateKeywords.map((kw, index) => ({ kw, index }));
+
+    const concurrencyLimit = Math.min(4, queue.length);
+    const workers = Array.from({ length: concurrencyLimit }, async () => {
+      while (queue.length > 0) {
+        const item = queue.shift();
+        if (!item) break;
+        const opp = await evaluateKeyword(item.kw);
+        opportunities[item.index] = opp;
+        completedCount++;
+        if (options?.onProgress) {
+          try {
+            options.onProgress(completedCount, totalCount, item.kw);
+          } catch (progErr) {
+            console.warn('[SearchOpportunityService] onProgress callback error:', progErr);
+          }
+        }
+      }
+    });
+
+    await Promise.all(workers);
 
     // Rank opportunities prioritizing autopilot-eligible primary business topics
     return rankAutopilotOpportunities(opportunities);

@@ -59,7 +59,16 @@ export async function POST(req: Request) {
             (profile as any).category || 'SaaS',
             candidateKeywords,
             competitorDomains,
-            { saasProfile: profile }
+            {
+              saasProfile: profile,
+              onProgress: (completed, total, keyword) => {
+                sendChunk({
+                  type: 'status',
+                  message: `Evaluating search opportunity ${completed}/${total}: "${keyword}"...`,
+                  progress: 25 + Math.round((completed / total) * 10)
+                });
+              }
+            }
           );
 
           const bestOpportunity = opportunities.sort((a, b) => (b.opportunityScore || 0) - (a.opportunityScore || 0))[0];
@@ -83,10 +92,14 @@ export async function POST(req: Request) {
             saasProfile: profile,
             customInsights: `SaaS Profile: ${profile.name} - ${profile.description}. key features: ${profile.keyFeatures?.join(', ')}.`,
             campaignMode: 'standard',
-            externalLinks: []
+            externalLinks: [],
+            maxHeadings: 5,
+            supportingTerms: bestOpportunity.supportingTerms || []
           };
 
-          await GenerationPipelineAdapter.runPipeline(payload, sendChunk, req.signal);
+          await GenerationPipelineAdapter.runPipeline(payload, sendChunk, req.signal, {
+            overrideMaxReviewRetries: 1
+          });
         } catch (err: any) {
           console.error('[API Route] URL Autopilot failed:', err.message);
           sendChunk({ 

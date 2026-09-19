@@ -269,7 +269,8 @@ export class GenerationPipelineAdapter {
       targetAudience: payload.targetAudience || 'SaaS Decision Makers',
       contentType: payload.contentType || undefined,
       competitorUrls: payload.referenceData?.url ? [payload.referenceData.url] : [],
-      maxHeadings: payload.maxHeadings ?? (options?.overrideBudget?.maxLLMCalls ? 2 : undefined)
+      maxHeadings: payload.maxHeadings ?? (options?.overrideBudget?.maxLLMCalls ? 2 : undefined),
+      supportingTerms: payload.supportingTerms,
     });
 
     if (!result.success && result.status === 'failed') {

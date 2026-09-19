@@ -29,6 +29,34 @@ function GoogleIcon() {
   );
 }
 
+function getSafeDestination(rawFrom: string | null, searchParams: URLSearchParams): string {
+  let destination = rawFrom || '/engine';
+  // Open redirect protection: must start with '/', not '//', not '/\'
+  if (!destination.startsWith('/') || destination.startsWith('//') || destination.startsWith('/\\')) {
+    destination = '/engine';
+  }
+  if (destination === '/') {
+    destination = '/engine';
+  }
+
+  // Preserve UTM attribution and referral query parameters into destination
+  const utmParams = new URLSearchParams();
+  searchParams.forEach((val, key) => {
+    const lower = key.toLowerCase();
+    if (lower.startsWith('utm_') || lower === 'ref' || lower === 'source') {
+      utmParams.set(key, val);
+    }
+  });
+
+  const utmStr = utmParams.toString();
+  if (utmStr) {
+    const sep = destination.includes('?') ? '&' : '?';
+    return `${destination}${sep}${utmStr}`;
+  }
+
+  return destination;
+}
+
 export default function LoginPage() {
   const { user, loading, signInWithGoogle } = useAuth();
   const router = useRouter();
@@ -39,8 +67,8 @@ export default function LoginPage() {
   // Redirect already-authenticated users
   useEffect(() => {
     if (!loading && user) {
-      const from = searchParams.get('from') || '/engine';
-      router.replace(from);
+      const target = getSafeDestination(searchParams.get('from'), searchParams);
+      router.replace(target);
     }
   }, [user, loading, router, searchParams]);
 
@@ -85,9 +113,9 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-2xl shadow-indigo-500/40 mb-5">
             <Zap className="w-8 h-8 text-white fill-white/20" />
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Assembly</h1>
+          <h1 className="text-3xl font-bold text-white tracking-tight">ACUTE</h1>
           <p className="text-sm text-slate-400 mt-1.5 font-light">
-            SEO Content Engine
+            Autonomous Content Engine
           </p>
         </div>
 
@@ -135,7 +163,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-xs text-slate-600 mt-6">
-          © {new Date().getFullYear()} Assembly
+          © {new Date().getFullYear()} ACUTE
         </p>
       </div>
     </div>

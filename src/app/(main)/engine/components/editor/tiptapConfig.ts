@@ -11,6 +11,8 @@ export const getTiptapExtensions = (placeholderText: string = 'Start writing...'
     heading: {
       levels: [1, 2, 3],
     },
+    // @ts-ignore - StarterKit may define link depending on tiptap version; explicitly disable to prevent duplicate extension warning
+    link: false,
   }),
   Link.configure({
     openOnClick: false,

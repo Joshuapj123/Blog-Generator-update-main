@@ -25,8 +25,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Blog Design Extractor",
-  description: "Extract design references and patterns from any blog URL using Playwright and Readability.",
+  title: "ACUTE — Autonomous SEO Content Engine",
+  description: "AI content engine that researches before it writes. Crawl your SaaS URL, discover high-intent keywords, and generate validated articles in one click.",
 };
 
 export default function RootLayout({

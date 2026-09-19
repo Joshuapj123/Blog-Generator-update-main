@@ -84,10 +84,10 @@ function AppSidebar() {
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-200">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
-              <span>Assembly</span>
+              <span>ACUTE</span>
             </div>
             <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-[0.15em] leading-relaxed opacity-70">
-              SEO Content Engine
+              Research → Plan → Generate
             </p>
           </div>
 
@@ -107,7 +107,7 @@ function AppSidebar() {
               <NavItem
                 href="/engine"
                 Icon={Wand2}
-                label="Blog Generator"
+                label="Content Engine"
                 gradient="bg-gradient-to-br from-purple-500 to-indigo-600"
                 currentPath={pathname}
               />

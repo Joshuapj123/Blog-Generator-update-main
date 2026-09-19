@@ -158,6 +158,7 @@ export interface OrchestrationInput {
   competitorUrls?: string[];
   referenceUrls?: string[];
   maxHeadings?: number;
+  supportingTerms?: string[];
 }
 
 export interface DiscoveryResult {
@@ -565,28 +566,37 @@ export class AgentOrchestrator {
       let opportunities: any[] = [];
       try {
         searchOpportunityStage = this.startStage(AgentStage.SEARCH_OPPORTUNITY);
-        const oppService = new SearchOpportunityService(this.options.search, this.options.llm);
-        const competitorDomains = saasIntelligenceProfile?.market?.competitors?.map((c: any) => c.domain) || 
-          input.competitorUrls?.map((u: string) => {
-            try { return new URL(u).hostname.toLowerCase().replace('www.', ''); } catch { return u.toLowerCase().replace('www.', ''); }
-          }) || [];
-        
-        opportunities = await oppService.analyzeOpportunities(
-          input.saasProfile.name,
-          saasIntelligenceProfile?.product?.category || 'SaaS',
-          [discovery.targetKeyword],
-          competitorDomains,
-          { runId: this.telemetry.runId, saasProfile: input.saasProfile }
-        );
+        if (input.supportingTerms && input.supportingTerms.length > 0) {
+          this.supportingTerms = input.supportingTerms.slice(0, 6);
+          opportunities = [{
+            keyword: discovery.targetKeyword,
+            opportunityScore: 90,
+            supportingTerms: this.supportingTerms
+          }];
+        } else {
+          const oppService = new SearchOpportunityService(this.options.search, this.options.llm);
+          const competitorDomains = saasIntelligenceProfile?.market?.competitors?.map((c: any) => c.domain) || 
+            input.competitorUrls?.map((u: string) => {
+              try { return new URL(u).hostname.toLowerCase().replace('www.', ''); } catch { return u.toLowerCase().replace('www.', ''); }
+            }) || [];
+          
+          opportunities = await oppService.analyzeOpportunities(
+            input.saasProfile.name,
+            saasIntelligenceProfile?.product?.category || 'SaaS',
+            [discovery.targetKeyword],
+            competitorDomains,
+            { runId: this.telemetry.runId, saasProfile: input.saasProfile }
+          );
 
-        const bestOpp = opportunities.sort((a, b) => b.opportunityScore - a.opportunityScore)[0];
-        if (bestOpp) {
-          const oppTerms = bestOpp.supportingTerms || [];
-          const relatedKeywords = opportunities.slice(1, 4).map(o => o.keyword);
-          this.supportingTerms = [
-            ...oppTerms,
-            ...relatedKeywords
-          ].filter((v, i, a) => v && a.indexOf(v) === i).slice(0, 6);
+          const bestOpp = opportunities.sort((a, b) => b.opportunityScore - a.opportunityScore)[0];
+          if (bestOpp) {
+            const oppTerms = bestOpp.supportingTerms || [];
+            const relatedKeywords = opportunities.slice(1, 4).map(o => o.keyword);
+            this.supportingTerms = [
+              ...oppTerms,
+              ...relatedKeywords
+            ].filter((v, i, a) => v && a.indexOf(v) === i).slice(0, 6);
+          }
         }
 
         this.completeStage(searchOpportunityStage, {

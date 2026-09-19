@@ -304,15 +304,14 @@ export function useGenerationPipeline() {
             const trimmed = part.trim();
             if (!trimmed) continue;
             if (trimmed.startsWith('data: ')) {
+              let parsed: any;
               try {
-                const parsed = JSON.parse(trimmed.substring(6));
-                handleManualChunkParsed(parsed);
-              } catch (e: any) {
-                if (e.message && (e.message.includes('Generation failed') || e.message === 'Generation failed.')) {
-                  throw e;
-                }
-                console.warn('[useGenerationPipeline] Parse error for chunk:', e);
+                parsed = JSON.parse(trimmed.substring(6));
+              } catch (parseErr) {
+                console.warn('[useGenerationPipeline] Parse error for chunk:', parseErr);
+                continue;
               }
+              handleManualChunkParsed(parsed);
             }
           }
         }
@@ -322,14 +321,14 @@ export function useGenerationPipeline() {
       if (buffer.trim()) {
         const trimmed = buffer.trim();
         if (trimmed.startsWith('data: ')) {
+          let parsed: any;
           try {
-            const parsed = JSON.parse(trimmed.substring(6));
+            parsed = JSON.parse(trimmed.substring(6));
+          } catch (parseErr) {
+            console.warn('[useGenerationPipeline] Parse error for leftover buffer:', parseErr);
+          }
+          if (parsed) {
             handleManualChunkParsed(parsed);
-          } catch (e: any) {
-            if (e.message && (e.message.includes('Generation failed') || e.message === 'Generation failed.')) {
-              throw e;
-            }
-            console.warn('[useGenerationPipeline] Parse error for leftover buffer:', e);
           }
         }
       }
@@ -503,15 +502,14 @@ export function useGenerationPipeline() {
             const trimmed = part.trim();
             if (!trimmed) continue;
             if (trimmed.startsWith('data: ')) {
+              let parsed: any;
               try {
-                const parsed = JSON.parse(trimmed.substring(6));
-                handleChunkParsed(parsed);
-              } catch (e: any) {
-                if (e.message && (e.message.includes('Generation failed') || e.message === 'Generation failed.')) {
-                  throw e;
-                }
-                console.warn('[useGenerationPipeline] Parse error for chunk:', e);
+                parsed = JSON.parse(trimmed.substring(6));
+              } catch (parseErr) {
+                console.warn('[useGenerationPipeline] Parse error for chunk:', parseErr);
+                continue;
               }
+              handleChunkParsed(parsed);
             }
           }
         }
@@ -521,14 +519,14 @@ export function useGenerationPipeline() {
       if (buffer.trim()) {
         const trimmed = buffer.trim();
         if (trimmed.startsWith('data: ')) {
+          let parsed: any;
           try {
-            const parsed = JSON.parse(trimmed.substring(6));
+            parsed = JSON.parse(trimmed.substring(6));
+          } catch (parseErr) {
+            console.warn('[useGenerationPipeline] Parse error for leftover chunk:', parseErr);
+          }
+          if (parsed) {
             handleChunkParsed(parsed);
-          } catch (e: any) {
-            if (e.message && (e.message.includes('Generation failed') || e.message === 'Generation failed.')) {
-              throw e;
-            }
-            console.warn('[useGenerationPipeline] Parse error for leftover chunk:', e);
           }
         }
       }

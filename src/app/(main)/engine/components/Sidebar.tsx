@@ -80,10 +80,10 @@ export function Sidebar({ onShowDashboard }: SidebarProps) {
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-200">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
-              <span>Assembly</span>
+              <span>ACUTE</span>
             </div>
             <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-[0.15em] leading-relaxed opacity-70">
-              SEO Content Engine
+              Research → Plan → Generate
             </p>
           </div>
 
@@ -94,7 +94,7 @@ export function Sidebar({ onShowDashboard }: SidebarProps) {
                 Main Tools
               </label>
               <NavItem href="/planning" Icon={Compass}    label="Strategy & Planning" pathname={pathname} gradient="bg-gradient-to-br from-indigo-500 to-violet-600" />
-              <NavItem href="/engine"   Icon={Wand2}      label="Blog Generator"      pathname={pathname} gradient="bg-gradient-to-br from-purple-500 to-indigo-600" />
+              <NavItem href="/engine"   Icon={Wand2}      label="Content Engine"      pathname={pathname} gradient="bg-gradient-to-br from-purple-500 to-indigo-600" />
               <NavItem href="/detector" Icon={ScanSearch} label="Copy Detector"       pathname={pathname} gradient="bg-gradient-to-br from-violet-500 to-purple-600" />
             </div>
 
