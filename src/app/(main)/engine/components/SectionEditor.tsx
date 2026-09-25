@@ -53,6 +53,142 @@ export function SectionEditor() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const lastSavedAnalysisRef = useRef<string>('');
 
+  // Targeted Quality Repair States
+  const [isRepairing, setIsRepairing] = useState(false);
+  const [repairStatus, setRepairStatus] = useState('');
+  const [repairedState, setRepairedState] = useState<{
+    dimension: string;
+    previousScore?: number;
+    afterScore?: number;
+    summary?: string;
+    canUndo?: boolean;
+  } | null>(null);
+  const [repairedHistory, setRepairedHistory] = useState<{
+    originalHtml: string;
+    originalText: string;
+    previousScore?: any;
+    dimension: string;
+  } | null>(null);
+
+  const handleRepairDimension = async (dimension: string, findings: string[]) => {
+    if (!editor || isRepairing) return;
+
+    const currentHtml = editor.getHTML();
+    const currentText = editor.getText();
+    if (!currentText.trim()) return;
+
+    setIsRepairing(true);
+    setRepairStatus(`Repairing ${dimension}... Simplifying structure & improving clarity`);
+
+    try {
+      const dimKeyMap: Record<string, 'S' | 'E' | 'I' | 'O' | 'G' | 'R'> = {
+        semantic: 'S',
+        entity: 'E',
+        intent: 'I',
+        structure: 'O',
+        gap: 'G',
+        readability: 'R'
+      };
+      const dimKey = dimKeyMap[dimension.toLowerCase()] || 'R';
+      const currentScoreVal = engine.contentScore?.breakdown?.[dimKey] ?? 64;
+
+      const res = await fetch('/api/repair-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: currentText,
+          title: engine.title || 'Untitled',
+          targetDimension: dimension.toLowerCase(),
+          findings,
+          currentScore: currentScoreVal,
+          targetThreshold: 75,
+          primaryKeyword: engine.targetKeywords || '',
+          entities: (engine.serpAnalysis?.entities || []).map((e: any) => typeof e === 'string' ? e : e.name),
+          scoringContext: {
+            medianWordCount: engine.serpAnalysis?.medianWordCount || engine.referenceData?.advancedMetrics?.wordCount || 1500,
+            medianH2Count: engine.serpAnalysis?.medianH2Count || 8,
+            topicClusters: engine.serpAnalysis?.topicClusters || (engine.referenceData as any)?.topicClusters,
+            paaQuestions: engine.serpAnalysis?.paaQuestions || (engine.referenceData as any)?.paaQuestions,
+            medianLexicalDiversity: engine.serpAnalysis?.medianLexicalDiversity || 0.35,
+            contentGapReport: (engine.referenceData as any)?.contentGapReport
+          }
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to repair content');
+      }
+
+      if (data.isNoOp) {
+        setRepairedState({
+          dimension,
+          previousScore: currentScoreVal,
+          afterScore: currentScoreVal,
+          summary: 'Content already meets quality standards for this dimension.',
+          canUndo: false
+        });
+        return;
+      }
+
+      // Save for Undo
+      setRepairedHistory({
+        originalHtml: currentHtml,
+        originalText: currentText,
+        previousScore: engine.contentScore,
+        dimension
+      });
+
+      // Update Editor with Repaired HTML
+      if (data.repairedHtml) {
+        editor.commands.setContent(data.repairedHtml);
+        engine.setTiptapContent(data.repairedHtml);
+      }
+
+      // Update Content Score if recomputed
+      if (data.newScore) {
+        engine.setContentScore(data.newScore);
+      }
+
+      // Save updated article
+      if (engine.currentArticleId && data.repairedHtml) {
+        engine.saveCurrentArticle(data.repairedHtml);
+      }
+
+      setRepairedState({
+        dimension,
+        previousScore: data.previousScore ?? currentScoreVal,
+        afterScore: data.afterScore ?? (data.newScore?.breakdown?.[dimKey] || 0),
+        summary: data.summary,
+        canUndo: true
+      });
+
+    } catch (err: any) {
+      console.error('[Targeted Repair Error]:', err);
+      alert(`Could not complete targeted repair: ${err.message || 'Unknown error'}. Your original content is completely intact.`);
+    } finally {
+      setIsRepairing(false);
+      setRepairStatus('');
+    }
+  };
+
+  const handleUndoRepair = () => {
+    if (!repairedHistory || !editor) return;
+
+    editor.commands.setContent(repairedHistory.originalHtml);
+    engine.setTiptapContent(repairedHistory.originalHtml);
+    if (repairedHistory.previousScore) {
+      engine.setContentScore(repairedHistory.previousScore);
+    }
+    if (engine.currentArticleId) {
+      engine.saveCurrentArticle(repairedHistory.originalHtml);
+    }
+
+    setRepairedHistory(null);
+    setRepairedState(null);
+  };
+
   const handleRegenerate = async () => {
     // If we have an existing article, we want to regenerate it but keep the same ID for replacement
     await startPipeline(true);
@@ -837,6 +973,11 @@ export function SectionEditor() {
             onRunAnalysis={handleReAnalyse}
             isAnalysing={engine.isDetectingWeakCopy}
             dismissingSet={dismissingSet}
+            onRepairDimension={handleRepairDimension}
+            isRepairing={isRepairing}
+            repairStatus={repairStatus}
+            repairedState={repairedState}
+            onUndoRepair={handleUndoRepair}
           >
             <div className="shrink-0 px-6 py-4 border-b border-slate-100 bg-white flex items-center justify-between">
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Quality Assurance</span>

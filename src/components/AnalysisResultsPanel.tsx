@@ -10,6 +10,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ContentScoreResult } from '@/lib/content-scoring';
+import { validateArticleQuality } from '@/lib/seo-intelligence/quality_validator';
 import { CompareTabContent } from '@/components/CompareTabContent';
 import { WeakCopyCard } from '@/components/ui/WeakCopyCard';
 import type { HighlightData } from '@/components/SectionEditor';
@@ -152,6 +153,17 @@ export interface AnalysisResultsPanelProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   savedArticles?: any[];
   serpAnalysis?: SerpAnalysisResult | null;
+  onRepairDimension?: (dimension: string, findings: string[]) => Promise<void> | void;
+  isRepairing?: boolean;
+  repairStatus?: string;
+  repairedState?: {
+    dimension: string;
+    previousScore?: number;
+    afterScore?: number;
+    summary?: string;
+    canUndo?: boolean;
+  } | null;
+  onUndoRepair?: () => void;
 }
 
 export function AnalysisResultsPanel({
@@ -190,10 +202,75 @@ export function AnalysisResultsPanel({
   selectedArticleId,
   savedArticles,
   serpAnalysis,
+  onRepairDimension,
+  isRepairing = false,
+  repairStatus = '',
+  repairedState,
+  onUndoRepair,
 }: AnalysisResultsPanelProps) {
   const [coverageViewMode, setCoverageViewMode] = useState<'document' | 'section'>('document');
   const [keywordSearch, setKeywordSearch] = useState('');
   const [showSerpDebug, setShowSerpDebug] = useState(false);
+  const [selectedDimension, setSelectedDimension] = useState<string>('Readability');
+
+  const validationReport = useMemo(() => {
+    if (!analysisText || analysisText.trim().length === 0) return null;
+    return validateArticleQuality(
+      analysisText,
+      targetKeyword ? [targetKeyword] : [],
+      serpEntities?.map((e: any) => typeof e === 'string' ? e : e.name) || []
+    );
+  }, [analysisText, targetKeyword, serpEntities]);
+
+  const dimensionFindings = useMemo(() => {
+    const findings: string[] = [];
+    if (!validationReport) return findings;
+
+    if (selectedDimension.toLowerCase() === 'readability') {
+      const m = validationReport.metrics;
+      if (m.fleschReadingEase < 60) {
+        findings.push(`Flesch Reading Ease is ${Math.round(m.fleschReadingEase)} (Target: 60+ for clear readability)`);
+      }
+      if (m.passiveVoicePercent > 20) {
+        findings.push(`Passive voice density is ${Math.round(m.passiveVoicePercent)}% (Target: < 20%)`);
+      }
+      if (m.averageSentenceLength > 24) {
+        findings.push(`Average sentence length is ${m.averageSentenceLength.toFixed(1)} words (Target: 14-18 words)`);
+      }
+      if (m.averageParagraphLength > 90) {
+        findings.push(`Average paragraph length is ${m.averageParagraphLength.toFixed(1)} words (Target: 40-70 words)`);
+      }
+      validationReport.errors
+        .filter(e => e.toLowerCase().includes('paragraph') || e.toLowerCase().includes('sentence') || e.toLowerCase().includes('flesch') || e.toLowerCase().includes('passive'))
+        .slice(0, 2)
+        .forEach(e => findings.push(e));
+
+      if (findings.length === 0 && (contentScore?.breakdown?.R ?? 100) < 75) {
+        findings.push('Sentence rhythm and paragraph variation can be optimized for higher scannability.');
+      }
+    } else if (selectedDimension.toLowerCase() === 'semantic') {
+      if ((contentScore?.breakdown?.S ?? 100) < 75) {
+        findings.push('Key semantic keywords are underrepresented in body and subheadings.');
+      }
+    } else if (selectedDimension.toLowerCase() === 'entity') {
+      if ((contentScore?.breakdown?.E ?? 100) < 75) {
+        findings.push('Core entities and domain terms are underrepresented compared to top SERP results.');
+      }
+    } else if (selectedDimension.toLowerCase() === 'structure') {
+      if ((contentScore?.breakdown?.O ?? 100) < 75) {
+        findings.push('Subheading structure or paragraph distribution needs alignment with search benchmarks.');
+      }
+    } else if (selectedDimension.toLowerCase() === 'gap') {
+      if ((contentScore?.breakdown?.G ?? 100) < 75) {
+        findings.push('Missing suggested competitor topics and content gap coverage.');
+      }
+    } else if (selectedDimension.toLowerCase() === 'intent') {
+      if ((contentScore?.breakdown?.I ?? 100) < 75) {
+        findings.push('Search intent alignment and vocabulary frequency differ from top competitor benchmarks.');
+      }
+    }
+    return findings;
+  }, [validationReport, selectedDimension, contentScore]);
 
   const effectiveRefText = refText || referenceData?.rawText || referenceData?.plainText || '';
 
@@ -537,31 +614,136 @@ export function AnalysisResultsPanel({
                           { label: 'O', name: 'Structure', val: contentScore.breakdown?.O || 0, color: 'border-blue-100 bg-blue-50/40 text-blue-700', tooltip: 'On-page Structure: Evaluates headings, title length, and word count structure alignment (10% weight).' },
                           { label: 'G', name: 'Gap', val: contentScore.breakdown?.G || 0, color: 'border-rose-100 bg-rose-50/40 text-rose-700', tooltip: 'Content Gap: Measures how well the article covers missing topics and suggested sections (15% weight).' },
                           { label: 'R', name: 'Readability', val: contentScore.breakdown?.R || 0, color: 'border-purple-100 bg-purple-50/40 text-purple-700', tooltip: 'Readability & Naturalness: Checks lexical diversity and healthy paragraph word counts (10% weight).' },
-                        ].map((m, idx) => (
-                          <div 
-                            key={idx} 
-                            className={`group relative flex flex-col items-center justify-between p-2 rounded-xl border cursor-help transition-all duration-200 hover:shadow-md hover:scale-[1.02] ${m.color}`}
-                          >
-                            <span className="text-[10px] font-black tracking-wider opacity-60 mb-0.5">{m.name}</span>
-                            <div className="text-base font-extrabold tracking-tight mb-1">{Math.round(m.val)}</div>
-                            <div className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
-                            
-                            {/* Hover Tooltip */}
-                            <span
-                                role="tooltip"
-                                className="
-                                  pointer-events-none absolute z-50 top-full left-1/2 -translate-x-1/2 mt-2
-                                  w-48 px-2.5 py-2 rounded-xl bg-slate-900 text-white text-[10px] leading-snug shadow-xl text-center font-normal
-                                  opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100
-                                  transition-all duration-200 origin-top
-                                "
-                              >
-                                {m.tooltip}
-                                <span className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-slate-900" />
-                              </span>
-                          </div>
-                        ))}
+                        ].map((m, idx) => {
+                          const isSelected = selectedDimension.toLowerCase() === m.name.toLowerCase();
+                          return (
+                            <button 
+                              key={idx} 
+                              type="button"
+                              onClick={() => setSelectedDimension(m.name)}
+                              className={`group relative flex flex-col items-center justify-between p-2 rounded-xl border text-center transition-all duration-200 hover:shadow-md hover:scale-[1.02] cursor-pointer ${m.color} ${isSelected ? 'ring-2 ring-indigo-500 shadow-sm border-indigo-400 font-bold' : ''}`}
+                            >
+                              <span className="text-[10px] font-black tracking-wider opacity-60 mb-0.5">{m.name}</span>
+                              <div className="text-base font-extrabold tracking-tight mb-1">{Math.round(m.val)}</div>
+                              <div className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
+                              
+                              {/* Hover Tooltip */}
+                              <span
+                                  role="tooltip"
+                                  className="
+                                    pointer-events-none absolute z-50 top-full left-1/2 -translate-x-1/2 mt-2
+                                    w-48 px-2.5 py-2 rounded-xl bg-slate-900 text-white text-[10px] leading-snug shadow-xl text-center font-normal
+                                    opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100
+                                    transition-all duration-200 origin-top
+                                  "
+                                >
+                                  {m.tooltip}
+                                  <span className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-slate-900" />
+                                </span>
+                            </button>
+                          );
+                        })}
                       </div>
+
+                      {/* Targeted Repair Card for Selected Dimension */}
+                      {(() => {
+                        const dimKeyMap: Record<string, 'S' | 'E' | 'I' | 'O' | 'G' | 'R'> = {
+                          semantic: 'S',
+                          entity: 'E',
+                          intent: 'I',
+                          structure: 'O',
+                          gap: 'G',
+                          readability: 'R'
+                        };
+                        const dimKey = dimKeyMap[selectedDimension.toLowerCase()] || 'R';
+                        const selectedDimScore = contentScore.breakdown?.[dimKey] ?? 0;
+                        const isRepairedCurrentDim = repairedState?.dimension?.toLowerCase() === selectedDimension.toLowerCase();
+
+                        return (
+                          <div className="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/70 space-y-2.5">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs font-bold text-slate-800">{selectedDimension} Optimization</span>
+                                <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-700">
+                                  {Math.round(selectedDimScore)}/100
+                                </span>
+                              </div>
+                              {isRepairedCurrentDim && onUndoRepair && repairedState?.canUndo && !isRepairing && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={onUndoRepair}
+                                  className="h-6 px-2 text-[10px] text-slate-600 hover:text-slate-900 font-semibold underline"
+                                >
+                                  Undo Repair
+                                </Button>
+                              )}
+                            </div>
+
+                            {/* Loading State */}
+                            {isRepairing && (
+                              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-medium animate-pulse">
+                                <Loader2 className="w-4 h-4 animate-spin shrink-0 text-indigo-600" />
+                                <span>{repairStatus || `Repairing ${selectedDimension}... Splitting long sentences & simplifying structure`}</span>
+                              </div>
+                            )}
+
+                            {/* Repaired Success Banner */}
+                            {!isRepairing && isRepairedCurrentDim && (
+                              <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs space-y-1">
+                                <div className="font-bold flex items-center gap-1.5">
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                  <span>
+                                    {selectedDimension} improved: {repairedState.previousScore ?? 0} → {repairedState.afterScore ?? selectedDimScore}
+                                    {repairedState.afterScore && repairedState.previousScore !== undefined && repairedState.afterScore > repairedState.previousScore && (
+                                      <span className="text-emerald-700 font-extrabold"> (+{repairedState.afterScore - repairedState.previousScore} pts)</span>
+                                    )}
+                                  </span>
+                                </div>
+                                {repairedState.summary && (
+                                  <div className="text-[11px] text-emerald-700 leading-snug">{repairedState.summary}</div>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Concrete Findings ("Why?") */}
+                            {!isRepairing && dimensionFindings.length > 0 && (
+                              <div className="space-y-1">
+                                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Diagnosis ("Why?")</span>
+                                <ul className="space-y-1">
+                                  {dimensionFindings.map((finding, fIdx) => (
+                                    <li key={fIdx} className="text-[11px] text-slate-600 flex items-start gap-1.5 leading-snug">
+                                      <span className="mt-1.5 w-1 h-1 rounded-full bg-amber-400 shrink-0" />
+                                      <span>{finding}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {/* Action Button */}
+                            {!isRepairing && onRepairDimension && (
+                              <div>
+                                {selectedDimScore >= 75 && dimensionFindings.length === 0 ? (
+                                  <div className="flex items-center gap-1.5 text-xs text-emerald-700 font-medium bg-emerald-50/70 p-2 rounded-lg border border-emerald-100">
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                    <span>{selectedDimension} is optimal. No targeted repair needed.</span>
+                                  </div>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => onRepairDimension(selectedDimension, dimensionFindings)}
+                                    className="w-full h-8 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm flex items-center justify-center gap-1.5 transition-all"
+                                  >
+                                    <Sparkles className="w-3.5 h-3.5" />
+                                    Improve {selectedDimension}
+                                  </Button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                       {contentScore.penalties > 0 && (
                         <div className="p-3 rounded-xl bg-rose-50 border border-rose-100">
                           <div className="flex items-center gap-2 mb-2 text-rose-700 font-bold text-[10px] uppercase tracking-wider">
