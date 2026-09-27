@@ -3,6 +3,7 @@ import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react'
 import { SerpTerm, TermCategory } from '@/types/serp';
 import { Sparkles, AlertCircle, Loader2, CheckCircle2, ArrowRight, BookOpen, Heading2, MousePointerClick } from 'lucide-react';
 import { computeTermImpactScore } from '@/lib/content-scoring';
+import { escapeRegExp } from '@/lib/utils';
 import { useEngine } from '../../context/EngineContext';
 import { Editor } from '@tiptap/react';
 
@@ -44,7 +45,7 @@ export function SerpTermPanel({ editor }: { editor: Editor | null }) {
         const rootLower = ((term as any).rootForm || termLower);
         count = textTokens.filter(t => t === termLower || t === rootLower).length;
       } else {
-        const regex = new RegExp(`\\b${termLower.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}\\b`, 'gi');
+        const regex = new RegExp(`\\b${escapeRegExp(termLower)}\\b`, 'gi');
         const m = debouncedContent.match(regex);
         count = m ? m.length : 0;
       }

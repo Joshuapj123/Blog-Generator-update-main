@@ -1,4 +1,5 @@
 // src/lib/content/DiagramAssetService.ts
+import { escapeRegExp } from '@/lib/utils';
 
 export interface DiagramNode {
   step: number;
@@ -50,7 +51,7 @@ export class DiagramAssetService {
       .replace(/\bon\w+\s*=/gi, '') // strip inline event handlers
       .replace(/^!\[?(?:workflow\s+|architecture\s+|process\s+)?diagram:\s*/i, '')
       .replace(/\.(png|svg|jpg|jpeg)$/i, '')
-      .replace(/[\]\)\(\*\_`"]/g, '')
+      .replace(/[\[\]\)\(\*\_`"]/g, '')
       .trim();
   }
 
@@ -431,9 +432,10 @@ export class DiagramAssetService {
             result = result.split(req.rawMatch).join(htmlReplacement);
             replaced = true;
           } else {
-            const wrappedRegex = new RegExp(`<p>\\s*${req.rawMatch.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}\\s*<\\/p>`, 'gi');
+            const escapedMatch = escapeRegExp(req.rawMatch);
+            const wrappedRegex = new RegExp(`<p>\\s*${escapedMatch}\\s*<\\/p>`, 'gi');
             if (wrappedRegex.test(result)) {
-              result = result.replace(wrappedRegex, htmlReplacement);
+              result = result.replace(wrappedRegex, () => htmlReplacement);
               replaced = true;
             }
           }
@@ -447,9 +449,10 @@ export class DiagramAssetService {
       } else {
         const failureCard = this.renderFailedDiagramPlaceholder(req.title, asset.error);
         if (isHtml) {
-          const wrappedRegex = new RegExp(`<p>\\s*${req.rawMatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*<\\/p>`, 'gi');
+          const escapedMatch = escapeRegExp(req.rawMatch);
+          const wrappedRegex = new RegExp(`<p>\\s*${escapedMatch}\\s*<\\/p>`, 'gi');
           if (wrappedRegex.test(result)) {
-            result = result.replace(wrappedRegex, failureCard);
+            result = result.replace(wrappedRegex, () => failureCard);
           } else {
             result = result.split(req.rawMatch).join(failureCard);
           }

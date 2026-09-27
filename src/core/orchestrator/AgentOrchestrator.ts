@@ -1446,8 +1446,10 @@ ${issues.map(i => `- ${i}`).join('\n')}
    - Ensure the exact primary keyword "${primaryKeyword}" appears naturally in the very first paragraph, in the title, and in the body without alterations, punctuation splits, or word reordering.
 5. OUTLINE HEADINGS:
    - Preserve all planned H2 (##) and H3 (###) section headings exactly. Do not introduce '# ' H1 headings in the body.
-6. TABLES & MEDIA:
-   - Ensure at least one clean Markdown comparison table and contextual media placeholders (![Caption](...)) are present and well-formatted.
+6. TABLES, DIAGRAMS & INTERNAL LINKS:
+   - Ensure at least one clean Markdown comparison table is present.
+   - Keep all diagram visual blocks and placeholders (!Diagram: ... or ![Workflow Diagram: ...] or svg assets) intact. Do not delete or rename diagrams.
+   - Preserve all internal links intact.
 
 ${hasTitleIssue ? `OPTIMIZED TITLE REQUIREMENT: Output an optimized short title (5-12 words, under 70 characters) containing the exact canonical primary keyword "${primaryKeyword}".` : ''}
 

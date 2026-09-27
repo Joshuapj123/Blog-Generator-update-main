@@ -31,6 +31,8 @@ import { computeStructuredScore } from '@/lib/content-scoring';
 import { DiagramAssetService } from '@/lib/content/DiagramAssetService';
 import { SerpTermPanel } from './editor/SerpTermPanel';
 import { DeleteConfirmationModal } from '@/components/ui/DeleteConfirmationModal';
+import { htmlToMarkdown } from '@/lib/article-utils';
+import { escapeRegExp } from '@/lib/utils';
 
 export function SectionEditor() {
   const engine = useEngine();
@@ -75,8 +77,10 @@ export function SectionEditor() {
     if (!editor || isRepairing) return;
 
     const currentHtml = editor.getHTML();
-    const currentText = editor.getText();
-    if (!currentText.trim()) return;
+    if (!currentHtml || currentHtml === '<p></p>') return;
+
+    const markdownContent = htmlToMarkdown(currentHtml);
+    if (!markdownContent.trim()) return;
 
     setIsRepairing(true);
     setRepairStatus(`Repairing ${dimension}... Simplifying structure & improving clarity`);
@@ -92,22 +96,32 @@ export function SectionEditor() {
       };
       const dimKey = dimKeyMap[dimension.toLowerCase()] || 'R';
       const currentScoreVal = engine.contentScore?.breakdown?.[dimKey] ?? 64;
+      const baselineTotalScore = engine.contentScore?.totalScore ?? 0;
+
+      const blueprintOutlines = (engine.blueprint as any)?.section_outlines;
+      const activeHeadings: string[] = (blueprintOutlines && Array.isArray(blueprintOutlines) && blueprintOutlines.length > 0)
+        ? blueprintOutlines.map((s: any) => s.heading)
+        : (engine.sections && engine.sections.length > 0)
+        ? engine.sections.map(s => s.heading)
+        : (markdownContent.match(/^##\s+(.+)$/gm) || []).map(h => h.replace(/^##\s+/, '').trim());
 
       const res = await fetch('/api/repair-content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          text: currentText,
+          text: markdownContent,
           title: engine.title || 'Untitled',
           targetDimension: dimension.toLowerCase(),
           findings,
           currentScore: currentScoreVal,
+          baselineTotalScore,
           targetThreshold: 75,
           primaryKeyword: engine.targetKeywords || '',
+          headings: activeHeadings,
           entities: (engine.serpAnalysis?.entities || []).map((e: any) => typeof e === 'string' ? e : e.name),
           scoringContext: {
             medianWordCount: engine.serpAnalysis?.medianWordCount || engine.referenceData?.advancedMetrics?.wordCount || 1500,
-            medianH2Count: engine.serpAnalysis?.medianH2Count || 8,
+            medianH2Count: engine.serpAnalysis?.medianH2Count || activeHeadings.length || 8,
             topicClusters: engine.serpAnalysis?.topicClusters || (engine.referenceData as any)?.topicClusters,
             paaQuestions: engine.serpAnalysis?.paaQuestions || (engine.referenceData as any)?.paaQuestions,
             medianLexicalDiversity: engine.serpAnalysis?.medianLexicalDiversity || 0.35,
@@ -120,6 +134,19 @@ export function SectionEditor() {
 
       if (!res.ok || !data.success) {
         throw new Error(data.error || 'Failed to repair content');
+      }
+
+      // Check if repair was rejected due to quality preservation rule
+      if (data.accepted === false || (data.newScore && data.newScore.totalScore < baselineTotalScore)) {
+        console.warn(`[Quality Preservation] Improvement rejected: Baseline score was ${baselineTotalScore}, proposed was ${data.newScore?.totalScore}`);
+        setRepairedState({
+          dimension,
+          previousScore: currentScoreVal,
+          afterScore: currentScoreVal,
+          summary: data.rejectedReason || data.summary || `Improvement rejected: Proposed changes reduced article readiness from ${baselineTotalScore} to ${data.newScore?.totalScore}. Baseline preserved.`,
+          canUndo: false
+        });
+        return;
       }
 
       if (data.isNoOp) {
@@ -136,7 +163,7 @@ export function SectionEditor() {
       // Save for Undo
       setRepairedHistory({
         originalHtml: currentHtml,
-        originalText: currentText,
+        originalText: editor.getText(),
         previousScore: engine.contentScore,
         dimension
       });
@@ -629,7 +656,7 @@ export function SectionEditor() {
         if (!kw || kw.length < 3) return; // Skip empty or very short keywords
         
         // Exact word boundary match if possible, fallback to includes
-        const escapedKw = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const escapedKw = escapeRegExp(kw);
         const match = targetText.match(new RegExp(`\\b${escapedKw}\\b`, 'i'));
         
         if (match || targetTextLower.includes(kw.toLowerCase())) {
@@ -743,8 +770,8 @@ export function SectionEditor() {
         // For simplicity we just do string replacement on HTML and set it back
         const html = editor.getHTML();
         const updatedHtml = html.replace(
-          new RegExp(`\\b${row.anchorText!}\\b`, 'i'),
-          `<a href="${row.url}" target="_blank" rel="noopener noreferrer">${row.anchorText}</a>`
+          new RegExp(`\\b${escapeRegExp(row.anchorText!)}\\b`, 'i'),
+          () => `<a href="${row.url}" target="_blank" rel="noopener noreferrer">${row.anchorText}</a>`
         );
         editor.commands.setContent(updatedHtml);
       });

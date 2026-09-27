@@ -76,6 +76,7 @@ ${content.bodyMarkdown}`;
       searchIntent = '',
       businessContext = '',
       headings = [],
+      entities = [],
       runId
     } = request;
 
@@ -118,12 +119,15 @@ SPECIFIC READABILITY ACTIONS REQUIRED:
    - Keep ALL existing ## (H2) and ### (H3) section headings EXACTLY as they are. Do not add, remove, or rename headings.
 2. CANONICAL PRIMARY KEYWORD:
    - Ensure the primary keyword "${primaryKeyword || 'target keyword'}" remains naturally in the first paragraph and relevant sections. Do not alter or omit it.
-3. FACTS, DATA & EXAMPLES:
-   - Preserve all facts, statistics, product names, tools, brands, and real-world examples intact.
-4. TABLES & LINKS:
+3. FACTS, DATA, ENTITIES & EXAMPLES:
+   - Preserve all facts, statistics, product names, tools, brands, and real-world examples intact.${entities.length > 0 ? `\n   - Specifically preserve these key entities: ${entities.slice(0, 15).join(', ')}.` : ''}
+4. TABLES, DIAGRAMS & INTERNAL LINKS:
    - Keep all Markdown comparison tables (| ... |), blockquotes (> ...), and links ([...](...)) completely preserved.
-5. MINIMAL SURGICAL CHANGE:
-   - Only modify sentences and paragraphs that suffer from poor readability. Leave clear, well-written sections untouched.`;
+   - Keep all diagram visual blocks and placeholders (![Diagram: ...] or !Diagram: ...) intact. Do not delete or rename diagrams.
+   - Preserve all internal links and URLs intact.
+5. MINIMAL SURGICAL CHANGE & WORD COUNT PRESERVATION:
+   - Only modify sentences and paragraphs that suffer from poor readability. Leave clear, well-written sections untouched.
+   - Maintain the overall word count within 5% of the original article. Do NOT aggressively truncate content.`;
     } else {
       // General targeted repair fallback
       dimensionInstructions = `=== TARGETED QUALITY REPAIR: ${targetDimension.toUpperCase()} ===
@@ -132,6 +136,8 @@ ${findings.map(f => `• ${f}`).join('\n')}`;
 
       strictPreservationRules = `=== PRESERVATION CONSTRAINTS ===
 - Preserve all outline headings, facts, keywords, and tables.
+- Preserve all visual diagrams and diagram placeholders intact.
+- Preserve all internal links intact.
 - Make the smallest useful change necessary.`;
     }
 

@@ -366,3 +366,105 @@ export function isFuzzyMatch(keyword: string, target: string, threshold = 75): b
   const score = fuzzball.token_set_ratio(keyword, target);
   return score >= threshold;
 }
+
+export function htmlToMarkdown(html: string): string {
+  if (!html) return '';
+  if (!/<(?:p|div|h[1-6]|span|article|ul|ol|table|a|img)[\s>]/i.test(html)) {
+    return html;
+  }
+
+  if (typeof window !== 'undefined' && typeof DOMParser !== 'undefined') {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    function nodeToMd(node: Node): string {
+      if (node.nodeType === 3) { // TEXT_NODE
+        return node.textContent || '';
+      }
+      if (node.nodeType !== 1) return ''; // ELEMENT_NODE
+      const el = node as HTMLElement;
+      const tag = el.tagName.toLowerCase();
+      const inner = Array.from(el.childNodes).map(nodeToMd).join('');
+
+      switch (tag) {
+        case 'h1': return `# ${inner.trim()}\n\n`;
+        case 'h2': return `## ${inner.trim()}\n\n`;
+        case 'h3': return `### ${inner.trim()}\n\n`;
+        case 'strong':
+        case 'b': return `**${inner}**`;
+        case 'em':
+        case 'i': return `*${inner}*`;
+        case 'code': return `\`${inner}\``;
+        case 'a': {
+          const href = el.getAttribute('href') || '';
+          return `[${inner}](${href})`;
+        }
+        case 'img': {
+          const src = el.getAttribute('src') || '';
+          const alt = el.getAttribute('alt') || 'Diagram';
+          return `![${alt}](${src})\n\n`;
+        }
+        case 'ul': {
+          return Array.from(el.querySelectorAll(':scope > li'))
+            .map(li => `- ${Array.from(li.childNodes).map(nodeToMd).join('').trim()}`)
+            .join('\n') + '\n\n';
+        }
+        case 'ol': {
+          return Array.from(el.querySelectorAll(':scope > li'))
+            .map((li, i) => `${i + 1}. ${Array.from(li.childNodes).map(nodeToMd).join('').trim()}`)
+            .join('\n') + '\n\n';
+        }
+        case 'li': return inner;
+        case 'br': return '\n';
+        case 'p': return `${inner.trim()}\n\n`;
+        case 'div': {
+          if (el.classList && el.classList.contains('acute-diagram-container')) {
+            const img = el.querySelector('img');
+            if (img) {
+              const src = img.getAttribute('src') || '';
+              const alt = img.getAttribute('alt') || 'Diagram';
+              return `\n\n![${alt}](${src})\n\n`;
+            }
+          }
+          return `${inner}\n`;
+        }
+        case 'blockquote': return `> ${inner.trim()}\n\n`;
+        case 'table': {
+          const rows = Array.from(el.querySelectorAll('tr'));
+          if (rows.length === 0) return '';
+          let mdTable = '\n\n';
+          rows.forEach((row, rIdx) => {
+            const cells = Array.from(row.querySelectorAll('th, td')).map(c => (c.textContent || '').trim());
+            mdTable += `| ${cells.join(' | ')} |\n`;
+            if (rIdx === 0) {
+              mdTable += `| ${cells.map(() => '---').join(' | ')} |\n`;
+            }
+          });
+          return mdTable + '\n';
+        }
+        default: return inner;
+      }
+    }
+
+    const result = Array.from(doc.body.childNodes).map(nodeToMd).join('');
+    return result.replace(/\n{3,}/g, '\n\n').trim();
+  }
+
+  // Server-side / fallback regex-based transformation (no Node.js modules required in client bundle)
+  return html
+    .replace(/<h1[^>]*>([\s\S]*?)<\/h1>/gi, '# $1\n\n')
+    .replace(/<h2[^>]*>([\s\S]*?)<\/h2>/gi, '## $1\n\n')
+    .replace(/<h3[^>]*>([\s\S]*?)<\/h3>/gi, '### $1\n\n')
+    .replace(/<a\s+[^>]*href=["']([^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi, '[$2]($1)')
+    .replace(/<div\s+[^>]*class=["'][^"']*acute-diagram-container[^"']*["'][^>]*>[\s\S]*?<img\s+[^>]*src=["']([^"']*)["'][^>]*alt=["']([^"']*)["'][^>]*>[\s\S]*?<\/div>/gi, '\n\n![$2]($1)\n\n')
+    .replace(/<img\s+[^>]*src=["']([^"']*)["'][^>]*alt=["']([^"']*)["'][^>]*>/gi, '![$2]($1)\n\n')
+    .replace(/<p[^>]*>([\s\S]*?)<\/p>/gi, '$1\n\n')
+    .replace(/<strong[^>]*>([\s\S]*?)<\/strong>/gi, '**$1**')
+    .replace(/<em[^>]*>([\s\S]*?)<\/em>/gi, '*$1*')
+    .replace(/<blockquote[^>]*>([\s\S]*?)<\/blockquote>/gi, '> $1\n\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
