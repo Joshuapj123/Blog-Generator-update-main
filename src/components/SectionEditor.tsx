@@ -594,11 +594,30 @@ export function YouTubeModal({ onInsert, onClose }: { onInsert: (md: string) => 
 // Link Insert Modal (Internal + External)
 // ═══════════════════════════════════════════════════════════════════
 
+export interface InternalCandidate {
+  url: string;
+  title: string;
+  h1?: string;
+  description: string;
+  score: number;
+  reason: string;
+  suggestedAnchor: string;
+}
+
 export function LinkModal({
-  type, savedArticles, onInsert, onClose
+  type,
+  savedArticles = [],
+  domain = '',
+  topic = '',
+  targetKeyword = '',
+  onInsert,
+  onClose
 }: {
   type: 'internal' | 'external';
-  savedArticles: Array<{ id?: string; title: string }>;
+  savedArticles?: Array<{ id?: string; title: string }>;
+  domain?: string;
+  topic?: string;
+  targetKeyword?: string;
   onInsert: (md: string) => void;
   onClose: () => void;
 }) {
@@ -609,13 +628,69 @@ export function LinkModal({
   const [newUrl, setNewUrl] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // Internal link discovery state
+  const [activeDomain, setActiveDomain] = useState(domain);
+  const [candidates, setCandidates] = useState<InternalCandidate[]>([]);
+  const [loadingInternal, setLoadingInternal] = useState(false);
+  const [internalError, setInternalError] = useState<string | null>(null);
+  const [totalDiscovered, setTotalDiscovered] = useState<number | null>(null);
+  const [sitemapFound, setSitemapFound] = useState<boolean | null>(null);
+  const [hasScanned, setHasScanned] = useState(false);
+
   useEffect(() => { getExternalLinks().then(setExternalLinks).catch(console.error); }, []);
 
+  const runDiscovery = useCallback(async (siteDomain: string) => {
+    if (!siteDomain.trim()) return;
+    setLoadingInternal(true);
+    setInternalError(null);
+    try {
+      const res = await fetch('/api/internal-links', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          domain: siteDomain.trim(),
+          topic: topic.trim(),
+          targetKeyword: targetKeyword.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setInternalError(data.error || 'Failed to discover pages.');
+        setCandidates([]);
+        setTotalDiscovered(data.totalDiscovered ?? 0);
+      } else {
+        setCandidates(data.candidates || []);
+        setTotalDiscovered(data.totalDiscovered ?? 0);
+        setSitemapFound(data.sitemapFound ?? false);
+      }
+    } catch (err: any) {
+      setInternalError(err.message || 'Discovery request failed.');
+    } finally {
+      setLoadingInternal(false);
+      setHasScanned(true);
+    }
+  }, [topic, targetKeyword]);
+
+  // Automatically trigger discovery when modal opens on internal tab with a valid domain
+  useEffect(() => {
+    if (tab === 'internal' && activeDomain.trim() && !hasScanned && !loadingInternal) {
+      runDiscovery(activeDomain);
+    }
+  }, [tab, activeDomain, hasScanned, loadingInternal, runDiscovery]);
+
   // Only show Published articles in internal link picker
-  const filteredArticles = savedArticles.filter(a =>
+  const filteredArticles = (savedArticles || []).filter(a =>
     (a as any).stage === 'Published' &&
     a.title.toLowerCase().includes(search.toLowerCase())
   );
+
+  const filteredCandidates = candidates.filter(c =>
+    (c.title || '').toLowerCase().includes(search.toLowerCase()) ||
+    (c.url || '').toLowerCase().includes(search.toLowerCase()) ||
+    (c.suggestedAnchor || '').toLowerCase().includes(search.toLowerCase()) ||
+    (c.reason || '').toLowerCase().includes(search.toLowerCase())
+  );
+
   const filteredExternal = externalLinks.filter(l =>
     (l.title || '').toLowerCase().includes(search.toLowerCase()) ||
     (l.url || '').toLowerCase().includes(search.toLowerCase())
@@ -654,14 +729,173 @@ export function LinkModal({
             className="w-full h-9 px-3 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
 
           {tab === 'internal' ? (
-            <div className="space-y-1 max-h-60 overflow-y-auto">
-              {filteredArticles.map(a => (
-                <button key={a.id ?? a.title} onClick={() => onInsert(`[${a.title}](/blog/${a.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')})`)}
-                  className="w-full text-left px-3 py-2.5 rounded-xl text-sm hover:bg-indigo-50 hover:text-indigo-800 border border-transparent hover:border-indigo-200 transition-all flex items-center gap-2">
-                  <Link2 className="w-3.5 h-3.5 text-indigo-400 shrink-0" />{a.title}
+            <div className="space-y-3">
+              {/* Domain Input / Discovery Bar */}
+              <div className="flex gap-2 items-center bg-slate-50 p-2 rounded-xl border border-slate-200">
+                <input
+                  value={activeDomain}
+                  onChange={e => setActiveDomain(e.target.value)}
+                  placeholder="Website URL (e.g. https://smetytech.com)"
+                  className="flex-1 h-8 px-2.5 text-xs rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      runDiscovery(activeDomain);
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => runDiscovery(activeDomain)}
+                  disabled={loadingInternal || !activeDomain.trim()}
+                  className="h-8 px-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0"
+                >
+                  {loadingInternal ? (
+                    <>
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      <span>Scanning...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-3 h-3" />
+                      <span>Discover</span>
+                    </>
+                  )}
                 </button>
-              ))}
-              {filteredArticles.length === 0 && <p className="text-center py-6 text-slate-400 text-sm">No articles found.</p>}
+              </div>
+
+              {/* Status / Error message */}
+              {internalError && (
+                <div className="p-2.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-center justify-between">
+                  <span>{internalError}</span>
+                  <button
+                    type="button"
+                    onClick={() => runDiscovery(activeDomain)}
+                    className="underline font-semibold ml-2 hover:text-red-900"
+                  >
+                    Retry
+                  </button>
+                </div>
+              )}
+
+              {/* Loading State */}
+              {loadingInternal && (
+                <div className="py-8 flex flex-col items-center justify-center text-center space-y-2">
+                  <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
+                  <p className="text-xs font-semibold text-slate-700">
+                    Discovering sitemap & analyzing relevant pages...
+                  </p>
+                  <p className="text-[11px] text-slate-400 max-w-xs">
+                    Scanning {activeDomain} for content matching &quot;{topic || targetKeyword || 'your topic'}&quot;
+                  </p>
+                </div>
+              )}
+
+              {/* Results State */}
+              {!loadingInternal && (
+                <>
+                  {hasScanned && totalDiscovered !== null && (
+                    <div className="flex items-center justify-between text-[11px] text-slate-500 px-1">
+                      <span>
+                        Discovered {totalDiscovered} page{totalDiscovered === 1 ? '' : 's'} {sitemapFound ? '(sitemap verified)' : ''}
+                      </span>
+                      <span>{filteredCandidates.length} relevant match{filteredCandidates.length === 1 ? '' : 'es'}</span>
+                    </div>
+                  )}
+
+                  <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                    {filteredCandidates.map(c => (
+                      <div
+                        key={c.url}
+                        className="p-3 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/30 transition-all text-left group"
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <button
+                            type="button"
+                            onClick={() => onInsert(`[${c.suggestedAnchor || c.title}](${c.url})`)}
+                            className="font-semibold text-sm text-slate-800 hover:text-indigo-600 text-left line-clamp-1 transition-colors flex-1"
+                          >
+                            {c.title}
+                          </button>
+                          <span
+                            className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                              c.score >= 80
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : c.score >= 60
+                                ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                : 'bg-slate-100 text-slate-600 border-slate-200'
+                            }`}
+                          >
+                            {c.score}% Match
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-slate-400 font-mono truncate mb-1">
+                          {c.url}
+                        </div>
+                        {c.reason && (
+                          <p className="text-[11px] text-slate-600 line-clamp-2 mb-2 leading-relaxed">
+                            {c.reason}
+                          </p>
+                        )}
+                        <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100">
+                          <span className="text-[10px] text-slate-400 truncate">
+                            Anchor: <span className="text-slate-700 font-medium">&quot;{c.suggestedAnchor}&quot;</span>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => onInsert(`[${c.suggestedAnchor || c.title}](${c.url})`)}
+                            className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 shrink-0 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded transition-colors"
+                          >
+                            <Plus className="w-3 h-3" />
+                            Insert Link
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Local Saved Articles */}
+                    {filteredArticles.length > 0 && (
+                      <div className="pt-2 border-t border-slate-100">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 px-1">
+                          Published Articles ({filteredArticles.length})
+                        </p>
+                        {filteredArticles.map(a => (
+                          <button
+                            key={a.id ?? a.title}
+                            type="button"
+                            onClick={() => onInsert(`[${a.title}](/blog/${a.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')})`)}
+                            className="w-full text-left px-3 py-2 rounded-lg text-xs hover:bg-indigo-50 hover:text-indigo-800 transition-all flex items-center gap-2 text-slate-700"
+                          >
+                            <Link2 className="w-3 h-3 text-indigo-400 shrink-0" />
+                            <span className="truncate">{a.title}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Empty states */}
+                    {filteredCandidates.length === 0 && filteredArticles.length === 0 && (
+                      <div className="text-center py-6 px-4">
+                        {hasScanned ? (
+                          totalDiscovered && totalDiscovered > 0 ? (
+                            <p className="text-slate-500 text-xs leading-relaxed">
+                              Discovered {totalDiscovered} website pages, but none matched this article topic strongly enough.
+                            </p>
+                          ) : (
+                            <p className="text-slate-500 text-xs leading-relaxed">
+                              No pages discovered from this website. Check the URL and try again.
+                            </p>
+                          )
+                        ) : (
+                          <p className="text-slate-400 text-xs">
+                            Enter your website URL above to discover relevant pages for internal linking.
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           ) : (
             <div className="space-y-3">
@@ -1327,6 +1561,7 @@ function SectionCard({
         <LinkModal
           type={showLink}
           savedArticles={savedArticles}
+          topic={articleTitle}
           onInsert={md => { insertAtCursor(md); setShowLink(null); }}
           onClose={() => setShowLink(null)}
         />

@@ -886,6 +886,9 @@ export function SectionEditor() {
             <LinkModal
               type={showLink}
               savedArticles={[]}
+              domain={engine.referenceUrl || (engine.referenceData as any)?.domain || (engine.referenceData as any)?.url || ''}
+              topic={engine.blueprint?.title || engine.title || ''}
+              targetKeyword={engine.targetKeywords || (engine.blueprint as any)?.keywords?.[0] || ''}
               onInsert={md => { insertAtCursor(md); setShowLink(null); }}
               onClose={() => setShowLink(null)}
             />
