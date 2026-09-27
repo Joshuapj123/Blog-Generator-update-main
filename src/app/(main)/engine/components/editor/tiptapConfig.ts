@@ -21,8 +21,9 @@ export const getTiptapExtensions = (placeholderText: string = 'Start writing...'
     },
   }),
   Image.configure({
+    allowBase64: true,
     HTMLAttributes: {
-      class: 'rounded-xl border shadow-sm my-6 max-w-full h-auto',
+      class: 'rounded-xl border border-slate-200 shadow-sm my-6 max-w-full h-auto block mx-auto',
     },
   }),
   Youtube.configure({

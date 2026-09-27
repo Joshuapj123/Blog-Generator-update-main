@@ -17,6 +17,7 @@ import { useAuth } from '@/lib/firebase/auth-context';
 import { captureEvent, extractDomain } from '@/lib/analytics/posthog';
 import { Button } from '@/components/ui/button';
 import { useGenerationPipeline } from './hooks/useGenerationPipeline';
+import { DiagramAssetService } from '@/lib/content/DiagramAssetService';
 
 function EnginePageContent() {
   const engine = useEngine();
@@ -44,33 +45,37 @@ function EnginePageContent() {
   // Load Firestore data on mount
   useEffect(() => {
     async function init() {
-      const [articles, fold, ext] = await Promise.all([
-        getArticles(),
-        getFolders(),
-        getExternalLinks()
-      ]);
-      const todoArticles = articles.filter(a => a.stage === 'Todo' || a.stage === 'Draft');
-      const publishedArticles = articles.filter(a => a.stage === 'Published');
-      engine.setTodoArticles(todoArticles);
-      engine.setPublishedArticles(publishedArticles);
-      engine.setFolders(fold);
-      engine.setExternalLinks(ext);
+      try {
+        const [articles, fold, ext] = await Promise.all([
+          getArticles(),
+          getFolders(),
+          getExternalLinks()
+        ]);
+        const todoArticles = articles.filter(a => a.stage === 'Todo' || a.stage === 'Draft');
+        const publishedArticles = articles.filter(a => a.stage === 'Published');
+        engine.setTodoArticles(todoArticles);
+        engine.setPublishedArticles(publishedArticles);
+        engine.setFolders(fold);
+        engine.setExternalLinks(ext);
 
-      // Auto-populate from planning page redirect
-      const allArticles = [...todoArticles, ...publishedArticles];
-      if (todoId && allArticles.some(a => a.id === todoId)) {
-        engine.setSelectedTodoIdea(todoId);
-        try { localStorage.setItem('last_active_article_id', todoId); } catch(e) {}
-      } else {
-        try {
-          const lastActive = localStorage.getItem('last_active_article_id');
-          if (lastActive && lastActive !== 'undefined' && lastActive !== 'null' && allArticles.some(a => a.id === lastActive)) {
-            engine.setSelectedTodoIdea(lastActive);
-          } else {
-            engine.setSelectedTodoIdea('');
-            try { localStorage.removeItem('last_active_article_id'); } catch(e) {}
-          }
-        } catch(e) {}
+        // Auto-populate from planning page redirect
+        const allArticles = [...todoArticles, ...publishedArticles];
+        if (todoId && allArticles.some(a => a.id === todoId)) {
+          engine.setSelectedTodoIdea(todoId);
+          try { localStorage.setItem('last_active_article_id', todoId); } catch(e) {}
+        } else {
+          try {
+            const lastActive = localStorage.getItem('last_active_article_id');
+            if (lastActive && lastActive !== 'undefined' && lastActive !== 'null' && allArticles.some(a => a.id === lastActive)) {
+              engine.setSelectedTodoIdea(lastActive);
+            } else {
+              engine.setSelectedTodoIdea('');
+              try { localStorage.removeItem('last_active_article_id'); } catch(e) {}
+            }
+          } catch(e) {}
+        }
+      } catch (err) {
+        console.warn('EnginePage init warning:', err);
       }
     }
     init();
@@ -103,7 +108,8 @@ function EnginePageContent() {
             engine.setActiveKeyword(primaryKw);
             engine.setTargetKeywords(primaryKw);
         }
-        engine.setTiptapContent(matched.content);
+        const sanitizedContent = DiagramAssetService.replaceDiagramPlaceholders(matched.content || '');
+        engine.setTiptapContent(sanitizedContent);
         engine.setIsGenerated(true);
         if (matched.blueprint) engine.setBlueprint(matched.blueprint);
         if (matched.referenceUrl) engine.setReferenceUrl(matched.referenceUrl);

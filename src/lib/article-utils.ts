@@ -1,4 +1,5 @@
 import { ArticleBlueprint, SectionBlock } from '@/types/article';
+import { DiagramAssetService } from '@/lib/content/DiagramAssetService';
 
 export function renderMarkdown(text: string) {
   return (text || '')
@@ -140,8 +141,15 @@ export function toMarkdown(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]):
         if (media.image_url) {
           lines.push(`![${media.alt_text || media.suggested_search_query || 'Section Image'}](${media.image_url})\n`);
           if (media.alt_text) lines.push(`*Image: ${media.alt_text}*\n`);
-        } else if (media.image_prompt) {
-          lines.push(`🖼️ **Image Prompt:** *${media.image_prompt}*\n`);
+        } else if (media.image_prompt || media.suggested_search_query) {
+          const prompt = media.image_prompt || media.suggested_search_query;
+          const asset = DiagramAssetService.generateDiagramAsset(prompt);
+          if (asset.success && asset.dataUri) {
+            lines.push(`![${media.alt_text || asset.title}](${asset.dataUri})\n`);
+            lines.push(`*Figure: ${asset.title}*\n`);
+          } else {
+            lines.push(`🖼️ **Image Prompt:** *${media.image_prompt}*\n`);
+          }
         }
       } else {
         if (media.youtube_video_id) {
@@ -162,7 +170,7 @@ export function toMarkdown(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]):
     lines.push(`**[${bp.cta.button_text}]**`);
   }
 
-  return lines.join('\n');
+  return DiagramAssetService.replaceDiagramPlaceholders(lines.join('\n'));
 }
 
 export function toHtml(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]): string {
@@ -201,10 +209,19 @@ export function toHtml(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]): str
             <img src="${media.image_url}" alt="${media.alt_text || media.suggested_search_query || 'Section Image'}" style="max-width: 100%; height: auto; border-radius: 0.75rem; border: 1px solid #e5e7eb;" />
             ${media.alt_text ? `<div style="font-size: 0.8rem; color: #6b7280; margin-top: 0.5rem; font-style: italic;">${media.alt_text}</div>` : ''}
           </div>`;
-        } else if (media.image_prompt) {
-          mediaEmbed = `<div class="image-embed-placeholder" style="margin: 1.5rem 0; padding: 1.5rem; background: #f9fafb; border-radius: 0.75rem; border: 1px dashed #d1d5db; text-align: center; font-size: 0.85rem; color: #6b7280;">
-            🖼️ <strong>Image Prompt:</strong> <em>${media.image_prompt}</em>
-          </div>`;
+        } else if (media.image_prompt || media.suggested_search_query) {
+          const prompt = media.image_prompt || media.suggested_search_query;
+          const asset = DiagramAssetService.generateDiagramAsset(prompt);
+          if (asset.success && asset.dataUri) {
+            mediaEmbed = `<div class="acute-diagram-container my-6 text-center">
+              <img src="${asset.dataUri}" alt="Diagram: ${asset.title}" class="rounded-xl border border-slate-200 shadow-sm max-w-full h-auto mx-auto block" />
+              <p class="text-center text-xs text-slate-500 mt-2 font-medium"><em>Figure: ${asset.title}</em></p>
+            </div>`;
+          } else {
+            mediaEmbed = `<div class="image-embed-placeholder" style="margin: 1.5rem 0; padding: 1.5rem; background: #f9fafb; border-radius: 0.75rem; border: 1px dashed #d1d5db; text-align: center; font-size: 0.85rem; color: #6b7280;">
+              🖼️ <strong>Image Prompt:</strong> <em>${media.image_prompt}</em>
+            </div>`;
+          }
         }
       } else {
         mediaEmbed = media.youtube_video_id
@@ -239,7 +256,7 @@ export function toHtml(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]): str
     </section>`;
   }).join('\n');
 
-  return `<!DOCTYPE html>
+  const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -285,6 +302,7 @@ export function toHtml(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]): str
   </div>` : ''}
 </body>
 </html>`;
+  return DiagramAssetService.replaceDiagramPlaceholders(html);
 }
 
 export function toPlainText(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]): string {

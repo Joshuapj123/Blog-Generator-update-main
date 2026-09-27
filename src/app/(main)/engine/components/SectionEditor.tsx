@@ -28,6 +28,7 @@ import { YouTubeModal, LinkModal, ContextLinkPanel, type PendingLink } from '@/c
 import { WeakCopyCard } from '@/components/ui/WeakCopyCard';
 import { AnalysisResultsPanel } from '@/components/AnalysisResultsPanel';
 import { computeStructuredScore } from '@/lib/content-scoring';
+import { DiagramAssetService } from '@/lib/content/DiagramAssetService';
 import { SerpTermPanel } from './editor/SerpTermPanel';
 import { DeleteConfirmationModal } from '@/components/ui/DeleteConfirmationModal';
 
@@ -332,7 +333,14 @@ export function SectionEditor() {
     
     // If we have content in the engine state but editor is empty, OR they differ
     if ((engine.tiptapContent && isEditorEmpty) || (engine.tiptapContent && currentHtml !== engine.tiptapContent)) {
-      editor.commands.setContent(engine.tiptapContent);
+      let contentToSet = engine.tiptapContent;
+      const isHtml = /<(?:p|div|h[1-6]|span|article)[\s>]/i.test(contentToSet);
+      if (!isHtml) {
+        contentToSet = normalizeAiOutput(contentToSet);
+      } else {
+        contentToSet = DiagramAssetService.replaceDiagramPlaceholders(contentToSet);
+      }
+      editor.commands.setContent(contentToSet);
     } else if (!engine.tiptapContent && !isEditorEmpty) {
       editor.commands.setContent('');
     }

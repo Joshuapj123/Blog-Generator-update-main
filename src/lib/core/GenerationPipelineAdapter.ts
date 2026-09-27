@@ -4,6 +4,7 @@ import { GeminiProvider } from '@/lib/content/GeminiProvider';
 import { SerperProvider } from '@/lib/research/SerperProvider';
 import { PlaywrightProvider } from '@/lib/research/PlaywrightProvider';
 import { LinkQualityEngine } from '@/lib/seo-intelligence/link_quality_engine';
+import { DiagramAssetService } from '@/lib/content/DiagramAssetService';
 import { SaaSProfile, ContentAsset } from '@/core/contracts/schemas';
 import { 
   LLMProvider, 
@@ -279,6 +280,10 @@ export class GenerationPipelineAdapter {
 
     // 6. Map final ContentAsset to legacy response shape
     const finalAsset = result.content as ContentAsset;
+    if (finalAsset?.bodyMarkdown) {
+      console.log('[Adapter] Replacing diagram placeholders into real deterministic SVG assets...');
+      finalAsset.bodyMarkdown = DiagramAssetService.replaceDiagramPlaceholders(finalAsset.bodyMarkdown);
+    }
     console.log(`[PHASE10] GENERATED MARKDOWN LENGTH: ${finalAsset?.bodyMarkdown?.length || 0}`);
     console.log('[PHASE10] CONTENT ASSET CREATED');
     console.log('[Adapter] Completed orchestration. Building response blueprint...');
