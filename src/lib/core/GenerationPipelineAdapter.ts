@@ -3,7 +3,8 @@ import { AgentOrchestrator, AgentStage } from '@/core/orchestrator/AgentOrchestr
 import { GeminiProvider } from '@/lib/content/GeminiProvider';
 import { SerperProvider } from '@/lib/research/SerperProvider';
 import { PlaywrightProvider } from '@/lib/research/PlaywrightProvider';
-import { LinkQualityEngine } from '@/lib/seo-intelligence/link_quality_engine';
+import { LinkQualityEngine, RawLinkInput } from '@/lib/seo-intelligence/link_quality_engine';
+import { SitemapDiscoveryService } from '@/lib/research/SitemapDiscoveryService';
 import { DiagramAssetService } from '@/lib/content/DiagramAssetService';
 import { SaaSProfile, ContentAsset } from '@/core/contracts/schemas';
 import { 
@@ -145,14 +146,23 @@ export class GenerationPipelineAdapter {
     if (processedExternalLinks.length > 0) {
       try {
         console.log('[Adapter] Running pre-generation Link Quality Engine...');
-        const processed = LinkQualityEngine.process(processedExternalLinks, payload.title, payload.targetKeywords || '');
-        processedExternalLinks = processed.map(l => ({
+        const targetDomain = payload.saasProfile?.website || payload.referenceData?.url;
+        const report = LinkQualityEngine.processWithRecovery(
+          processedExternalLinks, 
+          payload.title, 
+          payload.targetKeywords || '',
+          {
+            targetDomain,
+            threshold: 80,
+            allowDegradedQuality: true
+          }
+        );
+        processedExternalLinks = report.selectedLinks.map(l => ({
           title: l.entity,
           url: l.canonicalURL
         }));
       } catch (err: any) {
-        console.error('[Adapter] LQE Pre-generation Validation Failed:', err.message);
-        throw new Error(`Link Quality Engine Validation Failed: ${err.message}`);
+        console.warn('[Adapter] LQE Pre-generation validation fallback:', err?.message || err);
       }
     }
 
@@ -310,14 +320,51 @@ export class GenerationPipelineAdapter {
     // 7. Deterministic Link Quality Engine (LQE) Post-processing
     try {
       console.log('[Adapter] Running post-generation Link Quality Engine...');
+      const targetDomain = payload.saasProfile?.website || payload.referenceData?.url;
+      let candidatePool: RawLinkInput[] | undefined;
+      if (targetDomain) {
+        try {
+          const cached = SitemapDiscoveryService.getCachedRecommendations(targetDomain);
+          if (cached && cached.candidates) {
+            candidatePool = cached.candidates.map(c => ({
+              title: c.title || c.suggestedAnchor || 'Internal Resource',
+              url: c.url
+            }));
+          }
+        } catch (poolErr) {
+          console.warn('[Adapter] Failed to fetch cached recommendations for LQE candidate pool:', poolErr);
+        }
+      }
+
       finalArticle = LinkQualityEngine.postProcess(
         finalArticle,
         finalArticle.title,
-        payload.targetKeywords || ''
+        payload.targetKeywords || '',
+        {
+          targetDomain,
+          candidatePool,
+          threshold: 80,
+          allowDegradedQuality: true
+        }
       );
     } catch (err: any) {
-      console.error('[Adapter] Link Quality Engine Post-processing Failed:', err.message);
-      throw new Error(`Link Quality Engine Post-processing Failed: ${err.message}`);
+      console.warn('[Adapter] Link Quality Engine Post-processing Fallback:', err?.message || err);
+      if (finalArticle) {
+        if (!finalArticle.diagnostics) finalArticle.diagnostics = {};
+        if (!finalArticle.diagnostics.linkQuality) {
+          finalArticle.diagnostics.linkQuality = {
+            status: 'DEGRADED',
+            threshold: 80,
+            averageAuthority: 0,
+            recoveryApplied: true,
+            recoveryStage: 'NO_LINKS',
+            selectedCount: 0,
+            selectedLinks: [],
+            userNotice: 'Link quality processing bypassed due to internal error; generation completed safely.',
+            rejectionReasons: [{ url: '', reason: err?.message || 'Unknown post-processing error' }]
+          };
+        }
+      }
     }
 
     // 8. Trigger YouTube media fetching helper if key exists

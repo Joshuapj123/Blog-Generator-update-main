@@ -170,7 +170,9 @@ export function toMarkdown(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]):
     lines.push(`**[${bp.cta.button_text}]**`);
   }
 
-  return DiagramAssetService.replaceDiagramPlaceholders(lines.join('\n'));
+  const rawMarkdown = lines.join('\n');
+  const sanitizedMarkdown = rawMarkdown.replace(/!?Link Quality Engine (?:Post-processing|Validation) Failed:[^\n]*/gi, '').trim();
+  return DiagramAssetService.replaceDiagramPlaceholders(sanitizedMarkdown);
 }
 
 export function toHtml(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]): string {
@@ -302,7 +304,8 @@ export function toHtml(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]): str
   </div>` : ''}
 </body>
 </html>`;
-  return DiagramAssetService.replaceDiagramPlaceholders(html);
+  const sanitizedHtml = html.replace(/!?Link Quality Engine (?:Post-processing|Validation) Failed:[^\n]*/gi, '').trim();
+  return DiagramAssetService.replaceDiagramPlaceholders(sanitizedHtml);
 }
 
 export function toPlainText(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]): string {

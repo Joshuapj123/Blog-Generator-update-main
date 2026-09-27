@@ -41,6 +41,20 @@ export class SitemapDiscoveryService {
   private static CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
   /**
+   * Retrieve cached recommendations for a domain if available (avoids re-crawling).
+   */
+  public static getCachedRecommendations(domain: string): InternalLinkDiscoveryResult | null {
+    if (!domain) return null;
+    const cleanDomain = domain.toLowerCase().trim();
+    for (const [key, val] of this.cache.entries()) {
+      if (key.startsWith(cleanDomain) && Date.now() - val.timestamp < this.CACHE_TTL_MS) {
+        return val.data;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Helper to perform a fetch with a strict timeout and maximum byte size limit.
    */
   private static async fetchWithTimeout(urlStr: string, timeoutMs: number = 10000, maxBytes: number = 500000): Promise<{ status: number; text: string; contentType: string }> {

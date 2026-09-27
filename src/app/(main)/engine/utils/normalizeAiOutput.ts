@@ -11,8 +11,11 @@ import { DiagramAssetService } from '@/lib/content/DiagramAssetService';
 export function normalizeAiOutput(markdownContent: string): string {
   if (!markdownContent) return '';
   
+  // Strip any internal link engine error messages that could have leaked
+  const sanitized = markdownContent.replace(/!?Link Quality Engine (?:Post-processing|Validation) Failed:[^\n]*/gi, '').trim();
+
   // Transform all diagram placeholders into rendered SVG assets
-  const processedWithDiagrams = DiagramAssetService.replaceDiagramPlaceholders(markdownContent);
+  const processedWithDiagrams = DiagramAssetService.replaceDiagramPlaceholders(sanitized);
 
   // Clean up extra blank lines
   let cleaned = processedWithDiagrams.replace(/\n{3,}/g, '\n\n');

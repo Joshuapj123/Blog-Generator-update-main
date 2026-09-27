@@ -1,4 +1,5 @@
 import { URL } from 'url';
+import { SitemapDiscoveryService } from '@/lib/research/SitemapDiscoveryService';
 
 export interface RawLinkInput {
   title: string; // The raw entity name/anchor
@@ -13,6 +14,28 @@ export interface FilteredLinkOutput {
   authorityScore: number; // Score (0-100)
   relevanceScore: number; // Score (0-100)
   selectionReason: string;
+}
+
+export type LinkQualityStatus = 'HEALTHY' | 'DEGRADED' | 'RECOVERED' | 'NO_LINKS';
+
+export interface LinkQualityOptions {
+  targetDomain?: string;
+  candidatePool?: RawLinkInput[];
+  allowDegradedQuality?: boolean;
+  threshold?: number;
+  requireSameOrigin?: boolean;
+}
+
+export interface LinkQualityReport {
+  status: LinkQualityStatus;
+  threshold: number;
+  averageAuthority: number;
+  recoveryApplied: boolean;
+  recoveryStage?: 'EXPAND_POOL' | 'RE_RANK' | 'SUBSET' | 'NO_LINKS' | 'NONE';
+  selectedCount: number;
+  selectedLinks: FilteredLinkOutput[];
+  userNotice?: string;
+  rejectionReasons: Array<{ url: string; reason: string }>;
 }
 
 // ==========================================
@@ -129,6 +152,109 @@ export class BlacklistFilter {
     }
 
     return false;
+  }
+}
+
+// ==========================================
+// STAGE 4.5: Hard Safety Validator
+// ==========================================
+export class LinkSafetyValidator {
+  private static PRIVATE_IPV4_PATTERNS = [
+    /^127\./,                          // 127.0.0.0/8 Loopback
+    /^10\./,                           // 10.0.0.0/8 Private
+    /^172\.(1[6-9]|2[0-9]|3[0-1])\./,  // 172.16.0.0/12 Private
+    /^192\.168\./,                     // 192.168.0.0/16 Private
+    /^169\.254\./,                     // 169.254.0.0/16 Link-local
+    /^0\./,                            // 0.0.0.0/8
+  ];
+
+  static isPrivateHost(hostname: string): boolean {
+    const clean = (hostname || '').toLowerCase().trim();
+    if (!clean) return true;
+    if (clean === 'localhost' || clean.endsWith('.localhost') || clean === '127.0.0.1' || clean === '0.0.0.0') {
+      return true;
+    }
+    // IPv6 checks
+    if (clean.includes(':')) {
+      const unbracketed = clean.replace(/^\[|\]$/g, '');
+      if (
+        unbracketed === '::1' ||
+        unbracketed === '::' ||
+        unbracketed.startsWith('fe8') ||
+        unbracketed.startsWith('fe9') ||
+        unbracketed.startsWith('fea') ||
+        unbracketed.startsWith('feb') ||
+        unbracketed.startsWith('fc') ||
+        unbracketed.startsWith('fd')
+      ) {
+        return true;
+      }
+    }
+    // IPv4 checks
+    for (const pat of this.PRIVATE_IPV4_PATTERNS) {
+      if (pat.test(clean)) return true;
+    }
+    return false;
+  }
+
+  static isSafeUrl(urlStr: string, options?: { requireSameOriginWith?: string }): { safe: boolean; reason?: string } {
+    if (!urlStr || typeof urlStr !== 'string') {
+      return { safe: false, reason: 'Empty or invalid URL input.' };
+    }
+
+    const trimmed = urlStr.trim();
+    const lower = trimmed.toLowerCase();
+
+    // 1. Explicit forbidden schemes & script injection checks
+    if (
+      lower.startsWith('javascript:') ||
+      lower.startsWith('data:') ||
+      lower.startsWith('vbscript:') ||
+      lower.startsWith('file:') ||
+      lower.startsWith('blob:') ||
+      lower.includes('<script') ||
+      lower.includes('onerror=') ||
+      lower.includes('onload=')
+    ) {
+      return { safe: false, reason: 'Forbidden URI scheme or script execution payload detected.' };
+    }
+
+    // 2. Parse URL
+    let parsed: URL;
+    try {
+      parsed = new URL(trimmed);
+    } catch {
+      return { safe: false, reason: 'Malformed URL syntax.' };
+    }
+
+    // 3. Scheme check (must be http or https)
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return { safe: false, reason: `Disallowed protocol "${parsed.protocol}". Only HTTP and HTTPS are permitted.` };
+    }
+
+    // 4. Hostname & Private IP / Localhost check
+    if (this.isPrivateHost(parsed.hostname)) {
+      return { safe: false, reason: `Private, loopback, or local network host "${parsed.hostname}" is prohibited.` };
+    }
+
+    // 5. Hard Blacklist check
+    if (BlacklistFilter.isBlacklisted(trimmed)) {
+      return { safe: false, reason: 'URL or destination domain is blacklisted.' };
+    }
+
+    // 6. Same-origin constraint (when specified)
+    if (options?.requireSameOriginWith) {
+      try {
+        const expectedOrigin = new URL(options.requireSameOriginWith).origin.toLowerCase();
+        if (parsed.origin.toLowerCase() !== expectedOrigin) {
+          return { safe: false, reason: `Cross-origin URL rejected: ${parsed.origin} does not match expected origin ${expectedOrigin}.` };
+        }
+      } catch {
+        return { safe: false, reason: 'Invalid reference origin specified for same-origin verification.' };
+      }
+    }
+
+    return { safe: true };
   }
 }
 
@@ -322,10 +448,14 @@ export class LinkScorer {
 // LINK QUALITY ENGINE (LQE) SERVICE
 // ==========================================
 export class LinkQualityEngine {
-  static process(
+  /**
+   * Filter and score candidate links deterministically.
+   */
+  static filterAndScoreCandidates(
     inputs: RawLinkInput[], 
     articleTopic: string, 
-    keywordsStr: string
+    keywordsStr: string,
+    options?: LinkQualityOptions
   ): FilteredLinkOutput[] {
     const keywords = keywordsStr.split(',').map(k => k.trim()).filter(Boolean);
     const vendors = this.identifyVendors(inputs, articleTopic);
@@ -349,15 +479,18 @@ export class LinkQualityEngine {
       const canonicalURL = URLNormalizer.canonicalize(input.url);
       if (!canonicalURL) continue;
 
-      // Stage 4: Hard Blacklist
-      if (BlacklistFilter.isBlacklisted(canonicalURL)) {
+      // Hard safety check
+      const safetyCheck = LinkSafetyValidator.isSafeUrl(canonicalURL, {
+        requireSameOriginWith: options?.requireSameOrigin ? options.targetDomain : undefined
+      });
+      if (!safetyCheck.safe) {
         continue;
       }
 
       // Stage 5: Entity Canonicalization
       const { canonicalEntity, isValid } = EntityCanonicalizer.canonicalize(input.title, canonicalURL);
       if (!isValid) {
-        continue; // Skip invalid entity mappings (CMS -> cms.gov, CRM/API generic links)
+        continue; // Skip invalid entity mappings
       }
 
       // Determine if official vendor
@@ -366,6 +499,12 @@ export class LinkQualityEngine {
         const parsed = new URL(canonicalURL);
         const host = parsed.hostname.toLowerCase();
         isOfficial = vendors.some(v => host.includes(v.toLowerCase()) || v.toLowerCase().includes(host.split('.')[0]));
+        if (!isOfficial && options?.targetDomain) {
+          const targetHost = new URL(options.targetDomain).hostname.toLowerCase();
+          if (host === targetHost || host.endsWith('.' + targetHost)) {
+            isOfficial = true;
+          }
+        }
       } catch {}
 
       // Stage 2: Domain Classification
@@ -483,7 +622,7 @@ export class LinkQualityEngine {
         redditCount++;
       }
 
-      // Rule 7: Per-domain limits (already partly handled by seenBaseDomains, but keeping category checks for safety)
+      // Rule 7: Per-domain limits
       const domain = baseDomain;
       if (!domainTypeCounts[domain]) {
         domainTypeCounts[domain] = { official: 0, blog: 0, community: 0, review: 0, docs: 0 };
@@ -527,10 +666,172 @@ export class LinkQualityEngine {
       });
     }
 
-    // Stage 10: Validation & Enforcement
-    this.validate(finalSet);
-
     return finalSet;
+  }
+
+  /**
+   * Process link inputs strictly. Throws if validation fails (preserves existing unit test contracts).
+   */
+  static process(
+    inputs: RawLinkInput[], 
+    articleTopic: string, 
+    keywordsStr: string,
+    options?: LinkQualityOptions
+  ): FilteredLinkOutput[] {
+    const candidates = this.filterAndScoreCandidates(inputs, articleTopic, keywordsStr, options);
+    // Stage 10: Validation & Enforcement
+    this.validate(candidates);
+    return candidates;
+  }
+
+  /**
+   * Process links with deterministic 4-stage recovery for autonomous pipeline resilience.
+   * Never throws on quality target miss; degrades gracefully and preserves safety.
+   */
+  static processWithRecovery(
+    inputs: RawLinkInput[],
+    articleTopic: string,
+    keywordsStr: string,
+    options: LinkQualityOptions = {}
+  ): LinkQualityReport {
+    const threshold = options.threshold ?? 80;
+    const rejections: Array<{ url: string; reason: string }> = [];
+
+    // Stage 1: Safety validation of all inputs
+    const safeInputs: RawLinkInput[] = [];
+    for (const inp of inputs) {
+      const check = LinkSafetyValidator.isSafeUrl(inp.url, {
+        requireSameOriginWith: options.requireSameOrigin ? options.targetDomain : undefined
+      });
+      if (!check.safe) {
+        rejections.push({ url: inp.url, reason: check.reason || 'Safety failure' });
+      } else {
+        safeInputs.push(inp);
+      }
+    }
+
+    // Try candidate scoring on safe inputs
+    let candidateLinks = safeInputs.length > 0 
+      ? this.filterAndScoreCandidates(safeInputs, articleTopic, keywordsStr, options)
+      : [];
+
+    // Check authority threshold on initial candidates
+    if (candidateLinks.length > 0) {
+      const totalAuth = candidateLinks.reduce((sum, l) => sum + l.authorityScore, 0);
+      const avgAuth = totalAuth / candidateLinks.length;
+      if (avgAuth >= threshold) {
+        return {
+          status: 'HEALTHY',
+          threshold,
+          averageAuthority: parseFloat(avgAuth.toFixed(1)),
+          recoveryApplied: false,
+          recoveryStage: 'NONE',
+          selectedCount: candidateLinks.length,
+          selectedLinks: candidateLinks,
+          rejectionReasons: rejections
+        };
+      }
+    }
+
+    // Quality target not met: avgAuth < threshold (or 0 candidates). Begin deterministic recovery!
+
+    // RECOVERY 1: Expand candidate pool using already-discovered verified candidates
+    if (options.candidatePool && options.candidatePool.length > 0) {
+      console.log(`[LQE Recovery] Recovery 1: Expanding candidate pool with ${options.candidatePool.length} pre-discovered candidates...`);
+      const safePool: RawLinkInput[] = [];
+      for (const poolItem of options.candidatePool) {
+        const check = LinkSafetyValidator.isSafeUrl(poolItem.url, {
+          requireSameOriginWith: options.requireSameOrigin ? options.targetDomain : undefined
+        });
+        if (check.safe) {
+          safePool.push(poolItem);
+        } else {
+          rejections.push({ url: poolItem.url, reason: check.reason || 'Pool item safety violation' });
+        }
+      }
+
+      if (safePool.length > 0) {
+        const combined = [...safeInputs, ...safePool];
+        const poolCandidates = this.filterAndScoreCandidates(combined, articleTopic, keywordsStr, options);
+        if (poolCandidates.length > 0) {
+          const poolTotal = poolCandidates.reduce((sum, l) => sum + l.authorityScore, 0);
+          const poolAvg = poolTotal / poolCandidates.length;
+          if (poolAvg >= threshold) {
+            return {
+              status: 'RECOVERED',
+              threshold,
+              averageAuthority: parseFloat(poolAvg.toFixed(1)),
+              recoveryApplied: true,
+              recoveryStage: 'EXPAND_POOL',
+              selectedCount: poolCandidates.length,
+              selectedLinks: poolCandidates,
+              userNotice: 'Expanded candidate pool with verified same-origin candidates to achieve quality target.',
+              rejectionReasons: rejections
+            };
+          }
+          // Update candidates to combined set for subsequent recovery steps
+          candidateLinks = poolCandidates;
+        }
+      }
+    }
+
+    // RECOVERY 2: Re-rank / Best subset achieving >= threshold
+    if (candidateLinks.length > 0) {
+      const highAuth = candidateLinks.filter(l => l.authorityScore >= threshold);
+      if (highAuth.length > 0) {
+        const highTotal = highAuth.reduce((sum, l) => sum + l.authorityScore, 0);
+        const highAvg = highTotal / highAuth.length;
+        if (highAvg >= threshold) {
+          console.log(`[LQE Recovery] Recovery 2: Selected ${highAuth.length} high-authority candidates meeting threshold (avg: ${highAvg.toFixed(1)}).`);
+          return {
+            status: 'RECOVERED',
+            threshold,
+            averageAuthority: parseFloat(highAvg.toFixed(1)),
+            recoveryApplied: true,
+            recoveryStage: 'RE_RANK',
+            selectedCount: highAuth.length,
+            selectedLinks: highAuth,
+            userNotice: 'Filtered to high-authority candidate subset meeting quality threshold.',
+            rejectionReasons: rejections
+          };
+        }
+      }
+    }
+
+    // RECOVERY 3: Select best valid subset with DEGRADED status
+    if (candidateLinks.length > 0) {
+      console.log(`[LQE Recovery] Recovery 3: Quality target ${threshold} not met; selecting best valid subset under DEGRADED status.`);
+      const sortedValid = [...candidateLinks].sort((a, b) => b.relevanceScore - a.relevanceScore);
+      const selectedSubset = sortedValid.slice(0, 5);
+      const subTotal = selectedSubset.reduce((sum, l) => sum + l.authorityScore, 0);
+      const subAvg = subTotal / selectedSubset.length;
+
+      return {
+        status: 'DEGRADED',
+        threshold,
+        averageAuthority: parseFloat(subAvg.toFixed(1)),
+        recoveryApplied: true,
+        recoveryStage: 'SUBSET',
+        selectedCount: selectedSubset.length,
+        selectedLinks: selectedSubset,
+        userNotice: 'Internal link coverage was limited, so ACUTE continued with the highest-confidence verified links.',
+        rejectionReasons: rejections
+      };
+    }
+
+    // RECOVERY 4: No valid candidates remain
+    console.log('[LQE Recovery] Recovery 4: No valid candidates remain; continuing with 0 links.');
+    return {
+      status: 'NO_LINKS',
+      threshold,
+      averageAuthority: 0,
+      recoveryApplied: true,
+      recoveryStage: 'NO_LINKS',
+      selectedCount: 0,
+      selectedLinks: [],
+      userNotice: 'No internal links selected.',
+      rejectionReasons: rejections
+    };
   }
 
   private static identifyVendors(inputs: RawLinkInput[], articleTopic: string): string[] {
@@ -670,9 +971,15 @@ export class LinkQualityEngine {
       allowedMap.set(norm, l.canonicalURL);
     }
 
+    const sanitizeErrors = (text: string | undefined): string => {
+      if (!text) return '';
+      return text.replace(/!?Link Quality Engine (?:Post-processing|Validation) Failed:[^\n]*/gi, '').trim();
+    };
+
     const rewriteString = (text: string | undefined): string => {
       if (!text) return '';
-      return text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, anchor, url) => {
+      const cleaned = sanitizeErrors(text);
+      return cleaned.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, anchor, url) => {
         const normUrl = URLNormalizer.canonicalize(url);
         const allowedCanonical = allowedMap.get(normUrl);
         if (allowedCanonical) {
@@ -699,6 +1006,10 @@ export class LinkQualityEngine {
     };
 
     const newArticle = JSON.parse(JSON.stringify(article));
+
+    if (newArticle.title) {
+      newArticle.title = sanitizeErrors(newArticle.title);
+    }
 
     if (newArticle.intro) {
       newArticle.intro.hook = rewriteString(newArticle.intro.hook);
@@ -736,52 +1047,101 @@ export class LinkQualityEngine {
     return newArticle;
   }
 
-  static postProcess(article: any, articleTopic: string, keywordsStr: string): any {
-    const rawLinks = this.extractLinks(article);
-    if (rawLinks.length === 0) return article;
+  static postProcess(
+    article: any, 
+    articleTopic: string, 
+    keywordsStr: string,
+    options?: LinkQualityOptions
+  ): any {
+    try {
+      const rawLinks = this.extractLinks(article);
 
-    console.log(`[LQE PostProcess] Extracted ${rawLinks.length} raw links from generated article.`);
-    const filtered = this.process(rawLinks, articleTopic, keywordsStr);
-    console.log(`[LQE PostProcess] Filtered down to ${filtered.length} allowed canonical links.`);
-
-    // Fail validation if final set violates rules (validate runs inside process, but we call it here to be explicit)
-    this.validate(filtered);
-
-    // Rewrite the article content to use the canonical allowed URLs and strip the disallowed ones back to plain text
-    const rewritten = this.rewriteArticle(article, filtered);
-
-    // Append Reference Presentation block to the conclusion section exactly as requested:
-    let conclusionSec = rewritten.sections?.find((s: any) => {
-      const h = (s.heading || '').toLowerCase();
-      return h.includes('conclusion') || h.includes('final thought');
-    });
-    if (!conclusionSec && rewritten.sections?.length > 0) {
-      conclusionSec = rewritten.sections[rewritten.sections.length - 1];
-    }
-
-    if (conclusionSec) {
-      const officialCats = ['Official Website', 'Official Documentation', 'Technical Documentation', 'Government', 'Research', 'Vendor Blog'];
-      const officialLinks = filtered.filter(l => officialCats.includes(l.category) || l.category.includes('Official') || l.category.includes('Technical'));
-      const communityLinks = filtered.filter(l => !officialLinks.includes(l));
-
-      let refBlock = '\n\n';
-      if (officialLinks.length > 0) {
-        refBlock += `Official Sources\n-------------\n`;
-        officialLinks.forEach(l => {
-          refBlock += `[${l.entity}](${l.canonicalURL})\n`;
-        });
-        refBlock += '\n';
+      let report: LinkQualityReport;
+      if (rawLinks.length === 0) {
+        report = {
+          status: 'NO_LINKS',
+          threshold: options?.threshold ?? 80,
+          averageAuthority: 0,
+          recoveryApplied: false,
+          recoveryStage: 'NONE',
+          selectedCount: 0,
+          selectedLinks: [],
+          userNotice: 'No links present in generated content.',
+          rejectionReasons: []
+        };
+        const sanitizedArticle = this.rewriteArticle(article, []);
+        if (!sanitizedArticle.diagnostics) sanitizedArticle.diagnostics = {};
+        sanitizedArticle.diagnostics.linkQuality = report;
+        return sanitizedArticle;
       }
-      if (communityLinks.length > 0) {
-        refBlock += `Community\n-------------\n`;
-        communityLinks.forEach(l => {
-          refBlock += `[${l.entity}](${l.canonicalURL})\n`;
-        });
-      }
-      
-      conclusionSec.experience_or_data_point = (conclusionSec.experience_or_data_point || '').trim() + refBlock;
-    }
 
-    return rewritten;
+      console.log(`[LQE PostProcess] Extracted ${rawLinks.length} raw links from generated article.`);
+      report = this.processWithRecovery(rawLinks, articleTopic, keywordsStr, {
+        threshold: 80,
+        allowDegradedQuality: true,
+        ...options
+      });
+      console.log(`[LQE PostProcess] Processed with recovery -> status: ${report.status}, selected: ${report.selectedCount}, avgAuth: ${report.averageAuthority}`);
+
+      // Rewrite the article content to use the canonical allowed URLs and strip the disallowed ones back to plain text
+      const rewritten = this.rewriteArticle(article, report.selectedLinks);
+
+      // Append Reference Presentation block to the conclusion section ONLY if there are selected links:
+      if (report.selectedLinks.length > 0) {
+        let conclusionSec = rewritten.sections?.find((s: any) => {
+          const h = (s.heading || '').toLowerCase();
+          return h.includes('conclusion') || h.includes('final thought');
+        });
+        if (!conclusionSec && rewritten.sections?.length > 0) {
+          conclusionSec = rewritten.sections[rewritten.sections.length - 1];
+        }
+
+        if (conclusionSec) {
+          const officialCats = ['Official Website', 'Official Documentation', 'Technical Documentation', 'Government', 'Research', 'Vendor Blog'];
+          const officialLinks = report.selectedLinks.filter(l => officialCats.includes(l.category) || l.category.includes('Official') || l.category.includes('Technical'));
+          const communityLinks = report.selectedLinks.filter(l => !officialLinks.includes(l));
+
+          let refBlock = '\n\n';
+          if (officialLinks.length > 0) {
+            refBlock += `Official Sources\n-------------\n`;
+            officialLinks.forEach(l => {
+              refBlock += `[${l.entity}](${l.canonicalURL})\n`;
+            });
+            refBlock += '\n';
+          }
+          if (communityLinks.length > 0) {
+            refBlock += `Community\n-------------\n`;
+            communityLinks.forEach(l => {
+              refBlock += `[${l.entity}](${l.canonicalURL})\n`;
+            });
+          }
+          
+          conclusionSec.experience_or_data_point = (conclusionSec.experience_or_data_point || '').trim() + refBlock;
+        }
+      }
+
+      if (!rewritten.diagnostics) rewritten.diagnostics = {};
+      rewritten.diagnostics.linkQuality = report;
+
+      return rewritten;
+    } catch (err: any) {
+      console.warn('[LQE PostProcess] Exception in postProcess:', err?.message || err);
+      // Graceful fallback: return sanitized article with DEGRADED status instead of throwing
+      const sanitizedArticle = this.rewriteArticle(article, []);
+      if (!sanitizedArticle.diagnostics) sanitizedArticle.diagnostics = {};
+      sanitizedArticle.diagnostics.linkQuality = {
+        status: 'DEGRADED',
+        threshold: options?.threshold ?? 80,
+        averageAuthority: 0,
+        recoveryApplied: true,
+        recoveryStage: 'NO_LINKS',
+        selectedCount: 0,
+        selectedLinks: [],
+        userNotice: 'Link post-processing completed in degraded mode due to an unexpected error.',
+        rejectionReasons: [{ url: '', reason: String(err?.message || err) }]
+      };
+      return sanitizedArticle;
+    }
   }
 }
+

@@ -131,6 +131,7 @@ export const ArticleBlueprintSchema = z.object({
     totalGeminiCalls: z.number().optional(),
     totalRepairCalls: z.number().optional(),
     totalValidationFailures: z.number().optional(),
+    linkQuality: z.any().optional(),
   }).optional(),
 });
 
