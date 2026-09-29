@@ -77,6 +77,13 @@ import {
   OutlineNodeSchema,
   ContentBriefSchema
 } from '../contracts/schemas';
+import {
+  PlanRecoveryDiagnostics,
+  normalizeContentBrief,
+  extractSanitizedValidationIssues,
+  createDeterministicFallbackBrief,
+  validateContentBriefStrict,
+} from '@/lib/content/schemas';
 import { 
   LLMProvider, 
   SearchProvider, 
@@ -147,6 +154,7 @@ export interface ExecutionTelemetry {
   repairCallsCount?: number;
   budgetUtilization?: string;
   budgetExceeded?: boolean;
+  planRecovery?: PlanRecoveryDiagnostics;
 }
 
 export interface OrchestrationInput {
@@ -682,6 +690,16 @@ export class AgentOrchestrator {
 
       // 4. PLAN
       let planStage: StageExecution | undefined;
+      const planRecovery: PlanRecoveryDiagnostics = {
+        initialStatus: 'ERROR',
+        validationFailurePaths: [],
+        normalizationApplied: false,
+        retryAttempted: false,
+        retrySucceeded: false,
+        fallbackUsed: false,
+        finalStatus: 'FAILED',
+      };
+
       try {
         planStage = this.startStage(AgentStage.PLAN);
         const saasIntelText = saasIntelligenceProfile 
@@ -717,16 +735,172 @@ ${input.maxHeadings ? `Generate at most ${input.maxHeadings} headings in the out
 3. OUTLINE STRUCTURE:
    - Generate 4–7 logical H2 sections.
    - Design at least one section suited for a practical comparison/feature breakdown table.
-   - Design sections that cover concrete practitioner workflows (e.g. managing sales pipelines, assigning tasks, lead scoring, marketing automation, customer conversations).`;
+   - Design sections that cover concrete practitioner workflows (e.g. managing sales pipelines, assigning tasks, lead scoring, marketing automation, customer conversations).
 
-        plan = await this.options.llm.structuredGenerate<ContentBrief>(
-          prompt,
-          ContentBriefSchema,
-          {
-            systemInstruction: 'You are an expert SEO content planner. Generate a structured Content Brief schema with an exact keyword title.',
-            operation: 'Content Brief Generation',
+=== CRITICAL SCHEMA CONTRACTS ===
+- intent.intentType MUST be exactly one of:
+  Informational
+  Transactional
+  Commercial
+  Navigational
+  Comparison
+- intent.contentType MUST be exactly one of:
+  Listicle
+  How-To
+  Guide
+  Review
+  Comparison
+  Other
+- outline[].level MUST be exactly:
+  H2
+  or
+  H3
+- Competitor insight URLs MUST use:
+  http://
+  or
+  https://`;
+
+        // PHASE 4: INITIAL ATTEMPT
+        let rawBrief: any = null;
+        let initialCallError: any = null;
+
+        try {
+          rawBrief = await this.options.llm.structuredGenerate<ContentBrief>(
+            prompt,
+            ContentBriefSchema,
+            {
+              systemInstruction: 'You are an expert SEO content planner. Generate a strictly compliant structured Content Brief schema matching the exact enum values.',
+              operation: 'Content Brief Generation',
+            }
+          );
+        } catch (err: any) {
+          initialCallError = err;
+          if (err?.text) {
+            try {
+              rawBrief = JSON.parse(err.text);
+            } catch {
+              rawBrief = null;
+            }
           }
-        );
+        }
+
+        let initialParseSuccess = false;
+        let initialValidationIssues: string[] = [];
+
+        if (rawBrief) {
+          const { normalized, normalizationApplied } = normalizeContentBrief(rawBrief);
+          if (normalizationApplied) {
+            planRecovery.normalizationApplied = true;
+          }
+          const parseResult = ContentBriefSchema.safeParse(normalized);
+          if (parseResult.success) {
+            plan = parseResult.data;
+            initialParseSuccess = true;
+            planRecovery.initialStatus = initialCallError ? 'NORMALIZED_VALID' : (normalizationApplied ? 'NORMALIZED_VALID' : 'VALID');
+            planRecovery.finalStatus = 'SUCCESS';
+          } else {
+            planRecovery.initialStatus = 'SCHEMA_VIOLATION';
+            const { paths, issues } = extractSanitizedValidationIssues(parseResult.error);
+            planRecovery.validationFailurePaths = paths;
+            initialValidationIssues = issues;
+          }
+        } else {
+          planRecovery.initialStatus = 'ERROR';
+          const { paths, issues } = extractSanitizedValidationIssues(initialCallError?.cause || initialCallError);
+          planRecovery.validationFailurePaths = paths.length > 0 ? paths : ['structured_output'];
+          initialValidationIssues = issues.length > 0 ? issues : ['The structured output could not be parsed as a valid ContentBrief'];
+        }
+
+        // PHASE 4: EXACTLY ONE BOUNDED CORRECTION ATTEMPT (if initial attempt invalid)
+        if (!initialParseSuccess || !plan) {
+          planRecovery.retryAttempted = true;
+          const correctionPrompt = `${prompt}
+
+=== CORRECTION REQUIRED ===
+The previous structured ContentBrief did not satisfy the required schema. Correct the following fields:
+${initialValidationIssues.map(i => `- ${i}`).join('\n')}
+
+CRITICAL CONTRACTS:
+- intent.intentType MUST be exactly one of: Informational, Transactional, Commercial, Navigational, Comparison
+- intent.contentType MUST be exactly one of: Listicle, How-To, Guide, Review, Comparison, Other
+- outline[].level MUST be exactly H2 or H3
+- Competitor insight URLs MUST use http:// or https://
+Return only the schema-compliant structured object.`;
+
+          let retryRaw: any = null;
+          let retryCallError: any = null;
+
+          try {
+            retryRaw = await this.options.llm.structuredGenerate<ContentBrief>(
+              correctionPrompt,
+              ContentBriefSchema,
+              {
+                systemInstruction: 'You are an expert SEO content planner. Generate a strictly compliant structured Content Brief schema matching the exact enum values.',
+                operation: 'Content Brief Generation (Retry)',
+              }
+            );
+          } catch (retryErr: any) {
+            retryCallError = retryErr;
+            if (retryErr?.text) {
+              try {
+                retryRaw = JSON.parse(retryErr.text);
+              } catch {
+                retryRaw = null;
+              }
+            }
+          }
+
+          if (retryRaw) {
+            const { normalized: retryNorm, normalizationApplied: retryNormApplied } = normalizeContentBrief(retryRaw);
+            if (retryNormApplied) {
+              planRecovery.normalizationApplied = true;
+            }
+            const retryParseResult = ContentBriefSchema.safeParse(retryNorm);
+            if (retryParseResult.success) {
+              plan = retryParseResult.data;
+              planRecovery.retrySucceeded = true;
+              planRecovery.finalStatus = 'RECOVERED';
+            } else {
+              planRecovery.retrySucceeded = false;
+              const { paths } = extractSanitizedValidationIssues(retryParseResult.error);
+              for (const p of paths) {
+                if (!planRecovery.validationFailurePaths.includes(p)) {
+                  planRecovery.validationFailurePaths.push(p);
+                }
+              }
+            }
+          } else {
+            planRecovery.retrySucceeded = false;
+          }
+        }
+
+        // PHASE 5: DETERMINISTIC FALLBACK (if both initial and retry failed)
+        if (!plan) {
+          planRecovery.fallbackUsed = true;
+          try {
+            const fallback = createDeterministicFallbackBrief({
+              targetKeyword: discovery.targetKeyword,
+              topic: discovery.topic,
+              targetAudience: discovery.audience,
+              saasProfile: input.saasProfile,
+              medianWordCount: analysis?.seoSignals?.medianWordCount || 2000,
+              supportingTerms: this.supportingTerms,
+              competitorUrls: input.competitorUrls,
+            });
+            // Phase 6: strict validation invariant
+            plan = ContentBriefSchema.parse(fallback);
+            planRecovery.finalStatus = 'FALLBACK';
+          } catch (fbErr: any) {
+            planRecovery.finalStatus = 'FAILED';
+            throw new Error('ACUTE could not complete the planning stage. Please try again.');
+          }
+        }
+
+        // PHASE 6: STRICT VALIDATION INVARIANT — MUST PASS ContentBriefSchema.parse
+        plan = validateContentBriefStrict(plan);
+
+        // Telemetry diagnostics recording
+        this.telemetry.planRecovery = planRecovery;
 
         plan.supportingTerms = this.supportingTerms;
 
@@ -758,19 +932,23 @@ ${input.maxHeadings ? `Generate at most ${input.maxHeadings} headings in the out
           }
         }
 
-        this.completeStage(planStage, { title: plan.title });
+        this.completeStage(planStage, { title: plan.title, planRecovery });
       } catch (err: any) {
+        planRecovery.finalStatus = 'FAILED';
+        this.telemetry.planRecovery = planRecovery;
+        const userSafeMessage = 'ACUTE could not complete the planning stage. Please try again.';
+        const safeError = new Error(userSafeMessage);
         if (planStage) {
-          this.failStage(planStage, err);
+          this.failStage(planStage, safeError);
         } else {
           this.errorsList.push({
             stage: AgentStage.PLAN,
-            message: err.message,
+            message: userSafeMessage,
             timestamp: new Date().toISOString(),
           });
-          this.telemetry.errors.push(err.message);
+          this.telemetry.errors.push(userSafeMessage);
         }
-        throw err;
+        throw safeError;
       }
 
       // 4.5. ASSET_STRATEGY

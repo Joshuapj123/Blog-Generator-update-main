@@ -285,7 +285,20 @@ export class GenerationPipelineAdapter {
     });
 
     if (!result.success && result.status === 'failed') {
-      throw new Error(`Orchestration execution failed: ${result.errors.map(e => e.message).join(', ')}`);
+      const sanitizedErrors = result.errors.map(e => {
+        const msg = e.message || '';
+        if (
+          msg.includes('No object generated') ||
+          msg.includes('ZodError') ||
+          msg.includes('validationResult') ||
+          msg.includes('GeminiProvider') ||
+          msg.includes('AgentOrchestrator')
+        ) {
+          return 'ACUTE could not complete the planning stage. Please try again.';
+        }
+        return msg;
+      }).join(', ');
+      throw new Error(`Orchestration execution failed: ${sanitizedErrors}`);
     }
 
     // 6. Map final ContentAsset to legacy response shape

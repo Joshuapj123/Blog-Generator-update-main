@@ -1,6 +1,7 @@
 // src/lib/content/ContentBriefBuilder.ts
 import { LLMProvider } from '@/core/contracts/providers';
 import { ContentBrief, ContentBriefSchema } from '@/core/contracts/schemas';
+import { normalizeContentBrief } from './schemas';
 
 export class ContentBriefBuilder {
   constructor(private llmProvider: LLMProvider) {}
@@ -23,17 +24,41 @@ Recommended Structure: ${strategy.recommendedStructure?.join(', ') || ''}
 Required Entities: ${strategy.requiredEntities?.join(', ') || ''}
 Required Topics: ${strategy.requiredTopics?.join(', ') || ''}
 Differentiation Guidelines: ${strategy.differentiationRequirements?.join('. ') || ''}
-GEO Visibility Recommendations: ${strategy.geoRequirements?.join('. ') || ''}` : ''}`;
+GEO Visibility Recommendations: ${strategy.geoRequirements?.join('. ') || ''}` : ''}
 
-    const result = await this.llmProvider.structuredGenerate<ContentBrief>(
-      prompt,
-      ContentBriefSchema,
-      {
-        systemInstruction: 'You are an expert SEO content planner. Generate a structured Content Brief schema.',
-        operation: 'Content Brief Generation',
-        runId
+=== CRITICAL SCHEMA CONTRACTS ===
+- intent.intentType MUST be exactly one of: Informational, Transactional, Commercial, Navigational, Comparison.
+- intent.contentType MUST be exactly one of: Listicle, How-To, Guide, Review, Comparison, Other.
+- outline[].level MUST be exactly: H2 or H3.
+- Competitor insight URLs MUST use http:// or https://.`;
+
+    let result: ContentBrief;
+    try {
+      result = await this.llmProvider.structuredGenerate<ContentBrief>(
+        prompt,
+        ContentBriefSchema,
+        {
+          systemInstruction: 'You are an expert SEO content planner. Generate a strictly compliant structured Content Brief schema matching the exact enum values.',
+          operation: 'Content Brief Generation',
+          runId
+        }
+      );
+    } catch (err: any) {
+      if (err?.text) {
+        try {
+          const raw = JSON.parse(err.text);
+          const { normalized } = normalizeContentBrief(raw);
+          result = ContentBriefSchema.parse(normalized);
+        } catch {
+          throw err;
+        }
+      } else {
+        throw err;
       }
-    );
+    }
+
+    const { normalized } = normalizeContentBrief(result);
+    result = ContentBriefSchema.parse(normalized);
 
     if (strategy) {
       result.assetType = strategy.assetType;
