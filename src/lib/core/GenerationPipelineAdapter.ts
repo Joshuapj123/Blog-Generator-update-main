@@ -92,7 +92,7 @@ export class DryRunSearchProvider implements SearchProvider {
   }
 }
 
-class DryRunScrapeProvider implements ScrapeProvider {
+export class DryRunScrapeProvider implements ScrapeProvider {
   async scrape(urls: string[], options?: any): Promise<ScrapeResult[]> {
     return urls.map(url => ({
       url,
@@ -318,6 +318,9 @@ export class GenerationPipelineAdapter {
     finalArticle.diagnostics = {
       repairAttemptsUsed: result.stages.filter(s => s.stage === AgentStage.GENERATE).length - 1,
       telemetry: result.telemetry,
+      researchIntelligence: result.researchIntelligence || result.telemetry?.researchIntelligence,
+      evidenceItemCount: result.evidenceSet?.items?.length || 0,
+      gapCount: result.gapMatrix?.gaps?.length || 0,
       structureAlignmentScore: 90,
       entityPlacementCoverage: 85,
       budgetUtilizationPercent: 100,

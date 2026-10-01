@@ -93,6 +93,16 @@ import {
 } from '../contracts/providers';
 import { validateArticleQuality } from '@/lib/seo-intelligence/quality_validator';
 import { AssetStrategyService } from '@/lib/content/AssetStrategyService';
+import {
+  EvidenceSet,
+  ContentGapMatrix,
+  SectionEvidenceMap,
+  ResearchIntelligenceDiagnostics,
+} from '../contracts/evidence';
+import { EvidenceExtractionService } from '@/lib/intelligence/EvidenceExtractionService';
+import { ContentGapService } from '@/lib/intelligence/ContentGapService';
+import { SectionEvidenceMapper } from '@/lib/intelligence/SectionEvidenceMapper';
+import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceValidator';
 
 export enum AgentStage {
   DISCOVER = "DISCOVER",
@@ -155,6 +165,7 @@ export interface ExecutionTelemetry {
   budgetUtilization?: string;
   budgetExceeded?: boolean;
   planRecovery?: PlanRecoveryDiagnostics;
+  researchIntelligence?: ResearchIntelligenceDiagnostics;
 }
 
 export interface OrchestrationInput {
@@ -167,6 +178,8 @@ export interface OrchestrationInput {
   referenceUrls?: string[];
   maxHeadings?: number;
   supportingTerms?: string[];
+  overrideEvidenceSet?: EvidenceSet;
+  overrideGapMatrix?: ContentGapMatrix;
 }
 
 export interface DiscoveryResult {
@@ -220,6 +233,10 @@ export interface OrchestrationResult {
   telemetry: ExecutionTelemetry;
   errors: OrchestrationError[];
   saasIntelligenceProfile?: any;
+  evidenceSet?: EvidenceSet;
+  gapMatrix?: ContentGapMatrix;
+  sectionEvidenceMaps?: SectionEvidenceMap[];
+  researchIntelligence?: ResearchIntelligenceDiagnostics;
 }
 
 export class AgentOrchestrator {
@@ -228,6 +245,9 @@ export class AgentOrchestrator {
   private errorsList: OrchestrationError[] = [];
   private supportingTerms: string[] = [];
   private targetBrand: string = '';
+  private evidenceSet?: EvidenceSet;
+  private gapMatrix?: ContentGapMatrix;
+  private sectionEvidenceMaps: SectionEvidenceMap[] = [];
 
   constructor(private options: AgentOrchestratorOptions) {
     this.telemetry = {
@@ -346,6 +366,8 @@ export class AgentOrchestrator {
     let discovery: DiscoveryResult | undefined;
     let research: { searchResults: SearchResult[]; scrapeResults: ScrapeResult[] } | undefined;
     let analysis: AnalysisResult | undefined;
+    let fullCompetitors: any[] = [];
+    let opportunities: any[] = [];
     let plan: ContentBrief | undefined;
     let content: ContentAsset | undefined;
     let review: ReviewResult | undefined;
@@ -499,7 +521,7 @@ export class AgentOrchestrator {
         analyzeStage = this.startStage(AgentStage.ANALYZE);
         
         // Retrieve full competitor cache structures if available
-        const fullCompetitors = research.scrapeResults.map(r => {
+        fullCompetitors = research.scrapeResults.map(r => {
           const cacheKey = 'competitor_' + r.url;
           const cached = getLocalCache(cacheKey);
           if (cached) {
@@ -571,7 +593,6 @@ export class AgentOrchestrator {
 
       // 3.5. SEARCH_OPPORTUNITY
       let searchOpportunityStage: StageExecution | undefined;
-      let opportunities: any[] = [];
       try {
         searchOpportunityStage = this.startStage(AgentStage.SEARCH_OPPORTUNITY);
         if (input.supportingTerms && input.supportingTerms.length > 0) {
@@ -688,6 +709,33 @@ export class AgentOrchestrator {
         };
       }
 
+      // 3.7. EVIDENCE EXTRACTION & CONTENT GAP MATRIX
+      if (input.overrideEvidenceSet) {
+        this.evidenceSet = input.overrideEvidenceSet;
+      } else {
+        this.evidenceSet = EvidenceExtractionService.extractEvidence({
+          saasProfile: input.saasProfile,
+          saasIntelligenceProfile,
+          searchResults: research?.searchResults,
+          scrapeResults: research?.scrapeResults,
+          opportunities,
+          geoIntelligence,
+          targetKeyword: discovery.targetKeyword,
+        });
+      }
+
+      if (input.overrideGapMatrix) {
+        this.gapMatrix = input.overrideGapMatrix;
+      } else {
+        this.gapMatrix = ContentGapService.buildGapMatrix({
+          evidenceSet: this.evidenceSet,
+          saasProfile: input.saasProfile,
+          competitors: fullCompetitors.length > 0 ? fullCompetitors : (analysis?.competitors || []),
+          targetKeyword: discovery.targetKeyword,
+          geoIntelligence,
+        });
+      }
+
       // 4. PLAN
       let planStage: StageExecution | undefined;
       const planRecovery: PlanRecoveryDiagnostics = {
@@ -721,12 +769,26 @@ ${geoIntelligence.geoOpportunities.map((o: any) => `- Issue: ${o.issue}\n  Recom
           ? `Recommended Supporting Search Terms to cover naturally: ${this.supportingTerms.join(', ')}`
           : '';
 
+        const gapsContextText = this.gapMatrix && this.gapMatrix.gaps.length > 0
+          ? `=== IDENTIFIED CONTENT GAPS (MUST COVER IN OUTLINE) ===
+The following high-value topics are missing or under-covered by competitors. Your outline MUST include sections or table coverage for them:
+${this.gapMatrix.gaps.map(g => `- Topic: "${g.topic}" (Treatment: ${g.recommendedTreatment}, Buyer Question to answer: "${g.buyerQuestion}")`).join('\n')}`
+          : '';
+
+        const evidenceContextText = this.evidenceSet && this.evidenceSet.items.length > 0
+          ? `=== RESEARCHED EVIDENCE & FACTS TO ANCHOR SECTIONS ===
+Incorporate these specific researched facts and differentiators into section core concepts and topics:
+${this.evidenceSet.items.slice(0, 15).map(e => `- [${e.evidenceType}] ${e.claim}`).join('\n')}`
+          : '';
+
         const prompt = `Create a structured content brief and outline for an article targeting the canonical primary keyword: "${discovery.targetKeyword}".
 Target Audience: ${discovery.audience}
 ${saasIntelText}
 Competitor Medians: ${JSON.stringify(analysis.seoSignals)}
 ${supportingTermsText}
 ${geoContextText}
+${gapsContextText}
+${evidenceContextText}
 ${input.maxHeadings ? `Generate at most ${input.maxHeadings} headings in the outline to stay strictly within cost budgets.` : ''}
 
 === CRITICAL SEO TITLE & OUTLINE CONTRACTS ===
@@ -899,6 +961,14 @@ Return only the schema-compliant structured object.`;
         // PHASE 6: STRICT VALIDATION INVARIANT — MUST PASS ContentBriefSchema.parse
         plan = validateContentBriefStrict(plan);
 
+        // Map outline to researched evidence & content gaps
+        this.sectionEvidenceMaps = SectionEvidenceMapper.mapSectionsToEvidence(
+          plan.outline,
+          this.evidenceSet || { items: [], extractedAt: new Date().toISOString(), summary: { totalCount: 0, highConfidenceCount: 0, businessFactCount: 0, competitorObservationCount: 0, serpObservationCount: 0, inferenceCount: 0 } },
+          this.gapMatrix,
+          input.saasProfile
+        );
+
         // Telemetry diagnostics recording
         this.telemetry.planRecovery = planRecovery;
 
@@ -932,7 +1002,11 @@ Return only the schema-compliant structured object.`;
           }
         }
 
-        this.completeStage(planStage, { title: plan.title, planRecovery });
+        this.completeStage(planStage, { 
+          title: plan.title, 
+          planRecovery,
+          mappedSectionsCount: this.sectionEvidenceMaps.length 
+        });
       } catch (err: any) {
         planRecovery.finalStatus = 'FAILED';
         this.telemetry.planRecovery = planRecovery;
@@ -1006,7 +1080,7 @@ Return only the schema-compliant structured object.`;
       let generateStage: StageExecution | undefined;
       try {
         generateStage = this.startStage(AgentStage.GENERATE);
-        content = await this.runGeneration(plan, strategy);
+        content = await this.runGeneration(plan, strategy, this.sectionEvidenceMaps);
         this.completeStage(generateStage, { wordCount: content.wordCount });
       } catch (err: any) {
         if (generateStage) {
@@ -1248,7 +1322,11 @@ EditorRendered: true
         review,
         telemetry: this.telemetry,
         errors: this.errorsList,
-        saasIntelligenceProfile
+        saasIntelligenceProfile,
+        evidenceSet: this.evidenceSet,
+        gapMatrix: this.gapMatrix,
+        sectionEvidenceMaps: this.sectionEvidenceMaps,
+        researchIntelligence: this.telemetry.researchIntelligence,
       };
 
     } catch (err: any) {
@@ -1295,12 +1373,16 @@ EditorRendered: true
         review,
         telemetry: this.telemetry,
         errors: this.errorsList,
-        saasIntelligenceProfile: null
+        saasIntelligenceProfile: null,
+        evidenceSet: this.evidenceSet,
+        gapMatrix: this.gapMatrix,
+        sectionEvidenceMaps: this.sectionEvidenceMaps,
+        researchIntelligence: this.telemetry.researchIntelligence,
       };
     }
   }
 
-  private async runGeneration(brief: ContentBrief, strategy?: any): Promise<ContentAsset> {
+  private async runGeneration(brief: ContentBrief, strategy?: any, sectionMaps?: SectionEvidenceMap[]): Promise<ContentAsset> {
     let bodyMarkdown = `# ${brief.title}\n\n`;
     const assetType = strategy?.assetType || brief.assetType || 'ARTICLE';
     const primaryKeyword = brief.targetKeywords?.[0] || '';
@@ -1387,6 +1469,49 @@ WRITING RULES:
       const budget = sectionBudgets[i];
       const isFirstSection = i === 0;
 
+      const mapsToUse = sectionMaps || this.sectionEvidenceMaps || [];
+      const sectionMap = mapsToUse.find(m => m.heading.toLowerCase().trim() === section.heading.toLowerCase().trim()) || mapsToUse[i];
+
+      let sectionEvidenceContext = '';
+      if (sectionMap) {
+        const evItems = (this.evidenceSet?.items || []).filter(e => sectionMap.evidenceIds.includes(e.id));
+        const factsList = evItems.length > 0
+          ? `Researched Evidence to incorporate or reference:\n${evItems.map(e => `- [${e.evidenceType}] ${e.claim}`).join('\n')}`
+          : '';
+        const bizFactsList = sectionMap.targetBusinessFacts && sectionMap.targetBusinessFacts.length > 0
+          ? `Target Business Facts to emphasize:\n${sectionMap.targetBusinessFacts.map(f => `- ${f}`).join('\n')}`
+          : '';
+        const buyerQ = sectionMap.buyerQuestion
+          ? `Specific Buyer Question to answer directly:\n- "${sectionMap.buyerQuestion}"`
+          : '';
+        const compGap = sectionMap.competitorGap
+          ? `Competitor Content Gap to address:\n- ${sectionMap.competitorGap}`
+          : '';
+        const claims = sectionMap.claimConstraints && sectionMap.claimConstraints.length > 0
+          ? `Claim Constraints:\n${sectionMap.claimConstraints.map(c => `- ${c}`).join('\n')}`
+          : '';
+        const prohibited = sectionMap.prohibitedClaims && sectionMap.prohibitedClaims.length > 0
+          ? `Prohibited Claims:\n${sectionMap.prohibitedClaims.map(p => `- ${p}`).join('\n')}`
+          : '';
+
+        sectionEvidenceContext = `
+
+=== SECTION EVIDENCE & EDITORIAL STRATEGY CONTRACT ===
+Section Intent: ${sectionMap.intent}
+${buyerQ}
+${compGap}
+${factsList}
+${bizFactsList}
+${claims}
+${prohibited}
+CRITICAL EVIDENCE ACCURACY RULES:
+- Address the assigned buyer question directly with practical, actionable explanation.
+- Naturally incorporate the researched evidence items and target business facts.
+- DO NOT invent, fabricate, or hallucinate statistical claims or percentage numbers not provided in the evidence.
+- Do NOT make ungrounded promotional superlatives.
+======================================================`;
+      }
+
       const prompt = `Write a clear, practical, and highly readable section for the article "${brief.title}".
 Section Heading: "${section.heading}" (Level: ${section.level})
 Section Position: ${i + 1} of ${brief.outline.length}
@@ -1394,7 +1519,7 @@ Canonical Primary Keyword: "${primaryKeyword}"
 Assigned Section Keywords: ${section.assignedKeywords?.join(', ') || primaryKeyword}
 ${this.supportingTerms.length > 0 ? `Available Supporting Terms (use naturally where relevant): ${this.supportingTerms.join(', ')}\n` : ''}Assigned Entities: ${section.assignedEntities?.join(', ') || ''}
 Core Concept: ${section.core_concept || ''}
-${assetInstructions}${intelligenceContext}
+${assetInstructions}${intelligenceContext}${sectionEvidenceContext}
 
 === 18 EDITORIAL WRITING & READABILITY CONTRACTS ===
 1. CANONICAL PRIMARY KEYWORD CONTRACT:
@@ -1499,6 +1624,25 @@ WORD BUDGET:
 
     if (qualityReport.warnings) {
       warnings.push(...qualityReport.warnings);
+    }
+
+    // Evidence-Driven Content Intelligence Validation
+    const evidenceValidation = ContentEvidenceValidator.validate(
+      content.bodyMarkdown,
+      brief,
+      this.evidenceSet,
+      this.sectionEvidenceMaps,
+      this.targetBrand,
+      this.gapMatrix
+    );
+
+    this.telemetry.researchIntelligence = evidenceValidation.diagnostics;
+
+    if (!evidenceValidation.passed) {
+      criticalErrors.push(...evidenceValidation.criticalErrors);
+    }
+    if (evidenceValidation.warnings.length > 0) {
+      warnings.push(...evidenceValidation.warnings);
     }
 
     // 1. Total Word Count Budget Check (Exceeding max is Critical)
@@ -1628,6 +1772,9 @@ ${issues.map(i => `- ${i}`).join('\n')}
    - Ensure at least one clean Markdown comparison table is present.
    - Keep all diagram visual blocks and placeholders (!Diagram: ... or ![Workflow Diagram: ...] or svg assets) intact. Do not delete or rename diagrams.
    - Preserve all internal links intact.
+7. EVIDENCE FIDELITY & TRUTHFULNESS:
+   - Remove any ungrounded statistical claims, unbacked percentages, or fabricated facts flagged in the validation issues.
+   - Retain all genuine verified facts, product differentiators, and answers to buyer questions.
 
 ${hasTitleIssue ? `OPTIMIZED TITLE REQUIREMENT: Output an optimized short title (5-12 words, under 70 characters) containing the exact canonical primary keyword "${primaryKeyword}".` : ''}
 

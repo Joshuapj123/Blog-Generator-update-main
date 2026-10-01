@@ -176,8 +176,21 @@ export function toMarkdown(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]):
 }
 
 export function toHtml(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]): string {
-  const render = (t: string) =>
-    (t || '').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n\n/g, '</p><p>');
+  const render = (t: string) => {
+    if (!t) return '';
+    let rendered = t;
+    // Transform markdown image with optional trailing caption into acute-diagram-container
+    rendered = rendered.replace(
+      /!\[(?:Diagram:\s*)?([^\]\n]+)\]\((data:image\/svg\+xml;base64,[^\)\n]+)\)(?:\s*(?:\*|_|<strong>|<em>)?Figure:\s*[^<\n\r*]+(?:\*|_|<\/strong>|<\/em>)?)?/gi,
+      (_, title, dataUri) => {
+        const safeTitle = DiagramAssetService.escapeXml(DiagramAssetService.sanitizeTitle(title));
+        return `\n\n<div class="acute-diagram-container my-6 text-center"><img src="${dataUri}" alt="Diagram: ${safeTitle}" class="rounded-xl border border-slate-200 shadow-sm max-w-full h-auto mx-auto block" /><p class="text-center text-xs text-slate-500 mt-2 font-medium"><em>Figure: ${safeTitle}</em></p></div>\n\n`;
+      }
+    );
+    return rendered
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n\n/g, '</p><p>');
+  };
 
   const isDefaultMetaText = (text: string, heading?: string): boolean => {
     if (!text) return true;
@@ -305,7 +318,8 @@ export function toHtml(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]): str
 </body>
 </html>`;
   const sanitizedHtml = html.replace(/!?Link Quality Engine (?:Post-processing|Validation) Failed:[^\n]*/gi, '').trim();
-  return DiagramAssetService.replaceDiagramPlaceholders(sanitizedHtml);
+  const processedHtml = DiagramAssetService.replaceDiagramPlaceholders(sanitizedHtml);
+  return DiagramAssetService.deduplicateCaptions(processedHtml);
 }
 
 export function toPlainText(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]): string {
@@ -420,10 +434,14 @@ export function htmlToMarkdown(html: string): string {
         case 'div': {
           if (el.classList && el.classList.contains('acute-diagram-container')) {
             const img = el.querySelector('img');
+            const figEl = el.querySelector('p');
+            const captionText = figEl?.textContent?.trim() || '';
             if (img) {
               const src = img.getAttribute('src') || '';
               const alt = img.getAttribute('alt') || 'Diagram';
-              return `\n\n![${alt}](${src})\n\n`;
+              const cleanTitle = DiagramAssetService.sanitizeTitle(alt);
+              const caption = captionText ? captionText : `Figure: ${cleanTitle}`;
+              return `\n\n![${alt}](${src})\n*${caption}*\n\n`;
             }
           }
           return `${inner}\n`;
@@ -447,24 +465,30 @@ export function htmlToMarkdown(html: string): string {
     }
 
     const result = Array.from(doc.body.childNodes).map(nodeToMd).join('');
-    return result.replace(/\n{3,}/g, '\n\n').trim();
+    return DiagramAssetService.deduplicateCaptions(result.replace(/\n{3,}/g, '\n\n').trim());
   }
 
   // Server-side / fallback regex-based transformation (no Node.js modules required in client bundle)
-  return html
-    .replace(/<h1[^>]*>([\s\S]*?)<\/h1>/gi, '# $1\n\n')
-    .replace(/<h2[^>]*>([\s\S]*?)<\/h2>/gi, '## $1\n\n')
-    .replace(/<h3[^>]*>([\s\S]*?)<\/h3>/gi, '### $1\n\n')
-    .replace(/<a\s+[^>]*href=["']([^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi, '[$2]($1)')
-    .replace(/<div\s+[^>]*class=["'][^"']*acute-diagram-container[^"']*["'][^>]*>[\s\S]*?<img\s+[^>]*src=["']([^"']*)["'][^>]*alt=["']([^"']*)["'][^>]*>[\s\S]*?<\/div>/gi, '\n\n![$2]($1)\n\n')
-    .replace(/<img\s+[^>]*src=["']([^"']*)["'][^>]*alt=["']([^"']*)["'][^>]*>/gi, '![$2]($1)\n\n')
-    .replace(/<p[^>]*>([\s\S]*?)<\/p>/gi, '$1\n\n')
-    .replace(/<strong[^>]*>([\s\S]*?)<\/strong>/gi, '**$1**')
-    .replace(/<em[^>]*>([\s\S]*?)<\/em>/gi, '*$1*')
-    .replace(/<blockquote[^>]*>([\s\S]*?)<\/blockquote>/gi, '> $1\n\n')
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<[^>]+>/g, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
+  return DiagramAssetService.deduplicateCaptions(
+    html
+      .replace(/<h1[^>]*>([\s\S]*?)<\/h1>/gi, '# $1\n\n')
+      .replace(/<h2[^>]*>([\s\S]*?)<\/h2>/gi, '## $1\n\n')
+      .replace(/<h3[^>]*>([\s\S]*?)<\/h3>/gi, '### $1\n\n')
+      .replace(/<a\s+[^>]*href=["']([^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi, '[$2]($1)')
+      .replace(/<div\s+[^>]*class=["'][^"']*acute-diagram-container[^"']*["'][^>]*>[\s\S]*?<img\s+[^>]*src=["']([^"']*)["'][^>]*alt=["']([^"']*)["'][^>]*>[\s\S]*?(?:<p[^>]*>(?:<em>)?(Figure:\s*[^<\n\r]+)(?:<\/em>)?<\/p>)?[\s\S]*?<\/div>/gi, (_, src, alt, fig) => {
+        const cleanTitle = DiagramAssetService.sanitizeTitle(alt);
+        const caption = fig ? fig.trim() : `Figure: ${cleanTitle}`;
+        return `\n\n![${alt}](${src})\n*${caption}*\n\n`;
+      })
+      .replace(/<img\s+[^>]*src=["']([^"']*)["'][^>]*alt=["']([^"']*)["'][^>]*>/gi, '![$2]($1)\n\n')
+      .replace(/<p[^>]*>([\s\S]*?)<\/p>/gi, '$1\n\n')
+      .replace(/<strong[^>]*>([\s\S]*?)<\/strong>/gi, '**$1**')
+      .replace(/<em[^>]*>([\s\S]*?)<\/em>/gi, '*$1*')
+      .replace(/<blockquote[^>]*>([\s\S]*?)<\/blockquote>/gi, '> $1\n\n')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim()
+  );
 }
 

@@ -910,11 +910,14 @@ export class LinkQualityEngine {
 
     const fromString = (text: string | undefined) => {
       if (!text) return;
-      const matches = text.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g);
+      const matches = text.matchAll(/(!?)\[([^\]]+)\]\(([^)]+)\)/g);
       for (const m of matches) {
+        if (m[1] === '!' || m[3].startsWith('data:image/') || m[3].startsWith('data:')) {
+          continue; // Skip markdown image assets and data URIs
+        }
         rawLinks.push({
-          title: m[1],
-          url: m[2]
+          title: m[2],
+          url: m[3]
         });
       }
     };
@@ -979,7 +982,10 @@ export class LinkQualityEngine {
     const rewriteString = (text: string | undefined): string => {
       if (!text) return '';
       const cleaned = sanitizeErrors(text);
-      return cleaned.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, anchor, url) => {
+      return cleaned.replace(/(!?)\[([^\]]+)\]\(([^)]+)\)/g, (match, excl, anchor, url) => {
+        if (excl === '!' || url.startsWith('data:image/') || url.startsWith('data:')) {
+          return match; // Preserve images and data URIs intact!
+        }
         const normUrl = URLNormalizer.canonicalize(url);
         const allowedCanonical = allowedMap.get(normUrl);
         if (allowedCanonical) {

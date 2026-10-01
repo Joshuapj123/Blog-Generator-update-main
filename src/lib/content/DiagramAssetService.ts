@@ -26,19 +26,29 @@ export interface DiagramAssetResult {
 
 export class DiagramAssetService {
   /**
-   * Regular expressions matching diagram placeholders in markdown or text.
+   * Comprehensive regular expressions matching diagram/roadmap/architecture placeholders.
    * Handles:
-   *  - `!Diagram: Concept Title`
-   *  - `![Diagram: Concept Title](...)` or `![Diagram: Concept Title]`
-   *  - `![Workflow Diagram: Concept Title](...)`
-   *  - `![Architecture Diagram: Concept Title](...)`
-   *  - `!Workflow Diagram: Concept Title`
+   *  - HTML-wrapped placeholders: `<p>!Diagram: Concept</p>`, `<p>!Partnership Roadmap: Concept</p>`, `<p>Diagram: Concept</p>`
+   *  - Markdown image placeholders: `![Diagram: Concept](...)`, `![Partnership Roadmap: Concept](...)`
+   *  - Standalone exclamation markers: `!Diagram: Concept`, `!Workflow Diagram: Concept`, `!Partnership Roadmap: Concept`, `!<semantic label>: Concept`
+   *  - Standalone plain text markers: `Diagram: Concept`, `Workflow Diagram: Concept`, `Partnership Roadmap: Concept`
+   *  - Standalone Figure captions without preceding image: `*Figure: Concept*`
    */
-  private static readonly DIAGRAM_PATTERNS = [
-    /<p>\s*!(?:Workflow\s+|Architecture\s+|Process\s+)?Diagram:\s*([\s\S]*?)<\/p>/gi,
-    /!\[(?:Workflow\s+|Architecture\s+|Process\s+)?Diagram:\s*([^\]\n]+)\](?:\(([^\)\n]*)\))?/gi,
-    /!(?:Workflow\s+|Architecture\s+|Process\s+)?Diagram:\s*([^\n\r]+)/gi,
-    /!\[([^\]\n]*(?:workflow|diagram|architecture|process flow)[^\]\n]*)\]\((?:[^)\n]*\.(?:png|svg|jpg|jpeg)|placeholder|diagram)?\)/gi,
+  public static readonly DIAGRAM_PATTERNS = [
+    // 1. HTML paragraph wrapped placeholders: group 1 = title
+    /<p>\s*!?(?:\[)?(?:[A-Za-z0-9_-]+\s+)*(?:Diagram|Roadmap|Workflow|Architecture|Pipeline|Process|Framework|Overview|Chart|Infographic):\s*([\s\S]*?)<\/p>/gi,
+
+    // 2. Markdown image placeholders (excluding already-rendered data:image assets): group 1 or 2 = title, group 3 = url
+    /!\[(?:(?:[A-Za-z0-9_-]+\s+)*(?:Diagram|Roadmap|Workflow|Architecture|Pipeline|Process|Framework|Overview|Chart|Infographic):\s*([^\]\n]+)|([^\]\n]*(?:workflow|diagram|architecture|process\s+flow|roadmap)[^\]\n]*))\](?:\(([^)\n]*)\))?/gi,
+
+    // 3. Standalone exclamation-prefixed marker with any semantic label (explicitly excluding alerts): group 1 = title
+    /^[ \t]*(?:<p>\s*)?!(?!\[)(?!(?:Note|Warning|Caution|Important|Tip|Alert|Notice|Remember|Info|Example|Attention)\b)(?:[A-Za-z0-9_-]+(?:\s+[A-Za-z0-9_-]+){0,3}):\s*([^\n\r]*?)(?:<\/p>)?$/gim,
+
+    // 4. Standalone plain text diagram / roadmap markers (without !): group 1 = title
+    /^[ \t]*(?:<p>\s*)?(?:(?:Workflow|Architecture|Process|System|Data|Solution)?\s*Diagram|(?:Partnership|Product|Implementation)?\s*Roadmap|Workflow\s+Flow|Architecture\s+Overview|Data\s+Pipeline):\s*([^\n\r]+?)(?:<\/p>)?$/gim,
+
+    // 5. Standalone *Figure: TITLE* when not preceded by an image: group 1 = title
+    /^[ \t]*(?:\*|_|<strong>|<em>)Figure:\s*([^\n\r*<]+?)(?:\*|_|<\/strong>|<\/em>)$/gim
   ];
 
   /**
@@ -49,7 +59,7 @@ export class DiagramAssetService {
       .replace(/<[^>]*>/g, '') // strip all HTML tags
       .replace(/\b(?:javascript|data|vbscript):/gi, '') // strip dangerous URI schemes
       .replace(/\bon\w+\s*=/gi, '') // strip inline event handlers
-      .replace(/^!\[?(?:workflow\s+|architecture\s+|process\s+)?diagram:\s*/i, '')
+      .replace(/^!?\[?(?:(?:[A-Za-z0-9_-]+\s+)*(?:Diagram|Roadmap|Workflow|Architecture|Pipeline|Process|Framework|Overview|Chart|Infographic|Figure)|[A-Za-z0-9_-]+(?:\s+[A-Za-z0-9_-]+){0,2}):\s*/i, '')
       .replace(/\.(png|svg|jpg|jpeg)$/i, '')
       .replace(/[\[\]\)\(\*\_`"]/g, '')
       .trim();
@@ -116,10 +126,52 @@ export class DiagramAssetService {
       while ((match = pattern.exec(text)) !== null) {
         const rawMatch = match[0];
         if (seenMatches.has(rawMatch)) continue;
-        seenMatches.add(rawMatch);
 
-        let title = this.sanitizeTitle(match[1]);
-        if (!title) continue;
+        // If the match already contains a rendered data URI (data:image/...), skip!
+        if (rawMatch.includes('data:image/')) {
+          continue; // Already a rendered image asset! Never treat as placeholder.
+        }
+
+        // Check if this match captures a URL and it's already an SVG/image data URI
+        const potentialUrl = match[3] || match[2] || '';
+        if (potentialUrl && potentialUrl.startsWith('data:image/')) {
+          continue; // Already a rendered image asset! Never treat as placeholder.
+        }
+
+        // If it's a real HTTP URL and not an explicit placeholder filename, skip
+        if (potentialUrl && (potentialUrl.startsWith('http://') || potentialUrl.startsWith('https://'))) {
+          const isDummy = /\b(placeholder|diagram|mockup)\b/i.test(potentialUrl) || /\.(?:png|svg|jpg|jpeg)$/i.test(potentialUrl);
+          if (!isDummy) continue;
+        }
+
+        // For pattern 5 (standalone Figure:), check if preceded by an image in the text
+        if (/^[ \t]*(?:\*|_|<strong>|<em>)Figure:/i.test(rawMatch)) {
+          const matchIndex = match.index;
+          const precedingChunk = text.substring(0, matchIndex).trimEnd();
+          if (
+            precedingChunk.endsWith(')') ||
+            precedingChunk.endsWith('>') ||
+            /!\[[^\]\n]*\]\(|<img\s|<div\s+[^>]*class=["'][^"']*acute-diagram-container/i.test(
+              text.substring(Math.max(0, matchIndex - 50000), matchIndex)
+            )
+          ) {
+            // It is preceded by an image, so it's a legitimate caption, not a placeholder
+            continue;
+          }
+        }
+
+        const rawCapturedTitle = match[1] || match[2] || match[0];
+        let title = this.sanitizeTitle(rawCapturedTitle);
+        if (!title || title.length < 2) {
+          // If the placeholder had no title (e.g. "!Diagram:"), infer title from label
+          const labelMatch = rawMatch.match(/!?([A-Za-z0-9_-]+(?:\s+[A-Za-z0-9_-]+){0,2})/);
+          const label = labelMatch ? labelMatch[1].trim() : '';
+          title = label && label.length > 2 && !label.toLowerCase().includes('diagram')
+            ? `${label} Architecture`
+            : 'System Architecture Workflow';
+        }
+
+        seenMatches.add(rawMatch);
 
         let diagramType: DiagramRequirement['diagramType'] = 'general';
         const lower = title.toLowerCase();
@@ -409,13 +461,73 @@ export class DiagramAssetService {
   }
 
   /**
+   * Deduplicates figure captions to guarantee exactly one caption per visual asset.
+   * Eliminates consecutive duplicate Figure lines and duplicate captions trailing visual assets.
+   */
+  public static deduplicateCaptions(content: string): string {
+    if (!content) return '';
+    const isHtml = /<(?:p|div|h[1-6]|span|article)[\s>]/i.test(content);
+
+    if (isHtml) {
+      // 1. Remove standalone <p>Figure: ...</p> (with or without *, em, strong) that immediately follows an acute-diagram-container
+      let dedupped = content.replace(
+        /(<div\s+[^>]*class=["'][^"']*acute-diagram-container[^"']*["'][^>]*>[\s\S]*?<\/div>)(?:\s*<p[^>]*>(?:(?:\*|_|<strong>|<em>)\s*)*Figure:\s*[^<\n\r*]+(?:(?:\*|_|<\/strong>|<\/em>)\s*)*<\/p>)+/gi,
+        '$1'
+      );
+      // 2. Deduplicate consecutive <p>Figure: ...</p> tags
+      dedupped = dedupped.replace(
+        /(<p[^>]*>(?:(?:\*|_|<strong>|<em>)\s*)*Figure:\s*([^<\n\r*]+)(?:(?:\*|_|<\/strong>|<\/em>)\s*)*<\/p>)(?:\s*<p[^>]*>(?:(?:\*|_|<strong>|<em>)\s*)*Figure:\s*\2(?:(?:\*|_|<\/strong>|<\/em>)\s*)*<\/p>)+/gi,
+        '$1'
+      );
+      return dedupped;
+    }
+
+    // Markdown caption deduplication
+    // 1. Remove duplicate *Figure: ...* immediately following an image asset
+    let dedupped = content.replace(
+      /(!\[[^\]\n]*\]\((?:data:image\/[^\)\n]+|[^\)\n]+)\)\s*\n\s*(?:\*|_|<strong>|<em>)?Figure:\s*([^\n\r*<]+)(?:\*|_|<\/strong>|<\/em>)?)(?:\s*\n\s*(?:\*|_|<strong>|<em>)?Figure:\s*\2(?:\*|_|<\/strong>|<\/em>)?)+/gi,
+      '$1'
+    );
+
+    // 2. Remove consecutive duplicate Figure: lines across blank lines
+    const lines = dedupped.split('\n');
+    const result: string[] = [];
+    let lastCaptionNorm = '';
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const trimmed = line.trim();
+      const captionMatch = trimmed.match(/^(?:\*|_|<strong>|<em>)?Figure:\s*([^<\*_]+?)(?:\*|_|<\/strong>|<\/em>)?$/i);
+
+      if (captionMatch) {
+        const norm = captionMatch[1].trim().toLowerCase();
+        if (lastCaptionNorm && (norm === lastCaptionNorm || !norm)) {
+          // Skip duplicate caption
+          continue;
+        }
+        lastCaptionNorm = norm;
+        result.push(line);
+      } else {
+        if (trimmed !== '') {
+          lastCaptionNorm = '';
+        }
+        result.push(line);
+      }
+    }
+
+    return result.join('\n');
+  }
+
+  /**
    * Replaces all diagram placeholders in markdown or HTML content with real rendered visual assets.
    */
   public static replaceDiagramPlaceholders(content: string, context?: string): string {
     if (!content) return '';
 
     const requirements = this.extractDiagramRequirements(content);
-    if (requirements.length === 0) return content;
+    if (requirements.length === 0) {
+      return this.deduplicateCaptions(content);
+    }
 
     const isHtml = /<(?:p|div|h[1-6]|span|article)[\s>]/i.test(content);
     let result = content;
@@ -427,24 +539,42 @@ export class DiagramAssetService {
       if (asset.success && asset.dataUri) {
         if (isHtml) {
           const htmlReplacement = `<div class="acute-diagram-container my-6 text-center"><img src="${asset.dataUri}" alt="Diagram: ${safeTitle}" class="rounded-xl border border-slate-200 shadow-sm max-w-full h-auto mx-auto block" /><p class="text-center text-xs text-slate-500 mt-2 font-medium"><em>Figure: ${safeTitle}</em></p></div>`;
+          const escapedMatch = escapeRegExp(req.rawMatch);
+          const pCaptionPattern = '(?:\\s*<p[^>]*>(?:(?:\\*|_|<strong>|<em>)\\s*)*Figure:\\s*[^<\\n\\r*]+(?:(?:\\*|_|<\\/strong>|<\\/em>)\\s*)*<\\/p>)*';
+          const anyCaptionPattern = '(?:\\s*(?:(?:\\*|_|<strong>|<em>)?Figure:\\s*[^\\n\\r*<]+(?:\\*|_|<\\/strong>|<\\/em>)?|<p[^>]*>(?:(?:\\*|_|<strong>|<em>)\\s*)*Figure:\\s*[^<\\n\\r*]+(?:(?:\\*|_|<\\/strong>|<\\/em>)\\s*)*<\\/p>))*';
           let replaced = false;
+
           if (req.rawMatch.startsWith('<p') && req.rawMatch.endsWith('</p>')) {
-            result = result.split(req.rawMatch).join(htmlReplacement);
-            replaced = true;
+            const spanRegex = new RegExp(escapedMatch + pCaptionPattern, 'gi');
+            if (spanRegex.test(result)) {
+              result = result.replace(spanRegex, () => htmlReplacement);
+              replaced = true;
+            }
+          } else if (req.rawMatch.startsWith('<p')) {
+            const spanRegex = new RegExp(escapedMatch + pCaptionPattern, 'gi');
+            if (spanRegex.test(result)) {
+              result = result.replace(spanRegex, () => `${htmlReplacement}<p>`);
+              replaced = true;
+            }
           } else {
-            const escapedMatch = escapeRegExp(req.rawMatch);
-            const wrappedRegex = new RegExp(`<p>\\s*${escapedMatch}\\s*<\\/p>`, 'gi');
+            const wrappedRegex = new RegExp(`<p>\\s*${escapedMatch}\\s*<\\/p>` + pCaptionPattern, 'gi');
             if (wrappedRegex.test(result)) {
               result = result.replace(wrappedRegex, () => htmlReplacement);
               replaced = true;
             }
           }
           if (!replaced) {
-            result = result.split(req.rawMatch).join(htmlReplacement);
+            const spanRegex = new RegExp(escapedMatch + anyCaptionPattern, 'gi');
+            result = result.replace(spanRegex, () => htmlReplacement);
           }
         } else {
           const mdReplacement = `\n\n![Diagram: ${req.title}](${asset.dataUri})\n*Figure: ${req.title}*\n\n`;
-          result = result.split(req.rawMatch).join(mdReplacement);
+          const escapedMatch = escapeRegExp(req.rawMatch);
+          const spanRegex = new RegExp(
+            escapedMatch + '(?:\\s*(?:(?:\\*|_|<strong>|<em>)?Figure:\\s*[^\\n\\r*<]+(?:\\*|_|<\\/strong>|<\\/em>)?|<p[^>]*>(?:(?:\\*|_|<strong>|<em>)\\s*)*Figure:\\s*[^<\\n\\r*]+(?:(?:\\*|_|<\\/strong>|<\\/em>)\\s*)*<\\/p>))*',
+            'gi'
+          );
+          result = result.replace(spanRegex, () => mdReplacement);
         }
       } else {
         const failureCard = this.renderFailedDiagramPlaceholder(req.title, asset.error);
@@ -460,7 +590,10 @@ export class DiagramAssetService {
       }
     }
 
-    return result;
+    // Strip any remaining bare unattached diagram placeholder lines
+    result = result.replace(/^[ \t]*(?:<p>\s*)?!(?:Diagram|Workflow Diagram|Partnership Roadmap|Architecture Diagram):\s*(?:<\/p>)?$/gim, '');
+
+    return this.deduplicateCaptions(result);
   }
 }
 

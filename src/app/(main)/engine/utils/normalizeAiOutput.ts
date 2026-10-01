@@ -26,6 +26,7 @@ export function normalizeAiOutput(markdownContent: string): string {
   // Parse markdown to HTML
   const html = marked.parse(cleaned, { async: false }) as string;
   
-  return html;
+  // Guarantee caption deduplication in resulting HTML
+  return DiagramAssetService.deduplicateCaptions(html);
 }
 
