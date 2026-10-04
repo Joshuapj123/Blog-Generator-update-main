@@ -172,6 +172,18 @@ export class SitemapDiscoveryService {
 
     const { origin, hostname } = originInfo;
 
+    // Dry-run boundary: Never perform live network calls when ENABLE_DRY_RUN is true
+    if (process.env.ENABLE_DRY_RUN === 'true') {
+      return {
+        origin,
+        urls: [
+          { url: `${origin}/services`, source: 'sitemap' },
+          { url: `${origin}/dezvoltare-aplicatie-web`, source: 'sitemap' }
+        ],
+        sitemapFound: true
+      };
+    }
+
     // Security check: SSRF & Private IP validation
     const safety = await verifyUrlSafety(origin);
     if (!safety.safe) {
@@ -403,6 +415,17 @@ export class SitemapDiscoveryService {
    */
   public static async extractPageMetadata(urls: string[]): Promise<Array<{ url: string; title: string; h1: string; description: string }>> {
     const limitedUrls = urls.slice(0, 10);
+
+    // Dry-run boundary: Never perform live network calls when ENABLE_DRY_RUN is true
+    if (process.env.ENABLE_DRY_RUN === 'true') {
+      return limitedUrls.map(u => ({
+        url: u,
+        title: 'Dry Run Page',
+        h1: 'Dry Run H1',
+        description: 'Dry run page description'
+      }));
+    }
+
     const results: Array<{ url: string; title: string; h1: string; description: string }> = [];
 
     // Process in batches of 5
@@ -449,6 +472,29 @@ export class SitemapDiscoveryService {
     const cached = this.cache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < this.CACHE_TTL_MS) {
       return cached.data;
+    }
+
+    // Dry-run boundary: Never perform live network calls when ENABLE_DRY_RUN is true
+    if (process.env.ENABLE_DRY_RUN === 'true') {
+      const dryRunOrigin = this.normalizeOrigin(domain)?.origin || domain;
+      const dryRunResult: InternalLinkDiscoveryResult = {
+        domain: dryRunOrigin,
+        totalDiscovered: 1,
+        candidates: [
+          {
+            url: `${dryRunOrigin}/dezvoltare-aplicatie-web`,
+            title: `${topic} Services`,
+            h1: topic,
+            description: `Dry run internal link recommendation for ${targetKeyword}`,
+            score: 94,
+            reason: 'High keyword relevance (dry-run mock)',
+            suggestedAnchor: targetKeyword
+          }
+        ],
+        sitemapFound: true
+      };
+      this.cache.set(cacheKey, { timestamp: Date.now(), data: dryRunResult });
+      return dryRunResult;
     }
 
     try {

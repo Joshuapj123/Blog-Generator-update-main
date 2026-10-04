@@ -134,8 +134,8 @@ export async function POST(req: Request) {
     let repairedMarkdown = repairResult.repairedBodyMarkdown;
     const repairedTitle = repairResult.repairedTitle;
 
-    // Run diagram placeholder replacement safely on repaired markdown
-    repairedMarkdown = DiagramAssetService.replaceDiagramPlaceholders(repairedMarkdown);
+    // Strip any diagram placeholders from repaired markdown
+    repairedMarkdown = DiagramAssetService.stripDiagramPlaceholders(repairedMarkdown);
 
     // 2. Mandatory Revalidation
     const validationReport = validateArticleQuality(

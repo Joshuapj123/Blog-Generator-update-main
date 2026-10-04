@@ -16,6 +16,7 @@ export class GeminiVisibilityProvider implements AIVisibilityProvider {
 
   async query(prompt: string, options?: { runId?: string }): Promise<AIAnswer> {
     const startTime = Date.now();
+    const modelName = (this.llm as any).getModel?.() || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
     try {
       const answer = await this.llm.generate(prompt, {
         operation: 'GEO AI Answer Generation',
@@ -24,7 +25,7 @@ export class GeminiVisibilityProvider implements AIVisibilityProvider {
       });
       return {
         provider: this.providerName,
-        model: 'gemini-2.5-flash',
+        model: modelName,
         prompt,
         answer,
         timestamp: new Date().toISOString(),
@@ -34,7 +35,7 @@ export class GeminiVisibilityProvider implements AIVisibilityProvider {
     } catch (err: any) {
       return {
         provider: this.providerName,
-        model: 'gemini-2.5-flash',
+        model: modelName,
         prompt,
         answer: `Provider query failed: ${err.message}`,
         timestamp: new Date().toISOString(),

@@ -365,7 +365,7 @@ export function SectionEditor() {
       if (!isHtml) {
         contentToSet = normalizeAiOutput(contentToSet);
       } else {
-        contentToSet = DiagramAssetService.replaceDiagramPlaceholders(contentToSet);
+        contentToSet = DiagramAssetService.stripDiagramPlaceholders(contentToSet);
       }
       editor.commands.setContent(contentToSet);
     } else if (!engine.tiptapContent && !isEditorEmpty) {

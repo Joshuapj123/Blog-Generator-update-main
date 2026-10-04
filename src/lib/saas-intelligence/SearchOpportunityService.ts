@@ -5,6 +5,11 @@ import { z } from 'zod';
 export class SearchOpportunityService {
   private searchProvider: SearchProvider;
   private llm: LLMProvider;
+  private static opportunityCache = new Map<string, { opp: z.infer<typeof SearchOpportunitySchema>; timestamp: number }>();
+
+  public static clearCache(): void {
+    SearchOpportunityService.opportunityCache.clear();
+  }
 
   constructor(searchProvider: SearchProvider, llm: LLMProvider) {
     this.searchProvider = searchProvider;
@@ -62,6 +67,13 @@ Provide keyword ideas covering multiple angles: Listicles ("best X"), Comparison
 
     // Single keyword evaluation function (preserves identical scoring and fallback behavior)
     const evaluateKeyword = async (keyword: string): Promise<z.infer<typeof SearchOpportunitySchema>> => {
+      const cacheKey = `${saasName.toLowerCase()}::${category.toLowerCase()}::${keyword.toLowerCase().trim()}`;
+      const cached = SearchOpportunityService.opportunityCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < 1000 * 60 * 30) {
+        console.log(`[SearchOpportunityService] Cache hit for keyword: "${keyword}"`);
+        return cached.opp;
+      }
+
       console.log(`[SearchOpportunityService] Collecting SERP data for keyword: "${keyword}"`);
       let searchResults: any[] = [];
       let rankingDomains: string[] = [];
@@ -167,7 +179,7 @@ Tasks:
           result.estimatedDifficulty
         );
 
-        return {
+        const oppResult: z.infer<typeof SearchOpportunitySchema> = {
           keyword,
           normalizedKeyword: result.normalizedKeyword.toLowerCase().trim(),
           intent: result.intent,
@@ -187,6 +199,9 @@ Tasks:
           priority: result.priority,
           reasoning: result.reasoning
         };
+
+        SearchOpportunityService.opportunityCache.set(cacheKey, { opp: oppResult, timestamp: Date.now() });
+        return oppResult;
       } catch (err: any) {
         console.error(`[SearchOpportunityService] Classification failed for "${keyword}":`, err.message);
         // Build fallback opportunities on provider failure so pipeline never crashes
@@ -213,13 +228,13 @@ Tasks:
       }
     };
 
-    // 2. Evaluate candidate keywords with bounded concurrency = 4, preserving original candidate order
+    // 2. Evaluate candidate keywords with bounded concurrency = 6, preserving original candidate order
     const opportunities: z.infer<typeof SearchOpportunitySchema>[] = new Array(candidateKeywords.length);
     let completedCount = 0;
     const totalCount = candidateKeywords.length;
     const queue = candidateKeywords.map((kw, index) => ({ kw, index }));
 
-    const concurrencyLimit = Math.min(4, queue.length);
+    const concurrencyLimit = Math.min(6, queue.length);
     const workers = Array.from({ length: concurrencyLimit }, async () => {
       while (queue.length > 0) {
         const item = queue.shift();

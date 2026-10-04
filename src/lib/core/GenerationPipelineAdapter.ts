@@ -7,6 +7,8 @@ import { LinkQualityEngine, RawLinkInput } from '@/lib/seo-intelligence/link_qua
 import { SitemapDiscoveryService } from '@/lib/research/SitemapDiscoveryService';
 import { DiagramAssetService } from '@/lib/content/DiagramAssetService';
 import { SaaSProfile, ContentAsset } from '@/core/contracts/schemas';
+import { saveArticle, Article } from '@/lib/firebase/firestore';
+import { normalizeAiOutput } from '@/app/(main)/engine/utils/normalizeAiOutput';
 import { 
   LLMProvider, 
   SearchProvider, 
@@ -17,6 +19,10 @@ import {
 
 // Local Mock Providers for DRY_RUN mode
 export class DryRunLLMProvider implements LLMProvider {
+  getModel(): string {
+    return 'dry-run-model';
+  }
+
   async generate(prompt: string, options?: any): Promise<string> {
     return "This is a dry run content generation. We write clean, active voice text. SaaS platforms grow with topical authority.";
   }
@@ -128,13 +134,14 @@ export class GenerationPipelineAdapter {
         timeoutMs?: number;
       }>;
       overrideMaxReviewRetries?: number;
+      requestStartTs?: number;
     }
   ): Promise<any> {
     const runId = 'run_' + Math.random().toString(36).substring(2, 15) + '_' + Date.now();
     const startTime = Date.now();
     console.log(`[PIPELINE] REQUEST START - runId=${runId} timestamp=${new Date().toISOString()}`);
 
-    const dryRunEnabled = process.env.ENABLE_DRY_RUN === 'true';
+    const dryRunEnabled = process.env.ENABLE_DRY_RUN === 'true' || payload.dryRun === true;
     const primaryKeyword = payload.targetKeywords?.split(',')[0].trim() || payload.title;
     console.log(`[PIPELINE] PAYLOAD VALIDATED - runId=${runId} elapsed=${Date.now() - startTime}ms`);
 
@@ -189,7 +196,7 @@ export class GenerationPipelineAdapter {
       maxLLMCalls: options?.overrideBudget?.maxLLMCalls ?? 25,
       maxSearchCalls: options?.overrideBudget?.maxSearchCalls ?? 5,
       maxScrapeCalls: options?.overrideBudget?.maxScrapeCalls ?? 5,
-      timeoutMs: options?.overrideBudget?.timeoutMs ?? 600000 // 10 minutes timeout
+      timeoutMs: options?.overrideBudget?.timeoutMs ?? 270000 // 270s default provides safety buffer before 300s serverless limit
     };
 
     const orchestrator = new AgentOrchestrator({
@@ -199,6 +206,7 @@ export class GenerationPipelineAdapter {
       budget,
       maxReviewRetries: options?.overrideMaxReviewRetries ?? 2,
       signal,
+      requestStartTs: options?.requestStartTs,
       onStageUpdate: (stage, status, metadata) => {
         if (stage === AgentStage.GENERATE && status === 'running' && !metadata?.repaired) {
           console.log('[PHASE10] GENERATION START');
@@ -282,6 +290,7 @@ export class GenerationPipelineAdapter {
       competitorUrls: payload.referenceData?.url ? [payload.referenceData.url] : [],
       maxHeadings: payload.maxHeadings ?? (options?.overrideBudget?.maxLLMCalls ? 2 : undefined),
       supportingTerms: payload.supportingTerms,
+      requestStartTs: options?.requestStartTs,
     });
 
     if (!result.success && result.status === 'failed') {
@@ -304,8 +313,8 @@ export class GenerationPipelineAdapter {
     // 6. Map final ContentAsset to legacy response shape
     const finalAsset = result.content as ContentAsset;
     if (finalAsset?.bodyMarkdown) {
-      console.log('[Adapter] Replacing diagram placeholders into real deterministic SVG assets...');
-      finalAsset.bodyMarkdown = DiagramAssetService.replaceDiagramPlaceholders(finalAsset.bodyMarkdown);
+      console.log('[Adapter] Stripping diagram placeholders (AI image/diagram generation disabled per Prompt 5C)...');
+      finalAsset.bodyMarkdown = DiagramAssetService.stripDiagramPlaceholders(finalAsset.bodyMarkdown);
     }
     console.log(`[PHASE10] GENERATED MARKDOWN LENGTH: ${finalAsset?.bodyMarkdown?.length || 0}`);
     console.log('[PHASE10] CONTENT ASSET CREATED');
@@ -383,9 +392,9 @@ export class GenerationPipelineAdapter {
       }
     }
 
-    // 8. Trigger YouTube media fetching helper if key exists
+    // 8. Trigger YouTube media fetching helper if key exists and not in dry-run
     const youtubeKey = process.env.YOUTUBE_API_KEY;
-    if (youtubeKey && finalArticle.sections) {
+    if (!dryRunEnabled && youtubeKey && finalArticle.sections) {
       console.log('[Adapter] Fetching YouTube media for sections...');
       for (const section of finalArticle.sections) {
         const query = section.heading;
@@ -401,7 +410,78 @@ export class GenerationPipelineAdapter {
       }
     }
 
-    onProgress({ type: 'status', message: 'Generation complete', progress: 100 });
+    // 9. Persist to My Content (Firestore "articles" collection)
+    const idempotentArticleId = payload.articleId || `art_${runId.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+    const targetDomain = payload.saasProfile?.website || payload.referenceData?.url || '';
+
+    // Convert markdown to clean HTML for editor and storage
+    const htmlContent = normalizeAiOutput(finalAsset?.bodyMarkdown || '');
+
+    const articleToSave: Article = {
+      id: idempotentArticleId,
+      userId: payload.authenticatedUserId || undefined,
+      ownerId: payload.authenticatedUserId || undefined,
+      title: finalArticle.title,
+      content: htmlContent,
+      folder: 'uncategorized',
+      stage: 'Draft',
+      topic: payload.title,
+      sourceKeyword: primaryKeyword,
+      targetKeywords: [primaryKeyword],
+      referenceUrl: targetDomain,
+      blueprint: finalArticle,
+      diagnostics: finalArticle.diagnostics,
+      evidenceMetadata: {
+        evidenceCount: result.evidenceSet?.items?.length || 0,
+        gapCount: result.gapMatrix?.gaps?.length || 0,
+        confidenceRange: result.evidenceSet?.items?.length ? 'HIGH' : 'STANDARD',
+        reviewScore: result.review?.score || 100,
+        validationStatus: result.review?.finalValidationStatus || (result.review?.passed ? 'PASSED' : 'FAILED')
+      },
+      runId,
+      persistedAt: new Date().toISOString(),
+      persistenceStatus: 'SAVED'
+    };
+
+    let persistenceResult: { status: 'SAVED' | 'SAVE_FAILED' | 'PERSISTENCE_SKIPPED_DRY_RUN'; articleId?: string; error?: string } = {
+      status: 'SAVE_FAILED'
+    };
+
+    if (dryRunEnabled) {
+      console.log(`[Adapter] Dry-run active. Skipping real Firestore persistence for article "${finalArticle.title}" (id=${idempotentArticleId}).`);
+      persistenceResult = {
+        status: 'PERSISTENCE_SKIPPED_DRY_RUN',
+        articleId: idempotentArticleId
+      };
+    } else {
+      try {
+        console.log(`[Adapter] Persisting article "${finalArticle.title}" to My Content (id=${idempotentArticleId})...`);
+        const savedDocId = await saveArticle(articleToSave);
+        persistenceResult = {
+          status: 'SAVED',
+          articleId: savedDocId
+        };
+        console.log(`[Adapter] Successfully saved article to My Content with ID: ${savedDocId}`);
+      } catch (saveErr: any) {
+        console.error('[Adapter] Failed to persist generated article to My Content:', saveErr?.message || saveErr);
+        persistenceResult = {
+          status: 'SAVE_FAILED',
+          error: 'Failed to persist article to My Content library. Content preserved in session.'
+        };
+      }
+    }
+
+    finalArticle.persistence = persistenceResult;
+
+    onProgress({
+      type: 'status',
+      message: persistenceResult.status === 'SAVED'
+        ? 'Article saved to My Content'
+        : (persistenceResult.status === 'PERSISTENCE_SKIPPED_DRY_RUN'
+            ? 'Generation complete (dry-run, persistence skipped)'
+            : 'Generation complete'),
+      progress: 100
+    });
     onProgress({ type: 'complete', data: finalArticle, progress: 100 });
 
     console.log(`[PHASE10] FINAL CHECK - title="${finalArticle.title}" sectionCount=${finalArticle.sections?.length || 0} markdownLength=${finalAsset.bodyMarkdown?.length || 0} contentLength=${finalArticle.intro?.hook?.length || 0} hasContent=${!!finalAsset.bodyMarkdown}`);

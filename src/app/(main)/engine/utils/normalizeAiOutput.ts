@@ -14,11 +14,11 @@ export function normalizeAiOutput(markdownContent: string): string {
   // Strip any internal link engine error messages that could have leaked
   const sanitized = markdownContent.replace(/!?Link Quality Engine (?:Post-processing|Validation) Failed:[^\n]*/gi, '').trim();
 
-  // Transform all diagram placeholders into rendered SVG assets
-  const processedWithDiagrams = DiagramAssetService.replaceDiagramPlaceholders(sanitized);
+  // Strip all diagram placeholders - no AI diagram/image generation during article generation
+  const processedWithoutDiagrams = DiagramAssetService.stripDiagramPlaceholders(sanitized);
 
   // Clean up extra blank lines
-  let cleaned = processedWithDiagrams.replace(/\n{3,}/g, '\n\n');
+  let cleaned = processedWithoutDiagrams.replace(/\n{3,}/g, '\n\n');
   
   // Enforce heading levels: Demote H1s to H2s in sections
   cleaned = cleaned.replace(/^#\s+/gm, '## ');

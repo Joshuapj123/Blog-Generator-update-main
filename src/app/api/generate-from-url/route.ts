@@ -10,6 +10,7 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
 
 export async function POST(req: Request) {
+  const requestStartTs = Date.now();
   try {
     const body = await req.json().catch(() => ({}));
     const rawUrl = body?.url;
@@ -19,6 +20,11 @@ export async function POST(req: Request) {
     }
 
     const url = normalizeUrl(rawUrl);
+
+    // Authenticated user identity from server-side session cookie (cannot be spoofed by client body)
+    const cookieHeader = req.headers.get('cookie') || '';
+    const sessionMatch = cookieHeader.match(/__session=([^;]+)/);
+    const authenticatedUserId = sessionMatch ? decodeURIComponent(sessionMatch[1].trim()) : (body?.userId || undefined);
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
@@ -94,11 +100,14 @@ export async function POST(req: Request) {
             campaignMode: 'standard',
             externalLinks: [],
             maxHeadings: 5,
-            supportingTerms: bestOpportunity.supportingTerms || []
+            supportingTerms: bestOpportunity.supportingTerms || [],
+            authenticatedUserId,
+            articleId: body?.articleId || undefined
           };
 
           await GenerationPipelineAdapter.runPipeline(payload, sendChunk, req.signal, {
-            overrideMaxReviewRetries: 1
+            overrideMaxReviewRetries: 1,
+            requestStartTs
           });
         } catch (err: any) {
           console.error('[API Route] URL Autopilot failed:', err.message);

@@ -17,6 +17,11 @@ export interface LLMProvider {
     schema: any, // Zod schema or equivalent
     options?: { systemInstruction?: string; temperature?: number; operation?: string; runId?: string; cacheKey?: string; model?: string }
   ): Promise<T>;
+
+  /**
+   * Returns the active model identifier.
+   */
+  getModel?(): string;
 }
 
 export interface SearchResult {

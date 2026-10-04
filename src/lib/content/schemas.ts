@@ -320,3 +320,153 @@ export function createDeterministicFallbackBrief(context: DeterministicFallbackC
 export function validateContentBriefStrict(data: any): ContentBrief {
   return ContentBriefSchema.parse(data);
 }
+
+export interface OutlineBudgetResult {
+  brief: ContentBrief;
+  budgetEnforced: boolean;
+  originalCount: number;
+  enforcedCount: number;
+  mergedConcepts: string[];
+}
+
+/**
+ * Deterministically enforces outline section count <= maxHeadings.
+ * Never relies on prompt wording alone.
+ * Preserves Section 0 (Introduction / canonical keyword contract),
+ * prioritizes comparison tables and competitor content gaps,
+ * and merges keywords, entities, and core concepts from pruned sections.
+ */
+export function enforceOutlineSectionBudget(
+  brief: ContentBrief,
+  maxHeadings?: number,
+  evidenceSet?: any,
+  gapMatrix?: any
+): OutlineBudgetResult {
+  if (!maxHeadings || maxHeadings <= 0 || !brief.outline || brief.outline.length <= maxHeadings) {
+    return {
+      brief,
+      budgetEnforced: false,
+      originalCount: brief.outline?.length || 0,
+      enforcedCount: brief.outline?.length || 0,
+      mergedConcepts: [],
+    };
+  }
+
+  const originalCount = brief.outline.length;
+  const targetCount = Math.max(1, maxHeadings);
+  const originalOutline = [...brief.outline];
+
+  // Section 0 is always preserved (Introduction / Canonical Keyword contract)
+  const retainedIndices = new Set<number>([0]);
+  const candidateIndices = Array.from({ length: originalCount - 1 }, (_, i) => i + 1);
+
+  if (targetCount === 1) {
+    // Only section 0 is kept
+  } else {
+    // Score remaining candidate sections 1..N-1
+    const scoredCandidates = candidateIndices.map(index => {
+      const node = originalOutline[index];
+      let score = 0;
+
+      // 1. Comparison table priority: preserve comparison / feature breakdown section
+      if (
+        node.generate_table ||
+        /\b(?:compar|versus|vs|feature|differentiator|matrix|breakdown|table)\b/i.test(node.heading)
+      ) {
+        score += 50;
+      }
+
+      // 2. Content gap priority: preserve sections matching researched competitor gaps
+      const gaps = gapMatrix?.gaps || [];
+      const nodeTokens = node.heading.toLowerCase().split(/\s+/).filter(t => t.length > 3);
+      const matchesGap = gaps.some((g: any) =>
+        nodeTokens.some(t => g.topic?.toLowerCase().includes(t)) ||
+        (node.core_concept && g.topic && node.core_concept.toLowerCase().includes(g.topic.toLowerCase()))
+      );
+      if (matchesGap) {
+        score += 30;
+      }
+
+      // 3. High-confidence evidence priority: preserve sections with assigned evidence
+      const items = evidenceSet?.items || [];
+      const matchesEvidence = items.some((item: any) =>
+        item.confidence >= 0.85 &&
+        (nodeTokens.some(t => item.claim?.toLowerCase().includes(t)) ||
+         (node.assignedEntities || []).some((e: string) => (item.entities || []).includes(e)))
+      );
+      if (matchesEvidence) {
+        score += 20;
+      }
+
+      // 4. Narrative position weight (favor balanced coverage from early, mid, late outline)
+      const narrativeWeight = (1 - Math.abs(index / (originalCount - 1) - 0.5)) * 10;
+      score += narrativeWeight;
+
+      return { index, score };
+    });
+
+    // Sort by score descending to pick top (targetCount - 1) candidates
+    scoredCandidates.sort((a, b) => b.score - a.score);
+    const topIndices = scoredCandidates.slice(0, targetCount - 1).map(c => c.index);
+    topIndices.forEach(idx => retainedIndices.add(idx));
+  }
+
+  // Build sorted retained sections in original chronological order
+  const sortedRetainedIndices = Array.from(retainedIndices).sort((a, b) => a - b);
+  const prunedIndices = candidateIndices.filter(idx => !retainedIndices.has(idx));
+
+  const mergedConcepts: string[] = [];
+  const retainedSections = sortedRetainedIndices.map(idx => JSON.parse(JSON.stringify(originalOutline[idx])));
+
+  // Merge evidence, keywords, entities, and core concepts from pruned sections into the nearest retained section
+  for (const prunedIdx of prunedIndices) {
+    const prunedNode = originalOutline[prunedIdx];
+    // Find nearest retained section (prefer the preceding retained section)
+    const nearestRetainedIdx = sortedRetainedIndices.reduce((prev, curr) => {
+      if (curr < prunedIdx) return curr;
+      return prev;
+    }, sortedRetainedIndices[0]);
+
+    const targetSection = retainedSections.find((s: any, idx: number) => sortedRetainedIndices[idx] === nearestRetainedIdx) || retainedSections[0];
+
+    // Merge assignedKeywords (deduplicated)
+    if (prunedNode.assignedKeywords && prunedNode.assignedKeywords.length > 0) {
+      targetSection.assignedKeywords = Array.from(
+        new Set([...(targetSection.assignedKeywords || []), ...prunedNode.assignedKeywords])
+      );
+    }
+
+    // Merge assignedEntities (deduplicated)
+    if (prunedNode.assignedEntities && prunedNode.assignedEntities.length > 0) {
+      targetSection.assignedEntities = Array.from(
+        new Set([...(targetSection.assignedEntities || []), ...prunedNode.assignedEntities])
+      );
+    }
+
+    // Preserve core concept
+    if (prunedNode.core_concept) {
+      const summaryPoint = `[Integrated topic from "${prunedNode.heading}"]: ${prunedNode.core_concept}`;
+      mergedConcepts.push(summaryPoint);
+      targetSection.core_concept = targetSection.core_concept
+        ? `${targetSection.core_concept}. ${summaryPoint}`
+        : summaryPoint;
+    }
+  }
+
+  // Create deep clone of brief and assign enforced outline
+  const modifiedBrief = {
+    ...brief,
+    outline: retainedSections,
+  };
+
+  // Revalidate against ContentBriefSchema to guarantee strict compliance
+  const validatedBrief = ContentBriefSchema.parse(modifiedBrief);
+
+  return {
+    brief: validatedBrief,
+    budgetEnforced: true,
+    originalCount,
+    enforcedCount: validatedBrief.outline.length,
+    mergedConcepts,
+  };
+}

@@ -624,7 +624,7 @@ export async function generateObjectWithTelemetry<T>(
   options: Parameters<typeof aiGenerateObject>[0] & { cacheKey?: string; runId?: string }
 ): Promise<any> {
   const startTime = Date.now();
-  const modelName = (options.model as any).modelId || 'gemini-2.5-pro';
+  const modelName = (options.model as any).modelId || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
   const runId = options.runId;
 
   // Check budget guardrail before executing call
@@ -724,7 +724,7 @@ export async function generateTextWithTelemetry(
   options: Parameters<typeof aiGenerateText>[0] & { cacheKey?: string; runId?: string }
 ): Promise<any> {
   const startTime = Date.now();
-  const modelName = (options.model as any).modelId || 'gemini-2.5-pro';
+  const modelName = (options.model as any).modelId || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
   const runId = options.runId;
 
   // Check budget guardrail before executing call

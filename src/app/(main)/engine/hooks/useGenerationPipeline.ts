@@ -256,8 +256,18 @@ export function useGenerationPipeline() {
           if (parsed.data.sections) {
             engine.setSections(parsed.data.sections);
           }
+          if (parsed.data.persistence?.status === 'SAVED' && parsed.data.persistence?.articleId) {
+            engine.setCurrentArticleId(parsed.data.persistence.articleId);
+            engine.setCurrentArticleStage('Draft');
+          }
           engine.setGenProgress(100);
-          engine.setGenStatus('Generation complete');
+          engine.setGenStatus(
+            parsed.data.persistence?.status === 'SAVED'
+              ? 'Generation complete — Saved to My Content'
+              : parsed.data.persistence?.status === 'SAVE_FAILED'
+              ? 'Generation complete (Save to My Content failed)'
+              : 'Generation complete'
+          );
           engine.setIsGenerated(true);
           // Switch QA panel to Score tab
           engine.setActiveQaTab('score');
@@ -454,8 +464,18 @@ export function useGenerationPipeline() {
           if (parsed.data.sections) {
             engine.setSections(parsed.data.sections);
           }
+          if (parsed.data.persistence?.status === 'SAVED' && parsed.data.persistence?.articleId) {
+            engine.setCurrentArticleId(parsed.data.persistence.articleId);
+            engine.setCurrentArticleStage('Draft');
+          }
           engine.setGenProgress(100);
-          engine.setGenStatus('Generation complete');
+          engine.setGenStatus(
+            parsed.data.persistence?.status === 'SAVED'
+              ? 'Generation complete — Saved to My Content'
+              : parsed.data.persistence?.status === 'SAVE_FAILED'
+              ? 'Generation complete (Save to My Content failed)'
+              : 'Generation complete'
+          );
           engine.setIsGenerated(true);
           engine.setActiveQaTab('score');
 

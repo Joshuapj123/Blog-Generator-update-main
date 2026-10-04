@@ -15,6 +15,12 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app);
+
+let auth: any = null;
+try {
+  auth = getAuth(app);
+} catch (err: any) {
+  console.warn('[Firebase] Auth initialization fallback:', err?.message || err);
+}
 
 export { app, db, auth };

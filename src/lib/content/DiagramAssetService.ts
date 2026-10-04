@@ -519,6 +519,56 @@ export class DiagramAssetService {
   }
 
   /**
+   * Strips all diagram placeholders and their captions from markdown or HTML content.
+   * Completely disables AI diagram/image generation during article generation.
+   */
+  public static stripDiagramPlaceholders(content: string): string {
+    if (!content) return '';
+
+    const requirements = this.extractDiagramRequirements(content);
+    let result = content;
+
+    for (const req of requirements) {
+      const escapedMatch = escapeRegExp(req.rawMatch);
+      const pCaptionPattern = '(?:\\s*<p[^>]*>(?:(?:\\*|_|<strong>|<em>)\\s*)*Figure:\\s*[^<\\n\\r*]+(?:(?:\\*|_|<\\/strong>|<\\/em>)\\s*)*<\\/p>)*';
+      const anyCaptionPattern = '(?:\\s*(?:(?:\\*|_|<strong>|<em>)?Figure:\\s*[^\\n\\r*<]+(?:\\*|_|<\\/strong>|<\\/em>)?|<p[^>]*>(?:(?:\\*|_|<strong>|<em>)\\s*)*Figure:\\s*[^<\\n\\r*]+(?:(?:\\*|_|<\\/strong>|<\\/em>)\\s*)*<\\/p>))*';
+
+      const isHtml = /<(?:p|div|h[1-6]|span|article)[\s>]/i.test(result);
+      if (isHtml) {
+        if (req.rawMatch.startsWith('<p') && req.rawMatch.endsWith('</p>')) {
+          const spanRegex = new RegExp(escapedMatch + pCaptionPattern, 'gi');
+          result = result.replace(spanRegex, '');
+        } else if (req.rawMatch.startsWith('<p')) {
+          const spanRegex = new RegExp(escapedMatch + pCaptionPattern, 'gi');
+          result = result.replace(spanRegex, '');
+        } else {
+          const wrappedRegex = new RegExp(`<p>\\s*${escapedMatch}\\s*<\\/p>` + pCaptionPattern, 'gi');
+          if (wrappedRegex.test(result)) {
+            result = result.replace(wrappedRegex, '');
+          } else {
+            const spanRegex = new RegExp(escapedMatch + anyCaptionPattern, 'gi');
+            result = result.replace(spanRegex, '');
+          }
+        }
+      } else {
+        const spanRegex = new RegExp(escapedMatch + anyCaptionPattern, 'gi');
+        result = result.replace(spanRegex, '');
+      }
+    }
+
+    // Strip any remaining bare unattached diagram placeholder lines
+    result = result.replace(/^[ \t]*(?:<p>\s*)?!(?:Diagram|Workflow Diagram|Partnership Roadmap|Architecture Diagram|Architecture):\s*(?:<\/p>)?$/gim, '');
+    result = result.replace(/^[ \t]*(?:<p>\s*)?!(?!\[)(?!(?:Note|Warning|Caution|Important|Tip|Alert|Notice|Remember|Info|Example|Attention)\b)(?:[A-Za-z0-9_-]+(?:\s+[A-Za-z0-9_-]+){0,3}):\s*[^\n\r]*?(?:<\/p>)?$/gim, '');
+    result = result.replace(/^[ \t]*(?:<p>\s*)?(?:(?:Workflow|Architecture|Process|System|Data|Solution)?\s*Diagram|(?:Partnership|Product|Implementation)?\s*Roadmap|Workflow\s+Flow|Architecture\s+Overview|Data\s+Pipeline):\s*[^\n\r]+?(?:<\/p>)?$/gim, '');
+    result = result.replace(/^[ \t]*(?:<p>\s*)?(?:\*|_|<strong>|<em>)Figure:\s*[^\n\r*<]+(?:\*|_|<\/strong>|<\/em>)(?:<\/p>)?$/gim, '');
+
+    // Clean up empty paragraphs if any were created
+    result = result.replace(/<p>\s*<\/p>/gi, '');
+
+    return this.deduplicateCaptions(result.replace(/\n{3,}/g, '\n\n').trim());
+  }
+
+  /**
    * Replaces all diagram placeholders in markdown or HTML content with real rendered visual assets.
    */
   public static replaceDiagramPlaceholders(content: string, context?: string): string {

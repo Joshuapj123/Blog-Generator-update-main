@@ -1,14 +1,33 @@
 import { db } from "./config";
-import { collection, addDoc, updateDoc, doc, getDoc, getDocs, query, where, serverTimestamp, setDoc, deleteDoc } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  updateDoc,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+  serverTimestamp,
+  setDoc,
+  deleteDoc,
+  Timestamp,
+  FieldValue,
+  DocumentReference,
+  GeoPoint
+} from "firebase/firestore";
 
 export type ArticleStage = "Todo" | "Draft" | "Published";
 
 export interface Article {
   id?: string;
+  userId?: string;
+  ownerId?: string;
   title: string;
   content: string;
   folder: string;
   stage: ArticleStage;
+  topic?: string;
   planId?: string;
   planRole?: 'primary' | 'support';
   clusterOrder?: number;
@@ -24,6 +43,11 @@ export interface Article {
   serpAnalysis?: any;
   analysisResults?: any;
   contentScore?: any;
+  evidenceMetadata?: any;
+  diagnostics?: any;
+  runId?: string;
+  persistedAt?: string;
+  persistenceStatus?: 'SAVED' | 'SAVE_FAILED';
 }
 
 export interface ExternalLink {
@@ -40,27 +64,85 @@ export interface Folder {
   name: string;
 }
 
-export const saveArticle = async (article: Article) => {
-  const articlesCol = collection(db, "articles");
-  
-  // Firebase does not support undefined values, so we filter them out.
-  const cleanData = Object.fromEntries(Object.entries(article).filter(([_, v]) => v !== undefined));
+/**
+ * Sanitizes an object before writing to Firestore:
+ * - Removes `undefined` values from object properties
+ * - Maps `undefined` array elements to `null` (since Firestore does not support undefined anywhere in data)
+ * - Preserves JavaScript Date instances without mutation
+ * - Preserves Firestore-native types: Timestamp, FieldValue, DocumentReference, GeoPoint
+ * - Preserves primitives: false, 0, "", null, numbers, strings, booleans
+ * - Guards against circular references by throwing a TypeError
+ */
+export const sanitizeForFirestore = (val: any, seen = new WeakSet()): any => {
+  if (val === undefined) return null;
+  if (val === null || typeof val !== 'object') return val;
 
-  if (cleanData.id) {
-    const docRef = doc(db, "articles", cleanData.id as string);
-    await updateDoc(docRef, {
-      ...cleanData,
-      updatedAt: serverTimestamp()
-    });
-    return cleanData.id as string;
-  } else {
-    const docRef = await addDoc(articlesCol, {
-      ...cleanData,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    });
-    return docRef.id;
+  // Preserve explicit Firestore-supported native types
+  if (
+    val instanceof Date ||
+    val instanceof Timestamp ||
+    val instanceof FieldValue ||
+    val instanceof DocumentReference ||
+    val instanceof GeoPoint ||
+    (typeof val?.toMillis === 'function' && typeof val?.toDate === 'function') ||
+    (val?._methodName && typeof val?._methodName === 'string') ||
+    (val?.type === 'document' && typeof val?.path === 'string') ||
+    (typeof val?.latitude === 'number' && typeof val?.longitude === 'number' && typeof val?.isEqual === 'function')
+  ) {
+    return val;
   }
+
+  // Circular reference defense
+  if (seen.has(val)) {
+    throw new TypeError('Circular reference detected during Firestore sanitization');
+  }
+  seen.add(val);
+
+  if (Array.isArray(val)) {
+    return val.map(item => sanitizeForFirestore(item, seen));
+  }
+
+  const out: Record<string, any> = {};
+  for (const [k, v] of Object.entries(val)) {
+    if (v !== undefined) {
+      out[k] = sanitizeForFirestore(v, seen);
+    }
+  }
+  return out;
+};
+
+export const saveArticle = async (article: Article, timeoutMs: number = 5000): Promise<string> => {
+  const savePromise = (async () => {
+    const articlesCol = collection(db, "articles");
+    const cleanData = sanitizeForFirestore(article);
+
+    if (cleanData.id) {
+      const docRef = doc(db, "articles", cleanData.id as string);
+      await setDoc(docRef, {
+        ...cleanData,
+        createdAt: cleanData.createdAt || serverTimestamp(),
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      return cleanData.id as string;
+    } else {
+      const docRef = await addDoc(articlesCol, {
+        ...cleanData,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      return docRef.id;
+    }
+  })();
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`Firestore saveArticle timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+    // Unref timer in Node environment so it does not keep process alive
+    if (typeof timer.unref === 'function') timer.unref();
+  });
+
+  return Promise.race([savePromise, timeoutPromise]);
 };
 
 export const getArticles = async (): Promise<Article[]> => {

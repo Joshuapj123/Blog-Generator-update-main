@@ -134,23 +134,15 @@ export function toMarkdown(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]):
     if ((sec as any).outbound_authority_link?.resolved_url) {
       lines.push(`📎 [${(sec as any).outbound_authority_link.resolved_title || 'Source'}](${(sec as any).outbound_authority_link.resolved_url})\n`);
     }
-    // Media reference (YouTube or Image)
+    // Media reference (YouTube or user Image)
     const media = (sec as any).rich_media_query;
     if (media) {
       if (media.type === 'image') {
         if (media.image_url) {
           lines.push(`![${media.alt_text || media.suggested_search_query || 'Section Image'}](${media.image_url})\n`);
           if (media.alt_text) lines.push(`*Image: ${media.alt_text}*\n`);
-        } else if (media.image_prompt || media.suggested_search_query) {
-          const prompt = media.image_prompt || media.suggested_search_query;
-          const asset = DiagramAssetService.generateDiagramAsset(prompt);
-          if (asset.success && asset.dataUri) {
-            lines.push(`![${media.alt_text || asset.title}](${asset.dataUri})\n`);
-            lines.push(`*Figure: ${asset.title}*\n`);
-          } else {
-            lines.push(`🖼️ **Image Prompt:** *${media.image_prompt}*\n`);
-          }
         }
+        // AI image/diagram generation removed per Prompt 5C
       } else {
         if (media.youtube_video_id) {
           lines.push(`🎬 **YouTube Reference:** [${media.suggested_search_query || 'Watch Video'}](https://www.youtube.com/watch?v=${media.youtube_video_id})\n`);
@@ -172,7 +164,7 @@ export function toMarkdown(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]):
 
   const rawMarkdown = lines.join('\n');
   const sanitizedMarkdown = rawMarkdown.replace(/!?Link Quality Engine (?:Post-processing|Validation) Failed:[^\n]*/gi, '').trim();
-  return DiagramAssetService.replaceDiagramPlaceholders(sanitizedMarkdown);
+  return DiagramAssetService.stripDiagramPlaceholders(sanitizedMarkdown);
 }
 
 export function toHtml(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]): string {
@@ -224,20 +216,8 @@ export function toHtml(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]): str
             <img src="${media.image_url}" alt="${media.alt_text || media.suggested_search_query || 'Section Image'}" style="max-width: 100%; height: auto; border-radius: 0.75rem; border: 1px solid #e5e7eb;" />
             ${media.alt_text ? `<div style="font-size: 0.8rem; color: #6b7280; margin-top: 0.5rem; font-style: italic;">${media.alt_text}</div>` : ''}
           </div>`;
-        } else if (media.image_prompt || media.suggested_search_query) {
-          const prompt = media.image_prompt || media.suggested_search_query;
-          const asset = DiagramAssetService.generateDiagramAsset(prompt);
-          if (asset.success && asset.dataUri) {
-            mediaEmbed = `<div class="acute-diagram-container my-6 text-center">
-              <img src="${asset.dataUri}" alt="Diagram: ${asset.title}" class="rounded-xl border border-slate-200 shadow-sm max-w-full h-auto mx-auto block" />
-              <p class="text-center text-xs text-slate-500 mt-2 font-medium"><em>Figure: ${asset.title}</em></p>
-            </div>`;
-          } else {
-            mediaEmbed = `<div class="image-embed-placeholder" style="margin: 1.5rem 0; padding: 1.5rem; background: #f9fafb; border-radius: 0.75rem; border: 1px dashed #d1d5db; text-align: center; font-size: 0.85rem; color: #6b7280;">
-              🖼️ <strong>Image Prompt:</strong> <em>${media.image_prompt}</em>
-            </div>`;
-          }
         }
+        // AI image/diagram generation removed per Prompt 5C
       } else {
         mediaEmbed = media.youtube_video_id
           ? `<div class="yt-embed"><div class="yt-label">🎬 YouTube Reference${media.suggested_search_query ? ` — ${media.suggested_search_query}` : ''}</div><div class="yt-wrapper"><iframe src="https://www.youtube.com/embed/${media.youtube_video_id}" title="${media.suggested_search_query || 'YouTube video'}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div></div>`
@@ -318,7 +298,7 @@ export function toHtml(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]): str
 </body>
 </html>`;
   const sanitizedHtml = html.replace(/!?Link Quality Engine (?:Post-processing|Validation) Failed:[^\n]*/gi, '').trim();
-  const processedHtml = DiagramAssetService.replaceDiagramPlaceholders(sanitizedHtml);
+  const processedHtml = DiagramAssetService.stripDiagramPlaceholders(sanitizedHtml);
   return DiagramAssetService.deduplicateCaptions(processedHtml);
 }
 

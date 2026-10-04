@@ -108,7 +108,7 @@ function EnginePageContent() {
             engine.setActiveKeyword(primaryKw);
             engine.setTargetKeywords(primaryKw);
         }
-        const sanitizedContent = DiagramAssetService.replaceDiagramPlaceholders(matched.content || '');
+        const sanitizedContent = DiagramAssetService.stripDiagramPlaceholders(matched.content || '');
         engine.setTiptapContent(sanitizedContent);
         engine.setIsGenerated(true);
         if (matched.blueprint) engine.setBlueprint(matched.blueprint);

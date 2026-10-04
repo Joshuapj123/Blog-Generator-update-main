@@ -83,7 +83,9 @@ import {
   extractSanitizedValidationIssues,
   createDeterministicFallbackBrief,
   validateContentBriefStrict,
+  enforceOutlineSectionBudget,
 } from '@/lib/content/schemas';
+import { RuntimeBudgetGuard, RuntimeBudgetDiagnostics } from './RuntimeBudgetGuard';
 import { 
   LLMProvider, 
   SearchProvider, 
@@ -135,6 +137,8 @@ export interface AgentOrchestratorOptions {
   maxReviewRetries?: number;
   signal?: AbortSignal;
   onStageUpdate?: (stage: AgentStage, status: "running" | "completed" | "failed", metadata?: any) => void;
+  requestStartTs?: number;
+  runtimeBudgetGuard?: RuntimeBudgetGuard;
 }
 
 export interface StageExecution {
@@ -166,6 +170,8 @@ export interface ExecutionTelemetry {
   budgetExceeded?: boolean;
   planRecovery?: PlanRecoveryDiagnostics;
   researchIntelligence?: ResearchIntelligenceDiagnostics;
+  runtimeBudget?: RuntimeBudgetDiagnostics;
+  geminiModel?: string;
 }
 
 export interface OrchestrationInput {
@@ -180,6 +186,7 @@ export interface OrchestrationInput {
   supportingTerms?: string[];
   overrideEvidenceSet?: EvidenceSet;
   overrideGapMatrix?: ContentGapMatrix;
+  requestStartTs?: number;
 }
 
 export interface DiscoveryResult {
@@ -248,8 +255,16 @@ export class AgentOrchestrator {
   private evidenceSet?: EvidenceSet;
   private gapMatrix?: ContentGapMatrix;
   private sectionEvidenceMaps: SectionEvidenceMap[] = [];
+  public budgetGuard: RuntimeBudgetGuard;
 
   constructor(private options: AgentOrchestratorOptions) {
+    this.budgetGuard = options.runtimeBudgetGuard || new RuntimeBudgetGuard({
+      requestStartTs: options.requestStartTs,
+      configuredLimitMs: options.budget?.timeoutMs || 270000,
+      reservedFinalizeMs: 45000,
+    });
+
+    const activeModel = this.options.llm.getModel?.() || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
     this.telemetry = {
       runId: 'run_' + Math.random().toString(36).substring(2, 15) + '_' + Date.now(),
       startTime: new Date().toISOString(),
@@ -257,18 +272,21 @@ export class AgentOrchestrator {
       searchCalls: 0,
       scrapeCalls: 0,
       errors: [],
+      geminiModel: activeModel,
     };
 
     // Auto-increment telemetry counters when providers are called
     const originalGenerate = this.options.llm.generate.bind(this.options.llm);
     this.options.llm.generate = async (prompt, opts) => {
       this.telemetry.llmCalls++;
+      this.budgetGuard.incrementLLMCalls();
       return originalGenerate(prompt, opts);
     };
 
     const originalStructuredGenerate = this.options.llm.structuredGenerate.bind(this.options.llm);
     this.options.llm.structuredGenerate = async (prompt, schema, opts) => {
       this.telemetry.llmCalls++;
+      this.budgetGuard.incrementLLMCalls();
       return originalStructuredGenerate(prompt, schema, opts);
     };
 
@@ -286,7 +304,7 @@ export class AgentOrchestrator {
   }
 
   private checkBudgetAndAbort() {
-    const elapsed = Date.now() - new Date(this.telemetry.startTime).getTime();
+    const elapsed = this.budgetGuard.getElapsedMs();
     // 1. Check AbortSignal
     if (this.options.signal?.aborted) {
       console.warn(`[PIPELINE] ABORT - runId=${this.telemetry.runId} elapsed=${elapsed}ms`);
@@ -307,6 +325,7 @@ export class AgentOrchestrator {
       }
       if (budget.timeoutMs !== undefined) {
         if (elapsed > budget.timeoutMs) {
+          this.budgetGuard.triggerGuard(`TIMEOUT_EXCEEDED_${elapsed}MS_LIMIT_${budget.timeoutMs}MS`);
           console.warn(`[PIPELINE] TIMEOUT - runId=${this.telemetry.runId} elapsed=${elapsed}ms`);
           throw new Error(`[Orchestrator Timeout] Timeout limit exceeded: ${elapsed}ms > ${budget.timeoutMs}ms`);
         }
@@ -316,7 +335,7 @@ export class AgentOrchestrator {
 
   private startStage(stage: AgentStage, retryCount = 0): StageExecution {
     this.checkBudgetAndAbort();
-    const elapsed = Date.now() - new Date(this.telemetry.startTime).getTime();
+    const elapsed = this.budgetGuard.getElapsedMs();
     console.log(`[PIPELINE] ${stage.toUpperCase()} START - runId=${this.telemetry.runId} stage=${stage} elapsed=${elapsed}ms`);
     console.log(`[agent] ${stage} started`);
     const stageExec: StageExecution = {
@@ -335,7 +354,8 @@ export class AgentOrchestrator {
     stageExec.completedAt = new Date().toISOString();
     stageExec.durationMs = Date.now() - new Date(stageExec.startedAt).getTime();
     stageExec.metadata = metadata;
-    const elapsed = Date.now() - new Date(this.telemetry.startTime).getTime();
+    this.budgetGuard.recordStageDuration(stageExec.stage, stageExec.durationMs);
+    const elapsed = this.budgetGuard.getElapsedMs();
     console.log(`[PIPELINE] ${stageExec.stage.toUpperCase()} END - runId=${this.telemetry.runId} stage=${stageExec.stage} elapsed=${elapsed}ms`);
     console.log(`[agent] ${stageExec.stage} completed`);
     this.options.onStageUpdate?.(stageExec.stage, "completed", metadata);
@@ -345,6 +365,7 @@ export class AgentOrchestrator {
     stageExec.status = "failed";
     stageExec.completedAt = new Date().toISOString();
     stageExec.durationMs = Date.now() - new Date(stageExec.startedAt).getTime();
+    this.budgetGuard.recordStageDuration(stageExec.stage, stageExec.durationMs);
     
     const oError: OrchestrationError = {
       stage: stageExec.stage,
@@ -353,7 +374,7 @@ export class AgentOrchestrator {
     };
     this.errorsList.push(oError);
     this.telemetry.errors.push(error.message);
-    const elapsed = Date.now() - new Date(this.telemetry.startTime).getTime();
+    const elapsed = this.budgetGuard.getElapsedMs();
     console.error(`[PIPELINE] ${stageExec.stage.toUpperCase()} ERROR - runId=${this.telemetry.runId} stage=${stageExec.stage} elapsed=${elapsed}ms error=${error.message}`);
     console.error(`[agent] ${stageExec.stage} failed: ${error.message}`);
     this.options.onStageUpdate?.(stageExec.stage, "failed", { error: error.message });
@@ -795,7 +816,7 @@ ${input.maxHeadings ? `Generate at most ${input.maxHeadings} headings in the out
 1. CANONICAL PRIMARY KEYWORD: The canonical primary keyword is "${discovery.targetKeyword}".
 2. SEO TITLE: The generated title MUST contain the exact canonical primary keyword "${discovery.targetKeyword}" without splitting it with internal commas or hyphens, substituting synonyms, or changing word order. Title length must be 5-12 words, <= 60 characters preferred (<= 70 characters maximum).
 3. OUTLINE STRUCTURE:
-   - Generate 4–7 logical H2 sections.
+   - Generate ${input.maxHeadings ? Math.min(input.maxHeadings, 5) : '4–7'} logical H2 sections.${input.maxHeadings ? ` HARD CAP: You MUST generate NO MORE than ${input.maxHeadings} sections total.` : ''}
    - Design at least one section suited for a practical comparison/feature breakdown table.
    - Design sections that cover concrete practitioner workflows (e.g. managing sales pipelines, assigning tasks, lead scoring, marketing automation, customer conversations).
 
@@ -961,6 +982,18 @@ Return only the schema-compliant structured object.`;
         // PHASE 6: STRICT VALIDATION INVARIANT — MUST PASS ContentBriefSchema.parse
         plan = validateContentBriefStrict(plan);
 
+        // ENFORCE HARD SECTION BUDGET (Prompt 5.2)
+        if (input.maxHeadings && input.maxHeadings > 0 && plan.outline.length > input.maxHeadings) {
+          const budgetResult = enforceOutlineSectionBudget(
+            plan,
+            input.maxHeadings,
+            this.evidenceSet,
+            this.gapMatrix
+          );
+          plan = budgetResult.brief;
+          console.log(`[AgentOrchestrator] Enforced outline section budget: ${budgetResult.originalCount} -> ${budgetResult.enforcedCount} sections (pruned: ${budgetResult.originalCount - budgetResult.enforcedCount})`);
+        }
+
         // Map outline to researched evidence & content gaps
         this.sectionEvidenceMaps = SectionEvidenceMapper.mapSectionsToEvidence(
           plan.outline,
@@ -1109,6 +1142,10 @@ Return only the schema-compliant structured object.`;
         const reviewHistory: string[] = [];
         
         while (!review.passed && retries < maxRetries) {
+          if (!this.budgetGuard.hasBudgetForRepair()) {
+            console.warn(`[AgentOrchestrator] Runtime budget insufficient for repair attempt (${this.budgetGuard.getRemainingMs()}ms remaining, reservedFinalize=${this.budgetGuard.getReservedFinalizeMs()}ms). Skipping further repairs to preserve finalization headroom.`);
+            break;
+          }
           retries++;
           reviewHistory.push(...review.issues);
           console.log(`[agent] Quality issues detected (${review.issues.length}). Starting repair attempt ${retries}/${maxRetries}...`);
@@ -1227,6 +1264,7 @@ repairReasons: ${JSON.stringify(reviewHistory)}
 finalValidationStatus: "${finalValidationStatus}"
 FirestoreSave: true
 EditorRendered: true
+geminiModel: "${this.telemetry.geminiModel || 'gemini-2.5-flash'}"
 === END TELEMETRY ===`);
         
         this.completeStage(reviewStage, { passed: finalValidationStatus !== 'FAILED', finalValidationStatus, score: review.score });
@@ -1307,6 +1345,7 @@ EditorRendered: true
       this.telemetry.budgetExceeded = this.options.budget?.maxLLMCalls
         ? this.telemetry.llmCalls > this.options.budget.maxLLMCalls
         : false;
+      this.telemetry.runtimeBudget = this.budgetGuard.getDiagnostics();
 
       console.log('[agent] run completed successfully');
       return {
@@ -1347,6 +1386,7 @@ EditorRendered: true
       this.telemetry.budgetExceeded = this.options.budget?.maxLLMCalls
         ? this.telemetry.llmCalls > this.options.budget.maxLLMCalls
         : false;
+      this.telemetry.runtimeBudget = this.budgetGuard.getDiagnostics();
 
       // Ensure the error is in errorsList and telemetry if not already added
       const alreadyLogged = this.errorsList.some(e => e.message === err.message);
@@ -1464,37 +1504,50 @@ WRITING RULES:
       };
     });
 
-    for (let i = 0; i < brief.outline.length; i++) {
-      const section = brief.outline[i];
-      const budget = sectionBudgets[i];
-      const isFirstSection = i === 0;
+    const concurrencyLimit = Math.min(3, brief.outline.length);
+    const sectionTexts: string[] = new Array(brief.outline.length).fill('');
+    const queue = brief.outline.map((section, index) => ({ section, index }));
 
-      const mapsToUse = sectionMaps || this.sectionEvidenceMaps || [];
-      const sectionMap = mapsToUse.find(m => m.heading.toLowerCase().trim() === section.heading.toLowerCase().trim()) || mapsToUse[i];
+    const workers = Array.from({ length: concurrencyLimit }, async () => {
+      while (queue.length > 0) {
+        const item = queue.shift();
+        if (!item) break;
+        const { section, index: i } = item;
+        const budget = sectionBudgets[i];
+        const isFirstSection = i === 0;
 
-      let sectionEvidenceContext = '';
-      if (sectionMap) {
-        const evItems = (this.evidenceSet?.items || []).filter(e => sectionMap.evidenceIds.includes(e.id));
-        const factsList = evItems.length > 0
-          ? `Researched Evidence to incorporate or reference:\n${evItems.map(e => `- [${e.evidenceType}] ${e.claim}`).join('\n')}`
-          : '';
-        const bizFactsList = sectionMap.targetBusinessFacts && sectionMap.targetBusinessFacts.length > 0
-          ? `Target Business Facts to emphasize:\n${sectionMap.targetBusinessFacts.map(f => `- ${f}`).join('\n')}`
-          : '';
-        const buyerQ = sectionMap.buyerQuestion
-          ? `Specific Buyer Question to answer directly:\n- "${sectionMap.buyerQuestion}"`
-          : '';
-        const compGap = sectionMap.competitorGap
-          ? `Competitor Content Gap to address:\n- ${sectionMap.competitorGap}`
-          : '';
-        const claims = sectionMap.claimConstraints && sectionMap.claimConstraints.length > 0
-          ? `Claim Constraints:\n${sectionMap.claimConstraints.map(c => `- ${c}`).join('\n')}`
-          : '';
-        const prohibited = sectionMap.prohibitedClaims && sectionMap.prohibitedClaims.length > 0
-          ? `Prohibited Claims:\n${sectionMap.prohibitedClaims.map(p => `- ${p}`).join('\n')}`
-          : '';
+        // Check runtime budget before drafting
+        if (!this.budgetGuard.hasBudgetForSection()) {
+          console.warn(`[AgentOrchestrator] Low runtime budget (${this.budgetGuard.getRemainingMs()}ms remaining). Producing concise draft for section "${section.heading}".`);
+        }
 
-        sectionEvidenceContext = `
+        const secStart = Date.now();
+        const mapsToUse = sectionMaps || this.sectionEvidenceMaps || [];
+        const sectionMap = mapsToUse.find(m => m.heading.toLowerCase().trim() === section.heading.toLowerCase().trim()) || mapsToUse[i];
+
+        let sectionEvidenceContext = '';
+        if (sectionMap) {
+          const evItems = (this.evidenceSet?.items || []).filter(e => sectionMap.evidenceIds.includes(e.id));
+          const factsList = evItems.length > 0
+            ? `Researched Evidence to incorporate or reference:\n${evItems.map(e => `- [${e.evidenceType}] ${e.claim}`).join('\n')}`
+            : '';
+          const bizFactsList = sectionMap.targetBusinessFacts && sectionMap.targetBusinessFacts.length > 0
+            ? `Target Business Facts to emphasize:\n${sectionMap.targetBusinessFacts.map(f => `- ${f}`).join('\n')}`
+            : '';
+          const buyerQ = sectionMap.buyerQuestion
+            ? `Specific Buyer Question to answer directly:\n- "${sectionMap.buyerQuestion}"`
+            : '';
+          const compGap = sectionMap.competitorGap
+            ? `Competitor Content Gap to address:\n- ${sectionMap.competitorGap}`
+            : '';
+          const claims = sectionMap.claimConstraints && sectionMap.claimConstraints.length > 0
+            ? `Claim Constraints:\n${sectionMap.claimConstraints.map(c => `- ${c}`).join('\n')}`
+            : '';
+          const prohibited = sectionMap.prohibitedClaims && sectionMap.prohibitedClaims.length > 0
+            ? `Prohibited Claims:\n${sectionMap.prohibitedClaims.map(p => `- ${p}`).join('\n')}`
+            : '';
+
+          sectionEvidenceContext = `
 
 === SECTION EVIDENCE & EDITORIAL STRATEGY CONTRACT ===
 Section Intent: ${sectionMap.intent}
@@ -1510,9 +1563,9 @@ CRITICAL EVIDENCE ACCURACY RULES:
 - DO NOT invent, fabricate, or hallucinate statistical claims or percentage numbers not provided in the evidence.
 - Do NOT make ungrounded promotional superlatives.
 ======================================================`;
-      }
+        }
 
-      const prompt = `Write a clear, practical, and highly readable section for the article "${brief.title}".
+        const prompt = `Write a clear, practical, and highly readable section for the article "${brief.title}".
 Section Heading: "${section.heading}" (Level: ${section.level})
 Section Position: ${i + 1} of ${brief.outline.length}
 Canonical Primary Keyword: "${primaryKeyword}"
@@ -1554,33 +1607,48 @@ ${isFirstSection ? `   - FIRST PARAGRAPH CONTRACT: The very first paragraph of t
 7. COMPARISON TABLE CONTRACT:
 ${(assetType === 'COMPARISON' || section.heading.toLowerCase().includes('compar') || section.heading.toLowerCase().includes('differentiator') || section.heading.toLowerCase().includes('hub') || section.heading.toLowerCase().includes('feature') || section.heading.toLowerCase().includes('overview') || i === 2) ? `   - Include at least ONE clean, factual Markdown comparison table summarizing features, capabilities, or workflow benefits. Example columns: | Feature / Workflow | Primary Capability | Key Benefit |. Only use factual values.` : `   - If applicable to this topic, include a factual Markdown comparison or summary table.`}
 
-8. IMAGE / MEDIA PLACEHOLDERS:
-   - Include 1 contextual Markdown image placeholder where visual illustration is helpful (e.g. \`![Workflow Diagram: Lead to Deal Lifecycle](lead-workflow-diagram.png)\` or \`![Dashboard Overview: Multi-Hub Central View](hub-dashboard.png)\`).
+8. NO IMAGES OR DIAGRAMS:
+   - Do not generate images, diagrams, figure placeholders, image markdown, diagram placeholders, or asset-generation instructions. Write pure textual analysis, headings, lists, tables, and citations.
 
 WORD BUDGET:
 - Target word count for this section: ${budget.target} words.
 - Range: ${budget.min} to ${budget.max} words. Stay strictly within budget. Write concisely.`;
 
-      const text = await this.options.llm.generate(prompt, {
-        operation: 'Section Generation',
-        runId: this.telemetry.runId,
-      });
+        const text = await this.options.llm.generate(prompt, {
+          operation: 'Section Generation',
+          runId: this.telemetry.runId,
+        });
 
-      bodyMarkdown += `${section.level === 'H2' ? '##' : '###'} ${section.heading}\n\n${text}\n\n`;
-      this.options.onStageUpdate?.(AgentStage.GENERATE, "running", {
-        type: "section",
-        index: i,
-        data: {
+        const secDuration = Date.now() - secStart;
+        this.budgetGuard.recordSectionDuration(section.heading, secDuration);
+        sectionTexts[i] = text;
+
+        this.options.onStageUpdate?.(AgentStage.GENERATE, "running", {
+          type: "section",
+          index: i,
+          sectionIndex: i,
+          totalSections: brief.outline.length,
           heading: section.heading,
-          level: section.level,
-          what_it_is: text,
-          why_it_works: "This section details key execution processes and guidelines.",
-          experience_or_data_point: `Factual research on ${section.heading}.`,
-          example_brands: [],
-          copy_formula: [],
-          takeaway: `Takeaway for ${section.heading}.`
-        }
-      });
+          data: {
+            heading: section.heading,
+            level: section.level,
+            what_it_is: text,
+            why_it_works: "This section details key execution processes and guidelines.",
+            experience_or_data_point: `Factual research on ${section.heading}.`,
+            example_brands: [],
+            copy_formula: [],
+            takeaway: `Takeaway for ${section.heading}.`
+          }
+        });
+      }
+    });
+
+    await Promise.all(workers);
+
+    // Assemble final bodyMarkdown in exact outline order
+    for (let i = 0; i < brief.outline.length; i++) {
+      const section = brief.outline[i];
+      bodyMarkdown += `${section.level === 'H2' ? '##' : '###'} ${section.heading}\n\n${sectionTexts[i] || ''}\n\n`;
     }
 
     const wordCount = bodyMarkdown.split(/\s+/).filter(Boolean).length;
@@ -1768,9 +1836,9 @@ ${issues.map(i => `- ${i}`).join('\n')}
    - Ensure the exact primary keyword "${primaryKeyword}" appears naturally in the very first paragraph, in the title, and in the body without alterations, punctuation splits, or word reordering.
 5. OUTLINE HEADINGS:
    - Preserve all planned H2 (##) and H3 (###) section headings exactly. Do not introduce '# ' H1 headings in the body.
-6. TABLES, DIAGRAMS & INTERNAL LINKS:
+6. TABLES & INTERNAL LINKS:
    - Ensure at least one clean Markdown comparison table is present.
-   - Keep all diagram visual blocks and placeholders (!Diagram: ... or ![Workflow Diagram: ...] or svg assets) intact. Do not delete or rename diagrams.
+   - Do not generate images, diagrams, figure placeholders, image markdown, diagram placeholders, or asset-generation instructions. Remove any diagram or image placeholders if present.
    - Preserve all internal links intact.
 7. EVIDENCE FIDELITY & TRUTHFULNESS:
    - Remove any ungrounded statistical claims, unbacked percentages, or fabricated facts flagged in the validation issues.
