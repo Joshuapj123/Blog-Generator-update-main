@@ -12,9 +12,11 @@ import { Loader2, ArrowLeft, Eye, Edit3, ExternalLink, Link2, Trash2, Plus, Glob
 import Link from 'next/link';
 import { DeleteConfirmationModal } from './ui/DeleteConfirmationModal';
 import { useEngineOptional } from '@/app/(main)/engine/context/EngineContext';
+import { useAuth } from '@/lib/firebase/auth-context';
 
 export function ContentDashboard({ onEdit }: { onEdit?: (id: string) => void }) {
   const engine = useEngineOptional();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'articles' | 'links'>('articles');
   const [articles, setArticles] = useState<Article[]>([]);
   const [externalLinks, setExternalLinks] = useState<ExternalLinkType[]>([]);
@@ -38,7 +40,7 @@ export function ContentDashboard({ onEdit }: { onEdit?: (id: string) => void }) 
     const fetchAll = async () => {
       try {
         const [articlesData, foldersData, linksData] = await Promise.all([
-          getArticles(), 
+          getArticles(user?.uid), 
           getFolders(),
           getExternalLinks()
         ]);
@@ -52,7 +54,7 @@ export function ContentDashboard({ onEdit }: { onEdit?: (id: string) => void }) 
       }
     };
     fetchAll();
-  }, []);
+  }, [user?.uid]);
 
   const updateStage = async (id: string, newStage: 'Todo' | 'Draft' | 'Published') => {
     try {

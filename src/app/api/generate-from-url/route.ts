@@ -5,6 +5,7 @@ import { GeminiProvider } from '@/lib/content/GeminiProvider';
 import { SerperProvider } from '@/lib/research/SerperProvider';
 import { GenerationPipelineAdapter, DryRunLLMProvider, DryRunSearchProvider } from '@/lib/core/GenerationPipelineAdapter';
 import { normalizeUrl } from '@/lib/research/url-verifier';
+import { getAdminAuth } from '@/lib/firebase/admin';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
@@ -19,12 +20,31 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 });
     }
 
-    const url = normalizeUrl(rawUrl);
+    // Require and verify Firebase ID token at API boundary
+    const authHeader = req.headers.get('authorization') || '';
+    if (!authHeader || !authHeader.trim()) {
+      return NextResponse.json({ error: 'Unauthorized: Missing Authorization header' }, { status: 401 });
+    }
 
-    // Authenticated user identity from server-side session cookie (cannot be spoofed by client body)
-    const cookieHeader = req.headers.get('cookie') || '';
-    const sessionMatch = cookieHeader.match(/__session=([^;]+)/);
-    const authenticatedUserId = sessionMatch ? decodeURIComponent(sessionMatch[1].trim()) : (body?.userId || undefined);
+    const bearerMatch = authHeader.match(/^Bearer\s+(.+)$/i);
+    if (!bearerMatch || !bearerMatch[1].trim()) {
+      return NextResponse.json({ error: 'Unauthorized: Invalid Authorization format' }, { status: 401 });
+    }
+
+    const idToken = bearerMatch[1].trim();
+    let authenticatedUserId: string;
+    try {
+      const adminAuth = getAdminAuth();
+      const decodedToken = await adminAuth.verifyIdToken(idToken);
+      if (!decodedToken || !decodedToken.uid) {
+        return NextResponse.json({ error: 'Unauthorized: Invalid user credentials' }, { status: 401 });
+      }
+      authenticatedUserId = decodedToken.uid;
+    } catch {
+      return NextResponse.json({ error: 'Unauthorized: Token verification failed' }, { status: 401 });
+    }
+
+    const url = normalizeUrl(rawUrl);
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream({

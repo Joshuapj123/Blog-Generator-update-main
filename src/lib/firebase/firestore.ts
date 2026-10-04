@@ -86,6 +86,7 @@ export const sanitizeForFirestore = (val: any, seen = new WeakSet()): any => {
     val instanceof GeoPoint ||
     (typeof val?.toMillis === 'function' && typeof val?.toDate === 'function') ||
     (val?._methodName && typeof val?._methodName === 'string') ||
+    (val?.methodName && typeof val?.methodName === 'string') ||
     (val?.type === 'document' && typeof val?.path === 'string') ||
     (typeof val?.latitude === 'number' && typeof val?.longitude === 'number' && typeof val?.isEqual === 'function')
   ) {
@@ -145,8 +146,13 @@ export const saveArticle = async (article: Article, timeoutMs: number = 5000): P
   return Promise.race([savePromise, timeoutPromise]);
 };
 
-export const getArticles = async (): Promise<Article[]> => {
+export const getArticles = async (userId?: string): Promise<Article[]> => {
   const articlesCol = collection(db, "articles");
+  if (userId) {
+    const q = query(articlesCol, where("userId", "==", userId));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Article));
+  }
   const snapshot = await getDocs(articlesCol);
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Article));
 };

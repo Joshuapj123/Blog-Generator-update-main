@@ -7,7 +7,8 @@ import { LinkQualityEngine, RawLinkInput } from '@/lib/seo-intelligence/link_qua
 import { SitemapDiscoveryService } from '@/lib/research/SitemapDiscoveryService';
 import { DiagramAssetService } from '@/lib/content/DiagramAssetService';
 import { SaaSProfile, ContentAsset } from '@/core/contracts/schemas';
-import { saveArticle, Article } from '@/lib/firebase/firestore';
+import { Article } from '@/lib/firebase/firestore';
+import { saveArticleAdmin } from '@/lib/firebase/admin-firestore';
 import { normalizeAiOutput } from '@/app/(main)/engine/utils/normalizeAiOutput';
 import { 
   LLMProvider, 
@@ -456,7 +457,11 @@ export class GenerationPipelineAdapter {
     } else {
       try {
         console.log(`[Adapter] Persisting article "${finalArticle.title}" to My Content (id=${idempotentArticleId})...`);
-        const savedDocId = await saveArticle(articleToSave);
+        const verifiedUid = payload.authenticatedUserId;
+        if (!verifiedUid) {
+          throw new Error('A verified Firebase UID is required to persist an article.');
+        }
+        const savedDocId = await saveArticleAdmin(articleToSave, verifiedUid);
         persistenceResult = {
           status: 'SAVED',
           articleId: savedDocId

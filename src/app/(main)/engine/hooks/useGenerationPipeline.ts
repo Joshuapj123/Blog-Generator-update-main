@@ -8,6 +8,7 @@ import { computeStructuredScore } from '@/lib/content-scoring';
 import { getArticleByGenerationInputs } from '@/lib/firebase/firestore';
 import { calculateFleschReadingEase } from '@/lib/seo-intelligence/quality_validator';
 import { captureEvent, sanitizeErrorMessage } from '@/lib/analytics/posthog';
+import { auth } from '@/lib/firebase/config';
 
 export function useGenerationPipeline() {
   const engine = useEngine();
@@ -390,14 +391,23 @@ export function useGenerationPipeline() {
     engine.setAbortController(controller);
 
     try {
+      const token = await auth?.currentUser?.getIdToken();
+      if (!token) {
+        throw new Error('Authentication required. Please sign in to generate content.');
+      }
+
       const res = await fetch('/api/generate-from-url', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ url }),
         signal: controller.signal,
       });
 
       if (!res.body) throw new Error('No readable stream.');
+      if (res.status === 401) throw new Error('Authentication required or session expired. Please sign in again.');
       if (!res.ok) throw new Error(`Server error ${res.status}`);
 
       const reader = res.body.getReader();

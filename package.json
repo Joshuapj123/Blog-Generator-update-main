@@ -25,6 +25,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "firebase": "^10.0.0",
+    "firebase-admin": "^14.5.0",
     "fuzzball": "^2.2.3",
     "jsdom": "26.0.0",
     "lucide-react": "^1.7.0",
