@@ -1,6 +1,8 @@
 import { getAdminFirestore } from './admin';
 import { Article, sanitizeForFirestore } from './firestore';
-import { FieldValue } from 'firebase-admin/firestore';
+
+// CommonJS synchronous loading of runtime modules to prevent Webpack async module wrappers
+const { FieldValue } = require('firebase-admin/firestore');
 
 /**
  * Saves or updates an article in Firestore using the Firebase Admin SDK.

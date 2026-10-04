@@ -1,9 +1,19 @@
-import { initializeApp, getApps, getApp, cert } from 'firebase-admin/app';
 import type { App } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
 import type { Auth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
 import type { Firestore } from 'firebase-admin/firestore';
+
+// CommonJS synchronous loading of runtime modules to prevent Webpack async module wrappers
+const { initializeApp, getApps, cert } = require('firebase-admin/app') as {
+  initializeApp: (options?: any, name?: string) => App;
+  getApps: () => App[];
+  cert: (serviceAccountPathOrObject: any) => any;
+};
+const { getAuth } = require('firebase-admin/auth') as {
+  getAuth: (app?: App) => Auth;
+};
+const { getFirestore } = require('firebase-admin/firestore') as {
+  getFirestore: (app?: App) => Firestore;
+};
 
 let adminApp: App | null = null;
 
