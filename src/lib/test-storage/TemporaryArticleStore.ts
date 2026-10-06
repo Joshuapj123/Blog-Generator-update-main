@@ -146,6 +146,18 @@ export class TemporaryArticleStore {
       ? article.id 
       : this.generateTestId();
 
+    // Check existing document ownership
+    const existingSerialized = this.store.get(articleId);
+    if (existingSerialized) {
+      const existingDoc: Article = JSON.parse(existingSerialized);
+      const existingOwner = existingDoc.userId || existingDoc.ownerId;
+      if (existingOwner && existingOwner !== cleanUid) {
+        throw new Error(
+          `Forbidden: Caller "${cleanUid}" does not have permission to modify article "${articleId}" owned by "${existingOwner}".`
+        );
+      }
+    }
+
     const nowIso = new Date().toISOString();
 
     // Authoritative ownership binding — strictly overwrite any client-supplied userId / ownerId

@@ -1,4 +1,4 @@
-import { db } from "./config";
+import { db, auth } from "./config";
 import {
   collection,
   addDoc,
@@ -113,14 +113,35 @@ export const sanitizeForFirestore = (val: any, seen = new WeakSet()): any => {
 };
 
 export const saveArticle = async (article: Article, timeoutMs: number = 5000): Promise<string> => {
+  const currentUid = auth?.currentUser?.uid || article.userId;
+  if (!currentUid) {
+    throw new Error('Authentication required: A verified user ID is required to persist an article.');
+  }
+
+  // Authoritative ownership binding — strictly bind to authenticated UID
+  const cleanData = sanitizeForFirestore({
+    ...article,
+    userId: currentUid,
+    ownerId: currentUid
+  });
+
   const savePromise = (async () => {
     const articlesCol = collection(db, "articles");
-    const cleanData = sanitizeForFirestore(article);
 
     if (cleanData.id) {
       const docRef = doc(db, "articles", cleanData.id as string);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const existingData = docSnap.data();
+        const existingOwner = existingData?.userId || existingData?.ownerId;
+        if (existingOwner && existingOwner !== currentUid) {
+          throw new Error(`Forbidden: Caller does not have permission to modify article "${cleanData.id}" owned by "${existingOwner}".`);
+        }
+      }
       await setDoc(docRef, {
         ...cleanData,
+        userId: currentUid,
+        ownerId: currentUid,
         createdAt: cleanData.createdAt || serverTimestamp(),
         updatedAt: serverTimestamp()
       }, { merge: true });
@@ -128,6 +149,8 @@ export const saveArticle = async (article: Article, timeoutMs: number = 5000): P
     } else {
       const docRef = await addDoc(articlesCol, {
         ...cleanData,
+        userId: currentUid,
+        ownerId: currentUid,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
@@ -147,20 +170,29 @@ export const saveArticle = async (article: Article, timeoutMs: number = 5000): P
 };
 
 export const getArticles = async (userId?: string): Promise<Article[]> => {
-  const articlesCol = collection(db, "articles");
-  if (userId) {
-    const q = query(articlesCol, where("userId", "==", userId));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Article));
+  const effectiveUid = userId || auth?.currentUser?.uid;
+  if (!effectiveUid) {
+    // Fail safe: never query the unpartitioned collection across all users if unauthenticated
+    return [];
   }
-  const snapshot = await getDocs(articlesCol);
+  const articlesCol = collection(db, "articles");
+  const q = query(articlesCol, where("userId", "==", effectiveUid));
+  const snapshot = await getDocs(q);
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Article));
 };
 
-export const getArticleById = async (id: string): Promise<Article | null> => {
+export const getArticleById = async (id: string, userId?: string): Promise<Article | null> => {
   const docRef = doc(db, "articles", id);
   const snapshot = await getDoc(docRef);
-  return snapshot.exists() ? ({ id: snapshot.id, ...snapshot.data() } as Article) : null;
+  if (!snapshot.exists()) return null;
+  const docData = { id: snapshot.id, ...snapshot.data() } as Article;
+
+  const effectiveUid = userId || auth?.currentUser?.uid;
+  if (effectiveUid && docData.userId && docData.userId !== effectiveUid && docData.ownerId !== effectiveUid) {
+    return null; // Cross-user isolation: refuse access to article belonging to another user
+  }
+
+  return docData;
 };
 
 export const getArticleByGenerationInputs = async (targetKeywords: string, referenceUrl: string): Promise<Article | null> => {
@@ -190,13 +222,35 @@ export const createFolder = async (name: string) => {
   return { id: docRef.id, name };
 };
 
-export const updateArticleStage = async (id: string, stage: ArticleStage) => {
+export const updateArticleStage = async (id: string, stage: ArticleStage, userId?: string) => {
     const docRef = doc(db, "articles", id);
+    const effectiveUid = userId || auth?.currentUser?.uid;
+    if (effectiveUid) {
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        const data = snap.data();
+        const existingOwner = data?.userId || data?.ownerId;
+        if (existingOwner && existingOwner !== effectiveUid) {
+          throw new Error(`Forbidden: Caller does not have permission to update article "${id}" owned by "${existingOwner}".`);
+        }
+      }
+    }
     await updateDoc(docRef, { stage, updatedAt: serverTimestamp() });
 };
 
-export const updateArticleFolder = async (id: string, folder: string) => {
+export const updateArticleFolder = async (id: string, folder: string, userId?: string) => {
     const docRef = doc(db, "articles", id);
+    const effectiveUid = userId || auth?.currentUser?.uid;
+    if (effectiveUid) {
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        const data = snap.data();
+        const existingOwner = data?.userId || data?.ownerId;
+        if (existingOwner && existingOwner !== effectiveUid) {
+          throw new Error(`Forbidden: Caller does not have permission to update article "${id}" owned by "${existingOwner}".`);
+        }
+      }
+    }
     await updateDoc(docRef, { folder, updatedAt: serverTimestamp() });
 };
 
@@ -333,8 +387,19 @@ export const deleteContentPlan = async (id: string) => {
   await deleteDoc(docRef);
 };
 
-export const deleteArticle = async (id: string) => {
+export const deleteArticle = async (id: string, userId?: string) => {
   const docRef = doc(db, "articles", id);
+  const effectiveUid = userId || auth?.currentUser?.uid;
+  if (effectiveUid) {
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      const data = snap.data();
+      const existingOwner = data?.userId || data?.ownerId;
+      if (existingOwner && existingOwner !== effectiveUid) {
+        throw new Error(`Forbidden: Caller does not have permission to delete article "${id}" owned by "${existingOwner}".`);
+      }
+    }
+  }
   await deleteDoc(docRef);
 };
 

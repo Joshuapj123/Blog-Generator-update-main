@@ -1,0 +1,93 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isResourceOwner() {
+      return isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.ownerId == request.auth.uid
+      );
+    }
+
+    function isValidNewOwner() {
+      return isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid &&
+        (!('ownerId' in request.resource.data) || request.resource.data.ownerId == request.auth.uid);
+    }
+
+    // ── Articles Collection ──────────────────────────────────────────────────
+    // Strict tenant isolation: immutable ownership, scoped reads, and no cross-user writes
+    match /articles/{articleId} {
+      // Reads: User can only read articles they own; queries must be scoped to request.auth.uid
+      allow read: if isResourceOwner();
+
+      // Creates: Authenticated user must bind document ownership to their own verified UID
+      allow create: if isValidNewOwner();
+
+      // Updates: Existing document must be owned by the caller, and ownership cannot be reassigned
+      allow update: if isResourceOwner() && isValidNewOwner();
+
+      // Deletes: Only the verified owner can delete the document
+      allow delete: if isResourceOwner();
+    }
+
+    // ── Content Plans ────────────────────────────────────────────────────────
+    match /content_plans/{planId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // ── Folders ──────────────────────────────────────────────────────────────
+    match /folders/{folderId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // ── External Links ───────────────────────────────────────────────────────
+    match /external_links/{linkId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // ── SERP Cache ───────────────────────────────────────────────────────────
+    match /serp_cache/{cacheId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // ── Distribution & Visibility Collections ────────────────────────────────
+    match /geo_visibility_runs/{runId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /geo_opportunities/{oppId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /distribution_jobs/{jobId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /performance_snapshots/{snapshotId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /performance_insights/{insightId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /performance_recommendations/{recId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /authority_opportunities/{oppId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // ── Default Deny ─────────────────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: false;
+    }
+  }
+}
