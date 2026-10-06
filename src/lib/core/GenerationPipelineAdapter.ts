@@ -9,6 +9,7 @@ import { DiagramAssetService } from '@/lib/content/DiagramAssetService';
 import { SaaSProfile, ContentAsset } from '@/core/contracts/schemas';
 import { Article } from '@/lib/firebase/firestore';
 import { saveArticleAdmin } from '@/lib/firebase/admin-firestore';
+import { TemporaryArticleStore, resolvePersistenceBackend } from '@/lib/test-storage/TemporaryArticleStore';
 import { normalizeAiOutput } from '@/app/(main)/engine/utils/normalizeAiOutput';
 import { 
   LLMProvider, 
@@ -343,6 +344,9 @@ export class GenerationPipelineAdapter {
       apiProvider: dryRunEnabled ? 'mock' : 'google'
     };
 
+    finalArticle.evidenceSet = result.evidenceSet;
+    finalArticle.sectionEvidenceMaps = result.sectionEvidenceMaps;
+
     // 7. Deterministic Link Quality Engine (LQE) Post-processing
     try {
       console.log('[Adapter] Running post-generation Link Quality Engine...');
@@ -456,17 +460,27 @@ export class GenerationPipelineAdapter {
       };
     } else {
       try {
-        console.log(`[Adapter] Persisting article "${finalArticle.title}" to My Content (id=${idempotentArticleId})...`);
         const verifiedUid = payload.authenticatedUserId;
         if (!verifiedUid) {
           throw new Error('A verified Firebase UID is required to persist an article.');
         }
-        const savedDocId = await saveArticleAdmin(articleToSave, verifiedUid);
+
+        const backend = resolvePersistenceBackend();
+        let savedDocId: string;
+
+        if (backend === 'TEMP_TEST_STORAGE') {
+          console.log(`[Adapter] Temporary test storage active. Persisting article "${finalArticle.title}" to TemporaryArticleStore...`);
+          savedDocId = await TemporaryArticleStore.saveArticle(articleToSave, verifiedUid);
+        } else {
+          console.log(`[Adapter] Persisting article "${finalArticle.title}" to My Content (id=${idempotentArticleId})...`);
+          savedDocId = await saveArticleAdmin(articleToSave, verifiedUid);
+        }
+
         persistenceResult = {
           status: 'SAVED',
           articleId: savedDocId
         };
-        console.log(`[Adapter] Successfully saved article to My Content with ID: ${savedDocId}`);
+        console.log(`[Adapter] Successfully saved article to ${backend} with ID: ${savedDocId}`);
       } catch (saveErr: any) {
         console.error('[Adapter] Failed to persist generated article to My Content:', saveErr?.message || saveErr);
         persistenceResult = {

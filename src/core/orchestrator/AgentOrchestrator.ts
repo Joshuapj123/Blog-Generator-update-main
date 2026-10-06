@@ -1261,6 +1261,7 @@ structureValidationStatus: "${structureValidationStatus}"
 keywordValidationStatus: "${keywordValidationStatus}"
 repairAttempts: ${retries}
 repairReasons: ${JSON.stringify(reviewHistory)}
+claimGroundingDiagnostics: ${JSON.stringify(this.telemetry.researchIntelligence?.claimGrounding || null)}
 finalValidationStatus: "${finalValidationStatus}"
 FirestoreSave: true
 EditorRendered: true
@@ -1560,7 +1561,9 @@ ${prohibited}
 CRITICAL EVIDENCE ACCURACY RULES:
 - Address the assigned buyer question directly with practical, actionable explanation.
 - Naturally incorporate the researched evidence items and target business facts.
-- DO NOT invent, fabricate, or hallucinate statistical claims or percentage numbers not provided in the evidence.
+- FACTUAL INTEGRITY CONTRACT: DO NOT invent, fabricate, or hallucinate statistical numbers, metrics (ms, %, $, users, multipliers), or external analyst surveys (e.g. Gartner, Forrester) not explicitly listed in the evidence.
+- STRICT ENTITY ISOLATION: Never attribute competitor statistics or features to ${this.targetBrand || 'the target brand'}, and never attribute ${this.targetBrand || 'the target brand'}'s features or metrics to competitors.
+- CONTRADICTION BAN: Never assert that a product lacks or fails to provide capabilities that the evidence proves it has.
 - Do NOT make ungrounded promotional superlatives.
 ======================================================`;
         }
@@ -1840,8 +1843,11 @@ ${issues.map(i => `- ${i}`).join('\n')}
    - Ensure at least one clean Markdown comparison table is present.
    - Do not generate images, diagrams, figure placeholders, image markdown, diagram placeholders, or asset-generation instructions. Remove any diagram or image placeholders if present.
    - Preserve all internal links intact.
-7. EVIDENCE FIDELITY & TRUTHFULNESS:
-   - Remove any ungrounded statistical claims, unbacked percentages, or fabricated facts flagged in the validation issues.
+7. EVIDENCE FIDELITY & TRUTHFULNESS (CLAIM GROUNDING SAFETY):
+   - Remove any ungrounded statistical claims, unbacked percentages, or fabricated metrics flagged in the validation issues.
+   - Fix all factual contradictions: if the text asserted that a product lacks a capability that research proves it has, remove or reverse that assertion to align with the facts.
+   - Enforce strict entity isolation: remove any cross-brand attribution where competitor metrics or features were attributed to ${this.targetBrand || 'the brand'} or vice versa.
+   - Remove any unverified external citations or surveys (e.g. fake Gartner/Forrester citations).
    - Retain all genuine verified facts, product differentiators, and answers to buyer questions.
 
 ${hasTitleIssue ? `OPTIMIZED TITLE REQUIREMENT: Output an optimized short title (5-12 words, under 70 characters) containing the exact canonical primary keyword "${primaryKeyword}".` : ''}

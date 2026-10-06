@@ -69,6 +69,15 @@ export const CONTENT_INTELLIGENCE_POLICY = {
    * Guardrail selected for predictable behavior and should be calibrated against production data.
    */
   EVIDENCE_USAGE_MIN_PERCENT: 40,
+
+  /**
+   * Grounding Policy Thresholds (Prompt 6 Factual Integrity Engine)
+   */
+  GROUNDING_RATE_MIN_PERCENT: 70,
+  CRITICAL_GROUNDING_RATE_MIN_PERCENT: 100,
+  MAX_CONTRADICTIONS_ALLOWED: 0,
+  MAX_ENTITY_LEAKAGE_ALLOWED: 0,
+  MAX_UNATTRIBUTED_STATS_ALLOWED: 0,
 } as const;
 
 export type EvidenceConfidence = 'HIGH' | 'MEDIUM' | 'LOW';
@@ -181,4 +190,71 @@ export interface ResearchIntelligenceDiagnostics {
   evidenceUsageRate: number; // 0 to 100%
   repetitionFlags: number;
   keywordStuffingFlags: number;
+  claimGrounding?: ClaimGroundingDiagnostics;
+}
+
+export type CanonicalClaimType =
+  | 'QUANTITATIVE'
+  | 'COMPARATIVE'
+  | 'ATTRIBUTION'
+  | 'TEMPORAL'
+  | 'ENTITY_CAPABILITY'
+  | 'COMPETITOR_ASSERTION'
+  | 'GENERAL_FACT';
+
+export type ClaimSupportStatus =
+  | 'SUPPORTED'
+  | 'PARTIALLY_SUPPORTED'
+  | 'UNSUPPORTED'
+  | 'CONTRADICTED'
+  | 'OVERSTATED'
+  | 'UNVERIFIABLE';
+
+export interface QuantitativeValue {
+  raw: string;
+  normalizedNumber?: number;
+  unit?: string; // '%', 'ms', 'users', 'x', '$', etc.
+  tolerance?: number; // e.g. 0.05 for 5% tolerance
+  operator?: 'EXACT' | 'APPROX' | 'GT' | 'GTE' | 'LT' | 'LTE' | 'RANGE';
+  rangeMin?: number;
+  rangeMax?: number;
+}
+
+export interface CanonicalClaim {
+  id: string;
+  sectionIndex: number;
+  sectionHeading: string;
+  sentence: string;
+  claimText: string;
+  claimType: CanonicalClaimType;
+  subjectEntity?: string;
+  targetEntity?: string;
+  quantitativeValue?: QuantitativeValue;
+  attributionSource?: string;
+  temporalAnchor?: string;
+  confidence: number; // 0 to 1
+  materiality: 'CRITICAL' | 'IMPORTANT' | 'SUPPLEMENTAL';
+  supportStatus: ClaimSupportStatus;
+  groundedEvidenceIds: string[];
+  rejectionReason?: string;
+  contradictionEvidenceId?: string;
+}
+
+export interface ClaimGroundingDiagnostics {
+  totalExtractedClaims: number;
+  criticalClaims: number;
+  importantClaims: number;
+  supplementalClaims: number;
+  supportedClaims: number;
+  partiallySupportedClaims: number;
+  unsupportedClaims: number;
+  contradictedClaims: number;
+  overstatedClaims: number;
+  unverifiableClaims: number;
+  groundingRate: number; // 0 to 100%
+  criticalGroundingRate: number; // 0 to 100%
+  contradictionCount: number;
+  entityLeakageCount: number;
+  unattributedStatCount: number;
+  sectionGroundedRatio: number; // claims grounded in section-assigned evidence vs global
 }

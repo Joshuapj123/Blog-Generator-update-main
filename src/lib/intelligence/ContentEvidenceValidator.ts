@@ -4,9 +4,13 @@ import {
   ContentGapMatrix,
   SectionEvidenceMap, 
   ResearchIntelligenceDiagnostics,
-  CONTENT_INTELLIGENCE_POLICY
+  CONTENT_INTELLIGENCE_POLICY,
+  CanonicalClaim,
+  ClaimGroundingDiagnostics
 } from '@/core/contracts/evidence';
 import { ContentBrief } from '@/core/contracts/schemas';
+import { ClaimExtractionService } from './ClaimExtractionService';
+import { ClaimGroundingEngine, GroundingResult } from './ClaimGroundingEngine';
 
 export interface EvidenceValidationResult {
   passed: boolean;
@@ -18,6 +22,8 @@ export interface EvidenceValidationResult {
   diagnostics: ResearchIntelligenceDiagnostics;
   warnings: string[];
   criticalErrors: string[];
+  canonicalClaims?: CanonicalClaim[];
+  claimGroundingDiagnostics?: ClaimGroundingDiagnostics;
 }
 
 export class ContentEvidenceValidator {
@@ -212,7 +218,74 @@ export class ContentEvidenceValidator {
       }
     }
 
-    // 6. Compute Diagnostics
+    // 6. Canonical Claim Extraction and Grounding Engine (Prompt 6 Factual Integrity)
+    const knownCompetitors = (brief.competitorInsights || []).map(c => {
+      try {
+        return new URL(c.url).hostname.replace('www.', '');
+      } catch {
+        return c.url;
+      }
+    });
+
+    const canonicalClaims = ClaimExtractionService.extractClaimsFromMarkdown(
+      bodyMarkdown,
+      targetBrand,
+      knownCompetitors
+    );
+
+    const groundingResult = ClaimGroundingEngine.groundAllClaims(
+      canonicalClaims,
+      evidenceSet,
+      sectionEvidenceMaps,
+      targetBrand,
+      knownCompetitors
+    );
+
+    // Apply Grounding Policy Thresholds
+    // A. Contradictions (Critical)
+    if (groundingResult.diagnostics.contradictionCount > CONTENT_INTELLIGENCE_POLICY.MAX_CONTRADICTIONS_ALLOWED) {
+      for (const c of groundingResult.claims.filter(c => c.supportStatus === 'CONTRADICTED')) {
+        const msg = `Factual Contradiction Alert: Claim "${c.sentence}" contradicts verified research evidence: ${c.rejectionReason}`;
+        criticalErrors.push(msg);
+        accuracyIssues.push(msg);
+      }
+    }
+
+    // B. Entity Leakage (Critical)
+    if (groundingResult.diagnostics.entityLeakageCount > CONTENT_INTELLIGENCE_POLICY.MAX_ENTITY_LEAKAGE_ALLOWED) {
+      for (const c of groundingResult.claims.filter(c => c.rejectionReason?.includes('Entity isolation violation'))) {
+        const msg = `Entity Isolation Alert: Claim "${c.sentence}" violates entity isolation: ${c.rejectionReason}`;
+        criticalErrors.push(msg);
+        accuracyIssues.push(msg);
+      }
+    }
+
+    // C. Unattributed External Statistics (Critical)
+    if (groundingResult.diagnostics.unattributedStatCount > CONTENT_INTELLIGENCE_POLICY.MAX_UNATTRIBUTED_STATS_ALLOWED) {
+      for (const c of groundingResult.claims.filter(c => c.supportStatus === 'UNVERIFIABLE')) {
+        const msg = `Unattributed Statistic Alert: External citation in "${c.sentence}" is not supported by verified research: ${c.rejectionReason}`;
+        criticalErrors.push(msg);
+        accuracyIssues.push(msg);
+      }
+    }
+
+    // D. Critical Claim Grounding Rate (< 100% is Critical)
+    if (allEvidence.length > 0 && groundingResult.diagnostics.criticalGroundingRate < CONTENT_INTELLIGENCE_POLICY.CRITICAL_GROUNDING_RATE_MIN_PERCENT) {
+      for (const c of groundingResult.claims.filter(c => c.materiality === 'CRITICAL' && c.supportStatus !== 'SUPPORTED' && c.supportStatus !== 'PARTIALLY_SUPPORTED')) {
+        const msg = `Critical Claim Grounding Alert: Critical claim "${c.claimText}" in "${c.sentence}" is not grounded in research evidence: ${c.rejectionReason || 'No supporting evidence found.'}`;
+        criticalErrors.push(msg);
+        if (!unsupportedClaims.includes(c.claimText)) {
+          unsupportedClaims.push(c.claimText);
+        }
+      }
+    }
+
+    // E. Overall Grounding Rate (< 70% is Warning)
+    if (allEvidence.length > 0 && groundingResult.diagnostics.groundingRate < CONTENT_INTELLIGENCE_POLICY.GROUNDING_RATE_MIN_PERCENT) {
+      warnings.push(`Overall claim grounding rate is ${groundingResult.diagnostics.groundingRate}% (target: >= ${CONTENT_INTELLIGENCE_POLICY.GROUNDING_RATE_MIN_PERCENT}%).`);
+    }
+
+    // 7. Compute Diagnostics
     const sectionsCount = sectionEvidenceMaps?.length || brief.outline.length;
     const sectionsWithEvidence = (sectionEvidenceMaps || []).filter(m => m.evidenceIds.length > 0).length || sectionsCount;
     const sectionsWithoutEvidence = sectionsCount - sectionsWithEvidence;
@@ -232,10 +305,11 @@ export class ContentEvidenceValidator {
       highPriorityGapCount: gapMatrix?.summary?.highPriorityGaps ?? gapMatrix?.gaps?.filter(g => g.importance === 'HIGH').length ?? 0,
       sectionsWithEvidence,
       sectionsWithoutEvidence,
-      unsupportedClaimCount: unsupportedClaims.length,
+      unsupportedClaimCount: Math.max(unsupportedClaims.length, groundingResult.diagnostics.unsupportedClaims),
       evidenceUsageRate,
       repetitionFlags: repetitionIssues.length,
       keywordStuffingFlags: keywordStuffingIssues.length,
+      claimGrounding: groundingResult.diagnostics,
     };
 
     return {
@@ -248,6 +322,8 @@ export class ContentEvidenceValidator {
       diagnostics,
       warnings,
       criticalErrors,
+      canonicalClaims: groundingResult.claims,
+      claimGroundingDiagnostics: groundingResult.diagnostics,
     };
   }
 
