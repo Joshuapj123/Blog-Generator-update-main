@@ -45,7 +45,8 @@ export async function POST(req: Request) {
       console.error('[API Route] Token verification failed:', authErr?.message || authErr);
       return NextResponse.json({ 
         error: 'Unauthorized: Token verification failed',
-        code: authErr?.code || 'AUTH_TOKEN_VERIFICATION_FAILED'
+        code: authErr?.code || 'AUTH_TOKEN_VERIFICATION_FAILED',
+        message: authErr?.message,
       }, { status: 401 });
     }
 
