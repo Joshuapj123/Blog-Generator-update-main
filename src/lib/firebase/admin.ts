@@ -1,8 +1,5 @@
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import type { App } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
 import type { Auth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
 import type { Firestore } from 'firebase-admin/firestore';
 
 let adminApp: App | null = null;
@@ -12,10 +9,12 @@ let adminApp: App | null = null;
  * Safe for Vercel serverless execution across multiple invocations.
  * Never logs credentials, private keys, or secrets.
  */
-export function getFirebaseAdminApp(): App {
+export async function getFirebaseAdminApp(): Promise<App> {
   if (adminApp) {
     return adminApp;
   }
+
+  const { initializeApp, getApps, cert } = await import('firebase-admin/app');
 
   const existingApps = getApps();
   if (existingApps.length > 0 && existingApps[0]) {
@@ -82,12 +81,16 @@ export function setAdminFirestoreForTesting(mock: any): void {
   testAdminFirestore = mock;
 }
 
-export function getAdminAuth(): Auth {
+export async function getAdminAuth(): Promise<Auth> {
   if (testAdminAuth) return testAdminAuth;
-  return getAuth(getFirebaseAdminApp());
+  const { getAuth } = await import('firebase-admin/auth');
+  const app = await getFirebaseAdminApp();
+  return getAuth(app);
 }
 
-export function getAdminFirestore(): Firestore {
+export async function getAdminFirestore(): Promise<Firestore> {
   if (testAdminFirestore) return testAdminFirestore;
-  return getFirestore(getFirebaseAdminApp());
+  const { getFirestore } = await import('firebase-admin/firestore');
+  const app = await getFirebaseAdminApp();
+  return getFirestore(app);
 }

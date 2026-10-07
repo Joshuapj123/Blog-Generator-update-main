@@ -1,6 +1,5 @@
 import { getAdminFirestore } from './admin';
 import { Article, sanitizeForFirestore } from './firestore';
-import { FieldValue } from 'firebase-admin/firestore';
 
 
 /**
@@ -28,7 +27,8 @@ export async function saveArticleAdmin(
   };
 
   const savePromise = (async () => {
-    const db = getAdminFirestore();
+    const { FieldValue } = await import('firebase-admin/firestore');
+    const db = await getAdminFirestore();
     const articlesCol = db.collection('articles');
     const cleanData = sanitizeForFirestore(articleWithOwner);
 
@@ -97,7 +97,7 @@ export async function saveArticleAdmin(
  * Admin helper to retrieve an article by ID from Firestore, with optional caller verification.
  */
 export async function getArticleByIdAdmin(id: string, verifiedUid?: string): Promise<Article | null> {
-  const db = getAdminFirestore();
+  const db = await getAdminFirestore();
   const docSnap = await db.collection('articles').doc(id).get();
   if (!docSnap.exists) return null;
   const docData = { id: docSnap.id, ...docSnap.data() } as Article;
@@ -116,7 +116,7 @@ export async function getArticleByIdAdmin(id: string, verifiedUid?: string): Pro
  * Admin helper to retrieve all articles for a specific user ID.
  */
 export async function getArticlesByUserIdAdmin(userId: string): Promise<Article[]> {
-  const db = getAdminFirestore();
+  const db = await getAdminFirestore();
   const querySnap = await db.collection('articles').where('userId', '==', userId).get();
   return querySnap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as Article));
 }
@@ -125,7 +125,7 @@ export async function getArticlesByUserIdAdmin(userId: string): Promise<Article[
  * Admin helper to delete an article by ID, strictly verifying ownership if verifiedUid is provided.
  */
 export async function deleteArticleAdmin(id: string, verifiedUid?: string): Promise<void> {
-  const db = getAdminFirestore();
+  const db = await getAdminFirestore();
   const docRef = db.collection('articles').doc(id);
   if (verifiedUid) {
     const docSnap = await docRef.get();

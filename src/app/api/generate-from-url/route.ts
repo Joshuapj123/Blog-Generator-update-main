@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     const idToken = bearerMatch[1].trim();
     let authenticatedUserId: string;
     try {
-      const adminAuth = getAdminAuth();
+      const adminAuth = await getAdminAuth();
       const decodedToken = await adminAuth.verifyIdToken(idToken);
       if (!decodedToken || !decodedToken.uid) {
         return NextResponse.json({ error: 'Unauthorized: Invalid user credentials' }, { status: 401 });
