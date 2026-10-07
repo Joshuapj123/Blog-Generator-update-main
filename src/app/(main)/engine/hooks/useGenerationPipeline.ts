@@ -201,9 +201,13 @@ export function useGenerationPipeline() {
     engine.setAbortController(controller);
 
     try {
+      const token = await auth?.currentUser?.getIdToken(true);
       const res = await fetch('/api/generate-blocks', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
         body: JSON.stringify({
           title: engine.title,
           targetKeywords: engine.targetKeywords,
@@ -391,7 +395,8 @@ export function useGenerationPipeline() {
     engine.setAbortController(controller);
 
     try {
-      const token = await auth?.currentUser?.getIdToken();
+      // Obtain valid Firebase ID token; force refresh to prevent using stale/expired tokens
+      const token = await auth?.currentUser?.getIdToken(true);
       if (!token) {
         throw new Error('Authentication required. Please sign in to generate content.');
       }
@@ -407,7 +412,10 @@ export function useGenerationPipeline() {
       });
 
       if (!res.body) throw new Error('No readable stream.');
-      if (res.status === 401) throw new Error('Authentication required or session expired. Please sign in again.');
+      if (res.status === 401) {
+        const errorJson = await res.json().catch(() => ({}));
+        throw new Error(errorJson?.error || 'Authentication required or session expired. Please sign in again.');
+      }
       if (!res.ok) throw new Error(`Server error ${res.status}`);
 
       const reader = res.body.getReader();

@@ -41,8 +41,12 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Unauthorized: Invalid user credentials' }, { status: 401 });
       }
       authenticatedUserId = decodedToken.uid;
-    } catch {
-      return NextResponse.json({ error: 'Unauthorized: Token verification failed' }, { status: 401 });
+    } catch (authErr: any) {
+      console.error('[API Route] Token verification failed:', authErr?.message || authErr);
+      return NextResponse.json({ 
+        error: 'Unauthorized: Token verification failed',
+        code: authErr?.code || 'AUTH_TOKEN_VERIFICATION_FAILED'
+      }, { status: 401 });
     }
 
     const url = normalizeUrl(rawUrl);
