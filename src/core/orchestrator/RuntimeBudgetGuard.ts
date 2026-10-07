@@ -134,7 +134,7 @@ export class RuntimeBudgetGuard {
       llmCallCount: this.llmCallCount,
       budgetGuardTriggered: this.budgetGuardTriggered,
       guardAction: this.guardAction,
-      geminiModel: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+      geminiModel: process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite',
     };
   }
 }

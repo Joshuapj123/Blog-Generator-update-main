@@ -115,7 +115,7 @@ export async function POST(req: Request) {
       draftNlpExtraction = await extractKeywordViaSidecar(text, '', serpContext, 30);
     }
 
-    const model = google('gemini-2.5-flash');
+    const model = google(process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite');
 
     const prompt = `You are a high-standards SEO and Copy Editor.
 We are evaluating the following drafted article against the target Reference Article.

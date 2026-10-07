@@ -1,4 +1,5 @@
 import { generateObject as aiGenerateObject, generateText as aiGenerateText } from 'ai';
+import { google } from '@ai-sdk/google';
 import fs from 'fs';
 import path from 'path';
 import { getLocalCache, setLocalCache, getCacheStats } from './local-cache';
@@ -46,7 +47,10 @@ export interface TelemetryStats {
 const RATES: Record<string, { input: number; output: number }> = {
   'gemini-2.5-pro': { input: 1.25, output: 10.00 },
   'gemini-2.5-flash': { input: 0.30, output: 2.50 },
-  'default': { input: 0.30, output: 2.50 }
+  'gemini-3.5-flash-lite': { input: 0.15, output: 0.60 },
+  'gemini-3.1-flash-lite': { input: 0.15, output: 0.60 },
+  'gemini-flash-lite-latest': { input: 0.15, output: 0.60 },
+  'default': { input: 0.15, output: 0.60 }
 };
 
 export function logGeminiCall(
@@ -600,7 +604,61 @@ export function logPipelineCheckpoint(stage: string, title: string, keyword: str
   }
 }
 
-async function retryWithBackoff<T>(fn: () => Promise<T>, retries = 3, delay = 1000): Promise<T> {
+export function isTransientCapacityOrAvailabilityError(err: any): boolean {
+  if (!err) return false;
+  const status = err.status || err.statusCode;
+  const msg = String(err?.message || err);
+
+  // Explicit non-fallbacks per user instructions:
+  // "Do NOT fallback on: invalid API key, authentication failure, malformed request, schema bug, security failure"
+  if (
+    status === 401 ||
+    status === 403 ||
+    msg.includes('API key') ||
+    msg.includes('invalid_api_key') ||
+    msg.includes('permission denied') ||
+    msg.includes('Forbidden') ||
+    msg.includes('Unauthorized') ||
+    msg.includes('ZodError') ||
+    msg.includes('schema') ||
+    msg.includes('validation')
+  ) {
+    return false;
+  }
+
+  // Model capacity / 503 / High demand
+  if (
+    status === 503 ||
+    msg.includes('503') ||
+    msg.includes('high demand') ||
+    msg.includes('Spikes in demand') ||
+    msg.includes('temporarily unavailable') ||
+    msg.includes('capacity')
+  ) {
+    return true;
+  }
+
+  // Transient rate limit (429)
+  if (status === 429 || msg.includes('429') || msg.includes('rate limit') || msg.includes('RESOURCE_EXHAUSTED')) {
+    return true;
+  }
+
+  // Model unavailable / deprecated to new users (404)
+  if (status === 404 || msg.includes('no longer available') || msg.includes('not found') || msg.includes('unsupported model')) {
+    return true;
+  }
+
+  return false;
+}
+
+export function getFallbackModelId(primaryModelId: string): string {
+  if (primaryModelId === 'gemini-3.5-flash-lite') {
+    return 'gemini-flash-lite-latest';
+  }
+  return 'gemini-3.5-flash-lite';
+}
+
+async function retryWithBackoff<T>(fn: () => Promise<T>, retries = 2, delay = 1000): Promise<T> {
   try {
     return await fn();
   } catch (err: any) {
@@ -608,10 +666,10 @@ async function retryWithBackoff<T>(fn: () => Promise<T>, retries = 3, delay = 10
       throw err;
     }
     const isRateLimit = err.status === 429 || err.statusCode === 429 || String(err).includes("429") || String(err).includes("Rate limit");
-    const isTransient = isRateLimit || err.status >= 500 || String(err).includes("500") || String(err).includes("503");
+    const isTransient = isRateLimit || err.status >= 500 || String(err).includes("500") || String(err).includes("503") || isTransientCapacityOrAvailabilityError(err);
     
     if (isTransient) {
-      console.warn(`[Gemini Retry] Transient error encountered. Retrying in ${delay}ms... (Remaining retries: ${retries})`, err.message || err);
+      console.warn(`[Gemini Retry] Transient capacity error encountered. Retrying in ${delay}ms... (Remaining retries: ${retries})`, err.message || err);
       await new Promise(resolve => setTimeout(resolve, delay));
       return retryWithBackoff(fn, retries - 1, delay * 2);
     }
@@ -624,7 +682,7 @@ export async function generateObjectWithTelemetry<T>(
   options: Parameters<typeof aiGenerateObject>[0] & { cacheKey?: string; runId?: string }
 ): Promise<any> {
   const startTime = Date.now();
-  const modelName = (options.model as any).modelId || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+  const modelName = (options.model as any)?.modelId || process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
   const runId = options.runId;
 
   // Check budget guardrail before executing call
@@ -677,13 +735,30 @@ export async function generateObjectWithTelemetry<T>(
   }
 
   try {
-    const result = await retryWithBackoff(() => aiGenerateObject(options));
+    let result: any;
+    let effectiveModel = modelName;
+    try {
+      result = await retryWithBackoff(() => aiGenerateObject(options));
+    } catch (err: any) {
+      if (isTransientCapacityOrAvailabilityError(err)) {
+        const fallbackId = getFallbackModelId(modelName);
+        console.warn(`[Gemini Fallback] Model "${modelName}" failed with capacity/availability error (${err.message}). Failing over to verified model: "${fallbackId}"...`);
+        effectiveModel = fallbackId;
+        const fallbackOptions = {
+          ...options,
+          model: google(fallbackId)
+        };
+        result = await retryWithBackoff(() => aiGenerateObject(fallbackOptions));
+      } else {
+        throw err;
+      }
+    }
     const duration = Date.now() - startTime;
 
     const inputTokens = (result.usage as any)?.promptTokens || 0;
     const outputTokens = (result.usage as any)?.completionTokens || 0;
 
-    logGeminiCall(operation, modelName, inputTokens, outputTokens, duration, false, runId);
+    logGeminiCall(operation, effectiveModel, inputTokens, outputTokens, duration, false, runId);
 
     // Log prompt and raw response for live Gemini API call
     const promptStr = typeof options.prompt === 'string'
@@ -696,7 +771,7 @@ export async function generateObjectWithTelemetry<T>(
       : options.system
       ? JSON.stringify(options.system)
       : undefined;
-    logPromptAndResponse(operation, modelName, runId, promptStr, systemStr, result.object);
+    logPromptAndResponse(operation, effectiveModel, runId, promptStr, systemStr, result.object);
 
     // Cache result if cacheKey is provided
     if (options.cacheKey) {
@@ -724,7 +799,7 @@ export async function generateTextWithTelemetry(
   options: Parameters<typeof aiGenerateText>[0] & { cacheKey?: string; runId?: string }
 ): Promise<any> {
   const startTime = Date.now();
-  const modelName = (options.model as any).modelId || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+  const modelName = (options.model as any)?.modelId || process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
   const runId = options.runId;
 
   // Check budget guardrail before executing call
@@ -777,13 +852,30 @@ export async function generateTextWithTelemetry(
   }
 
   try {
-    const result = await retryWithBackoff(() => aiGenerateText(options));
+    let result: any;
+    let effectiveModel = modelName;
+    try {
+      result = await retryWithBackoff(() => aiGenerateText(options));
+    } catch (err: any) {
+      if (isTransientCapacityOrAvailabilityError(err)) {
+        const fallbackId = getFallbackModelId(modelName);
+        console.warn(`[Gemini Fallback] Model "${modelName}" failed with capacity/availability error (${err.message}). Failing over to verified model: "${fallbackId}"...`);
+        effectiveModel = fallbackId;
+        const fallbackOptions = {
+          ...options,
+          model: google(fallbackId)
+        };
+        result = await retryWithBackoff(() => aiGenerateText(fallbackOptions));
+      } else {
+        throw err;
+      }
+    }
     const duration = Date.now() - startTime;
 
     const inputTokens = (result.usage as any)?.promptTokens || 0;
     const outputTokens = (result.usage as any)?.completionTokens || 0;
 
-    logGeminiCall(operation, modelName, inputTokens, outputTokens, duration, false, runId);
+    logGeminiCall(operation, effectiveModel, inputTokens, outputTokens, duration, false, runId);
 
     // Log prompt and raw response for live Gemini API call
     const promptStr = typeof options.prompt === 'string'
@@ -796,7 +888,7 @@ export async function generateTextWithTelemetry(
       : options.system
       ? JSON.stringify(options.system)
       : undefined;
-    logPromptAndResponse(operation, modelName, runId, promptStr, systemStr, result.text);
+    logPromptAndResponse(operation, effectiveModel, runId, promptStr, systemStr, result.text);
 
     // Cache result if cacheKey is provided
     if (options.cacheKey) {

@@ -17,7 +17,7 @@ export async function processContentGaps(
   initialPaa: PaaQuestionItem[] = [],
   options?: { runId?: string }
 ): Promise<ContentGapEngineResult> {
-  const model = google('gemini-2.5-flash');
+  const model = google(process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite');
 
   // Competitor structures with rank and weight
   const competitorOutlines = competitors.map((c, i) => {

@@ -9,7 +9,7 @@ export async function processIntent(
   competitors: ScrapedCompetitor[],
   options?: { runId?: string }
 ): Promise<{ intentBlueprint: IntentBlueprint }> {
-  const model = google('gemini-2.5-flash');
+  const model = google(process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite');
 
   const titlesAndHeadings = competitors.map((c, i) => {
     const rank = i + 1;

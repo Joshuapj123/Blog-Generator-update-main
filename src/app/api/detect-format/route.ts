@@ -15,7 +15,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Top 10 results required' }, { status: 400 });
     }
 
-    const model = google('gemini-2.5-flash');
+    const model = google(process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite');
 
     const prompt = `Analyze the following top 10 search engine results for a given keyword:
 ${top10.map((r: any, i: number) => `${i + 1}. Title: "${r.title}"\nSnippet: "${r.snippet}"\n`).join('\n')}

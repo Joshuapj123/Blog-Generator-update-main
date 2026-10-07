@@ -25,8 +25,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'SERP_KEY environment variable is not set' }, { status: 500 });
     }
 
-    const model = google('gemini-2.5-pro');
-    const fastModel = google('gemini-2.5-flash');
+    const model = google(process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite');
+    const fastModel = google(process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite');
 
     const runId = 'run_plan_' + Date.now();
 

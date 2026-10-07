@@ -338,7 +338,7 @@ export class GenerationPipelineAdapter {
       conceptRepetitionScore: 0,
       compressionTriggered: false,
       compressionSavingsWords: 0,
-      modelUsed: dryRunEnabled ? 'dry_run_model' : 'gemini-2.5-flash',
+      modelUsed: dryRunEnabled ? 'dry_run_model' : (result.telemetry?.geminiModel || process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite'),
       generationSource: dryRunEnabled ? 'dry_run' : 'gemini',
       dryRunEnabled,
       apiProvider: dryRunEnabled ? 'mock' : 'google'

@@ -9,7 +9,7 @@ export async function processFeaturedSnippets(
   competitors: ScrapedCompetitor[],
   options?: { runId?: string }
 ): Promise<{ featuredSnippetBlueprint: FeaturedSnippetBlueprint }> {
-  const model = google('gemini-2.5-flash');
+  const model = google(process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite');
 
   // Sample texts to look for snippets
   const competitorSamples = competitors.map((c, i) => {

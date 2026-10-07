@@ -32,7 +32,7 @@ Requirements:
 `;
 
     const result = await generateText({
-      model: google('gemini-2.5-flash'), // fast model
+      model: google(process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite'), // fast model
       prompt,
       temperature: 0.8,
     });

@@ -118,7 +118,7 @@ ${selectedText}`;
     (async () => {
         try {
             const result = await streamObject({
-                model: google('gemini-2.5-flash'),
+                model: google(process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite'),
                 prompt,
                 temperature: 0.1,
                 schema: z.object({

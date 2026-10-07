@@ -195,7 +195,7 @@ export async function enrichTermsWithAi(
   competitorCount: number,
   competitorTexts: string[] = []    // ← used for deterministic entity coverage
 ): Promise<{ terms: SerpTerm[]; entities: SerpEntity[]; topTermsForIntent: string[] }> {
-  const modelName = process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite';
+  const modelName = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
   const model = google(modelName);
 
   // Sort by blended score: 60% TF-IDF + 40% DF (mirrors the doc exactly)

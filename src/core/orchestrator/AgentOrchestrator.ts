@@ -264,7 +264,7 @@ export class AgentOrchestrator {
       reservedFinalizeMs: 45000,
     });
 
-    const activeModel = this.options.llm.getModel?.() || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+    const activeModel = this.options.llm.getModel?.() || process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
     this.telemetry = {
       runId: 'run_' + Math.random().toString(36).substring(2, 15) + '_' + Date.now(),
       startTime: new Date().toISOString(),
@@ -1265,7 +1265,7 @@ claimGroundingDiagnostics: ${JSON.stringify(this.telemetry.researchIntelligence?
 finalValidationStatus: "${finalValidationStatus}"
 FirestoreSave: true
 EditorRendered: true
-geminiModel: "${this.telemetry.geminiModel || 'gemini-2.5-flash'}"
+geminiModel: "${this.telemetry.geminiModel || 'gemini-3.5-flash-lite'}"
 === END TELEMETRY ===`);
         
         this.completeStage(reviewStage, { passed: finalValidationStatus !== 'FAILED', finalValidationStatus, score: review.score });

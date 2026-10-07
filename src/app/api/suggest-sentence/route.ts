@@ -30,7 +30,7 @@ Requirements:
 `;
 
     const result = await generateText({
-      model: google('gemini-2.5-flash'), // fast model for single sentence
+      model: google(process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite'), // fast model for single sentence
       prompt,
       temperature: 0.7,
     });

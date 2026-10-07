@@ -87,7 +87,7 @@ export async function processKeywords(
   competitors: ScrapedCompetitor[],
   options?: { runId?: string }
 ): Promise<KeywordEngineResult> {
-  const model = google('gemini-2.5-flash');
+  const model = google(process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite');
 
   // Sample outlines and texts from top competitors to fit in context window
   const competitorSummaries = competitors.map((c, i) => ({

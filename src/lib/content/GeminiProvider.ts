@@ -4,7 +4,7 @@ import { google } from '@ai-sdk/google';
 import { generateTextWithTelemetry, generateObjectWithTelemetry } from '@/lib/gemini-telemetry';
 
 export class GeminiProvider implements LLMProvider {
-  private defaultModel = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+  private defaultModel = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
 
   public getModel(): string {
     return process.env.GEMINI_MODEL || this.defaultModel;

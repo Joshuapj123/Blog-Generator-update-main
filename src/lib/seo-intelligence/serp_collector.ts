@@ -172,7 +172,7 @@ RAW EXTRACTED PAGE CONTENT:
 ${domText.slice(0, 15000)}`;
 
       const { text: geminiText } = await generateTextWithTelemetry('Competitor Processing', {
-        model: google('gemini-2.5-flash'),
+        model: google(process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite'),
         prompt,
         temperature: 0.1,
         cacheKey: 'extract_fallback_' + url,

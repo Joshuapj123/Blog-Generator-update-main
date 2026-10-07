@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       selectedText = '',
     } = await req.json();
 
-    const model = google('gemini-2.5-flash');
+    const model = google(process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite');
 
     const wordCount = body.split(/\\s+/).filter(Boolean).length;
     const headingContext =
