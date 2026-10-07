@@ -1,5 +1,6 @@
 import { getAdminFirestore } from './admin';
 import { Article, sanitizeForFirestore } from './firestore';
+import { FieldValue } from 'firebase-admin/firestore';
 
 
 /**
@@ -27,7 +28,6 @@ export async function saveArticleAdmin(
   };
 
   const savePromise = (async () => {
-    const { FieldValue } = require('firebase-admin/firestore');
     const db = getAdminFirestore();
     const articlesCol = db.collection('articles');
     const cleanData = sanitizeForFirestore(articleWithOwner);
