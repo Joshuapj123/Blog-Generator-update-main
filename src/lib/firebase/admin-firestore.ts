@@ -1,8 +1,6 @@
 import { getAdminFirestore } from './admin';
 import { Article, sanitizeForFirestore } from './firestore';
 
-// CommonJS synchronous loading of runtime modules to prevent Webpack async module wrappers
-const { FieldValue } = require('firebase-admin/firestore');
 
 /**
  * Saves or updates an article in Firestore using the Firebase Admin SDK.
@@ -29,6 +27,7 @@ export async function saveArticleAdmin(
   };
 
   const savePromise = (async () => {
+    const { FieldValue } = require('firebase-admin/firestore');
     const db = getAdminFirestore();
     const articlesCol = db.collection('articles');
     const cleanData = sanitizeForFirestore(articleWithOwner);

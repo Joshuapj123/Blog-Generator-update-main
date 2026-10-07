@@ -2,19 +2,6 @@ import type { App } from 'firebase-admin/app';
 import type { Auth } from 'firebase-admin/auth';
 import type { Firestore } from 'firebase-admin/firestore';
 
-// CommonJS synchronous loading of runtime modules to prevent Webpack async module wrappers
-const { initializeApp, getApps, cert } = require('firebase-admin/app') as {
-  initializeApp: (options?: any, name?: string) => App;
-  getApps: () => App[];
-  cert: (serviceAccountPathOrObject: any) => any;
-};
-const { getAuth } = require('firebase-admin/auth') as {
-  getAuth: (app?: App) => Auth;
-};
-const { getFirestore } = require('firebase-admin/firestore') as {
-  getFirestore: (app?: App) => Firestore;
-};
-
 let adminApp: App | null = null;
 
 /**
@@ -26,6 +13,12 @@ export function getFirebaseAdminApp(): App {
   if (adminApp) {
     return adminApp;
   }
+
+  const { initializeApp, getApps, cert } = require('firebase-admin/app') as {
+    initializeApp: (options?: any, name?: string) => App;
+    getApps: () => App[];
+    cert: (serviceAccountPathOrObject: any) => any;
+  };
 
   const existingApps = getApps();
   if (existingApps.length > 0 && existingApps[0]) {
@@ -94,10 +87,16 @@ export function setAdminFirestoreForTesting(mock: any): void {
 
 export function getAdminAuth(): Auth {
   if (testAdminAuth) return testAdminAuth;
+  const { getAuth } = require('firebase-admin/auth') as {
+    getAuth: (app?: App) => Auth;
+  };
   return getAuth(getFirebaseAdminApp());
 }
 
 export function getAdminFirestore(): Firestore {
   if (testAdminFirestore) return testAdminFirestore;
+  const { getFirestore } = require('firebase-admin/firestore') as {
+    getFirestore: (app?: App) => Firestore;
+  };
   return getFirestore(getFirebaseAdminApp());
 }

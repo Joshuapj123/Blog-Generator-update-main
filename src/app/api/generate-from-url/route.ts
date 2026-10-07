@@ -8,6 +8,7 @@ import { normalizeUrl } from '@/lib/research/url-verifier';
 import { getAdminAuth } from '@/lib/firebase/admin';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 export const maxDuration = 300;
 
 export async function POST(req: Request) {
