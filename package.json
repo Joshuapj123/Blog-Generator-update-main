@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": "22.x"
+    "node": ">=20.0.0"
+  },
+  "overrides": {
+    "jwks-rsa": "3.2.2"
   },
   "scripts": {
     "dev": "next dev",

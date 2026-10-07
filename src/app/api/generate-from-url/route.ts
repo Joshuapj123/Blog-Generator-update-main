@@ -47,6 +47,7 @@ export async function POST(req: Request) {
         error: 'Unauthorized: Token verification failed',
         code: authErr?.code || 'AUTH_TOKEN_VERIFICATION_FAILED',
         message: authErr?.message,
+        nodeVersion: process.version,
       }, { status: 401 });
     }
 
