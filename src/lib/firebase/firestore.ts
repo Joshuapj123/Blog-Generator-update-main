@@ -28,6 +28,8 @@ export interface Article {
   folder: string;
   stage: ArticleStage;
   topic?: string;
+  contentFormat?: string;
+  assetType?: string;
   planId?: string;
   planRole?: 'primary' | 'support';
   clusterOrder?: number;

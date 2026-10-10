@@ -7,6 +7,7 @@ import { LinkQualityEngine, RawLinkInput } from '@/lib/seo-intelligence/link_qua
 import { SitemapDiscoveryService } from '@/lib/research/SitemapDiscoveryService';
 import { DiagramAssetService } from '@/lib/content/DiagramAssetService';
 import { SaaSProfile, ContentAsset } from '@/core/contracts/schemas';
+import { normalizeContentType } from '@/lib/content/schemas';
 import { Article } from '@/lib/firebase/firestore';
 import { saveArticleAdmin } from '@/lib/firebase/admin-firestore';
 import { TemporaryArticleStore, resolvePersistenceBackend } from '@/lib/test-storage/TemporaryArticleStore';
@@ -422,6 +423,34 @@ export class GenerationPipelineAdapter {
     // Convert markdown to clean HTML for editor and storage
     const htmlContent = normalizeAiOutput(finalAsset?.bodyMarkdown || '');
 
+    const rawFallbackFormat = payload.contentType ? normalizeContentType(payload.contentType) : undefined;
+    const isExplicitFormatProvided = payload.contentType !== undefined && payload.contentType !== null &&
+      (typeof payload.contentType !== 'string' || payload.contentType.trim().length > 0);
+    if (!result.plan?.intent?.contentType && isExplicitFormatProvided && !rawFallbackFormat) {
+      console.warn(`[Adapter] Unrecognized payload.contentType "${payload.contentType}"; falling back to default "Guide".`);
+    }
+    const resolvedContentFormat = result.plan?.intent?.contentType || rawFallbackFormat || 'Guide';
+    const resolvedAssetType = finalAsset?.assetType || result.plan?.assetType || 'ARTICLE';
+
+    // Calculate evidence confidence accurately from actual items invariant
+    const items = result.evidenceSet?.items || [];
+    const totalEvidenceCount = items.length;
+    const actualHighConfidenceCount = items.filter(i => i.confidence === 'HIGH').length;
+    const hasHighConfidence = totalEvidenceCount > 0 && actualHighConfidenceCount >= Math.ceil(totalEvidenceCount / 2);
+    const resolvedConfidenceRange = hasHighConfidence ? 'HIGH' : 'STANDARD';
+
+    finalArticle.contentFormat = resolvedContentFormat;
+    finalArticle.assetType = resolvedAssetType;
+    finalArticle.evidenceMetadata = {
+      evidenceCount: totalEvidenceCount,
+      gapCount: result.gapMatrix?.gaps?.length || 0,
+      confidenceRange: resolvedConfidenceRange,
+      reviewScore: result.review?.score || 100,
+      validationStatus: result.review?.finalValidationStatus || (result.review?.passed ? 'PASSED' : 'FAILED'),
+      contentFormat: resolvedContentFormat,
+      assetType: resolvedAssetType
+    };
+
     const articleToSave: Article = {
       id: idempotentArticleId,
       userId: payload.authenticatedUserId || undefined,
@@ -436,13 +465,9 @@ export class GenerationPipelineAdapter {
       referenceUrl: targetDomain,
       blueprint: finalArticle,
       diagnostics: finalArticle.diagnostics,
-      evidenceMetadata: {
-        evidenceCount: result.evidenceSet?.items?.length || 0,
-        gapCount: result.gapMatrix?.gaps?.length || 0,
-        confidenceRange: result.evidenceSet?.items?.length ? 'HIGH' : 'STANDARD',
-        reviewScore: result.review?.score || 100,
-        validationStatus: result.review?.finalValidationStatus || (result.review?.passed ? 'PASSED' : 'FAILED')
-      },
+      contentFormat: resolvedContentFormat,
+      assetType: resolvedAssetType,
+      evidenceMetadata: finalArticle.evidenceMetadata,
       runId,
       persistedAt: new Date().toISOString(),
       persistenceStatus: 'SAVED'

@@ -37,11 +37,29 @@ const VALID_CONTENT_TYPES: Record<string, 'Listicle' | 'How-To' | 'Guide' | 'Rev
   'how-to': 'How-To',
   'how to': 'How-To',
   howto: 'How-To',
+  'how-to guide': 'How-To',
+  'how to guide': 'How-To',
+  'how-to-guide': 'How-To',
+  tutorial: 'How-To',
   guide: 'Guide',
+  'in-depth guide': 'Guide',
+  'in depth guide': 'Guide',
+  'in-depth-guide': 'Guide',
+  definition: 'Guide',
   review: 'Review',
   comparison: 'Comparison',
+  'product page': 'Other',
+  'product-page': 'Other',
+  'landing page': 'Other',
+  'landing-page': 'Other',
   other: 'Other',
 };
+
+export function normalizeContentType(raw: unknown): 'Listicle' | 'How-To' | 'Guide' | 'Review' | 'Comparison' | 'Other' | undefined {
+  if (typeof raw !== 'string') return undefined;
+  const key = raw.trim().toLowerCase();
+  return VALID_CONTENT_TYPES[key];
+}
 
 const VALID_OUTLINE_LEVELS: Record<string, 'H2' | 'H3'> = {
   h2: 'H2',
