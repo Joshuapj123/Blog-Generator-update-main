@@ -219,13 +219,21 @@ export class ContentEvidenceValidator {
     }
 
     // 6. Canonical Claim Extraction and Grounding Engine (Prompt 6 Factual Integrity)
-    const knownCompetitors = (brief.competitorInsights || []).map(c => {
-      try {
-        return new URL(c.url).hostname.replace('www.', '');
-      } catch {
-        return c.url;
-      }
-    });
+    const knownCompetitors = Array.from(new Set(
+      (brief.competitorInsights || []).flatMap(c => {
+        const names: string[] = [];
+        if (c.title) names.push(c.title);
+        try {
+          const host = new URL(c.url).hostname.replace('www.', '');
+          names.push(host);
+          const domainName = host.split('.')[0];
+          if (domainName && domainName.length > 2) names.push(domainName);
+        } catch {
+          if (c.url) names.push(c.url);
+        }
+        return names;
+      })
+    ));
 
     const canonicalClaims = ClaimExtractionService.extractClaimsFromMarkdown(
       bodyMarkdown,
@@ -270,7 +278,9 @@ export class ContentEvidenceValidator {
     }
 
     // D. Critical Claim Grounding Rate (< 100% is Critical)
-    if (allEvidence.length > 0 && groundingResult.diagnostics.criticalGroundingRate < CONTENT_INTELLIGENCE_POLICY.CRITICAL_GROUNDING_RATE_MIN_PERCENT) {
+    const criticalClaimsCount = groundingResult.diagnostics.criticalClaims || 0;
+    const criticalGroundingRate = groundingResult.diagnostics.criticalGroundingRate ?? 100;
+    if (criticalClaimsCount > 0 && criticalGroundingRate < CONTENT_INTELLIGENCE_POLICY.CRITICAL_GROUNDING_RATE_MIN_PERCENT) {
       for (const c of groundingResult.claims.filter(c => c.materiality === 'CRITICAL' && c.supportStatus !== 'SUPPORTED' && c.supportStatus !== 'PARTIALLY_SUPPORTED')) {
         const msg = `Critical Claim Grounding Alert: Critical claim "${c.claimText}" in "${c.sentence}" is not grounded in research evidence: ${c.rejectionReason || 'No supporting evidence found.'}`;
         criticalErrors.push(msg);
@@ -281,8 +291,10 @@ export class ContentEvidenceValidator {
     }
 
     // E. Overall Grounding Rate (< 70% is Warning)
-    if (allEvidence.length > 0 && groundingResult.diagnostics.groundingRate < CONTENT_INTELLIGENCE_POLICY.GROUNDING_RATE_MIN_PERCENT) {
-      warnings.push(`Overall claim grounding rate is ${groundingResult.diagnostics.groundingRate}% (target: >= ${CONTENT_INTELLIGENCE_POLICY.GROUNDING_RATE_MIN_PERCENT}%).`);
+    const totalClaimsCount = groundingResult.diagnostics.totalExtractedClaims || 0;
+    const overallGroundingRate = groundingResult.diagnostics.groundingRate ?? 100;
+    if (totalClaimsCount > 0 && overallGroundingRate < CONTENT_INTELLIGENCE_POLICY.GROUNDING_RATE_MIN_PERCENT) {
+      warnings.push(`Overall claim grounding rate is ${overallGroundingRate}% (target: >= ${CONTENT_INTELLIGENCE_POLICY.GROUNDING_RATE_MIN_PERCENT}%).`);
     }
 
     // 7. Compute Diagnostics

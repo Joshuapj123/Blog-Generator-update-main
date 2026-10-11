@@ -58,6 +58,23 @@ export class ClaimExtractionService {
   ];
 
   /**
+   * First-person brand subject patterns (marketing / organizational copy):
+   * "our platform", "our software", "our team", "we", etc.
+   */
+  private static FIRST_PERSON_SUBJECT_PATTERNS = [
+    /\b(?:our|my)\s+(?:platform|software|system|tool|tools|solution|solutions|service|services|team|agency|product|products|company|architecture|infrastructure|api|engine|application|app|engineers?|developers?)\b/i,
+    /\b(?:we)\b/i,
+  ];
+
+  /**
+   * Definite product subject patterns:
+   * "the platform", "the software", "the tool", "the solution", "the system"
+   */
+  private static DEFINITE_PRODUCT_PATTERNS = [
+    /\b(?:the)\s+(?:platform|software|system|tool|tools|solution|solutions|service|services|product|products|application|app|engine|api)\b/i,
+  ];
+
+  /**
    * Temporal patterns (years, founding, launching)
    */
   private static TEMPORAL_PATTERNS = [
@@ -160,7 +177,8 @@ export class ClaimExtractionService {
           sectionHeading,
           claimIdx,
           targetBrand,
-          knownCompetitors
+          knownCompetitors,
+          para
         );
         for (const c of extracted) {
           claims.push(c);
@@ -181,7 +199,8 @@ export class ClaimExtractionService {
     sectionHeading: string,
     claimIndex: number,
     targetBrand?: string,
-    knownCompetitors: string[] = []
+    knownCompetitors: string[] = [],
+    contextParagraph?: string
   ): CanonicalClaim[] {
     const trimmed = sentence.trim();
     if (trimmed.length < 20) return []; // Ignore tiny fragments
@@ -244,13 +263,6 @@ export class ClaimExtractionService {
       }
     }
 
-    // Detect subject entity and target entity
-    const { subjectEntity, targetEntity } = this.resolveEntities(
-      trimmed,
-      targetBrand,
-      knownCompetitors
-    );
-
     // Detect comparative
     let isComparative = false;
     for (const pat of this.COMPARATIVE_PATTERNS) {
@@ -268,6 +280,17 @@ export class ClaimExtractionService {
         break;
       }
     }
+
+    // Detect subject entity and target entity (context-aware & boundary-safe)
+    const isMarketingClaimContext = isCapability || isComparative || quantValues.length > 0;
+    const { subjectEntity, targetEntity } = this.resolveEntities(
+      trimmed,
+      targetBrand,
+      knownCompetitors,
+      contextParagraph,
+      sectionHeading,
+      isMarketingClaimContext
+    );
 
     // If quantitative values found, each distinct metric produces a claim
     if (quantValues.length > 0) {
@@ -360,6 +383,9 @@ export class ClaimExtractionService {
 
     // Entity capability
     if (isCapability && subjectEntity) {
+      const isTargetBrand = Boolean(
+        targetBrand && subjectEntity.toLowerCase() === targetBrand.toLowerCase()
+      );
       return [{
         id: `claim-${sectionIndex}-${claimIndex}-0`,
         sectionIndex,
@@ -371,7 +397,7 @@ export class ClaimExtractionService {
         targetEntity,
         temporalAnchor,
         confidence: 0.85,
-        materiality: 'IMPORTANT',
+        materiality: isTargetBrand ? 'CRITICAL' : 'IMPORTANT',
         supportStatus: 'UNSUPPORTED',
         groundedEvidenceIds: [],
       }];
@@ -549,32 +575,74 @@ export class ClaimExtractionService {
   }
 
   /**
+   * Helper: checks if text contains entity using word boundary matching.
+   */
+  public static hasWordBoundaryMatch(text: string, entity: string): boolean {
+    if (!text || !entity || !entity.trim()) return false;
+    const trimmed = entity.trim();
+    const escaped = trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const prefix = /^\w/.test(trimmed) ? '\\b' : '';
+    const suffix = /\w$/.test(trimmed) ? '\\b' : '';
+    const regex = new RegExp(`${prefix}${escaped}${suffix}`, 'i');
+    return regex.test(text);
+  }
+
+  /**
    * Helper: resolves subject and target entities in a sentence.
    */
   private static resolveEntities(
     sentence: string,
     targetBrand?: string,
-    knownCompetitors: string[] = []
+    knownCompetitors: string[] = [],
+    contextParagraph?: string,
+    sectionHeading?: string,
+    isMarketingClaimContext: boolean = false
   ): { subjectEntity?: string; targetEntity?: string } {
-    const sLower = sentence.toLowerCase();
     let subjectEntity: string | undefined;
     let targetEntity: string | undefined;
 
-    // Check target brand presence
-    const hasTarget = targetBrand && sLower.includes(targetBrand.toLowerCase());
+    // Check explicit target brand presence with boundary-safe matching
+    const hasTarget = Boolean(targetBrand && this.hasWordBoundaryMatch(sentence, targetBrand));
 
-    // Check competitors presence
-    const matchedCompetitors = knownCompetitors.filter(c => sLower.includes(c.toLowerCase()));
+    // Check explicit competitor presence with boundary-safe matching
+    const matchedCompetitors = knownCompetitors.filter(c => this.hasWordBoundaryMatch(sentence, c));
+
+    // Check first-person brand ownership ("our platform", "our software", "we")
+    const isFirstPerson = this.FIRST_PERSON_SUBJECT_PATTERNS.some(pat => pat.test(sentence));
+
+    // Check definite product mention ("the platform", "the software")
+    const isDefiniteProduct = this.DEFINITE_PRODUCT_PATTERNS.some(pat => pat.test(sentence));
 
     if (hasTarget && matchedCompetitors.length > 0) {
       // Comparison: target brand is subject, competitor is target
       subjectEntity = targetBrand;
       targetEntity = matchedCompetitors[0];
     } else if (matchedCompetitors.length > 0) {
-      // Competitor is the subject
-      subjectEntity = matchedCompetitors[0];
+      if (isFirstPerson && targetBrand && isMarketingClaimContext) {
+        // e.g. "Our platform outperforms CompetitorX"
+        subjectEntity = targetBrand;
+        targetEntity = matchedCompetitors[0];
+      } else {
+        // Competitor is the subject
+        subjectEntity = matchedCompetitors[0];
+      }
     } else if (hasTarget) {
       subjectEntity = targetBrand;
+    } else if (isFirstPerson && targetBrand && isMarketingClaimContext) {
+      // Unambiguous first-person marketing statement in branded content:
+      // "Our platform provides X", "We offer X"
+      subjectEntity = targetBrand;
+    } else if (isDefiniteProduct && targetBrand && isMarketingClaimContext) {
+      // "The platform delivers X"
+      // Verify surrounding context (paragraph or section heading) unambiguously identifies target brand
+      const contextText = [contextParagraph, sectionHeading].filter(Boolean).join(' ');
+      const contextHasTarget = this.hasWordBoundaryMatch(contextText, targetBrand);
+      const contextHasCompetitor = knownCompetitors.some(c => this.hasWordBoundaryMatch(contextText, c));
+
+      if (contextHasTarget && !contextHasCompetitor) {
+        subjectEntity = targetBrand;
+      }
+      // Ambiguous context -> do not invent entity association
     }
 
     return { subjectEntity, targetEntity };

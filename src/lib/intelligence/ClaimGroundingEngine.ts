@@ -259,11 +259,27 @@ export class ClaimGroundingEngine {
     // B. Entity compatibility
     const claimComp = this.extractCompetitorIdentity(claim.sentence, knownCompetitors);
     const evComp = this.extractCompetitorIdentity(ev.claim, knownCompetitors, ev);
+    const isCompetitorEvidence = Boolean(
+      ev.sourceType === 'COMPETITOR' ||
+      ev.evidenceType === 'COMPETITOR_OBSERVATION' ||
+      evComp
+    );
     if (claimComp && evComp && claimComp.toLowerCase() !== evComp.toLowerCase()) {
       return false;
     }
-    const hasTargetMention = Boolean(targetBrand && sLower.includes(targetBrand.toLowerCase()));
-    if (hasTargetMention && evComp && !claimComp) {
+    if (claimComp && !evComp && isCompetitorEvidence) {
+      return false;
+    }
+    if (!claimComp && isCompetitorEvidence) {
+      return false;
+    }
+    const hasTargetMention = Boolean(
+      targetBrand && (
+        (claim.subjectEntity && claim.subjectEntity.toLowerCase() === targetBrand.toLowerCase()) ||
+        ClaimExtractionService.hasWordBoundaryMatch(claim.sentence, targetBrand)
+      )
+    );
+    if (hasTargetMention && isCompetitorEvidence) {
       return false;
     }
 
@@ -476,21 +492,6 @@ export class ClaimGroundingEngine {
     targetBrand?: string,
     knownCompetitors: string[] = []
   ): CanonicalClaim {
-    if (allEvidence.length === 0) {
-      if (claim.materiality === 'SUPPLEMENTAL') {
-        return {
-          ...claim,
-          supportStatus: 'PARTIALLY_SUPPORTED',
-          rejectionReason: 'General domain knowledge (no explicit evidence item required).',
-        };
-      }
-      return {
-        ...claim,
-        supportStatus: 'UNSUPPORTED',
-        rejectionReason: 'No research evidence available.',
-      };
-    }
-
     // 1. Attribution check (Phase 5)
     if (claim.attributionSource) {
       const sourceMatch = allEvidence.find(ev => {
@@ -509,6 +510,21 @@ export class ClaimGroundingEngine {
           rejectionReason: `Unattributed external statistic: source "${claim.attributionSource}" not found in verified research evidence.`,
         };
       }
+    }
+
+    if (allEvidence.length === 0) {
+      if (claim.materiality === 'SUPPLEMENTAL') {
+        return {
+          ...claim,
+          supportStatus: 'PARTIALLY_SUPPORTED',
+          rejectionReason: 'General domain knowledge (no explicit evidence item required).',
+        };
+      }
+      return {
+        ...claim,
+        supportStatus: 'UNSUPPORTED',
+        rejectionReason: 'No research evidence available.',
+      };
     }
 
     // Order candidate items: section assigned evidence first, then global evidence
@@ -561,10 +577,12 @@ export class ClaimGroundingEngine {
     }
 
     // If supplemental general fact without entity mention, allow PARTIALLY_SUPPORTED
-    const sLower = claim.sentence.toLowerCase();
     const hasEntity = Boolean(
-      (targetBrand && sLower.includes(targetBrand.toLowerCase())) ||
-      knownCompetitors.some(c => sLower.includes(c.toLowerCase())) ||
+      (targetBrand && (
+        (claim.subjectEntity && claim.subjectEntity.toLowerCase() === targetBrand.toLowerCase()) ||
+        ClaimExtractionService.hasWordBoundaryMatch(claim.sentence, targetBrand)
+      )) ||
+      knownCompetitors.some(c => (claim.subjectEntity && claim.subjectEntity.toLowerCase() === c.toLowerCase()) || ClaimExtractionService.hasWordBoundaryMatch(claim.sentence, c)) ||
       claim.subjectEntity ||
       claim.attributionSource
     );
@@ -674,7 +692,18 @@ export class ClaimGroundingEngine {
 
           // Disparity > 50%
           if (evNum > 0 && Math.abs(claimNum - evNum) / evNum > 0.5) {
-            const claimPropTokens = this.getPropositionalTokens(sentenceLower, targetBrand, knownCompetitors);
+            // In compound sentences, isolate the clause containing this metric to prevent cross-clause token pollution
+            let targetSentence = sentenceLower;
+            const metricRaw = (claim.quantitativeValue?.raw || '').toLowerCase();
+            const clauses = sentenceLower.split(/[,;]|\b(?:and|but|with)\b/i);
+            if (clauses.length > 1 && metricRaw) {
+              const matchingClause = clauses.find(c => c.toLowerCase().includes(metricRaw));
+              if (matchingClause && matchingClause.trim().length > 8) {
+                targetSentence = matchingClause.toLowerCase();
+              }
+            }
+
+            const claimPropTokens = this.getPropositionalTokens(targetSentence, targetBrand, knownCompetitors);
             const evPropTokens = new Set(this.getPropositionalTokens(evClaimLower, targetBrand, knownCompetitors));
             const hasTopicOverlap = claimPropTokens.some(t => evPropTokens.has(t));
             if (hasTopicOverlap) {
@@ -701,6 +730,7 @@ export class ClaimGroundingEngine {
     const claimNum = qv.normalizedNumber!;
     const claimUnit = qv.unit;
     const tolerance = qv.tolerance ?? 0.05;
+    let leakageResult: CanonicalClaim | null = null;
 
     for (const ev of candidates) {
       // 1. Entity isolation check (Phase 6)
@@ -713,8 +743,8 @@ export class ClaimGroundingEngine {
             claimNum !== undefined &&
             Math.abs(claimNum - eq.normalizedNumber) / (eq.normalizedNumber || 1) <= tolerance
           );
-          if (hasMatchingMetric) {
-            return {
+          if (hasMatchingMetric && !leakageResult) {
+            leakageResult = {
               ...claim,
               supportStatus: 'UNSUPPORTED',
               rejectionReason: entityCheck.reason,
@@ -816,6 +846,10 @@ export class ClaimGroundingEngine {
       }
     }
 
+    if (leakageResult) {
+      return leakageResult;
+    }
+
     return null;
   }
 
@@ -831,6 +865,7 @@ export class ClaimGroundingEngine {
     const claimLower = claim.sentence.toLowerCase();
     const claimTokens = this.getPropositionalTokens(claimLower, targetBrand, knownCompetitors);
     if (claimTokens.length === 0) return null;
+    let leakageResult: CanonicalClaim | null = null;
 
     for (const ev of candidates) {
       // Entity isolation check (Phase 2 / Defect 1)
@@ -843,8 +878,8 @@ export class ClaimGroundingEngine {
         if (entityCheck.leakage) {
           const evTokenSet = new Set(evTokens);
           const matches = claimTokens.filter(t => evTokenSet.has(t)).length;
-          if (matches >= 2) {
-            return {
+          if (matches >= 2 && !leakageResult) {
+            leakageResult = {
               ...claim,
               supportStatus: 'UNSUPPORTED',
               rejectionReason: entityCheck.reason,
@@ -906,6 +941,10 @@ export class ClaimGroundingEngine {
       }
     }
 
+    if (leakageResult) {
+      return leakageResult;
+    }
+
     return null;
   }
 
@@ -936,12 +975,14 @@ export class ClaimGroundingEngine {
     );
 
     const isTargetEvidence = Boolean(
-      ev.sourceType === 'TARGET_SITE' ||
+      (ev.sourceType === 'TARGET_SITE' ||
       ev.evidenceType === 'BUSINESS_FACT' ||
       ev.evidenceType === 'FEATURE' ||
       ev.evidenceType === 'DIFFERENTIATOR' ||
       ev.evidenceType === 'TECHNICAL_SPEC' ||
-      (targetBrand && ev.claim.toLowerCase().includes(targetBrand.toLowerCase()))
+      (targetBrand && ev.claim.toLowerCase().includes(targetBrand.toLowerCase()))) &&
+      ev.sourceType !== 'COMPETITOR' &&
+      ev.evidenceType !== 'COMPETITOR_OBSERVATION'
     );
 
     // Rule 1: Competitor A vs Competitor B cross-contamination
@@ -964,12 +1005,12 @@ export class ClaimGroundingEngine {
       };
     }
 
-    // Rule 3: Target brand claim supported by competitor evidence -> LEAKAGE!
-    if (hasTargetMention && !claimComp && isCompetitorEvidence && !isTargetEvidence) {
+    // Rule 3: Target brand or unassigned claim supported by competitor evidence -> LEAKAGE!
+    if (!claimComp && isCompetitorEvidence && !isTargetEvidence) {
       return {
         valid: false,
         leakage: true,
-        reason: `Entity isolation violation: competitor evidence (${ev.id}) cannot support target brand claim.`,
+        reason: `Entity isolation violation: competitor evidence (${ev.id}) cannot support unassigned or target brand claim.`,
       };
     }
 
@@ -1008,7 +1049,12 @@ export class ClaimGroundingEngine {
       if (!evMatches) return false;
     }
 
-    const sTarget = Boolean(targetBrand && sLower.includes(targetBrand.toLowerCase()));
+    const sTarget = Boolean(
+      targetBrand && (
+        (claim.subjectEntity && claim.subjectEntity.toLowerCase() === targetBrand.toLowerCase()) ||
+        ClaimExtractionService.hasWordBoundaryMatch(claim.sentence, targetBrand)
+      )
+    );
     const eTarget = Boolean(
       ev.sourceType === 'TARGET_SITE' ||
       ev.evidenceType === 'BUSINESS_FACT' ||
@@ -1017,10 +1063,15 @@ export class ClaimGroundingEngine {
 
     const sComp = this.extractCompetitorIdentity(sLower, knownCompetitors);
     const eComp = this.extractCompetitorIdentity(eLower, knownCompetitors, ev);
+    const isCompEv = Boolean(
+      eComp ||
+      ev.sourceType === 'COMPETITOR' ||
+      ev.evidenceType === 'COMPETITOR_OBSERVATION'
+    );
 
     // If claim is target brand, evidence MUST be target
     if (sTarget && !sComp) {
-      return eTarget && !eComp;
+      return eTarget && !isCompEv;
     }
 
     // If claim is a competitor, evidence must be for the same competitor
@@ -1029,8 +1080,8 @@ export class ClaimGroundingEngine {
     }
 
     // If evidence is competitor, claim must be for that competitor
-    if (eComp) {
-      return Boolean(sComp && sComp.toLowerCase() === eComp.toLowerCase());
+    if (isCompEv) {
+      return Boolean(sComp && (!eComp || sComp.toLowerCase() === eComp.toLowerCase()));
     }
 
     // If evidence is target brand, claim must not be competitor
