@@ -257,7 +257,9 @@ export class ClaimGroundingEngine {
     }
 
     // B. Entity compatibility
-    const claimComp = this.extractCompetitorIdentity(claim.sentence, knownCompetitors);
+    const claimComp = (claim.subjectEntity && knownCompetitors.some(c => c.toLowerCase() === claim.subjectEntity!.toLowerCase()))
+      ? claim.subjectEntity
+      : this.extractCompetitorIdentity(claim.sentence, knownCompetitors);
     const evComp = this.extractCompetitorIdentity(ev.claim, knownCompetitors, ev);
     const isCompetitorEvidence = Boolean(
       ev.sourceType === 'COMPETITOR' ||
@@ -276,7 +278,7 @@ export class ClaimGroundingEngine {
     const hasTargetMention = Boolean(
       targetBrand && (
         (claim.subjectEntity && claim.subjectEntity.toLowerCase() === targetBrand.toLowerCase()) ||
-        ClaimExtractionService.hasWordBoundaryMatch(claim.sentence, targetBrand)
+        (!claimComp && ClaimExtractionService.hasWordBoundaryMatch(claim.sentence, targetBrand))
       )
     );
     if (hasTargetMention && isCompetitorEvidence) {
@@ -284,7 +286,16 @@ export class ClaimGroundingEngine {
     }
 
     // C. Topical / Predicate overlap check
-    const claimPropTokens = this.getPropositionalTokens(sLower, targetBrand, knownCompetitors);
+    let targetSentence = sLower;
+    const metricRaw = (claim.quantitativeValue?.raw || '').toLowerCase();
+    const clauses = sLower.split(/[,;]|\b(?:and|but|with|while|whereas|although|though|plus)\b/i);
+    if (clauses.length > 1 && metricRaw) {
+      const matchingClause = clauses.find(c => c.toLowerCase().includes(metricRaw));
+      if (matchingClause && matchingClause.trim().length > 5) {
+        targetSentence = matchingClause.toLowerCase();
+      }
+    }
+    const claimPropTokens = this.getPropositionalTokens(targetSentence, targetBrand, knownCompetitors);
     const evPropTokens = new Set(this.getPropositionalTokens(eLower, targetBrand, knownCompetitors));
 
     if (claimPropTokens.length > 0) {
@@ -324,7 +335,7 @@ export class ClaimGroundingEngine {
     // In compound sentences, isolate the clause containing this metric to prevent cross-clause token pollution
     let targetSentence = cleanedSentence;
     const metricRaw = (claim.quantitativeValue?.raw || '').toLowerCase();
-    const clauses = sLower.split(/[,;]|\b(?:and|but|with)\b/i);
+    const clauses = sLower.split(/[,;]|\b(?:and|but|with|while|whereas|although|though|plus)\b/i);
     if (clauses.length > 1 && metricRaw) {
       const matchingClause = clauses.find(c => c.toLowerCase().includes(metricRaw));
       if (matchingClause && matchingClause.trim().length > 8) {
@@ -513,7 +524,16 @@ export class ClaimGroundingEngine {
     }
 
     if (allEvidence.length === 0) {
-      if (claim.materiality === 'SUPPLEMENTAL') {
+      const hasEntity = Boolean(
+        (targetBrand && (
+          (claim.subjectEntity && claim.subjectEntity.toLowerCase() === targetBrand.toLowerCase()) ||
+          ClaimExtractionService.hasWordBoundaryMatch(claim.sentence, targetBrand)
+        )) ||
+        knownCompetitors.some(c => (claim.subjectEntity && claim.subjectEntity.toLowerCase() === c.toLowerCase()) || ClaimExtractionService.hasWordBoundaryMatch(claim.sentence, c)) ||
+        claim.subjectEntity ||
+        claim.attributionSource
+      );
+      if (claim.materiality === 'SUPPLEMENTAL' && !hasEntity) {
         return {
           ...claim,
           supportStatus: 'PARTIALLY_SUPPORTED',
@@ -695,7 +715,7 @@ export class ClaimGroundingEngine {
             // In compound sentences, isolate the clause containing this metric to prevent cross-clause token pollution
             let targetSentence = sentenceLower;
             const metricRaw = (claim.quantitativeValue?.raw || '').toLowerCase();
-            const clauses = sentenceLower.split(/[,;]|\b(?:and|but|with)\b/i);
+            const clauses = sentenceLower.split(/[,;]|\b(?:and|but|with|while|whereas|although|though|plus)\b/i);
             if (clauses.length > 1 && metricRaw) {
               const matchingClause = clauses.find(c => c.toLowerCase().includes(metricRaw));
               if (matchingClause && matchingClause.trim().length > 8) {
@@ -862,7 +882,10 @@ export class ClaimGroundingEngine {
     targetBrand?: string,
     knownCompetitors: string[] = []
   ): CanonicalClaim | null {
-    const claimLower = claim.sentence.toLowerCase();
+    const textToGround = (claim.claimText && claim.claimText.length >= 10 && claim.claimText !== claim.sentence)
+      ? claim.claimText
+      : claim.sentence;
+    const claimLower = textToGround.toLowerCase();
     const claimTokens = this.getPropositionalTokens(claimLower, targetBrand, knownCompetitors);
     if (claimTokens.length === 0) return null;
     let leakageResult: CanonicalClaim | null = null;
@@ -958,13 +981,18 @@ export class ClaimGroundingEngine {
     targetBrand?: string,
     knownCompetitors: string[] = []
   ): { valid: boolean; leakage: boolean; reason?: string } {
-    const claimComp = this.extractCompetitorIdentity(claim.sentence, knownCompetitors);
+    const claimComp = (claim.subjectEntity && knownCompetitors.some(c => c.toLowerCase() === claim.subjectEntity!.toLowerCase()))
+      ? claim.subjectEntity
+      : this.extractCompetitorIdentity(claim.claimText || claim.sentence, knownCompetitors);
     const evComp = this.extractCompetitorIdentity(ev.claim, knownCompetitors, ev);
 
     const hasTargetMention = Boolean(
       targetBrand && (
         (claim.subjectEntity && claim.subjectEntity.toLowerCase() === targetBrand.toLowerCase()) ||
-        claim.sentence.toLowerCase().includes(targetBrand.toLowerCase())
+        (!claimComp && (
+          ClaimExtractionService.hasWordBoundaryMatch(claim.claimText || '', targetBrand) ||
+          ClaimExtractionService.hasWordBoundaryMatch(claim.sentence, targetBrand)
+        ))
       )
     );
 

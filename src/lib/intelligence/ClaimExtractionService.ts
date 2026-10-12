@@ -54,7 +54,46 @@ export class ClaimExtractionService {
    * Capability and feature patterns
    */
   private static CAPABILITY_PATTERNS = [
-    /\b(?:supports?|provides?|features?|integrates? with|offers?|delivers?|includes?|automates?|handles?|built with|certified for|compliant with|operates?|manufactures?|invents?|develops?|builds?)\b/i,
+    /\b(?:supports?|provides?|features?|integrates?(?:\s+with)?|offers?|delivers?|includes?|automates?|handles?|built with|certified for|compliant with|operates?|manufactures?|invents?|develops?|builds?|eliminates?|guarantees?|achieves?|streamlines?|accelerates?|optimizes?|ensures?|prevents?|reduces?|simplifies?|enables?|empowers?)\b/i,
+  ];
+
+  /**
+   * Qualitative commercial promises, performance guarantees, and operational claims
+   */
+  private static COMMERCIAL_PROMISE_PATTERNS = [
+    /\b(?:instant|effortless|frictionless|risk-free|turnkey|seamless|zero[- ]downtime)\s+(?:deployment|integration|operation|setup|onboarding|migration|rollout|synchronization|execution)\b/i,
+    /\b(?:deployment|setup|onboarding|integration|operation|rollout)\s+is\s+(?:instant|effortless|frictionless|risk-free|seamless|automated)\b/i,
+    /\b(?:works|integrates|compatible)\s+with\s+(?:every|all)\s+(?:major\s+)?(?:system|systems|platform|platforms|tool|tools|database|databases|cloud|clouds|provider|providers)\b/i,
+    /\b(?:guarantees?|promises?)\s+(?:effortless|seamless|instant|frictionless|zero[- ]downtime|risk-free|enterprise)\b/i,
+    /\b(?:teams?|enterprises?|users?|developers?|customers?)\s+(?:achieves?|enjoys?|benefits?\s+from)\s+(?:seamless|effortless|instant|frictionless)\b/i,
+    /\b(?:eliminates?|removes?)\s+(?:onboarding|deployment|integration|operational|workflow)\s+friction\b/i,
+  ];
+
+  /**
+   * Negated capability statements (limitations, disclaimers, or explicit absence of capability)
+   */
+  private static NEGATED_CAPABILITY_PATTERNS = [
+    /\b(?:does\s+not|doesn't|do\s+not|don't|did\s+not|didn't|cannot|can't|never|fails?\s+to)\s+(?:guarantee|eliminate|provide|deliver|offer|feature|include|support|achieve|ensure|streamline|accelerate|optimize|prevent|reduce|simplify)\b/i,
+  ];
+
+  /**
+   * Purely hypothetical or conditional statement openings
+   */
+  private static HYPOTHETICAL_PATTERNS = [
+    /^(?:if|assuming|suppose|hypothetically|in theory)\b/i,
+    /\b(?:could potentially|might potentially)\b/i,
+  ];
+
+  /**
+   * Concessive, skeptical, or third-party reporting contexts where commercial promises
+   * are discussed critically, cited as vendor claims, or contrasted with independent findings.
+   * e.g., "Although the vendor advertises instant deployment, independent tests found delays."
+   */
+  private static SKEPTICAL_OR_CONCESSIVE_PATTERNS = [
+    /\b(?:although|though|even though|while|whereas)\s+(?:the\s+)?(?:vendor|competitor|maker|company|provider)\s+(?:advertises?|claims?|promises?|touts?)\b/i,
+    /\b(?:independent|third-party)\s+(?:tests?|evaluations?|audits?|benchmarks?|observers?|researchers?)\s+(?:found|reported|showed|discovered|noted)\s+(?:delays?|issues?|problems?|limitations?|bottlenecks?|failures?)\b/i,
+    /\b(?:advertises?|allegedly|purportedly|supposedly)\s+(?:instant|effortless|frictionless|risk-free|seamless)\b/i,
+    /\b(?:question\s+whether|doubt\s+whether|debated\s+whether|unclear\s+whether|dispute\s+whether)\b/i,
   ];
 
   /**
@@ -68,11 +107,20 @@ export class ClaimExtractionService {
 
   /**
    * Definite product subject patterns:
-   * "the platform", "the software", "the tool", "the solution", "the system"
+   * "the platform", "the software", "the tool", "this platform", "the solution", "the system"
    */
   private static DEFINITE_PRODUCT_PATTERNS = [
-    /\b(?:the)\s+(?:platform|software|system|tool|tools|solution|solutions|service|services|product|products|application|app|engine|api)\b/i,
+    /\b(?:the|this)\s+(?:platform|software|system|tool|tools|solution|solutions|service|services|product|products|application|app|engine|api)\b/i,
   ];
+
+  /**
+   * Lead indicators for coordinate predicate clauses
+   */
+  private static VERB_LEAD_REGEX = /^(?:guarantees?|provides?|features?|integrates?(?:\s+with)?|offers?|delivers?|includes?|automates?|handles?|eliminates?|achieves?|streamlines?|accelerates?|optimizes?|ensures?|prevents?|reduces?|simplifies?|enables?|empowers?|operates?|manufactures?|invents?|develops?|builds?|does\s+not|doesn't|cannot|can't)\b/i;
+
+  private static PROMISE_LEAD_REGEX = /^(?:instant|effortless|frictionless|risk-free|turnkey|seamless|zero[- ]downtime)\b/i;
+
+  private static SUBORDINATE_LEAD_REGEX = /^(?:while|whereas|although|though|if|unless|since|because|even\s+if)\b/i;
 
   /**
    * Temporal patterns (years, founding, launching)
@@ -191,6 +239,60 @@ export class ClaimExtractionService {
   }
 
   /**
+   * Helper: splits a compound sentence into distinct proposition clauses.
+   */
+  public static splitSentenceIntoClauses(sentence: string): string[] {
+    const trimmed = sentence.trim();
+    if (trimmed.length < 20) return [trimmed];
+
+    // Protect ranges: e.g. "between $100 and $150", "from 10 to 20%"
+    const rangePlaceholders: string[] = [];
+    const protectedSentence = trimmed.replace(
+      /(?:between|from)\s+[\$€£]?\s*\d+(?:,\d+)*(?:\.\d+)?\s*(?:%|ms|users?|engineers?|developers?|k|m|b)?\s+(?:and|to)\s+[\$€£]?\s*\d+(?:,\d+)*(?:\.\d+)?(?:\s*(?:%|ms|users?|engineers?|developers?|k|m|b))?/gi,
+      (m) => {
+        rangePlaceholders.push(m);
+        return `__RANGE_${rangePlaceholders.length - 1}__`;
+      }
+    );
+
+    const splitRegex = /(?:;\s*|,\s*(?:and|but|while|whereas|although|though|however|yet|plus|as well as)\s+|,\s*(?=(?:guarantees?|delivers?|provides?|eliminates?|automates?|features?|reduces?|achieves?|streamlines?|optimizes?|ensures?)\b)|\s+(?:and|but|while|whereas|although|though|yet|plus|as well as)\s+|\s+with\s+(?=(?:instant|effortless|frictionless|risk-free|seamless|zero[- ]downtime)\b))/gi;
+
+    const rawSplits: string[] = [];
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = splitRegex.exec(protectedSentence)) !== null) {
+      const clauseBefore = protectedSentence.slice(lastIndex, match.index).trim();
+      const delimiter = match[0];
+      const remainingAfter = protectedSentence.slice(match.index + delimiter.length).trim();
+
+      const isPunctuationDelimiter = delimiter.includes(';') || delimiter.includes(',');
+      const isClauseFollower =
+        isPunctuationDelimiter ||
+        this.VERB_LEAD_REGEX.test(remainingAfter) ||
+        this.PROMISE_LEAD_REGEX.test(remainingAfter) ||
+        this.SUBORDINATE_LEAD_REGEX.test(remainingAfter) ||
+        /^(?:our\s+|the\s+|this\s+|we\b|teams?\b|enterprises?\b|users?\b|developers?\b|customers?\b|[A-Z][a-zA-Z0-9_]*\b)/.test(remainingAfter);
+
+      if (clauseBefore.length >= 10 && remainingAfter.length >= 10 && isClauseFollower) {
+        rawSplits.push(clauseBefore);
+        lastIndex = match.index + delimiter.length;
+      }
+    }
+
+    const trailing = protectedSentence.slice(lastIndex).trim();
+    if (trailing.length > 0) {
+      rawSplits.push(trailing);
+    }
+
+    const finalClauses = rawSplits.map(clause => {
+      return clause.replace(/__RANGE_(\d+)__/g, (_, idx) => rangePlaceholders[parseInt(idx, 10)]).trim();
+    });
+
+    return finalClauses.length > 0 ? finalClauses : [trimmed];
+  }
+
+  /**
    * Extracts canonical claims from a single sentence.
    */
   public static extractClaimsFromSentence(
@@ -210,6 +312,76 @@ export class ClaimExtractionService {
     for (const pat of this.QUESTION_PATTERNS) {
       if (pat.test(trimmed)) return [];
     }
+
+    const clauses = this.splitSentenceIntoClauses(trimmed);
+    if (clauses.length <= 1) {
+      return this.extractClaimsFromClause(
+        trimmed,
+        trimmed,
+        sectionIndex,
+        sectionHeading,
+        claimIndex,
+        targetBrand,
+        knownCompetitors,
+        contextParagraph
+      );
+    }
+
+    // Resolve sentence-level subject for coordinate predicate inheritance
+    const { subjectEntity: sentenceSubject } = this.resolveEntities(
+      trimmed,
+      targetBrand,
+      knownCompetitors,
+      contextParagraph,
+      sectionHeading,
+      true
+    );
+
+    const allClaims: CanonicalClaim[] = [];
+    let subIdx = 0;
+    let inheritedSubject = sentenceSubject;
+
+    for (const clause of clauses) {
+      const clauseClaims = this.extractClaimsFromClause(
+        clause,
+        trimmed,
+        sectionIndex,
+        sectionHeading,
+        claimIndex + subIdx,
+        targetBrand,
+        knownCompetitors,
+        contextParagraph,
+        inheritedSubject
+      );
+
+      for (const c of clauseClaims) {
+        allClaims.push(c);
+        if (c.subjectEntity) {
+          inheritedSubject = c.subjectEntity;
+        }
+        subIdx++;
+      }
+    }
+
+    return allClaims;
+  }
+
+  /**
+   * Extracts canonical claims from an individual proposition clause.
+   */
+  private static extractClaimsFromClause(
+    clauseText: string,
+    fullSentence: string,
+    sectionIndex: number,
+    sectionHeading: string,
+    claimIndex: number,
+    targetBrand?: string,
+    knownCompetitors: string[] = [],
+    contextParagraph?: string,
+    inheritedSubject?: string
+  ): CanonicalClaim[] {
+    const trimmed = clauseText.trim();
+    if (trimmed.length < 10) return [];
 
     // Reject pure recommendations/advice without factual metrics
     let isAdvice = false;
@@ -272,6 +444,15 @@ export class ClaimExtractionService {
       }
     }
 
+    // Detect commercial promise patterns
+    let isCommercialPromise = false;
+    for (const pat of this.COMMERCIAL_PROMISE_PATTERNS) {
+      if (pat.test(trimmed)) {
+        isCommercialPromise = true;
+        break;
+      }
+    }
+
     // Detect capability
     let isCapability = false;
     for (const pat of this.CAPABILITY_PATTERNS) {
@@ -281,9 +462,50 @@ export class ClaimExtractionService {
       }
     }
 
+    // Detect negated capability
+    let isNegatedCapability = false;
+    for (const pat of this.NEGATED_CAPABILITY_PATTERNS) {
+      if (pat.test(trimmed)) {
+        isNegatedCapability = true;
+        break;
+      }
+    }
+
+    // Detect hypothetical
+    let isHypothetical = false;
+    for (const pat of this.HYPOTHETICAL_PATTERNS) {
+      if (pat.test(trimmed)) {
+        isHypothetical = true;
+        break;
+      }
+    }
+
+    // Detect skeptical or concessive context
+    let isSkeptical = false;
+    for (const pat of this.SKEPTICAL_OR_CONCESSIVE_PATTERNS) {
+      if (pat.test(trimmed)) {
+        isSkeptical = true;
+        break;
+      }
+    }
+
+    // Preliminary subject indicators
+    const hasTargetMention = Boolean(targetBrand && this.hasWordBoundaryMatch(trimmed, targetBrand));
+    const hasCompetitorMention = knownCompetitors.some(c => this.hasWordBoundaryMatch(trimmed, c));
+    const isFirstPerson = this.FIRST_PERSON_SUBJECT_PATTERNS.some(pat => pat.test(trimmed));
+    const isDefiniteProduct = this.DEFINITE_PRODUCT_PATTERNS.some(pat => pat.test(trimmed));
+    const isCommercialSubjectContext = hasTargetMention || hasCompetitorMention || isFirstPerson || isDefiniteProduct;
+
+    // Commercial capability assertion:
+    // Matches commercial promise pattern OR has capability verb in commercial subject context.
+    // Disqualified if affirmative capability is explicitly negated, hypothetical, or skeptical/concessive.
+    const isCommercialCapability = !isNegatedCapability && !isHypothetical && !isSkeptical && (
+      isCommercialPromise || (isCapability && isCommercialSubjectContext)
+    );
+
     // Detect subject entity and target entity (context-aware & boundary-safe)
-    const isMarketingClaimContext = isCapability || isComparative || quantValues.length > 0;
-    const { subjectEntity, targetEntity } = this.resolveEntities(
+    const isMarketingClaimContext = isCommercialCapability || isCapability || isComparative || quantValues.length > 0;
+    let { subjectEntity, targetEntity } = this.resolveEntities(
       trimmed,
       targetBrand,
       knownCompetitors,
@@ -292,9 +514,16 @@ export class ClaimExtractionService {
       isMarketingClaimContext
     );
 
+    // Inherit subject from previous coordinate predicate if clause has no explicit subject
+    if (!subjectEntity && inheritedSubject && (isCommercialCapability || isCapability || quantValues.length > 0)) {
+      subjectEntity = inheritedSubject;
+    }
+
+    const claims: CanonicalClaim[] = [];
+
     // If quantitative values found, each distinct metric produces a claim
     if (quantValues.length > 0) {
-      return quantValues.map((qv, idx) => {
+      quantValues.forEach((qv, idx) => {
         let claimType: CanonicalClaimType = 'QUANTITATIVE';
         if (attributionSource) claimType = 'ATTRIBUTION';
         else if (isComparative) claimType = 'COMPARATIVE';
@@ -303,11 +532,11 @@ export class ClaimExtractionService {
         // Materiality: Quantitative claims with metrics, currencies, percentages, or multipliers are CRITICAL
         const materiality: 'CRITICAL' | 'IMPORTANT' | 'SUPPLEMENTAL' = 'CRITICAL';
 
-        return {
+        claims.push({
           id: `claim-${sectionIndex}-${claimIndex}-${idx}`,
           sectionIndex,
           sectionHeading,
-          sentence: trimmed,
+          sentence: fullSentence,
           claimText: qv.raw,
           claimType,
           subjectEntity,
@@ -319,8 +548,36 @@ export class ClaimExtractionService {
           materiality,
           supportStatus: 'UNSUPPORTED',
           groundedEvidenceIds: [],
-        };
+        });
       });
+
+      // Residual safety: if this same clause ALSO contains an independent commercial promise
+      // that is not just the numeric metric itself, extract it as an independent capability claim.
+      if (isCommercialPromise && !isNegatedCapability && !isHypothetical && !isSkeptical) {
+        const isCompetitor = Boolean(
+          subjectEntity && knownCompetitors.some(c => c.toLowerCase() === subjectEntity.toLowerCase())
+        );
+        const materiality: 'CRITICAL' | 'IMPORTANT' | 'SUPPLEMENTAL' = isCompetitor ? 'IMPORTANT' : 'CRITICAL';
+        const claimType: CanonicalClaimType = isCompetitor ? 'COMPETITOR_ASSERTION' : 'ENTITY_CAPABILITY';
+
+        claims.push({
+          id: `claim-${sectionIndex}-${claimIndex}-${claims.length}`,
+          sectionIndex,
+          sectionHeading,
+          sentence: fullSentence,
+          claimText: trimmed,
+          claimType,
+          subjectEntity,
+          targetEntity,
+          temporalAnchor,
+          confidence: 0.85,
+          materiality,
+          supportStatus: 'UNSUPPORTED',
+          groundedEvidenceIds: [],
+        });
+      }
+
+      return claims;
     }
 
     // Attribution without explicit quantitative value (e.g. "According to Gartner, CRM adoption is accelerating")
@@ -329,7 +586,7 @@ export class ClaimExtractionService {
         id: `claim-${sectionIndex}-${claimIndex}-0`,
         sectionIndex,
         sectionHeading,
-        sentence: trimmed,
+        sentence: fullSentence,
         claimText: trimmed,
         claimType: 'ATTRIBUTION',
         subjectEntity,
@@ -349,7 +606,7 @@ export class ClaimExtractionService {
         id: `claim-${sectionIndex}-${claimIndex}-0`,
         sectionIndex,
         sectionHeading,
-        sentence: trimmed,
+        sentence: fullSentence,
         claimText: trimmed,
         claimType: 'COMPARATIVE',
         subjectEntity,
@@ -368,7 +625,7 @@ export class ClaimExtractionService {
         id: `claim-${sectionIndex}-${claimIndex}-0`,
         sectionIndex,
         sectionHeading,
-        sentence: trimmed,
+        sentence: fullSentence,
         claimText: trimmed,
         claimType: 'COMPETITOR_ASSERTION',
         subjectEntity,
@@ -381,23 +638,34 @@ export class ClaimExtractionService {
       }];
     }
 
-    // Entity capability
-    if (isCapability && subjectEntity) {
+    // Entity capability or commercial product promise
+    if (!isNegatedCapability && !isHypothetical && !isSkeptical && (isCommercialCapability || (isCapability && subjectEntity))) {
       const isTargetBrand = Boolean(
-        targetBrand && subjectEntity.toLowerCase() === targetBrand.toLowerCase()
+        targetBrand && subjectEntity && subjectEntity.toLowerCase() === targetBrand.toLowerCase()
       );
+      const isCompetitor = Boolean(
+        subjectEntity && knownCompetitors.some(c => c.toLowerCase() === subjectEntity.toLowerCase())
+      );
+
+      // Materiality:
+      // - Explicit competitor assertion: IMPORTANT
+      // - Target brand capability: CRITICAL
+      // - Unresolved commercial promise (subject entity absent): CRITICAL (cannot bypass strict validation)
+      const materiality: 'CRITICAL' | 'IMPORTANT' | 'SUPPLEMENTAL' = isCompetitor ? 'IMPORTANT' : 'CRITICAL';
+      const claimType: CanonicalClaimType = isCompetitor ? 'COMPETITOR_ASSERTION' : 'ENTITY_CAPABILITY';
+
       return [{
         id: `claim-${sectionIndex}-${claimIndex}-0`,
         sectionIndex,
         sectionHeading,
-        sentence: trimmed,
+        sentence: fullSentence,
         claimText: trimmed,
-        claimType: 'ENTITY_CAPABILITY',
+        claimType,
         subjectEntity,
         targetEntity,
         temporalAnchor,
         confidence: 0.85,
-        materiality: isTargetBrand ? 'CRITICAL' : 'IMPORTANT',
+        materiality,
         supportStatus: 'UNSUPPORTED',
         groundedEvidenceIds: [],
       }];
@@ -409,7 +677,7 @@ export class ClaimExtractionService {
         id: `claim-${sectionIndex}-${claimIndex}-0`,
         sectionIndex,
         sectionHeading,
-        sentence: trimmed,
+        sentence: fullSentence,
         claimText: trimmed,
         claimType: 'TEMPORAL',
         subjectEntity,
@@ -427,7 +695,7 @@ export class ClaimExtractionService {
       id: `claim-${sectionIndex}-${claimIndex}-0`,
       sectionIndex,
       sectionHeading,
-      sentence: trimmed,
+      sentence: fullSentence,
       claimText: trimmed,
       claimType: 'GENERAL_FACT',
       subjectEntity,
