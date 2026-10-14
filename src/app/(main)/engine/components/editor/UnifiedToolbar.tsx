@@ -55,6 +55,9 @@ export function UnifiedToolbar({
               setIsSaving(true);
               try {
                 await onSave();
+              } catch (err: any) {
+                console.error('[UnifiedToolbar] Save failed:', err);
+                alert('Save failed: ' + (err?.message || 'Failed to save article. Please try again.'));
               } finally {
                 setTimeout(() => setIsSaving(false), 500); // Small delay to show feedback
               }

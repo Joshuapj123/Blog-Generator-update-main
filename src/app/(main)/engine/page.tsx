@@ -42,14 +42,15 @@ function EnginePageContent() {
     }
   }, []);
 
-  // Load Firestore data on mount
+  // Load Firestore data on mount or when user authenticates
   useEffect(() => {
+    if (!user?.uid) return;
     async function init() {
       try {
         const [articles, fold, ext] = await Promise.all([
-          getArticles(),
-          getFolders(),
-          getExternalLinks()
+          getArticles(user!.uid),
+          getFolders().catch(() => []),
+          getExternalLinks().catch(() => [])
         ]);
         const todoArticles = articles.filter(a => a.stage === 'Todo' || a.stage === 'Draft');
         const publishedArticles = articles.filter(a => a.stage === 'Published');
@@ -79,8 +80,7 @@ function EnginePageContent() {
       }
     }
     init();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user?.uid, todoId]);
 
   // Load selected article data into editor state
   useEffect(() => {

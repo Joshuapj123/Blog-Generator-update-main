@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { GenerationPipelineAdapter } from '@/lib/core/GenerationPipelineAdapter';
+import { getAdminAuth } from '@/lib/firebase/admin';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -7,7 +8,38 @@ export const maxDuration = 300;
 
 export async function POST(req: Request) {
   try {
+    // Require and verify Firebase ID token at API boundary
+    const authHeader = req.headers.get('authorization') || '';
+    if (!authHeader || !authHeader.trim()) {
+      return NextResponse.json({ error: 'Unauthorized: Missing Authorization header' }, { status: 401 });
+    }
+
+    const bearerMatch = authHeader.match(/^Bearer\s+(.+)$/i);
+    if (!bearerMatch || !bearerMatch[1].trim()) {
+      return NextResponse.json({ error: 'Unauthorized: Invalid Authorization format' }, { status: 401 });
+    }
+
+    const idToken = bearerMatch[1].trim();
+    let authenticatedUserId: string;
+    try {
+      const adminAuth = await getAdminAuth();
+      const decodedToken = await adminAuth.verifyIdToken(idToken);
+      if (!decodedToken || !decodedToken.uid) {
+        return NextResponse.json({ error: 'Unauthorized: Invalid user credentials' }, { status: 401 });
+      }
+      authenticatedUserId = decodedToken.uid;
+    } catch (authErr: any) {
+      console.error('[API Route] Token verification failed:', authErr?.message || authErr);
+      return NextResponse.json({ 
+        error: 'Unauthorized: Token verification failed',
+        code: authErr?.code || 'AUTH_TOKEN_VERIFICATION_FAILED',
+        message: authErr?.message,
+        nodeVersion: process.version,
+      }, { status: 401 });
+    }
+
     const payload = await req.json();
+    payload.authenticatedUserId = authenticatedUserId;
 
     console.log('[API Route] Routing request through GenerationPipelineAdapter...');
     const encoder = new TextEncoder();

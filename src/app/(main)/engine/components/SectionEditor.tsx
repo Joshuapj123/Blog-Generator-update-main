@@ -878,7 +878,7 @@ export function SectionEditor() {
               onInsertYouTube={() => setShowYT(true)}
               onInsertInternalLink={() => setShowLink('internal')}
               onInsertExternalLink={() => setShowLink('external')}
-              onSave={() => { if (editor) engine.saveCurrentArticle(editor.getHTML()); }}
+              onSave={async () => { if (editor) { await engine.saveCurrentArticle(editor.getHTML()); } }}
               onToggleWeakCopy={() => engine.setEnableWeakCopyDetector(!engine.enableWeakCopyDetector)}
               isWeakCopyEnabled={engine.enableWeakCopyDetector}
               isSidebarOpen={isSidebarOpen}

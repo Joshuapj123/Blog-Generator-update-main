@@ -114,7 +114,7 @@ export const sanitizeForFirestore = (val: any, seen = new WeakSet()): any => {
   return out;
 };
 
-export const saveArticle = async (article: Article, timeoutMs: number = 5000): Promise<string> => {
+export const saveArticle = async (article: Article, timeoutMs: number = 15000): Promise<string> => {
   const currentUid = auth?.currentUser?.uid || article.userId;
   if (!currentUid) {
     throw new Error('Authentication required: A verified user ID is required to persist an article.');
@@ -132,13 +132,18 @@ export const saveArticle = async (article: Article, timeoutMs: number = 5000): P
 
     if (cleanData.id) {
       const docRef = doc(db, "articles", cleanData.id as string);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const existingData = docSnap.data();
-        const existingOwner = existingData?.userId || existingData?.ownerId;
-        if (existingOwner && existingOwner !== currentUid) {
-          throw new Error(`Forbidden: Caller does not have permission to modify article "${cleanData.id}" owned by "${existingOwner}".`);
+      try {
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const existingData = docSnap.data();
+          const existingOwner = existingData?.userId || existingData?.ownerId;
+          if (existingOwner && existingOwner !== currentUid) {
+            throw new Error(`Forbidden: Caller does not have permission to modify article "${cleanData.id}" owned by "${existingOwner}".`);
+          }
         }
+      } catch (err: any) {
+        if (err?.message?.includes('Forbidden')) throw err;
+        // If document does not exist yet or read is not allowed prior to creation, continue to setDoc
       }
       await setDoc(docRef, {
         ...cleanData,

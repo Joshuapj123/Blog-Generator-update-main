@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import { ArticleBlueprint, SectionBlock, KeywordBank } from '@/types/article';
 import { Article, Folder, ExternalLink as ExternalLinkType, saveArticle, deleteArticle } from '@/lib/firebase/firestore';
+import { auth } from '@/lib/firebase/config';
 import { ExtractedDesign } from '@/lib/extract-reference-design';
 import { 
   AiKeywordResult, 
@@ -96,7 +97,7 @@ interface EngineContextType {
   setTiptapContent: (val: string) => void;
   currentArticleId: string | null;
   setCurrentArticleId: (id: string | null) => void;
-  saveCurrentArticle: (htmlContent: string) => Promise<void>;
+  saveCurrentArticle: (htmlContent: string) => Promise<string>;
   editorRef: React.MutableRefObject<Editor | null>;
   highlightWeakTerm: (term: string, category: string) => void;
   highlightAllWeakCopy: (flags: any[]) => void;
@@ -225,14 +226,17 @@ export function EngineProvider({ children }: { children: React.ReactNode }) {
   const editorRef = React.useRef<Editor | null>(null);
   const [activeWeakChip, setActiveWeakChip] = useState<number | null>(null);
 
-  const saveCurrentArticle = async (htmlContent: string) => {
+  const saveCurrentArticle = async (htmlContent: string): Promise<string> => {
     try {
       // If the current stage is Todo, promote it to Draft upon saving.
       // If it is already Draft or Published, preserve that status.
       const newStage = currentArticleStage === 'Todo' ? 'Draft' : currentArticleStage;
+      const currentUid = auth?.currentUser?.uid || undefined;
       
       const savedId = await saveArticle({
         id: currentArticleId || undefined,
+        userId: currentUid,
+        ownerId: currentUid,
         title: title || 'Untitled Draft',
         content: htmlContent,
         folder: 'uncategorized',
@@ -278,8 +282,11 @@ export function EngineProvider({ children }: { children: React.ReactNode }) {
       if (currentArticleStage !== newStage) {
         setCurrentArticleStage(newStage);
       }
-    } catch (e) {
+      return savedId;
+    } catch (e: any) {
       console.error('Failed to save article', e);
+      setGenError(`Failed to save article: ${e?.message || 'Unknown persistence error'}`);
+      throw e;
     }
   };
 

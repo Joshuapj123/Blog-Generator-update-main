@@ -16,7 +16,7 @@ import { useAuth } from '@/lib/firebase/auth-context';
 
 export function ContentDashboard({ onEdit }: { onEdit?: (id: string) => void }) {
   const engine = useEngineOptional();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<'articles' | 'links'>('articles');
   const [articles, setArticles] = useState<Article[]>([]);
   const [externalLinks, setExternalLinks] = useState<ExternalLinkType[]>([]);
@@ -37,24 +37,35 @@ export function ContentDashboard({ onEdit }: { onEdit?: (id: string) => void }) 
   const [articleToDelete, setArticleToDelete] = useState<Article | null>(null);
 
   useEffect(() => {
+    if (authLoading) return;
+
+    if (!user) {
+      setArticles([]);
+      setFolders([]);
+      setExternalLinks([]);
+      setLoading(false);
+      return;
+    }
+
     const fetchAll = async () => {
+      setLoading(true);
       try {
         const [articlesData, foldersData, linksData] = await Promise.all([
-          getArticles(user?.uid), 
-          getFolders(),
-          getExternalLinks()
+          getArticles(user.uid), 
+          getFolders().catch(err => { console.warn('Could not load folders:', err); return []; }),
+          getExternalLinks().catch(err => { console.warn('Could not load links:', err); return []; })
         ]);
         setArticles(articlesData);
         setFolders(foldersData);
         setExternalLinks(linksData);
       } catch (e) {
-        console.error(e);
+        console.error('Failed to load dashboard data:', e);
       } finally {
         setLoading(false);
       }
     };
     fetchAll();
-  }, [user?.uid]);
+  }, [user?.uid, authLoading]);
 
   const updateStage = async (id: string, newStage: 'Todo' | 'Draft' | 'Published') => {
     try {
