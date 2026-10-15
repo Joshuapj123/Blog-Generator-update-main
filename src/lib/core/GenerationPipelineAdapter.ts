@@ -295,10 +295,26 @@ export class GenerationPipelineAdapter {
       requestStartTs: options?.requestStartTs,
     });
 
-    if (!result.success && result.status === 'failed') {
-      const errorList = (result.errors && result.errors.length > 0)
-        ? Array.from(new Set(result.errors.map(e => GenerationPipelineAdapter.sanitizeOrchestrationError(e))))
-        : ['An unexpected error occurred during generation. Please try again.'];
+    const isCriticalFailure =
+      !result ||
+      result.status === 'failed' ||
+      result.review?.finalValidationStatus === 'FAILED' ||
+      result.content?.validationStatus === 'REJECTED' ||
+      (result.review?.criticalErrors && result.review.criticalErrors.length > 0) ||
+      !result.content?.bodyMarkdown ||
+      (result.status === 'partial' && result.review?.finalValidationStatus !== 'PASSED_WITH_WARNINGS');
+
+    if (isCriticalFailure) {
+      const collectedErrors: string[] = [];
+      if (result?.errors && result.errors.length > 0) {
+        collectedErrors.push(...result.errors.map(e => GenerationPipelineAdapter.sanitizeOrchestrationError(e)));
+      }
+      if (result?.review?.criticalErrors && result.review.criticalErrors.length > 0) {
+        collectedErrors.push(...result.review.criticalErrors.map(e => GenerationPipelineAdapter.sanitizeOrchestrationError(e)));
+      }
+      const errorList = collectedErrors.length > 0
+        ? Array.from(new Set(collectedErrors))
+        : ['Content validation failed critical quality gates. Please try again.'];
       throw new Error(`Orchestration execution failed: ${errorList.join(', ')}`);
     }
 
@@ -626,7 +642,7 @@ export class GenerationPipelineAdapter {
   }
 
   public static sanitizeOrchestrationError(e: OrchestrationError | any): string {
-    const rawMsg = e?.message || '';
+    const rawMsg = (typeof e === 'string' ? e : e?.message) || '';
     const stage = e?.stage as AgentStage | undefined;
     const category = e?.category;
     const statusCode = e?.statusCode || e?.status;
