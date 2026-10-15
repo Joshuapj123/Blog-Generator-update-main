@@ -224,6 +224,10 @@ export interface OrchestrationError {
   stage: AgentStage;
   message: string;
   timestamp: string;
+  category?: string;
+  cause?: string;
+  statusCode?: number;
+  code?: string;
 }
 
 export interface OrchestrationResult {
@@ -366,18 +370,45 @@ export class AgentOrchestrator {
     stageExec.completedAt = new Date().toISOString();
     stageExec.durationMs = Date.now() - new Date(stageExec.startedAt).getTime();
     this.budgetGuard.recordStageDuration(stageExec.stage, stageExec.durationMs);
+
+    const errAny = error as any;
+    const causeObj = error.cause as any;
+    const statusCode = errAny.statusCode || errAny.status || causeObj?.statusCode || causeObj?.status;
+    const code = errAny.code || causeObj?.code;
+
+    let category = errAny.category || causeObj?.category;
+    if (!category) {
+      const errStr = `${error.message || ''} ${error.name || ''} ${causeObj?.message || ''} ${code || ''} ${statusCode || ''}`;
+      if (statusCode === 429 || /429|resource_exhausted|rate[- ]?limit|quota/i.test(errStr)) {
+        category = 'RATE_LIMIT';
+      } else if (statusCode === 503 || /503|service[- ]?unavailable|overloaded|capacity/i.test(errStr)) {
+        category = 'CAPACITY';
+      } else if (statusCode === 504 || /504|deadline[- ]?exceeded|timeout/i.test(errStr)) {
+        category = 'TIMEOUT';
+      } else if (/schema|zod|validation|invalid.*brief/i.test(errStr)) {
+        category = 'SCHEMA_VALIDATION';
+      } else {
+        category = 'STAGE_FAILURE';
+      }
+    }
+
+    const causeMsg = error.cause ? String((error.cause as any)?.message || error.cause) : undefined;
     
     const oError: OrchestrationError = {
       stage: stageExec.stage,
       message: error.message,
       timestamp: new Date().toISOString(),
+      ...(category ? { category } : {}),
+      ...(causeMsg ? { cause: causeMsg } : {}),
+      ...(statusCode ? { statusCode: Number(statusCode) } : {}),
+      ...(code ? { code: String(code) } : {}),
     };
     this.errorsList.push(oError);
     this.telemetry.errors.push(error.message);
     const elapsed = this.budgetGuard.getElapsedMs();
-    console.error(`[PIPELINE] ${stageExec.stage.toUpperCase()} ERROR - runId=${this.telemetry.runId} stage=${stageExec.stage} elapsed=${elapsed}ms error=${error.message}`);
+    console.error(`[PIPELINE] ${stageExec.stage.toUpperCase()} ERROR - runId=${this.telemetry.runId} stage=${stageExec.stage} elapsed=${elapsed}ms error=${error.message}${causeMsg ? ` cause=${causeMsg}` : ''}`);
     console.error(`[agent] ${stageExec.stage} failed: ${error.message}`);
-    this.options.onStageUpdate?.(stageExec.stage, "failed", { error: error.message });
+    this.options.onStageUpdate?.(stageExec.stage, "failed", { error: error.message, category, cause: causeMsg });
   }
 
   async run(input: OrchestrationInput): Promise<OrchestrationResult> {
@@ -975,7 +1006,7 @@ Return only the schema-compliant structured object.`;
             planRecovery.finalStatus = 'FALLBACK';
           } catch (fbErr: any) {
             planRecovery.finalStatus = 'FAILED';
-            throw new Error('ACUTE could not complete the planning stage. Please try again.');
+            throw new Error('Deterministic fallback plan creation failed: ' + (fbErr?.message || fbErr), { cause: fbErr });
           }
         }
 
@@ -1043,8 +1074,37 @@ Return only the schema-compliant structured object.`;
       } catch (err: any) {
         planRecovery.finalStatus = 'FAILED';
         this.telemetry.planRecovery = planRecovery;
-        const userSafeMessage = 'ACUTE could not complete the planning stage. Please try again.';
-        const safeError = new Error(userSafeMessage);
+
+        const rawMsg = err?.message || String(err || '');
+        const errStr = `${rawMsg} ${err?.status || ''} ${err?.statusCode || ''} ${err?.code || ''}`;
+        const isRateLimit = err?.status === 429 || err?.statusCode === 429 || /429|resource_exhausted|rate[- ]?limit|quota/i.test(errStr);
+        const isCapacity = err?.status === 503 || err?.statusCode === 503 || /503|service[- ]?unavailable|overloaded|capacity/i.test(errStr);
+        const isTimeout = err?.status === 504 || err?.statusCode === 504 || /504|deadline[- ]?exceeded|timeout/i.test(errStr);
+        const isBudgetExceeded = rawMsg.includes('[Orchestrator Budget Exceeded]') || rawMsg.includes('[Orchestrator Timeout]');
+
+        let userSafeMessage = 'ACUTE could not complete the planning stage. Please try again.';
+        let category = 'PLAN_FAILURE';
+        if (isBudgetExceeded) {
+          userSafeMessage = rawMsg;
+          category = 'BUDGET_EXCEEDED';
+        } else if (isRateLimit) {
+          userSafeMessage = 'AI provider rate limit reached during planning stage. Please wait a moment and try again.';
+          category = 'RATE_LIMIT';
+        } else if (isCapacity) {
+          userSafeMessage = 'AI service temporarily unavailable during planning stage. Please try again shortly.';
+          category = 'CAPACITY';
+        } else if (isTimeout) {
+          userSafeMessage = 'Operation timed out during planning stage. Please try again.';
+          category = 'TIMEOUT';
+        }
+
+        const safeError = new Error(userSafeMessage, { cause: err });
+        if (err?.statusCode || err?.status) (safeError as any).statusCode = err.statusCode || err.status;
+        if (err?.code) (safeError as any).code = err.code;
+        (safeError as any).category = category;
+
+        console.error(`[AgentOrchestrator] Plan stage failed - runId=${this.telemetry.runId} category=${category} error=${rawMsg}`);
+
         if (planStage) {
           this.failStage(planStage, safeError);
         } else {
@@ -1052,6 +1112,10 @@ Return only the schema-compliant structured object.`;
             stage: AgentStage.PLAN,
             message: userSafeMessage,
             timestamp: new Date().toISOString(),
+            cause: rawMsg,
+            category,
+            ...((safeError as any).statusCode ? { statusCode: (safeError as any).statusCode } : {}),
+            ...((safeError as any).code ? { code: (safeError as any).code } : {}),
           });
           this.telemetry.errors.push(userSafeMessage);
         }

@@ -1,5 +1,4 @@
-// src/lib/core/GenerationPipelineAdapter.ts
-import { AgentOrchestrator, AgentStage } from '@/core/orchestrator/AgentOrchestrator';
+import { AgentOrchestrator, AgentStage, OrchestrationError } from '@/core/orchestrator/AgentOrchestrator';
 import { GeminiProvider } from '@/lib/content/GeminiProvider';
 import { SerperProvider } from '@/lib/research/SerperProvider';
 import { PlaywrightProvider } from '@/lib/research/PlaywrightProvider';
@@ -297,20 +296,10 @@ export class GenerationPipelineAdapter {
     });
 
     if (!result.success && result.status === 'failed') {
-      const sanitizedErrors = result.errors.map(e => {
-        const msg = e.message || '';
-        if (
-          msg.includes('No object generated') ||
-          msg.includes('ZodError') ||
-          msg.includes('validationResult') ||
-          msg.includes('GeminiProvider') ||
-          msg.includes('AgentOrchestrator')
-        ) {
-          return 'ACUTE could not complete the planning stage. Please try again.';
-        }
-        return msg;
-      }).join(', ');
-      throw new Error(`Orchestration execution failed: ${sanitizedErrors}`);
+      const errorList = (result.errors && result.errors.length > 0)
+        ? Array.from(new Set(result.errors.map(e => GenerationPipelineAdapter.sanitizeOrchestrationError(e))))
+        : ['An unexpected error occurred during generation. Please try again.'];
+      throw new Error(`Orchestration execution failed: ${errorList.join(', ')}`);
     }
 
     // 6. Map final ContentAsset to legacy response shape
@@ -634,5 +623,152 @@ export class GenerationPipelineAdapter {
       console.warn('YouTube search fetch failed:', e);
       return null;
     }
+  }
+
+  public static sanitizeOrchestrationError(e: OrchestrationError | any): string {
+    const rawMsg = e?.message || '';
+    const stage = e?.stage as AgentStage | undefined;
+    const category = e?.category;
+    const statusCode = e?.statusCode || e?.status;
+    const code = e?.code;
+    const causeStr = typeof e?.cause === 'string' ? e.cause : (e?.cause?.message || '');
+    const combined = `${rawMsg} ${causeStr} ${code || ''} ${statusCode || ''}`;
+
+    // 1. Budget exceeded or Timeout must remain intact
+    if (rawMsg.includes('[Orchestrator Budget Exceeded]')) {
+      return rawMsg;
+    }
+    if (rawMsg.includes('[Orchestrator Timeout]')) {
+      return rawMsg;
+    }
+
+    // 2. Classify Rate Limit (HTTP 429 / RESOURCE_EXHAUSTED / quota)
+    const isRateLimit =
+      category === 'RATE_LIMIT' ||
+      statusCode === 429 ||
+      code === 'RESOURCE_EXHAUSTED' ||
+      /\b429\b|resource_exhausted|rate[- ]?limit|quota\s*exceeded/i.test(combined);
+
+    if (isRateLimit) {
+      const stageLabel = stage ? this.formatStageName(stage) : '';
+      return stageLabel
+        ? `AI provider rate limit reached during ${stageLabel} stage. Please wait a moment and try again.`
+        : 'AI provider rate limit reached. Please wait a moment and try again.';
+    }
+
+    // 3. Classify Temporary Capacity / Overloaded (HTTP 503)
+    const isCapacity =
+      category === 'CAPACITY' ||
+      statusCode === 503 ||
+      /\b503\b|service[- ]?unavailable|overloaded|high\s*demand/i.test(combined);
+
+    if (isCapacity) {
+      const stageLabel = stage ? this.formatStageName(stage) : '';
+      return stageLabel
+        ? `AI service temporarily unavailable during ${stageLabel} stage. Please try again shortly.`
+        : 'AI service temporarily unavailable. Please try again shortly.';
+    }
+
+    // 4. Classify Timeout (HTTP 504 / DEADLINE_EXCEEDED)
+    const isTimeout =
+      category === 'TIMEOUT' ||
+      statusCode === 504 ||
+      code === 'DEADLINE_EXCEEDED' ||
+      /\b504\b|deadline[- ]?exceeded|timed?\s*out/i.test(combined);
+
+    if (isTimeout) {
+      const stageLabel = stage ? this.formatStageName(stage) : '';
+      return stageLabel
+        ? `Operation timed out during ${stageLabel} stage. Please try again.`
+        : 'Operation timed out. Please try again.';
+    }
+
+    // 5. Stage-specific classification
+    if (stage === AgentStage.PLAN) {
+      return 'ACUTE could not complete the planning stage. Please try again.';
+    }
+
+    if (stage === AgentStage.GENERATE) {
+      return 'Content generation encountered an error while drafting sections. Please try again.';
+    }
+
+    if (stage === AgentStage.REVIEW) {
+      return 'Content quality review encountered an error. Please try again.';
+    }
+
+    if (stage === AgentStage.RESEARCH || stage === AgentStage.DISCOVER || stage === AgentStage.SAAS_INTELLIGENCE) {
+      return 'Research and intelligence gathering encountered an error. Please try again.';
+    }
+
+    if (stage === AgentStage.SEARCH_OPPORTUNITY || stage === AgentStage.GEO_INTELLIGENCE) {
+      return 'Market intelligence analysis encountered an error. Please try again.';
+    }
+
+    if (stage === AgentStage.ASSET_STRATEGY) {
+      return 'Asset strategy planning encountered an error. Please try again.';
+    }
+
+    if (stage === AgentStage.FINALIZE) {
+      return 'Finalizing article content encountered an error. Please try again.';
+    }
+
+    // 6. Clean and sanitize fallback for unmapped or missing stage
+    return this.cleanUserSafeMessage(rawMsg, stage);
+  }
+
+  public static formatStageName(stage: AgentStage | string): string {
+    const s = String(stage).toUpperCase();
+    switch (s) {
+      case 'PLAN': return 'planning';
+      case 'GENERATE': return 'content drafting';
+      case 'REVIEW': return 'quality review';
+      case 'RESEARCH': return 'research';
+      case 'DISCOVER': return 'discovery';
+      case 'SAAS_INTELLIGENCE': return 'business intelligence';
+      case 'SEARCH_OPPORTUNITY': return 'search opportunity';
+      case 'GEO_INTELLIGENCE': return 'market intelligence';
+      case 'ASSET_STRATEGY': return 'asset strategy';
+      case 'FINALIZE': return 'finalization';
+      default: return s.toLowerCase();
+    }
+  }
+
+  public static cleanUserSafeMessage(rawMsg: string, stage?: AgentStage | string): string {
+    if (!rawMsg || typeof rawMsg !== 'string') {
+      return 'An unexpected error occurred during generation. Please try again.';
+    }
+
+    // Check if the message contains technical internals, stack traces, zod errors, or provider names
+    const hasInternals =
+      /ZodError|No object generated|GeminiProvider|validationResult|AgentOrchestrator|SyntaxError|TypeError|ReferenceError/i.test(rawMsg) ||
+      /\s+at\s+.*:\d+:\d+/i.test(rawMsg) ||
+      /[A-Za-z]:\\[^:\n]+/i.test(rawMsg) ||
+      /\/(?:Users|home|app|var|node_modules)\/[^:\n]+/i.test(rawMsg);
+
+    if (hasInternals) {
+      if (stage) {
+        const stageLabel = this.formatStageName(stage);
+        return `${stageLabel.charAt(0).toUpperCase() + stageLabel.slice(1)} stage encountered an unexpected error. Please try again.`;
+      }
+      return 'An unexpected error occurred during generation. Please try again.';
+    }
+
+    // Redact tokens/credentials
+    let cleaned = rawMsg
+      .replace(/AIza[0-9A-Za-z_-]+/g, '[REDACTED_API_KEY]')
+      .replace(/sk-[0-9A-Za-z_-]{15,}/g, '[REDACTED_API_KEY]')
+      .replace(/Bearer\s+[A-Za-z0-9._~+/-]+=*/gi, 'Bearer [REDACTED_TOKEN]')
+      .replace(/(?:key|token|secret|password|auth|apiKey)=([^\s&]+)/gi, '$1=[REDACTED]');
+
+    // Strip file paths if any remain
+    cleaned = cleaned.replace(/[A-Za-z]:\\[\w\s.-]+(?:\\[\w\s.-]+)*/g, '[PATH]');
+    cleaned = cleaned.replace(/\/(?:[\w.-]+\/)+[\w.-]+/g, '[PATH]');
+
+    // Trim length
+    if (cleaned.length > 200) {
+      cleaned = cleaned.slice(0, 197) + '...';
+    }
+
+    return cleaned.trim() || 'An unexpected error occurred during generation. Please try again.';
   }
 }
