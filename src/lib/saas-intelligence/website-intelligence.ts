@@ -85,12 +85,31 @@ export class WebsiteIntelligenceService {
     }
 
     const cleanHtml = cleanHtmlContent(html);
-    
-    // Strategy 1: Safe homepage DOM cleaning (retaining nav, header, footer, and class*="widget" layout elements)
+    // Strategy 1: Safe homepage DOM cleaning
     const dom1 = new JSDOM(cleanHtml, { url });
     const doc1 = dom1.window.document;
     this.cleanHomepageDom(doc1);
-    let textContent = doc1.body?.textContent || '';
+
+    // Priority 1: Extract substantive content container (<main>, <article>, #content, etc.)
+    const mainEl = doc1.querySelector('main, article, #content, .main-content, [role="main"]');
+    let textContent = '';
+    const mainCleaned = mainEl ? (mainEl.textContent || '').replace(/\s+/g, ' ').trim() : '';
+
+    if (mainCleaned.length >= 80) {
+      textContent = mainCleaned;
+    } else {
+      // If substantive text exists outside nav/header/footer, prune nav/header/footer to prevent navigation noise
+      const docClone = new JSDOM(cleanHtml, { url }).window.document;
+      this.cleanHomepageDom(docClone);
+      docClone.querySelectorAll('nav, header, footer').forEach(el => el.remove());
+      const bodyWithoutNav = (docClone.body?.textContent || '').replace(/\s+/g, ' ').trim();
+      if (bodyWithoutNav.length >= 80) {
+        textContent = bodyWithoutNav;
+      } else {
+        textContent = doc1.body?.textContent || '';
+      }
+    }
+
     let cleanedText = textContent.replace(/\s+/g, ' ').trim();
 
     // Safeguard 1: If extracted text is suspiciously small (< 40 chars), fall back to raw JSDOM text without pruning
@@ -136,6 +155,38 @@ export class WebsiteIntelligenceService {
 
     // Truncate to limit token costs while preserving primary branding/copy
     const cleanedText = textContent.trim().slice(0, 12000);
+
+    // Guard against sparse/empty pages forcing hallucinations
+    if (cleanedText.length < 80) {
+      console.warn(`[website-intelligence] Website text is sparse (${cleanedText.length} chars) for ${url}. Using conservative fallback profile without inventing features.`);
+      const resolvedHost = safety.url?.hostname || new URL(url).hostname;
+      const cleanHost = resolvedHost.replace(/^www\./i, '');
+      const brandRaw = cleanHost.split('.')[0] || 'Brand';
+      const brandName = brandRaw.charAt(0).toUpperCase() + brandRaw.slice(1);
+
+      const fallbackProfile: SaaSProfile = {
+        name: brandName,
+        website: safety.normalizedUrl || url,
+        description: `${brandName} web platform.`,
+        keyFeatures: [],
+        primaryCompetitors: [],
+        targetAudience: 'Business and technical professionals',
+        tone: 'Professional and authoritative',
+        customInsights: ''
+      };
+
+      const fallbackKeywords = [
+        `${brandRaw} software`,
+        `${brandRaw} platform`,
+        `best ${brandRaw} alternatives`,
+        `${brandRaw} review`
+      ];
+
+      return {
+        profile: fallbackProfile,
+        candidateKeywords: fallbackKeywords
+      };
+    }
 
     // 3. Structured SaaSProfile extraction
     const profilePrompt = `You are an elite business analyst. Analyze the following website homepage content to extract details for this business/SaaS:
@@ -231,7 +282,7 @@ MANDATORY REBALANCING RULES:
     return {
       profile: {
         ...profile,
-        website: url
+        website: safety.normalizedUrl || url
       },
       candidateKeywords: finalKeywords
     };

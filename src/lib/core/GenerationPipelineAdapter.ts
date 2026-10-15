@@ -288,7 +288,19 @@ export class GenerationPipelineAdapter {
     const sitemapDomain = payload.saasProfile?.website || payload.referenceData?.url;
     if (sitemapDomain) {
       try {
-        const cached = SitemapDiscoveryService.getCachedRecommendations(sitemapDomain);
+        let cached = SitemapDiscoveryService.getCachedRecommendations(sitemapDomain);
+        if (!cached) {
+          try {
+            cached = await SitemapDiscoveryService.getInternalLinkRecommendationsSafe({
+              domain: sitemapDomain,
+              topic: payload.title || payload.topic || '',
+              targetKeyword: payload.targetKeywords || '',
+              timeoutMs: 4000
+            });
+          } catch (discErr) {
+            console.warn('[Adapter] Cold-cache prefetch failed for sitemapDomain:', discErr);
+          }
+        }
         if (cached && cached.candidates && cached.candidates.length > 0) {
           internalLinks = cached.candidates.map(c => c.url).filter(Boolean).slice(0, 5);
         }
@@ -377,7 +389,19 @@ export class GenerationPipelineAdapter {
       let candidatePool: RawLinkInput[] | undefined;
       if (targetDomain) {
         try {
-          const cached = SitemapDiscoveryService.getCachedRecommendations(targetDomain);
+          let cached = SitemapDiscoveryService.getCachedRecommendations(targetDomain);
+          if (!cached) {
+            try {
+              cached = await SitemapDiscoveryService.getInternalLinkRecommendationsSafe({
+                domain: targetDomain,
+                topic: finalArticle.title,
+                targetKeyword: payload.targetKeywords || '',
+                timeoutMs: 4000
+              });
+            } catch (discErr) {
+              console.warn('[Adapter] Failed cold-cache discovery for LQE candidate pool:', discErr);
+            }
+          }
           if (cached && cached.candidates) {
             candidatePool = cached.candidates.map(c => ({
               title: c.title || c.suggestedAnchor || 'Internal Resource',
@@ -400,6 +424,12 @@ export class GenerationPipelineAdapter {
           allowDegradedQuality: true
         }
       );
+
+      // Synchronize persisted markdown with LQE's selected links
+      if (finalAsset?.bodyMarkdown) {
+        const selected = finalArticle.diagnostics?.linkQuality?.selectedLinks || [];
+        finalAsset.bodyMarkdown = LinkQualityEngine.rewriteMarkdown(finalAsset.bodyMarkdown, selected);
+      }
     } catch (err: any) {
       console.warn('[Adapter] Link Quality Engine Post-processing Fallback:', err?.message || err);
       if (finalArticle) {

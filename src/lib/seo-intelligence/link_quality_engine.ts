@@ -1,5 +1,6 @@
 import { URL } from 'url';
 import { SitemapDiscoveryService } from '@/lib/research/SitemapDiscoveryService';
+import { isSameDomainOrSubdomain, normalizeDomainHost } from '@/lib/research/url-verifier';
 
 export interface RawLinkInput {
   title: string; // The raw entity name/anchor
@@ -469,6 +470,7 @@ export class LinkQualityEngine {
       relevanceScore: number;
       finalScore: number;
       isOfficial: boolean;
+      isTargetDomain?: boolean;
       selectionReason: string;
     }> = [];
 
@@ -493,16 +495,48 @@ export class LinkQualityEngine {
         continue; // Skip invalid entity mappings
       }
 
-      // Determine if official vendor
+      // Determine if official vendor and verify target domain internal links
       let isOfficial = false;
+      let isTargetDomain = false;
+      let isDiscoveredTargetCandidate = false;
       try {
         const parsed = new URL(canonicalURL);
         const host = parsed.hostname.toLowerCase();
         isOfficial = vendors.some(v => host.includes(v.toLowerCase()) || v.toLowerCase().includes(host.split('.')[0]));
-        if (!isOfficial && options?.targetDomain) {
-          const targetHost = new URL(options.targetDomain).hostname.toLowerCase();
-          if (host === targetHost || host.endsWith('.' + targetHost)) {
+
+        const targetHost = options?.targetDomain ? normalizeDomainHost(options.targetDomain) : null;
+        const candidateHost = normalizeDomainHost(canonicalURL);
+        const isLookalike = Boolean(
+          targetHost &&
+          candidateHost &&
+          candidateHost !== targetHost &&
+          !candidateHost.endsWith('.' + targetHost) &&
+          candidateHost.includes(targetHost.split('.')[0])
+        );
+        if (isLookalike) {
+          continue; // Reject lookalike domains impersonating the target brand
+        }
+
+        if (options?.targetDomain && isSameDomainOrSubdomain(canonicalURL, options.targetDomain)) {
+          isTargetDomain = true;
+          if (options.candidatePool && options.candidatePool.length > 0) {
+            isDiscoveredTargetCandidate = options.candidatePool.some(cand => {
+              try {
+                return Boolean(cand.url && URLNormalizer.canonicalize(cand.url) === canonicalURL);
+              } catch {
+                return false;
+              }
+            });
+          } else {
+            // If no candidate pool is provided, only the root homepage path is allowed as verified
+            const pathname = parsed.pathname.replace(/\/+$/, '');
+            isDiscoveredTargetCandidate = pathname === '' || pathname === '/';
+          }
+
+          if (isDiscoveredTargetCandidate) {
             isOfficial = true;
+          } else {
+            isOfficial = false;
           }
         }
       } catch {}
@@ -514,7 +548,17 @@ export class LinkQualityEngine {
       const relevanceScore = LinkScorer.getRelevance(canonicalURL, canonicalEntity, articleTopic, keywords);
 
       // Stage 3: Authority Scoring
-      const authorityScore = LinkScorer.getAuthority(canonicalURL, category, isOfficial, relevanceScore);
+      let authorityScore = LinkScorer.getAuthority(canonicalURL, category, isOfficial, relevanceScore);
+
+      // If this is an internal link on the target domain that was not discovered in the candidate pool or sitemap,
+      // it must receive authority 0 and be stripped/excluded
+      if (isTargetDomain && !isDiscoveredTargetCandidate) {
+        authorityScore = 0;
+      }
+
+      if (authorityScore === 0) {
+        continue;
+      }
 
       // Stage 10: Final Ranking Combined Score
       const entityImportance = isOfficial ? 1.3 : 1.0;
@@ -539,6 +583,7 @@ export class LinkQualityEngine {
         relevanceScore,
         finalScore,
         isOfficial,
+        isTargetDomain,
         selectionReason
       });
     }
@@ -609,8 +654,8 @@ export class LinkQualityEngine {
         continue;
       }
 
-      // Strict Deduplication: Limit references to exactly one URL per domain/product
-      if (seenBaseDomains.has(baseDomain)) {
+      // Strict Deduplication: Limit references to exactly one URL per domain/product for external domains
+      if (!c.isTargetDomain && seenBaseDomains.has(baseDomain)) {
         continue;
       }
 
@@ -651,7 +696,9 @@ export class LinkQualityEngine {
       // Accept
       seenEntities.add(c.entity.toLowerCase());
       seenUrls.add(c.canonicalURL);
-      seenBaseDomains.add(baseDomain);
+      if (!c.isTargetDomain) {
+        seenBaseDomains.add(baseDomain);
+      }
       if (associatedProduct) {
         seenProducts.add(associatedProduct);
       }
@@ -967,6 +1014,34 @@ export class LinkQualityEngine {
     return rawLinks;
   }
 
+  static rewriteMarkdown(markdown: string, allowedLinks: FilteredLinkOutput[]): string {
+    if (!markdown) return '';
+    const allowedMap = new Map<string, string>();
+    for (const l of allowedLinks) {
+      const norm = URLNormalizer.canonicalize(l.canonicalURL);
+      allowedMap.set(norm, l.canonicalURL);
+    }
+
+    const sanitizeErrors = (text: string | undefined): string => {
+      if (!text) return '';
+      return text.replace(/!?Link Quality Engine (?:Post-processing|Validation) Failed:[^\n]*/gi, '').trim();
+    };
+
+    const cleaned = sanitizeErrors(markdown);
+    return cleaned.replace(/(!?)\[([^\]]+)\]\(([^)]+)\)/g, (match, excl, anchor, url) => {
+      if (excl === '!' || url.startsWith('data:image/') || url.startsWith('data:')) {
+        return match; // Preserve images and data URIs intact!
+      }
+      const normUrl = URLNormalizer.canonicalize(url);
+      const allowedCanonical = allowedMap.get(normUrl);
+      if (allowedCanonical) {
+        return `[${anchor}](${allowedCanonical})`;
+      } else {
+        return anchor; // Strip to plain text
+      }
+    });
+  }
+
   static rewriteArticle(article: any, allowedLinks: FilteredLinkOutput[]): any {
     const allowedMap = new Map<string, string>();
     for (const l of allowedLinks) {
@@ -1015,6 +1090,10 @@ export class LinkQualityEngine {
 
     if (newArticle.title) {
       newArticle.title = sanitizeErrors(newArticle.title);
+    }
+
+    if (typeof newArticle.bodyMarkdown === 'string') {
+      newArticle.bodyMarkdown = this.rewriteMarkdown(newArticle.bodyMarkdown, allowedLinks);
     }
 
     if (newArticle.intro) {

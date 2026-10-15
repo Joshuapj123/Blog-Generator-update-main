@@ -104,3 +104,46 @@ export async function verifyUrlSafety(urlString: string): Promise<{ safe: boolea
     return { safe: false, error: `Malformed URL: ${err.message}` };
   }
 }
+
+/**
+ * Normalizes a URL string or hostname into a clean lowercase hostname without 'www.' prefix.
+ */
+export function normalizeDomainHost(urlOrHost: string): string | null {
+  if (!urlOrHost || typeof urlOrHost !== 'string') return null;
+  let raw = urlOrHost.trim().toLowerCase();
+  if (!raw) return null;
+  if (!/^https?:\/\//i.test(raw)) {
+    raw = `https://${raw}`;
+  }
+  try {
+    const parsed = new URL(raw);
+    let host = parsed.hostname.toLowerCase().trim();
+    if (host.startsWith('www.')) {
+      host = host.slice(4);
+    }
+    return host || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Robustly checks if candidate URL or hostname matches the target domain or is a valid subdomain.
+ * Prevents lookalike domains (e.g., 'competitor-brand.com' vs 'brand.com') and attacker suffix
+ * domains (e.g., 'brand.com.attacker.org') from matching.
+ */
+export function isSameDomainOrSubdomain(candidateUrlOrHost: string, targetUrlOrHost: string): boolean {
+  const candidateHost = normalizeDomainHost(candidateUrlOrHost);
+  const targetHost = normalizeDomainHost(targetUrlOrHost);
+  if (!candidateHost || !targetHost) return false;
+
+  // Exact domain match (ignoring www)
+  if (candidateHost === targetHost) return true;
+
+  // Valid subdomain boundary match (e.g., 'blog.brand.com' matches 'brand.com')
+  if (candidateHost.endsWith(`.${targetHost}`)) {
+    return true;
+  }
+
+  return false;
+}

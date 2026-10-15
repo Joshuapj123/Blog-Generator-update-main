@@ -54,6 +54,14 @@ export class SectionEvidenceMapper {
         intent = 'ANSWER';
       }
 
+      // Determine if this section is brand-relevant or should remain neutral/educational
+      const isBrandSection =
+        normHeading.includes(brandName.toLowerCase()) ||
+        Boolean(node.assignedEntities && node.assignedEntities.some(e => e.toLowerCase() === brandName.toLowerCase())) ||
+        intent === 'COMPARE' ||
+        intent === 'PROVE' ||
+        i === outline.length - 1; // Closing / takeaway section
+
       // 2. Select Relevant Evidence Items
       const headingTokens = new Set(
         normHeading.split(/\s+/).filter(t => t.length > 3 && !['with', 'from', 'your', 'this', 'that', 'software', 'development'].includes(t))
@@ -79,7 +87,10 @@ export class SectionEvidenceMapper {
 
       // If fewer than 2 evidence items matched specifically, allocate general business/research facts
       if (assignedEvidence.length < 2 && allEvidence.length > 0) {
-        const fallbackItems = allEvidence.filter(e => !assignedEvidence.some(a => a.id === e.id));
+        const pool = isBrandSection
+          ? allEvidence
+          : allEvidence.filter(e => e.sourceType !== 'TARGET_SITE' && !e.entities?.some(ent => ent.toLowerCase() === brandName.toLowerCase()));
+        const fallbackItems = pool.filter(e => !assignedEvidence.some(a => a.id === e.id));
         assignedEvidence.push(...fallbackItems.slice(0, 2 - assignedEvidence.length));
       }
 
@@ -104,16 +115,22 @@ export class SectionEvidenceMapper {
       // 4. Required Entities
       const requiredEntities = [
         ...(node.assignedEntities || []),
-        brandName,
+        ...(isBrandSection ? [brandName] : []),
       ].filter((v, idx, a) => v && a.indexOf(v) === idx);
 
       // 5. Section-Specific Target Business Facts
-      const targetBusinessFacts = verifiedBizFacts.filter(fact => {
-        const normFact = fact.toLowerCase();
-        return Array.from(headingTokens).some(t => normFact.includes(t)) || 
-          assignedEvidence.some(e => e.claim === fact);
-      });
-      if (targetBusinessFacts.length === 0 && verifiedBizFacts.length > 0) {
+      const targetBusinessFacts = isBrandSection
+        ? verifiedBizFacts.filter(fact => {
+            const normFact = fact.toLowerCase();
+            return Array.from(headingTokens).some(t => normFact.includes(t)) ||
+              assignedEvidence.some(e => e.claim === fact);
+          })
+        : verifiedBizFacts.filter(fact => {
+            const normFact = fact.toLowerCase();
+            return Array.from(headingTokens).some(t => normFact.includes(t));
+          });
+
+      if (targetBusinessFacts.length === 0 && verifiedBizFacts.length > 0 && isBrandSection) {
         targetBusinessFacts.push(verifiedBizFacts[i % verifiedBizFacts.length]);
       }
 

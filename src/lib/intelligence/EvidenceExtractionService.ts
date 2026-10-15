@@ -9,6 +9,7 @@ import {
 import { SaaSProfile } from '@/core/contracts/schemas';
 import { SearchResult, ScrapeResult } from '@/core/contracts/providers';
 import { LinkSafetyValidator } from '@/lib/seo-intelligence/link_quality_engine';
+import { isSameDomainOrSubdomain } from '@/lib/research/url-verifier';
 
 export interface EvidenceExtractionInput {
   saasProfile?: SaaSProfile;
@@ -37,16 +38,17 @@ export class EvidenceExtractionService {
       if (seenClaims.has(normClaim)) return;
       seenClaims.add(normClaim);
 
-      // 2. Validate URL safety if URL is present
+      // 2. Validate URL safety if URL is present (remove fabricated internal URLs)
       let safeUrl = (item.sourceUrl || '').trim();
       if (safeUrl) {
-        const safety = LinkSafetyValidator.isSafeUrl(safeUrl);
-        if (!safety.safe) {
-          // Fall back to target site or omit dangerous URL
-          safeUrl = input.saasProfile?.website || 'https://verified-research.internal';
+        if (safeUrl.includes('.internal') || safeUrl.includes('target-business')) {
+          safeUrl = '';
+        } else {
+          const safety = LinkSafetyValidator.isSafeUrl(safeUrl);
+          if (!safety.safe) {
+            safeUrl = '';
+          }
         }
-      } else {
-        safeUrl = input.saasProfile?.website || 'https://verified-research.internal';
       }
 
       const id = `${item.idPrefix || 'ev'}_${items.length + 1}`;
@@ -71,7 +73,7 @@ export class EvidenceExtractionService {
     // 1. Extract BUSINESS_FACT from Target SaaS Profile
     if (input.saasProfile) {
       const p = input.saasProfile;
-      const targetUrl = p.website || 'https://target-business.internal';
+      const targetUrl = (p.website && !p.website.includes('.internal')) ? p.website : '';
       const brandName = p.name || 'Target Business';
 
       if (p.description) {
@@ -167,52 +169,101 @@ export class EvidenceExtractionService {
       }
     }
 
-    // 3. Extract COMPETITOR_OBSERVATION from Scraped Competitor Content
+    // 3. Extract Observations from Scraped Content
     if (Array.isArray(input.scrapeResults)) {
+      const targetWebsite = input.saasProfile?.website;
+      const brandName = input.saasProfile?.name || 'Target Business';
+      const competitorDomains: string[] = [
+        ...(input.saasProfile?.primaryCompetitors || []),
+        ...((input.saasIntelligenceProfile?.market?.competitors || []).map((c: any) => c.domain || c.website || c.name || ''))
+      ].filter(Boolean);
+
       for (const scrape of input.scrapeResults.slice(0, 3)) {
         if (!scrape.textContent && !scrape.title) continue;
         
-        // Extract key factual paragraphs or headings from competitor text
+        const isTarget = Boolean(targetWebsite && isSameDomainOrSubdomain(scrape.url, targetWebsite));
+        const isCompetitor = Boolean(
+          !isTarget && (
+            competitorDomains.some(cd => isSameDomainOrSubdomain(scrape.url, cd) || (scrape.title && scrape.title.toLowerCase().includes(cd.toLowerCase()))) ||
+            scrape.url.toLowerCase().includes('competitor') ||
+            (scrape.title && scrape.title.toLowerCase().includes('competitor'))
+          )
+        );
+
+        // Extract key factual paragraphs or headings from text
         const paras = (scrape.textContent || '')
           .split('\n')
           .map(p => p.trim())
           .filter(p => p.length > 50 && p.length < 350 && !p.toLowerCase().includes('cookie') && !p.toLowerCase().includes('privacy policy'));
 
-        // Take up to 2 distinct observation paragraphs per competitor
+        // Take up to 2 distinct observation paragraphs per scraped page
         for (const para of paras.slice(0, 2)) {
           // Check if paragraph contains statistical claims
           const hasStatistic = /\b\d+(?:\.\d+)?%|\$\d+(?:,\d+)?|\b\d+\s+(?:days|hours|years|clients|projects|engineers)\b/i.test(para);
           
-          addEvidence({
-            idPrefix: 'comp',
-            sourceUrl: scrape.url,
-            sourceTitle: scrape.title || 'Competitor Analysis',
-            sourceType: 'COMPETITOR',
-            claim: `Competitor observation (${scrape.title || scrape.url}): ${para}`,
-            evidenceType: hasStatistic ? 'STATISTIC' : 'COMPETITOR_OBSERVATION',
-            confidence: 'MEDIUM',
-            extractedFrom: para,
-            entities: [scrape.title || 'Competitor'],
-            topics: ['competitor_landscape', 'market_standards'],
-            citationRequired: true,
-          });
+          if (isTarget) {
+            // Target website content scraped during research: retain target domain provenance
+            addEvidence({
+              idPrefix: 'target_scrape',
+              sourceUrl: scrape.url,
+              sourceTitle: scrape.title || `${brandName} Official Page`,
+              sourceType: 'TARGET_SITE',
+              claim: `Target site content (${scrape.title || scrape.url}): ${para}`,
+              evidenceType: hasStatistic ? 'STATISTIC' : 'FACT',
+              confidence: 'MEDIUM',
+              extractedFrom: para,
+              entities: [brandName],
+              topics: ['target_offerings', 'verified_context'],
+              citationRequired: false,
+            });
+          } else if (isCompetitor) {
+            // Competitor observation
+            addEvidence({
+              idPrefix: 'comp',
+              sourceUrl: scrape.url,
+              sourceTitle: scrape.title || 'Competitor Analysis',
+              sourceType: 'COMPETITOR',
+              claim: `Competitor observation (${scrape.title || scrape.url}): ${para}`,
+              evidenceType: hasStatistic ? 'STATISTIC' : 'COMPETITOR_OBSERVATION',
+              confidence: 'MEDIUM',
+              extractedFrom: para,
+              entities: [scrape.title || 'Competitor'],
+              topics: ['competitor_landscape', 'market_standards'],
+              citationRequired: true,
+            });
+          } else {
+            // Third-party / unverified industry source
+            addEvidence({
+              idPrefix: 'third_party',
+              sourceUrl: scrape.url,
+              sourceTitle: scrape.title || 'Third-Party Research',
+              sourceType: 'OTHER',
+              claim: `Third-party research (${scrape.title || scrape.url}): ${para}`,
+              evidenceType: hasStatistic ? 'STATISTIC' : 'INDUSTRY_CLAIM',
+              confidence: 'MEDIUM',
+              extractedFrom: para,
+              entities: [scrape.title || 'Research Source'],
+              topics: ['industry_context', 'market_standards'],
+              citationRequired: true,
+            });
+          }
         }
       }
     }
 
-    // 4. Extract SaaS Intelligence Profile & Market Differentiators
+    // 4. Extract SaaS Intelligence Profile & Market Differentiators (Strictly typed as INFERENCE)
     if (input.saasIntelligenceProfile) {
       const sp = input.saasIntelligenceProfile;
       const diffs = sp.product?.differentiators || [];
       for (const diff of diffs) {
         addEvidence({
           idPrefix: 'diff',
-          sourceUrl: input.saasProfile?.website || 'https://target-business.internal',
-          sourceTitle: 'SaaS Market Differentiator',
-          sourceType: 'TARGET_SITE',
-          claim: `Verified Value Proposition: ${diff}`,
-          evidenceType: 'BUSINESS_FACT',
-          confidence: 'HIGH',
+          sourceUrl: '',
+          sourceTitle: 'Market Differentiation Hypothesis',
+          sourceType: 'OTHER',
+          claim: `Inferred Differentiator: ${diff}`,
+          evidenceType: 'INFERENCE',
+          confidence: 'LOW',
           extractedFrom: diff,
           entities: [input.saasProfile?.name || 'SaaS Platform'],
           topics: ['market_differentiation'],
@@ -224,12 +275,12 @@ export class EvidenceExtractionService {
       for (const pp of painPoints) {
         addEvidence({
           idPrefix: 'pain',
-          sourceUrl: input.saasProfile?.website || 'https://target-business.internal',
+          sourceUrl: '',
           sourceTitle: 'Customer Problem Space',
-          sourceType: 'INDUSTRY',
-          claim: `Researched Buyer Problem: ${pp}`,
-          evidenceType: 'FACT',
-          confidence: 'MEDIUM',
+          sourceType: 'OTHER',
+          claim: `Inferred Buyer Problem: ${pp}`,
+          evidenceType: 'INFERENCE',
+          confidence: 'LOW',
           extractedFrom: pp,
           entities: [],
           topics: ['customer_pain_points', 'problem_validation'],
@@ -242,9 +293,10 @@ export class EvidenceExtractionService {
     if (input.saasProfile && input.opportunities && input.opportunities.length > 0) {
       const opp = input.opportunities[0];
       if (opp.supportingTerms && opp.supportingTerms.length > 0) {
+        const targetUrl = (input.saasProfile.website && !input.saasProfile.website.includes('.internal')) ? input.saasProfile.website : '';
         addEvidence({
           idPrefix: 'inf',
-          sourceUrl: input.saasProfile.website || 'https://target-business.internal',
+          sourceUrl: targetUrl,
           sourceTitle: 'Search Opportunity Synthesis',
           sourceType: 'OTHER',
           claim: `Editorial Inference: Buyers exploring "${opp.keyword || input.targetKeyword}" likely evaluate complementary capabilities like ${opp.supportingTerms.slice(0, 3).join(', ')}.`,

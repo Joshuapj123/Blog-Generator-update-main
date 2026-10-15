@@ -257,14 +257,20 @@ export class ClaimGroundingEngine {
     }
 
     // B. Entity compatibility
+    // P0 / Phase 4: Inferences and low-confidence items cannot ground CRITICAL claims
+    if (claim.materiality === 'CRITICAL' && (ev.evidenceType === 'INFERENCE' || ev.confidence === 'LOW')) {
+      return false;
+    }
+
     const claimComp = (claim.subjectEntity && knownCompetitors.some(c => c.toLowerCase() === claim.subjectEntity!.toLowerCase()))
       ? claim.subjectEntity
       : this.extractCompetitorIdentity(claim.sentence, knownCompetitors);
     const evComp = this.extractCompetitorIdentity(ev.claim, knownCompetitors, ev);
     const isCompetitorEvidence = Boolean(
-      ev.sourceType === 'COMPETITOR' ||
+      (ev.sourceType === 'COMPETITOR' ||
       ev.evidenceType === 'COMPETITOR_OBSERVATION' ||
-      evComp
+      evComp) &&
+      ev.sourceType !== 'TARGET_SITE'
     );
     if (claimComp && evComp && claimComp.toLowerCase() !== evComp.toLowerCase()) {
       return false;
@@ -891,6 +897,11 @@ export class ClaimGroundingEngine {
     let leakageResult: CanonicalClaim | null = null;
 
     for (const ev of candidates) {
+      // P0 / Phase 4: Inferences and low-confidence items cannot ground CRITICAL claims
+      if (claim.materiality === 'CRITICAL' && (ev.evidenceType === 'INFERENCE' || ev.confidence === 'LOW')) {
+        continue;
+      }
+
       // Entity isolation check (Phase 2 / Defect 1)
       const entityCheck = this.validateEntityIsolation(claim, ev, targetBrand, knownCompetitors);
       const evLower = ev.claim.toLowerCase();
@@ -997,9 +1008,10 @@ export class ClaimGroundingEngine {
     );
 
     const isCompetitorEvidence = Boolean(
-      ev.sourceType === 'COMPETITOR' ||
+      (ev.sourceType === 'COMPETITOR' ||
       ev.evidenceType === 'COMPETITOR_OBSERVATION' ||
-      evComp
+      evComp) &&
+      ev.sourceType !== 'TARGET_SITE'
     );
 
     const isTargetEvidence = Boolean(
@@ -1008,7 +1020,10 @@ export class ClaimGroundingEngine {
       ev.evidenceType === 'FEATURE' ||
       ev.evidenceType === 'DIFFERENTIATOR' ||
       ev.evidenceType === 'TECHNICAL_SPEC' ||
-      (targetBrand && ev.claim.toLowerCase().includes(targetBrand.toLowerCase()))) &&
+      (targetBrand && (
+        (ev.entities && ev.entities.some(e => e.toLowerCase() === targetBrand.toLowerCase())) ||
+        ev.claim.toLowerCase().includes(targetBrand.toLowerCase())
+      ))) &&
       ev.sourceType !== 'COMPETITOR' &&
       ev.evidenceType !== 'COMPETITOR_OBSERVATION'
     );

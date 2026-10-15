@@ -38,6 +38,7 @@ const TECH_SYNONYMS: Record<string, string[]> = {
 
 export class SitemapDiscoveryService {
   private static cache = new Map<string, { timestamp: number; data: InternalLinkDiscoveryResult }>();
+  private static inFlight = new Map<string, Promise<InternalLinkDiscoveryResult>>();
   private static CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
   /**
@@ -55,46 +56,127 @@ export class SitemapDiscoveryService {
   }
 
   /**
-   * Helper to perform a fetch with a strict timeout and maximum byte size limit.
+   * Safe wrapper around getInternalLinkRecommendations with cold-cache check,
+   * bounded timeout, in-flight promise deduplication, and safe error fallback.
    */
-  private static async fetchWithTimeout(urlStr: string, timeoutMs: number = 10000, maxBytes: number = 500000): Promise<{ status: number; text: string; contentType: string }> {
+  public static getInternalLinkRecommendationsSafe(params: {
+    domain: string;
+    topic: string;
+    targetKeyword: string;
+    timeoutMs?: number;
+  }): Promise<InternalLinkDiscoveryResult> {
+    const { domain, topic, targetKeyword, timeoutMs = 6000 } = params;
+    if (!domain) {
+      return Promise.resolve({ domain: '', totalDiscovered: 0, candidates: [], sitemapFound: false, error: 'No domain provided' });
+    }
+
+    const cached = this.getCachedRecommendations(domain);
+    if (cached) {
+      return Promise.resolve(cached);
+    }
+
+    const cleanTopic = (topic || '').toLowerCase().trim();
+    const cleanKeyword = (targetKeyword || '').toLowerCase().trim();
+    const key = `${domain.toLowerCase().trim()}|${cleanTopic}|${cleanKeyword}`;
+    const inFlightPromise = this.inFlight.get(key);
+    if (inFlightPromise) {
+      return inFlightPromise;
+    }
+
+    const promise = (async () => {
+      try {
+        const timeoutPromise = new Promise<InternalLinkDiscoveryResult>((_, reject) =>
+          setTimeout(() => reject(new Error(`Sitemap discovery timed out after ${timeoutMs}ms`)), timeoutMs)
+        );
+        const result = await Promise.race([
+          this.getInternalLinkRecommendations({ domain, topic: topic || '', targetKeyword: targetKeyword || '' }),
+          timeoutPromise
+        ]);
+        return result;
+      } catch (err: any) {
+        console.warn(`[SitemapDiscoveryService] Safe discovery failed for ${domain}:`, err?.message || err);
+        return {
+          domain,
+          totalDiscovered: 0,
+          candidates: [],
+          sitemapFound: false,
+          error: err?.message || 'Discovery failure'
+        };
+      } finally {
+        this.inFlight.delete(key);
+      }
+    })();
+
+    this.inFlight.set(key, promise);
+    return promise;
+  }
+
+  /**
+   * Helper to perform a fetch with a strict timeout, maximum byte size limit,
+   * and manual redirect validation to prevent SSRF against private/metadata IPs.
+   */
+  private static async fetchWithTimeout(urlStr: string, timeoutMs: number = 6000, maxBytes: number = 500000): Promise<{ status: number; text: string; contentType: string }> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
-      const res = await fetch(urlStr, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.9'
-        },
-        signal: controller.signal,
-        redirect: 'follow'
-      });
+      let currentUrl = urlStr;
+      let redirectCount = 0;
+      const maxRedirects = 3;
 
-      const contentType = res.headers.get('content-type') || '';
-      
-      // Read stream up to maxBytes to prevent memory blowup
-      const reader = res.body?.getReader();
-      let text = '';
-      if (reader) {
-        const decoder = new TextDecoder();
-        let bytesReceived = 0;
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          bytesReceived += value.byteLength;
-          text += decoder.decode(value, { stream: true });
-          if (bytesReceived >= maxBytes) {
-            await reader.cancel();
-            break;
-          }
+      while (true) {
+        const safety = await verifyUrlSafety(currentUrl);
+        if (!safety.safe) {
+          throw new Error(`Unsafe URL blocked in sitemap fetch: ${currentUrl} (${safety.error})`);
         }
-      } else {
-        text = await res.text();
-      }
 
-      return { status: res.status, text, contentType };
+        const res = await fetch(currentUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9'
+          },
+          signal: controller.signal,
+          redirect: 'manual'
+        });
+
+        if ([301, 302, 303, 307, 308].includes(res.status)) {
+          if (redirectCount >= maxRedirects) {
+            throw new Error(`Too many redirects (>${maxRedirects}) for ${urlStr}`);
+          }
+          const location = res.headers.get('location');
+          if (!location) {
+            throw new Error(`Redirect with missing Location header from ${currentUrl}`);
+          }
+          currentUrl = new URL(location, currentUrl).toString();
+          redirectCount++;
+          continue;
+        }
+
+        const contentType = res.headers.get('content-type') || '';
+
+        // Read stream up to maxBytes to prevent memory blowup
+        const reader = res.body?.getReader();
+        let text = '';
+        if (reader) {
+          const decoder = new TextDecoder();
+          let bytesReceived = 0;
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            bytesReceived += value.byteLength;
+            text += decoder.decode(value, { stream: true });
+            if (bytesReceived >= maxBytes) {
+              await reader.cancel();
+              break;
+            }
+          }
+        } else {
+          text = await res.text();
+        }
+
+        return { status: res.status, text, contentType };
+      }
     } finally {
       clearTimeout(timer);
     }
