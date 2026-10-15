@@ -187,6 +187,7 @@ export interface OrchestrationInput {
   overrideEvidenceSet?: EvidenceSet;
   overrideGapMatrix?: ContentGapMatrix;
   requestStartTs?: number;
+  internalLinks?: string[];
 }
 
 export interface DiscoveryResult {
@@ -259,6 +260,7 @@ export class AgentOrchestrator {
   private evidenceSet?: EvidenceSet;
   private gapMatrix?: ContentGapMatrix;
   private sectionEvidenceMaps: SectionEvidenceMap[] = [];
+  private internalLinks: string[] = [];
   public budgetGuard: RuntimeBudgetGuard;
 
   constructor(private options: AgentOrchestratorOptions) {
@@ -414,6 +416,7 @@ export class AgentOrchestrator {
   async run(input: OrchestrationInput): Promise<OrchestrationResult> {
     console.log('[agent] run started');
     this.targetBrand = input.saasProfile?.name || '';
+    this.internalLinks = input.internalLinks || [];
     
     let discovery: DiscoveryResult | undefined;
     let research: { searchResults: SearchResult[]; scrapeResults: ScrapeResult[] } | undefined;
@@ -1025,6 +1028,10 @@ Return only the schema-compliant structured object.`;
           console.log(`[AgentOrchestrator] Enforced outline section budget: ${budgetResult.originalCount} -> ${budgetResult.enforcedCount} sections (pruned: ${budgetResult.originalCount - budgetResult.enforcedCount})`);
         }
 
+        if (this.internalLinks.length > 0 && (!plan.internalLinks || plan.internalLinks.length === 0)) {
+          plan.internalLinks = this.internalLinks;
+        }
+
         // Map outline to researched evidence & content gaps
         this.sectionEvidenceMaps = SectionEvidenceMapper.mapSectionsToEvidence(
           plan.outline,
@@ -1204,20 +1211,33 @@ Return only the schema-compliant structured object.`;
         const maxRetries = this.options.maxReviewRetries ?? 2;
         const contentBeforeReview = { ...content };
         const reviewHistory: string[] = [];
-        
-        while (!review.passed && retries < maxRetries) {
+
+        const isMetadataWarning = (issue: string) => {
+          const lower = issue.toLowerCase();
+          return lower.includes('title is too long') || lower.includes('title contains too many words');
+        };
+
+        const getRepairableIssues = (rev: ReviewResult) => {
+          const critical = rev.criticalErrors || [];
+          const repairableWarnings = (rev.warnings || []).filter(w => !isMetadataWarning(w));
+          return [...critical, ...repairableWarnings];
+        };
+
+        let repairableIssues = getRepairableIssues(review);
+
+        while (!review.passed && repairableIssues.length > 0 && retries < maxRetries) {
           if (!this.budgetGuard.hasBudgetForRepair()) {
             console.warn(`[AgentOrchestrator] Runtime budget insufficient for repair attempt (${this.budgetGuard.getRemainingMs()}ms remaining, reservedFinalize=${this.budgetGuard.getReservedFinalizeMs()}ms). Skipping further repairs to preserve finalization headroom.`);
             break;
           }
           retries++;
-          reviewHistory.push(...review.issues);
-          console.log(`[agent] Quality issues detected (${review.issues.length}). Starting repair attempt ${retries}/${maxRetries}...`);
+          reviewHistory.push(...repairableIssues);
+          console.log(`[agent] Quality issues detected (${repairableIssues.length} repairable). Starting repair attempt ${retries}/${maxRetries}...`);
           
           let repairStage: StageExecution | undefined;
           try {
             repairStage = this.startStage(AgentStage.GENERATE, retries);
-            content = await this.runRepair(content, plan, review.issues);
+            content = await this.runRepair(content, plan, repairableIssues);
             this.completeStage(repairStage, { wordCount: content.wordCount, repaired: true });
           } catch (repairErr: any) {
             if (repairStage) {
@@ -1234,6 +1254,7 @@ Return only the schema-compliant structured object.`;
           }
 
           review = await this.runReview(content, plan);
+          repairableIssues = getRepairableIssues(review);
         }
 
         // Determine final validation state:
@@ -1639,7 +1660,7 @@ Canonical Primary Keyword: "${primaryKeyword}"
 Assigned Section Keywords: ${section.assignedKeywords?.join(', ') || primaryKeyword}
 ${this.supportingTerms.length > 0 ? `Available Supporting Terms (use naturally where relevant): ${this.supportingTerms.join(', ')}\n` : ''}Assigned Entities: ${section.assignedEntities?.join(', ') || ''}
 Core Concept: ${section.core_concept || ''}
-${assetInstructions}${intelligenceContext}${sectionEvidenceContext}
+${this.internalLinks.length > 0 ? `Relevant Internal Links (integrate 1-2 naturally if relevant as markdown links [anchor text](url)): \n${this.internalLinks.slice(0, 5).join('\n')}\n` : ''}${assetInstructions}${intelligenceContext}${sectionEvidenceContext}
 
 === 18 EDITORIAL WRITING & READABILITY CONTRACTS ===
 1. CANONICAL PRIMARY KEYWORD CONTRACT:
@@ -1672,7 +1693,7 @@ ${isFirstSection ? `   - FIRST PARAGRAPH CONTRACT: The very first paragraph of t
    - Answer: "What would a real business owner or team member actually do with this in practice?"
 
 7. COMPARISON TABLE CONTRACT:
-${(assetType === 'COMPARISON' || section.heading.toLowerCase().includes('compar') || section.heading.toLowerCase().includes('differentiator') || section.heading.toLowerCase().includes('hub') || section.heading.toLowerCase().includes('feature') || section.heading.toLowerCase().includes('overview') || i === 2) ? `   - Include at least ONE clean, factual Markdown comparison table summarizing features, capabilities, or workflow benefits. Example columns: | Feature / Workflow | Primary Capability | Key Benefit |. Only use factual values.` : `   - If applicable to this topic, include a factual Markdown comparison or summary table.`}
+${((assetType === 'COMPARISON' && (section.heading.toLowerCase().includes('compar') || i === 2)) || section.heading.toLowerCase().includes('comparison') || section.heading.toLowerCase().includes(' versus ') || section.heading.toLowerCase().includes(' vs ')) ? `   - Include at least ONE clean, factual Markdown comparison table summarizing features, capabilities, or workflow benefits. Example columns: | Feature / Workflow | Primary Capability | Key Benefit |. Only use factual values.` : `   - Present information using clear paragraphs, structured bullet points, or numbered steps. Do NOT generate unnecessary comparison tables for this section.`}
 
 8. NO IMAGES OR DIAGRAMS:
    - Do not generate images, diagrams, figure placeholders, image markdown, diagram placeholders, or asset-generation instructions. Write pure textual analysis, headings, lists, tables, and citations.
@@ -1715,7 +1736,8 @@ WORD BUDGET:
     // Assemble final bodyMarkdown in exact outline order
     for (let i = 0; i < brief.outline.length; i++) {
       const section = brief.outline[i];
-      bodyMarkdown += `${section.level === 'H2' ? '##' : '###'} ${section.heading}\n\n${sectionTexts[i] || ''}\n\n`;
+      const cleanedSectionText = stripMatchingLeadingHeading(sectionTexts[i] || '', section.heading);
+      bodyMarkdown += `${section.level === 'H2' ? '##' : '###'} ${section.heading}\n\n${cleanedSectionText}\n\n`;
     }
 
     const wordCount = bodyMarkdown.split(/\s+/).filter(Boolean).length;
@@ -1837,6 +1859,15 @@ WORD BUDGET:
     const h1Lines = content.bodyMarkdown.split('\n').filter(l => l.trim().startsWith('# '));
     if (h1Lines.length > 1) {
       criticalErrors.push(`Duplicate H1 headings detected in body content. The body text must not contain '# ' H1 headings, only H2 (##) and H3 (###).`);
+    }
+
+    // Check for consecutive duplicate headings (Warning)
+    const hLines = content.bodyMarkdown.split('\n').map(l => l.trim()).filter(l => l.startsWith('## ') || l.startsWith('### '));
+    for (let i = 0; i < hLines.length - 1; i++) {
+      if (hLines[i].toLowerCase() === hLines[i + 1].toLowerCase()) {
+        warnings.push(`Duplicate consecutive heading detected: "${hLines[i]}".`);
+        break;
+      }
     }
 
     // Verify all planned outline headings exist in final output (Critical if planned heading missing)
@@ -1997,4 +2028,33 @@ export function getSectionWordCounts(markdown: string): Array<{ heading: string;
     });
   }
   return sections;
+}
+
+export function stripMatchingLeadingHeading(sectionText: string, heading: string): string {
+  if (!sectionText) return '';
+  const trimmed = sectionText.trim();
+  const normHeading = heading.toLowerCase().replace(/[^\w\s]/g, '').trim();
+
+  const lines = trimmed.split('\n');
+  if (lines.length > 0) {
+    const firstLine = lines[0].trim();
+    const strippedFirstLine = firstLine
+      .replace(/^#{1,6}\s+/, '')
+      .replace(/^\*\*|\*\*$/g, '')
+      .replace(/^__|_$/g, '')
+      .trim();
+    const normFirstLine = strippedFirstLine.toLowerCase().replace(/[^\w\s]/g, '').trim();
+
+    if (
+      normFirstLine === normHeading ||
+      (normFirstLine.length > 5 && (normFirstLine.startsWith(normHeading) || normHeading.startsWith(normFirstLine)))
+    ) {
+      lines.shift();
+      while (lines.length > 0 && lines[0].trim() === '') {
+        lines.shift();
+      }
+      return lines.join('\n').trim();
+    }
+  }
+  return trimmed;
 }

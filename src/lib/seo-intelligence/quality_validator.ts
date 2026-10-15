@@ -129,13 +129,56 @@ export function checkSentencePatternRepeats(sentences: string[]): boolean {
   return false;
 }
 
+export function normalizeTextForReadability(text: string): string {
+  if (!text) return '';
+  let cleaned = text;
+
+  // 1. Strip fenced code blocks
+  cleaned = cleaned.replace(/```[\s\S]*?```/g, ' ');
+
+  // 2. Strip inline code
+  cleaned = cleaned.replace(/`[^`\n]+`/g, ' ');
+
+  // 3. Strip data URIs
+  cleaned = cleaned.replace(/data:[a-zA-Z0-9/+-]+;base64,[a-zA-Z0-9+/=]+/gi, ' ');
+
+  // 4. Strip markdown image tags
+  cleaned = cleaned.replace(/!\[[^\]]*\]\([^\)]+\)/g, ' ');
+
+  // 5. Convert markdown links [text](url) to anchor text only
+  cleaned = cleaned.replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
+
+  // 6. Strip HTML tags and SVGs
+  cleaned = cleaned.replace(/<[^>]+>/g, ' ');
+
+  // 7. Strip raw URLs
+  cleaned = cleaned.replace(/https?:\/\/[^\s\)\],]+/gi, ' ');
+
+  // 8. Handle markdown tables:
+  // Remove markdown table separator lines like | :--- | ---: |
+  cleaned = cleaned.replace(/^\|?\s*[-:]+[-| :]*\|?\s*$/gm, ' ');
+  // Replace table pipe delimiters with period and space so table cells become discrete phrases
+  cleaned = cleaned.replace(/\|/g, '. ');
+
+  // 9. Strip markdown heading indicators
+  cleaned = cleaned.replace(/^#{1,6}\s+/gm, '');
+
+  // 10. Strip blockquote indicators and list bullets
+  cleaned = cleaned.replace(/^[\s>*-]+/gm, '');
+
+  // Normalize multiple periods/whitespace
+  cleaned = cleaned.replace(/\s+/g, ' ').trim();
+  return cleaned;
+}
+
 export function calculateFleschReadingEase(text: string): number {
-  const words = text.trim().split(/\s+/).filter(Boolean);
+  const normalized = normalizeTextForReadability(text);
+  const words = normalized.trim().split(/\s+/).filter(Boolean);
   const wordCount = words.length;
   if (wordCount === 0) return 100;
 
   // Split into sentences using a regex that handles abbreviations reasonably
-  const sentenceCount = text.split(/[.!?]+/).filter(s => s.trim().length > 0).length || 1;
+  const sentenceCount = normalized.split(/[.!?]+/).filter(s => s.trim().length > 0).length || 1;
 
   let syllableCount = 0;
   for (const w of words) {
@@ -155,17 +198,36 @@ export function validateArticleQuality(
   const errors: string[] = [];
   const warnings: string[] = [];
 
+  const cleanParagraph = (p: string) => {
+    return p
+      .replace(/data:[a-zA-Z0-9/+-]+;base64,[a-zA-Z0-9+/=]+/gi, ' ')
+      .replace(/!\[[^\]]*\]\([^\)]+\)/g, ' ')
+      .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/https?:\/\/[^\s\)\],]+/gi, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
   // Parse paragraphs and sentences
-  // Exclude empty paragraphs and headings (since headings are short and skew counts)
+  // Exclude empty paragraphs, headings, tables, raw HTML blocks, and image lines from paragraph prose evaluation
   const paragraphs = text.split('\n')
     .map(p => p.trim())
-    .filter(p => p.length > 0 && !p.startsWith('#'));
+    .filter(p => (
+      p.length > 0 &&
+      !p.startsWith('#') &&
+      !p.startsWith('|') &&
+      !p.startsWith('![') &&
+      !p.startsWith('<') &&
+      !p.startsWith('---')
+    ));
 
-  const sentences = text.split(/[.!?]+/)
+  const normalizedText = normalizeTextForReadability(text);
+  const sentences = normalizedText.split(/[.!?]+/)
     .map(s => s.trim())
     .filter(s => s.length > 0);
 
-  const words = text.trim().split(/\s+/).filter(Boolean);
+  const words = normalizedText.trim().split(/\s+/).filter(Boolean);
   const totalWordCount = words.length;
 
   // 1. Average Sentence Length
@@ -204,7 +266,7 @@ export function validateArticleQuality(
   }
 
   // 6. Average Paragraph Length
-  const paragraphWordCounts = paragraphs.map(p => countWords(p));
+  const paragraphWordCounts = paragraphs.map(p => countWords(cleanParagraph(p))).filter(c => c > 0);
   const avgParagraphLength = paragraphWordCounts.length > 0
     ? paragraphWordCounts.reduce((a, b) => a + b, 0) / paragraphWordCounts.length
     : 0;
@@ -214,7 +276,9 @@ export function validateArticleQuality(
   }
 
   // 6.1. Individual Paragraph Length (limit of 150 error, >80 warning)
-  paragraphs.forEach((p, idx) => {
+  paragraphs.forEach((rawP, idx) => {
+    const p = cleanParagraph(rawP);
+    if (!p) return;
     const wCount = countWords(p);
     if (wCount > 150) {
       errors.push(`Paragraph ${idx + 1} is too long (${wCount} words, exceeds limit of 150 words). Please break it into shorter paragraphs.`);

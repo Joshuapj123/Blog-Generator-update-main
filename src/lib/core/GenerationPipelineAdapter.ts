@@ -284,6 +284,22 @@ export class GenerationPipelineAdapter {
 
     // 5. Run Orchestration
     console.log(`[PIPELINE] ORCHESTRATOR START - runId=${runId} elapsed=${Date.now() - startTime}ms`);
+    let internalLinks: string[] = [];
+    const sitemapDomain = payload.saasProfile?.website || payload.referenceData?.url;
+    if (sitemapDomain) {
+      try {
+        const cached = SitemapDiscoveryService.getCachedRecommendations(sitemapDomain);
+        if (cached && cached.candidates && cached.candidates.length > 0) {
+          internalLinks = cached.candidates.map(c => c.url).filter(Boolean).slice(0, 5);
+        }
+      } catch (poolErr) {
+        // Safe fallback
+      }
+    }
+    if (payload.internalLinks && Array.isArray(payload.internalLinks) && payload.internalLinks.length > 0) {
+      internalLinks = [...new Set([...internalLinks, ...payload.internalLinks])].slice(0, 5);
+    }
+
     const result = await orchestrator.run({
       saasProfile,
       targetKeyword: primaryKeyword,
@@ -293,6 +309,7 @@ export class GenerationPipelineAdapter {
       maxHeadings: payload.maxHeadings ?? (options?.overrideBudget?.maxLLMCalls ? 2 : undefined),
       supportingTerms: payload.supportingTerms,
       requestStartTs: options?.requestStartTs,
+      internalLinks,
     });
 
     const isCriticalFailure =
@@ -558,19 +575,29 @@ export class GenerationPipelineAdapter {
         firstHeadingFound = true;
         const level = trimmed.startsWith('## ') ? 'H2' : 'H3';
         const heading = trimmed.replace(/^###?\s+/, '').trim();
-        currentSection = {
-          heading,
-          level,
-          what_it_is: '',
-          why_it_works: 'This section details key execution processes and guidelines.',
-          experience_or_data_point: `Factual research on ${heading}.`,
-          example_brands: [],
-          copy_formula: [],
-          takeaway: `Takeaway for ${heading}.`,
-          outbound_authority_link: undefined,
-          rich_media_query: undefined
-        };
-        sections.push(currentSection);
+
+        // If currentSection exists but has empty what_it_is, it was a duplicate/consecutive heading.
+        // Update the heading and level rather than pushing a phantom empty section.
+        if (currentSection && currentSection.what_it_is.trim().length === 0) {
+          currentSection.heading = heading;
+          currentSection.level = level;
+          currentSection.experience_or_data_point = `Factual research on ${heading}.`;
+          currentSection.takeaway = `Takeaway for ${heading}.`;
+        } else {
+          currentSection = {
+            heading,
+            level,
+            what_it_is: '',
+            why_it_works: 'This section details key execution processes and guidelines.',
+            experience_or_data_point: `Factual research on ${heading}.`,
+            example_brands: [],
+            copy_formula: [],
+            takeaway: `Takeaway for ${heading}.`,
+            outbound_authority_link: undefined,
+            rich_media_query: undefined
+          };
+          sections.push(currentSection);
+        }
       } else {
         if (!firstHeadingFound) {
           introParagraphs.push(line);
@@ -582,6 +609,13 @@ export class GenerationPipelineAdapter {
           }
         }
       }
+    }
+
+    // Filter out any sections that remain empty
+    const populatedSections = sections.filter(s => s.what_it_is.trim().length > 0);
+    if (populatedSections.length > 0) {
+      sections.length = 0;
+      sections.push(...populatedSections);
     }
 
     if (sections.length === 0) {
@@ -599,17 +633,46 @@ export class GenerationPipelineAdapter {
       });
     }
 
+    // Derive intro from opening paragraphs or first section
+    let hook = introParagraphs[0];
+    let thesis = introParagraphs[1];
+    let businessContext = introParagraphs[2];
+
+    if (!hook && sections.length > 0 && sections[0].what_it_is) {
+      const secParas = sections[0].what_it_is
+        .split('\n\n')
+        .map((p: string) => p.trim())
+        .filter((p: string) => p.length > 0 && !p.startsWith('#') && !p.startsWith('|'));
+      if (secParas.length > 0) {
+        hook = secParas[0];
+        thesis = secParas[1] || `Key insights and practical strategies for ${title}.`;
+        businessContext = secParas[2] || `An actionable guide for teams evaluating ${title}.`;
+      }
+    }
+
+    if (!hook) {
+      hook = `Key insights and strategic considerations for ${title}.`;
+    }
+    if (!thesis) {
+      thesis = `Practical execution steps and best practices for ${title}.`;
+    }
+    if (!businessContext) {
+      businessContext = `A comprehensive guide for teams navigating ${title}.`;
+    }
+
+    const cleanTitleTag = title.length > 55 ? title : `${title} | Guide`;
+
     return {
       title,
-      title_tag: `${title} | SEO Intelligence`,
+      title_tag: cleanTitleTag,
       slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
       intent: 'Informational',
       schema_markup: '',
       open_graph_tags: [],
       intro: {
-        hook: introParagraphs[0] || 'In-depth exploration and analysis.',
-        thesis: introParagraphs[1] || 'Key concepts and best practices.',
-        business_context: introParagraphs[2] || 'A guide for strategy leaders.'
+        hook,
+        thesis,
+        business_context: businessContext
       },
       section_outlines: sections.map(s => ({ heading: s.heading, level: s.level })),
       sections,
