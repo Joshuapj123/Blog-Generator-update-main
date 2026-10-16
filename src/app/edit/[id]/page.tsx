@@ -11,11 +11,114 @@ import { InlineEditableText } from '@/components/InlineEditableText';
 import { toMarkdown, toHtml, toPlainText, triggerDownload, slugify, renderMarkdown } from '@/lib/article-utils';
 import { YouTubeEmbed } from '@/components/SectionEditor';
 
+interface ResolvedArticleData {
+  blueprint: Partial<ArticleBlueprint>;
+  sections: SectionBlock[];
+  isLegacyJson: boolean;
+  recovered: boolean;
+}
+
+function resolveArticleData(data: Article | null | undefined): ResolvedArticleData {
+  if (!data) {
+    return {
+      blueprint: { title: 'Untitled', sections: [] },
+      sections: [],
+      isLegacyJson: false,
+      recovered: false
+    };
+  }
+
+  // 1. Modern schema: data.blueprint is a structured object
+  if (data.blueprint && typeof data.blueprint === 'object') {
+    const rawSections = Array.isArray(data.blueprint.sections) ? data.blueprint.sections : [];
+    return {
+      blueprint: data.blueprint,
+      sections: rawSections,
+      isLegacyJson: false,
+      recovered: false
+    };
+  }
+
+  // 2. data.blueprint is a stringified JSON object
+  if (typeof data.blueprint === 'string') {
+    try {
+      const parsedBp = JSON.parse(data.blueprint);
+      if (parsedBp && typeof parsedBp === 'object') {
+        const rawSections = Array.isArray(parsedBp.sections) ? parsedBp.sections : [];
+        return {
+          blueprint: parsedBp,
+          sections: rawSections,
+          isLegacyJson: false,
+          recovered: false
+        };
+      }
+    } catch {
+      // Continue to check data.content
+    }
+  }
+
+  // 3. Legacy schema: data.content is a JSON string containing { blueprint, sections }
+  if (data.content && typeof data.content === 'string') {
+    const trimmed = data.content.trim();
+    if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+      try {
+        const parsed = JSON.parse(data.content);
+        if (parsed && typeof parsed === 'object') {
+          const bp = parsed.blueprint || { title: data.title || 'Untitled', sections: parsed.sections || [] };
+          const secs = Array.isArray(parsed.sections)
+            ? parsed.sections
+            : (Array.isArray(bp.sections) ? bp.sections : []);
+          return {
+            blueprint: bp,
+            sections: secs,
+            isLegacyJson: true,
+            recovered: false
+          };
+        }
+      } catch (err) {
+        console.warn('[EditPage] Failed to parse content as legacy JSON:', err);
+      }
+    }
+
+    // 4. Fallback / Recovery: data.content is HTML, Markdown, or raw text without structured blueprint
+    const fallbackSection: SectionBlock = {
+      heading: data.title || 'Overview',
+      level: 'H2',
+      what_it_is: data.content,
+      why_it_works: '',
+      experience_or_data_point: '',
+      takeaway: '',
+      example_brands: [],
+      copy_formula: []
+    };
+
+    return {
+      blueprint: {
+        title: data.title || 'Untitled Article',
+        intent: 'Recovered Content',
+        sections: [fallbackSection]
+      },
+      sections: [fallbackSection],
+      isLegacyJson: false,
+      recovered: true
+    };
+  }
+
+  // 5. Minimal empty fallback
+  return {
+    blueprint: { title: data.title || 'Untitled', sections: [] },
+    sections: [],
+    isLegacyJson: false,
+    recovered: false
+  };
+}
+
 export default function EditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [article, setArticle] = useState<Article | null>(null);
   const [blueprint, setBlueprint] = useState<Partial<ArticleBlueprint> | null>(null);
   const [sections, setSections] = useState<SectionBlock[]>([]);
+  const [isLegacy, setIsLegacy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -25,9 +128,10 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
         const data = await getArticleById(id);
         if (data) {
           setArticle(data);
-          const content = JSON.parse(data.content);
-          setBlueprint(content.blueprint);
-          setSections(content.sections);
+          const resolved = resolveArticleData(data);
+          setBlueprint(resolved.blueprint);
+          setSections(resolved.sections);
+          setIsLegacy(resolved.isLegacyJson);
         }
       } catch (e) {
         console.error(e);
@@ -42,11 +146,21 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
     if (!article || !blueprint) return;
     setIsUpdating(true);
     try {
-        // Prepare updated sections (stripping any UI-only fields if necessary, though Sections are mostly data)
+      const updatedBlueprint: ArticleBlueprint = {
+        ...(article.blueprint && typeof article.blueprint === 'object' ? article.blueprint : {}),
+        ...blueprint,
+        title: blueprint.title || article.title,
+        sections
+      } as ArticleBlueprint;
+
       const updatedArticle: Article = {
         ...article,
         title: blueprint.title || article.title,
-        content: JSON.stringify({ blueprint, sections })
+        blueprint: updatedBlueprint,
+        content: isLegacy
+          ? JSON.stringify({ blueprint: updatedBlueprint, sections })
+          : toHtml(updatedBlueprint, sections),
+        updatedAt: new Date().toISOString()
       };
       await saveArticle(updatedArticle);
       alert('Article updated successfully!');
@@ -213,9 +327,9 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
                         <div className={`mb-1 font-semibold tracking-tight ${isH3 ? 'text-lg' : 'text-xl'}`}>
                             <InlineEditableText
                                 label="Heading"
-                                value={sec.heading}
+                                value={sec.heading || ''}
                                 onSave={(val) => updateSectionField(index, 'heading', val)}
-                                renderedHtml={sec.heading}
+                                renderedHtml={sec.heading || ''}
                             />
                         </div>
                         </div>
@@ -231,8 +345,8 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
                             </div>
                             <InlineEditableText
                             label="What it is"
-                            value={sec.what_it_is}
-                            renderedHtml={renderMarkdown(sec.what_it_is)}
+                            value={sec.what_it_is || ''}
+                            renderedHtml={renderMarkdown(sec.what_it_is || '')}
                             onSave={(val) => updateSectionField(index, 'what_it_is', val)}
                             />
                         </div>
@@ -244,8 +358,8 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
                             </div>
                             <InlineEditableText
                             label="Why it works"
-                            value={sec.why_it_works}
-                            renderedHtml={renderMarkdown(sec.why_it_works)}
+                            value={sec.why_it_works || ''}
+                            renderedHtml={renderMarkdown(sec.why_it_works || '')}
                             onSave={(val) => updateSectionField(index, 'why_it_works', val)}
                             />
                         </div>
@@ -256,8 +370,8 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
                             <strong className="text-blue-600 dark:text-blue-400">Expert Insight / Data: </strong>
                             <InlineEditableText
                                 label="Expert Insight"
-                                value={sec.experience_or_data_point}
-                                renderedHtml={renderMarkdown(sec.experience_or_data_point)}
+                                value={sec.experience_or_data_point || ''}
+                                renderedHtml={renderMarkdown(sec.experience_or_data_point || '')}
                                 onSave={(val) => updateSectionField(index, 'experience_or_data_point', val)}
                             />
                             </div>
@@ -271,13 +385,13 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
                                 ✍️ Writing Playbook
                             </div>
                             <ol className="divide-y divide-violet-100">
-                                {(Array.isArray(sec.copy_formula) ? sec.copy_formula : [sec.copy_formula]).map((f: string, i: number) => (
+                                {(Array.isArray(sec.copy_formula) ? sec.copy_formula : (sec.copy_formula ? [sec.copy_formula] : [])).map((f: string, i: number) => (
                                 <li key={i} className="flex items-start gap-3 px-4 py-2.5 text-sm bg-white">
                                     <span className="shrink-0 w-5 h-5 rounded-full bg-violet-600 text-white text-[10px] font-bold flex items-center justify-center mt-0.5">{i + 1}</span>
                                     <span
                                     className="leading-relaxed text-foreground"
                                     dangerouslySetInnerHTML={{
-                                        __html: f
+                                        __html: String(f || '')
                                         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                                         .replace(/`(.*?)`/g, '<code class="bg-violet-100 px-1 rounded text-[11px] font-mono">$1</code>')
                                     }}
@@ -294,7 +408,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
                             </div>
                             <div className="divide-y divide-[#d4c5a9]">
                                 {sec.example_brands?.map((b: string, i: number) => {
-                                const cleaned = b.replace(/\*\*/g, '');
+                                const cleaned = String(b || '').replace(/\*\*/g, '');
                                 const colonIdx = cleaned.indexOf(':');
                                 const brandName = colonIdx !== -1 ? cleaned.slice(0, colonIdx).trim() : cleaned.trim();
                                 const description = colonIdx !== -1 ? cleaned.slice(colonIdx + 1).trim() : '';
@@ -344,8 +458,8 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
                             <div className="flex-1">
                                 <InlineEditableText
                                 label="Takeaway"
-                                value={sec.takeaway}
-                                renderedHtml={sec.takeaway}
+                                value={sec.takeaway || ''}
+                                renderedHtml={sec.takeaway || ''}
                                 onSave={(val) => updateSectionField(index, 'takeaway', val)}
                                 />
                             </div>
