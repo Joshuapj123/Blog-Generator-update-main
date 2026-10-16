@@ -25,6 +25,18 @@ export class ClaimGroundingEngine {
     /\bwithout\s+(?:support\s+for|providing|offering)\b/i,
   ];
 
+  /**
+   * Hard factual, quantitative, pricing, guarantee, SLA, and regulatory patterns
+   * that can NEVER be substantiated by an INFERENCE or LOW confidence evidence item.
+   */
+  private static HARD_FACTUAL_PATTERNS = [
+    /\b(?:guarantees?|guaranteed|promises?|sla|zero[- ]downtime|100%|99\.\d+%|uptime)\b/i,
+    /\b(?:pricing|prices?|costs?|fees?|rates?|subscription|tiers?|[\$€£]|dollars?|euros?|free\s+trial|money[- ]back|refund)\b/i,
+    /\b(?:certified|certifications?|compliant|compliance|hipaa|soc[- ]?2|gdpr|iso[- ]?\d+|pci[- ]?dss)\b/i,
+    /\b(?:patents?|patented|proprietary\s+algorithm)\b/i,
+    /\b(?:\d+(?:\.\d+)?)\s*(?:ms|milliseconds?|seconds?|minutes?|hours?|days?|req\/s|rps|tps|qps|gbps|mbps|tb|gb|mb|ghz|iops)\b/i,
+  ];
+
   private static GENERIC_STOPWORDS = new Set([
     'software', 'platform', 'service', 'services', 'business', 'company',
     'solutions', 'solution', 'provides', 'delivers', 'verified', 'capability',
@@ -896,13 +908,32 @@ export class ClaimGroundingEngine {
     if (claimTokens.length === 0) return null;
     let leakageResult: CanonicalClaim | null = null;
 
-    for (const ev of candidates) {
-      // P0 / Phase 4: Inferences and low-confidence items cannot ground CRITICAL claims
-      if (claim.materiality === 'CRITICAL' && (ev.evidenceType === 'INFERENCE' || ev.confidence === 'LOW')) {
+    // Prioritize verified facts before inferences
+    const sortedCandidates = [
+      ...candidates.filter(e => e.evidenceType !== 'INFERENCE' && e.confidence !== 'LOW'),
+      ...candidates.filter(e => e.evidenceType === 'INFERENCE' || e.confidence === 'LOW'),
+    ];
+
+    const isQuantitativeClaim = Boolean(
+      claim.quantitativeValue ||
+      (claim.claimText && ClaimExtractionService.parseQuantitativeValues(claim.claimText).length > 0)
+    );
+    const isHardFactualClaim =
+      isQuantitativeClaim ||
+      claim.claimType === 'ATTRIBUTION' ||
+      claim.claimType === 'COMPARATIVE' ||
+      this.HARD_FACTUAL_PATTERNS.some(pat => pat.test(claim.claimText || '') || pat.test(claim.sentence));
+
+    for (const ev of sortedCandidates) {
+      const isInferential = ev.evidenceType === 'INFERENCE' || ev.confidence === 'LOW';
+
+      // P0 / Phase 4 & Phase 6.3: Inferences and low-confidence items cannot ground hard factual,
+      // quantitative, pricing, guarantee, SLA, or compliance claims.
+      if (isInferential && isHardFactualClaim) {
         continue;
       }
 
-      // Entity isolation check (Phase 2 / Defect 1)
+      // Entity isolation check (Phase 2 / Defect 1 & Phase 6.3)
       const entityCheck = this.validateEntityIsolation(claim, ev, targetBrand, knownCompetitors);
       const evLower = ev.claim.toLowerCase();
       const evTokens = this.getPropositionalTokens(evLower, targetBrand, knownCompetitors);
@@ -934,17 +965,30 @@ export class ClaimGroundingEngine {
         if (!evMatches) continue;
       }
 
+      // Helper to return properly qualified support status
+      const createSupportedResult = (evId: string): CanonicalClaim => {
+        if (isInferential) {
+          return {
+            ...claim,
+            supportStatus: 'PARTIALLY_SUPPORTED',
+            rejectionReason: 'Positioning hypothesis derived from market differentiation inference (not an independently verified empirical fact).',
+            groundedEvidenceIds: [evId],
+          };
+        }
+        return {
+          ...claim,
+          supportStatus: 'SUPPORTED',
+          groundedEvidenceIds: [evId],
+        };
+      };
+
       // Rule 1: Contiguous normalized trigram match
       if (evTokens.length >= 3 && claimTokens.length >= 3) {
         const claimJoined = claimTokens.join(' ');
         for (let i = 0; i <= evTokens.length - 3; i++) {
           const tri = `${evTokens[i]} ${evTokens[i + 1]} ${evTokens[i + 2]}`;
           if (claimJoined.includes(tri)) {
-            return {
-              ...claim,
-              supportStatus: 'SUPPORTED',
-              groundedEvidenceIds: [ev.id],
-            };
+            return createSupportedResult(ev.id);
           }
         }
       }
@@ -955,11 +999,7 @@ export class ClaimGroundingEngine {
       const requiredMatches = Math.min(3, Math.ceil(claimTokens.length * 0.5));
 
       if (matched.length >= requiredMatches && matched.length >= 2) {
-        return {
-          ...claim,
-          supportStatus: 'SUPPORTED',
-          groundedEvidenceIds: [ev.id],
-        };
+        return createSupportedResult(ev.id);
       }
 
       // Rule 3: Jaccard Token Overlap >= 0.35 on propositional tokens
@@ -967,11 +1007,7 @@ export class ClaimGroundingEngine {
       const jaccard = union > 0 ? matched.length / union : 0;
 
       if (jaccard >= 0.35 && matched.length >= 2) {
-        return {
-          ...claim,
-          supportStatus: 'SUPPORTED',
-          groundedEvidenceIds: [ev.id],
-        };
+        return createSupportedResult(ev.id);
       }
     }
 
@@ -1002,7 +1038,8 @@ export class ClaimGroundingEngine {
         (claim.subjectEntity && claim.subjectEntity.toLowerCase() === targetBrand.toLowerCase()) ||
         (!claimComp && (
           ClaimExtractionService.hasWordBoundaryMatch(claim.claimText || '', targetBrand) ||
-          ClaimExtractionService.hasWordBoundaryMatch(claim.sentence, targetBrand)
+          ClaimExtractionService.hasWordBoundaryMatch(claim.sentence, targetBrand) ||
+          ClaimExtractionService.FIRST_PERSON_SUBJECT_PATTERNS.some(pat => pat.test(claim.claimText || '') || pat.test(claim.sentence))
         ))
       )
     );
@@ -1048,12 +1085,15 @@ export class ClaimGroundingEngine {
       };
     }
 
-    // Rule 3: Target brand or unassigned claim supported by competitor evidence -> LEAKAGE!
-    if (!claimComp && isCompetitorEvidence && !isTargetEvidence) {
+    // Rule 3: Target brand claim supported by competitor evidence -> LEAKAGE!
+    // Competitor evidence must NEVER substantiate an unsupported capability, feature, or performance claim about the target brand.
+    // Neutral educational, architectural, or market-context claims (where neither target brand nor a competitor is claimed)
+    // are NOT target brand assertions and do NOT constitute entity leakage.
+    if (hasTargetMention && isCompetitorEvidence && !isTargetEvidence) {
       return {
         valid: false,
         leakage: true,
-        reason: `Entity isolation violation: competitor evidence (${ev.id}) cannot support unassigned or target brand claim.`,
+        reason: `Entity isolation violation: competitor evidence (${ev.id}) cannot support target brand (${targetBrand}) claim.`,
       };
     }
 

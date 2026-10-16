@@ -51,10 +51,33 @@ export class ClaimExtractionService {
   ];
 
   /**
+   * Explicit superiority and performance differential comparative patterns (strictly CRITICAL)
+   */
+  private static SUPERIORITY_COMPARATIVE_PATTERNS = [
+    /\b(?:faster than|cheaper than|better than|more affordable than|outperforms?|superior to|more reliable than|higher\s+\w+\s+than|lower\s+\w+\s+than|greater\s+\w+\s+than)\b/i,
+    /\b(\d+(?:\.\d+)?)\s*(?:x|times|fold)\s*(?:faster|more|higher|lower|cheaper|reduction|growth)/i,
+    /\b(?:ranks?\s+higher|rated\s+better|delivers\s+superior|proves\s+superior)\b/i,
+  ];
+
+  /**
+   * Meta-editorial and navigational phrasing patterns that discuss or frame a comparison
+   * without asserting empirical superiority or falsifiable performance metrics.
+   */
+  private static META_EDITORIAL_COMPARATIVE_PATTERNS = [
+    /^(?:comparing|evaluating|analyzing|exploring|examining|understanding|assessing|reviewing|weighing|choosing\s+between|deciding\s+between)\b/i,
+    /\b(?:helps?|allows?|enables?)\s+(?:leadership|teams?|agencies|developers?|users?|buyers?|enterprises?|organizations?|readers?|practitioners?)\s+(?:understand|decide|evaluate|assess|choose|determine|navigate|identify|see)\b/i,
+    /\b(?:when\s+(?:comparing|evaluating|considering|choosing\s+between|deciding\s+between|looking\s+at))\b/i,
+    /\b(?:in\s+the\s+debate\s+between|in\s+the\s+comparison\s+(?:between|of)|the\s+choice\s+between)\b/i,
+    /\b(?:to\s+understand\s+the\s+difference\s+between|understanding\s+the\s+difference\s+between)\b/i,
+    /\b(?:guide\s+(?:explores|compares|evaluates|examines)|article\s+(?:explores|compares|evaluates|examines))\b/i,
+    /\b(?:key\s+differences\s+between|tradeoffs?\s+between|pros\s+and\s+cons\s+of)\b/i,
+  ];
+
+  /**
    * Capability and feature patterns
    */
   private static CAPABILITY_PATTERNS = [
-    /\b(?:supports?|provides?|features?|integrates?(?:\s+with)?|offers?|delivers?|includes?|automates?|handles?|built with|certified for|compliant with|operates?|manufactures?|invents?|develops?|builds?|eliminates?|guarantees?|achieves?|streamlines?|accelerates?|optimizes?|ensures?|prevents?|reduces?|simplifies?|enables?|empowers?)\b/i,
+    /\b(?:supports?|provides?|features?|integrates?(?:\s+with)?|offers?|delivers?|includes?|automates?|handles?|built with|certified for|compliant with|operates?|manufactures?|invents?|develops?|builds?|eliminates?|guarantees?|achieves?|streamlines?|accelerates?|optimizes?|ensures?|prevents?|reduces?|simplifies?|enables?|empowers?|allows?)\b/i,
   ];
 
   /**
@@ -100,7 +123,7 @@ export class ClaimExtractionService {
    * First-person brand subject patterns (marketing / organizational copy):
    * "our platform", "our software", "our team", "we", etc.
    */
-  private static FIRST_PERSON_SUBJECT_PATTERNS = [
+  public static FIRST_PERSON_SUBJECT_PATTERNS = [
     /\b(?:our|my)\s+(?:platform|software|system|tool|tools|solution|solutions|service|services|team|agency|product|products|company|architecture|infrastructure|api|engine|application|app|engineers?|developers?)\b/i,
     /\b(?:we)\b/i,
   ];
@@ -310,7 +333,9 @@ export class ClaimExtractionService {
     // Reject rhetorical or inquiry questions
     if (trimmed.endsWith('?')) return [];
     for (const pat of this.QUESTION_PATTERNS) {
-      if (pat.test(trimmed)) return [];
+      if (pat.test(trimmed) && /^(?:how to|what is|why do|can we|should you|is there|are there)\b/i.test(trimmed)) {
+        return [];
+      }
     }
 
     const clauses = this.splitSentenceIntoClauses(trimmed);
@@ -602,6 +627,29 @@ export class ClaimExtractionService {
 
     // Comparative assertion without numbers
     if (isComparative) {
+      const isMetaEditorial = this.META_EDITORIAL_COMPARATIVE_PATTERNS.some(pat => pat.test(trimmed));
+      const hasExplicitSuperiority = this.SUPERIORITY_COMPARATIVE_PATTERNS.some(pat => pat.test(trimmed));
+
+      // If it is meta-editorial or navigational framing and lacks explicit empirical superiority assertions,
+      // classify as a general framing statement (SUPPLEMENTAL), not a CRITICAL empirical comparative claim.
+      if (isMetaEditorial && !hasExplicitSuperiority) {
+        return [{
+          id: `claim-${sectionIndex}-${claimIndex}-0`,
+          sectionIndex,
+          sectionHeading,
+          sentence: fullSentence,
+          claimText: trimmed,
+          claimType: 'GENERAL_FACT',
+          subjectEntity,
+          targetEntity,
+          temporalAnchor,
+          confidence: 0.7,
+          materiality: 'SUPPLEMENTAL',
+          supportStatus: 'UNSUPPORTED',
+          groundedEvidenceIds: [],
+        }];
+      }
+
       return [{
         id: `claim-${sectionIndex}-${claimIndex}-0`,
         sectionIndex,
