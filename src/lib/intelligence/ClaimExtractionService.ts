@@ -137,6 +137,63 @@ export class ClaimExtractionService {
   ];
 
   /**
+   * Buyer evaluation guidance, verification criteria, and exploratory advice patterns
+   * where features are discussed as criteria to verify or examine rather than asserted vendor capabilities.
+   */
+  private static EVALUATION_GUIDANCE_PATTERNS = [
+    /\b(?:verify|check|confirm|ask|ensure|determine|evaluate|investigate|test|assess)\s+(?:if|whether|that|how|(?:the|your|a|any)\s+(?:platform|tool|software|solution|system|vendor))\b/i,
+    /\b(?:before\s+you\s+(?:commit|buy|purchase|choose|decide|sign|subscribe))\b/i,
+    /\b(?:when\s+(?:assessing|evaluating|choosing|selecting|considering|shopping\s+for)\s+(?:tools|platforms|software|solutions|vendors|options|systems))\b/i,
+    /\b(?:look\s+for|seek\s+out|watch\s+out\s+for|pay\s+attention\s+to)\s+(?:tools?|platforms?|solutions?|features?)\b/i,
+    /\b(?:you\s+can\s+(?:also\s+)?(?:explore|check|review|evaluate|look\s+into|examine|test|browse))\b/i,
+    /\b(?:to\s+see\s+if|to\s+determine\s+if|to\s+find\s+out\s+if)\s+(?:your|the|a|any)\b/i,
+    /\b(?:helps?\s+you\s+(?:see|determine|evaluate|find\s+out|understand))\s+if\b/i,
+  ];
+
+  public static isEvaluationGuidance(text: string): boolean {
+    return this.EVALUATION_GUIDANCE_PATTERNS.some(pat => pat.test(text));
+  }
+
+  /**
+   * Helper: checks if a brand or competitor entity is genuinely the grammatical subject
+   * of the clause or assertion, rather than an incidental object, location, or prepositional target.
+   */
+  public static isEntitySubjectOfClause(text: string, entity: string): boolean {
+    if (!text || !entity || !entity.trim()) return false;
+    const trimmedText = text.trim();
+    const escaped = entity.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    // Exclude review/guide/alternative meta-framing phrases like "A [Brand] features review", "[Brand] alternatives"
+    const isMetaFramingSubject = new RegExp(
+      `^(?:the\\s+|a\\s+|an\\s+)?${escaped}(?:'s)?\\s+(?:features?\\s+review|platform\\s+review|software\\s+review|review|guide|overview|analysis|article|breakdown|alternatives?)\\b`,
+      'i'
+    ).test(trimmedText);
+    if (isMetaFramingSubject) return false;
+
+    // Check if clause starts with the entity (allowing optional leading article)
+    const startsWithEntity = new RegExp(`^(?:the\\s+|a\\s+|an\\s+)?${escaped}\\b`, 'i').test(trimmedText);
+    if (startsWithEntity) return true;
+
+    // Check if entity is followed directly by an active verb of assertion
+    const verbFollower = new RegExp(
+      `\\b${escaped}(?:'s)?\\s+(?:is|are|was|were|has|have|had|offers?|provides?|features?|supports?|charges?|costs?|requires?|delivers?|includes?|lacks?|fails?|built|enables?|guarantees?)\\b`,
+      'i'
+    );
+
+    // Check if entity is in an obvious prepositional or indirect-object role
+    const isPrepositionalObject = new RegExp(
+      `\\b(?:to|with|from|for|against|between|than|like|as|in|within|into|via|through|about)\\s+(?:the\\s+|your\\s+|a\\s+|an\\s+)?${escaped}\\b`,
+      'i'
+    ).test(text);
+
+    if (verbFollower.test(text) && !isPrepositionalObject) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
    * Lead indicators for coordinate predicate clauses
    */
   private static VERB_LEAD_REGEX = /^(?:guarantees?|provides?|features?|integrates?(?:\s+with)?|offers?|delivers?|includes?|automates?|handles?|eliminates?|achieves?|streamlines?|accelerates?|optimizes?|ensures?|prevents?|reduces?|simplifies?|enables?|empowers?|operates?|manufactures?|invents?|develops?|builds?|does\s+not|doesn't|cannot|can't)\b/i;
@@ -514,17 +571,40 @@ export class ClaimExtractionService {
       }
     }
 
+    // Detect evaluation guidance
+    const isEvaluationAdvice = this.isEvaluationGuidance(trimmed);
+
+    // If pure evaluation guidance/advice and NO quantitative metric,
+    // classify as general guidance / framing (SUPPLEMENTAL), not an affirmative target-brand capability
+    if (isEvaluationAdvice && quantValues.length === 0) {
+      return [{
+        id: `claim-${sectionIndex}-${claimIndex}-0`,
+        sectionIndex,
+        sectionHeading,
+        sentence: fullSentence,
+        claimText: trimmed,
+        claimType: 'GENERAL_FACT',
+        subjectEntity: undefined,
+        targetEntity: undefined,
+        temporalAnchor,
+        confidence: 0.7,
+        materiality: 'SUPPLEMENTAL',
+        supportStatus: 'UNSUPPORTED',
+        groundedEvidenceIds: [],
+      }];
+    }
+
     // Preliminary subject indicators
-    const hasTargetMention = Boolean(targetBrand && this.hasWordBoundaryMatch(trimmed, targetBrand));
-    const hasCompetitorMention = knownCompetitors.some(c => this.hasWordBoundaryMatch(trimmed, c));
+    const isTargetSubject = Boolean(targetBrand && this.isEntitySubjectOfClause(trimmed, targetBrand));
+    const isCompetitorSubject = knownCompetitors.some(c => this.isEntitySubjectOfClause(trimmed, c));
     const isFirstPerson = this.FIRST_PERSON_SUBJECT_PATTERNS.some(pat => pat.test(trimmed));
     const isDefiniteProduct = this.DEFINITE_PRODUCT_PATTERNS.some(pat => pat.test(trimmed));
-    const isCommercialSubjectContext = hasTargetMention || hasCompetitorMention || isFirstPerson || isDefiniteProduct;
+    const isCommercialSubjectContext = !isEvaluationAdvice && (isTargetSubject || isCompetitorSubject || isFirstPerson || isDefiniteProduct);
 
     // Commercial capability assertion:
-    // Matches commercial promise pattern OR has capability verb in commercial subject context.
-    // Disqualified if affirmative capability is explicitly negated, hypothetical, or skeptical/concessive.
-    const isCommercialCapability = !isNegatedCapability && !isHypothetical && !isSkeptical && (
+    // Matches commercial promise pattern OR has capability verb in affirmative commercial subject context.
+    // Disqualified if affirmative capability is explicitly negated, hypothetical, skeptical/concessive, or evaluation guidance.
+    const isCommercialCapability = !isNegatedCapability && !isHypothetical && !isSkeptical && !isEvaluationAdvice && (
       isCommercialPromise || (isCapability && isCommercialSubjectContext)
     );
 
@@ -929,21 +1009,37 @@ export class ClaimExtractionService {
     // Check definite product mention ("the platform", "the software")
     const isDefiniteProduct = this.DEFINITE_PRODUCT_PATTERNS.some(pat => pat.test(sentence));
 
-    if (hasTarget && matchedCompetitors.length > 0) {
-      // Comparison: target brand is subject, competitor is target
-      subjectEntity = targetBrand;
-      targetEntity = matchedCompetitors[0];
+    if (targetBrand && hasTarget && matchedCompetitors.length > 0) {
+      if (this.isEntitySubjectOfClause(sentence, targetBrand) || isFirstPerson) {
+        // Target brand is subject, competitor is target
+        subjectEntity = targetBrand;
+        targetEntity = matchedCompetitors[0];
+      } else if (this.isEntitySubjectOfClause(sentence, matchedCompetitors[0])) {
+        // Competitor is subject, target brand is target
+        subjectEntity = matchedCompetitors[0];
+        targetEntity = targetBrand;
+      } else {
+        // Neither is grammatical subject (e.g. general comparison or meta-intro)
+        targetEntity = matchedCompetitors[0];
+      }
     } else if (matchedCompetitors.length > 0) {
       if (isFirstPerson && targetBrand && isMarketingClaimContext) {
         // e.g. "Our platform outperforms CompetitorX"
         subjectEntity = targetBrand;
         targetEntity = matchedCompetitors[0];
-      } else {
-        // Competitor is the subject
+      } else if (this.isEntitySubjectOfClause(sentence, matchedCompetitors[0])) {
+        // Competitor is genuinely the subject of the clause
         subjectEntity = matchedCompetitors[0];
+      } else {
+        // Competitor is a contextual reference or target entity, not the active subject
+        targetEntity = matchedCompetitors[0];
       }
-    } else if (hasTarget) {
-      subjectEntity = targetBrand;
+    } else if (targetBrand && hasTarget) {
+      if (this.isEntitySubjectOfClause(sentence, targetBrand)) {
+        subjectEntity = targetBrand;
+      } else {
+        targetEntity = targetBrand;
+      }
     } else if (isFirstPerson && targetBrand && isMarketingClaimContext) {
       // Unambiguous first-person marketing statement in branded content:
       // "Our platform provides X", "We offer X"
@@ -955,7 +1051,8 @@ export class ClaimExtractionService {
       const contextHasTarget = this.hasWordBoundaryMatch(contextText, targetBrand);
       const contextHasCompetitor = knownCompetitors.some(c => this.hasWordBoundaryMatch(contextText, c));
 
-      if (contextHasTarget && !contextHasCompetitor) {
+      // Do not associate generic "the platform/tool" with target brand in buyer evaluation guidance
+      if (contextHasTarget && !contextHasCompetitor && !this.isEvaluationGuidance(sentence)) {
         subjectEntity = targetBrand;
       }
       // Ambiguous context -> do not invent entity association

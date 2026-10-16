@@ -216,6 +216,24 @@ export class ClaimGroundingEngine {
   }
 
   /**
+   * Normalizes a competitor identifier or URL into a canonical brand slug
+   * so that domain hostnames (e.g. 'wordpress.org') and brand names (e.g. 'WordPress')
+   * are recognized as the same competitor entity, while different competitors
+   * (e.g. 'WordPress' vs 'HubSpot') remain strictly isolated.
+   */
+  public static canonicalCompetitorName(name?: string): string {
+    if (!name) return '';
+    let clean = name.toLowerCase().trim();
+    clean = clean.replace(/^https?:\/\//, '');
+    clean = clean.split('/')[0].split('?')[0];
+    clean = clean.split(':')[0];
+    clean = clean.replace(/^(?:www|app|api|docs|blog)\./, '');
+    clean = clean.replace(/\.(?:com|org|io|net|co|ai|app|dev|tech|software|biz|info|cloud)$/, '');
+    clean = clean.replace(/[^a-z0-9]/g, '');
+    return clean;
+  }
+
+  /**
    * Resolves the specific competitor identity associated with an evidence item or claim text.
    */
   public static extractCompetitorIdentity(
@@ -284,7 +302,7 @@ export class ClaimGroundingEngine {
       evComp) &&
       ev.sourceType !== 'TARGET_SITE'
     );
-    if (claimComp && evComp && claimComp.toLowerCase() !== evComp.toLowerCase()) {
+    if (claimComp && evComp && this.canonicalCompetitorName(claimComp) !== this.canonicalCompetitorName(evComp)) {
       return false;
     }
     if (claimComp && !evComp && isCompetitorEvidence) {
@@ -542,16 +560,16 @@ export class ClaimGroundingEngine {
     }
 
     if (allEvidence.length === 0) {
-      const hasEntity = Boolean(
+      const hasEntityAssertion = Boolean(
+        (claim.subjectEntity && (!targetBrand || claim.subjectEntity.toLowerCase() === targetBrand.toLowerCase())) ||
+        (claim.subjectEntity && knownCompetitors.some(c => c.toLowerCase() === claim.subjectEntity!.toLowerCase())) ||
+        claim.attributionSource ||
         (targetBrand && (
-          (claim.subjectEntity && claim.subjectEntity.toLowerCase() === targetBrand.toLowerCase()) ||
-          ClaimExtractionService.hasWordBoundaryMatch(claim.sentence, targetBrand)
-        )) ||
-        knownCompetitors.some(c => (claim.subjectEntity && claim.subjectEntity.toLowerCase() === c.toLowerCase()) || ClaimExtractionService.hasWordBoundaryMatch(claim.sentence, c)) ||
-        claim.subjectEntity ||
-        claim.attributionSource
+          ClaimExtractionService.hasWordBoundaryMatch(claim.claimText || '', targetBrand) ||
+          ClaimExtractionService.FIRST_PERSON_SUBJECT_PATTERNS.some(pat => pat.test(claim.claimText || ''))
+        ))
       );
-      if (claim.materiality === 'SUPPLEMENTAL' && !hasEntity) {
+      if (claim.materiality === 'SUPPLEMENTAL' && !hasEntityAssertion) {
         return {
           ...claim,
           supportStatus: 'PARTIALLY_SUPPORTED',
@@ -614,17 +632,17 @@ export class ClaimGroundingEngine {
       return qualitativeResult;
     }
 
-    // If supplemental general fact without entity mention, allow PARTIALLY_SUPPORTED
-    const hasEntity = Boolean(
+    // If supplemental general fact without an explicit entity assertion, allow PARTIALLY_SUPPORTED
+    const hasEntityAssertion = Boolean(
+      (claim.subjectEntity && (!targetBrand || claim.subjectEntity.toLowerCase() === targetBrand.toLowerCase())) ||
+      (claim.subjectEntity && knownCompetitors.some(c => c.toLowerCase() === claim.subjectEntity!.toLowerCase())) ||
+      claim.attributionSource ||
       (targetBrand && (
-        (claim.subjectEntity && claim.subjectEntity.toLowerCase() === targetBrand.toLowerCase()) ||
-        ClaimExtractionService.hasWordBoundaryMatch(claim.sentence, targetBrand)
-      )) ||
-      knownCompetitors.some(c => (claim.subjectEntity && claim.subjectEntity.toLowerCase() === c.toLowerCase()) || ClaimExtractionService.hasWordBoundaryMatch(claim.sentence, c)) ||
-      claim.subjectEntity ||
-      claim.attributionSource
+        ClaimExtractionService.hasWordBoundaryMatch(claim.claimText || '', targetBrand) ||
+        ClaimExtractionService.FIRST_PERSON_SUBJECT_PATTERNS.some(pat => pat.test(claim.claimText || ''))
+      ))
     );
-    if (claim.materiality === 'SUPPLEMENTAL' && !hasEntity) {
+    if (claim.materiality === 'SUPPLEMENTAL' && !hasEntityAssertion) {
       return {
         ...claim,
         supportStatus: 'PARTIALLY_SUPPORTED',
@@ -1067,7 +1085,9 @@ export class ClaimGroundingEngine {
 
     // Rule 1: Competitor A vs Competitor B cross-contamination
     if (claimComp && evComp) {
-      if (claimComp.toLowerCase() !== evComp.toLowerCase()) {
+      const canonClaimComp = this.canonicalCompetitorName(claimComp);
+      const canonEvComp = this.canonicalCompetitorName(evComp);
+      if (canonClaimComp && canonEvComp && canonClaimComp !== canonEvComp) {
         return {
           valid: false,
           leakage: true,
@@ -1159,12 +1179,12 @@ export class ClaimGroundingEngine {
 
     // If claim is a competitor, evidence must be for the same competitor
     if (sComp) {
-      return Boolean(eComp && eComp.toLowerCase() === sComp.toLowerCase());
+      return Boolean(eComp && this.canonicalCompetitorName(eComp) === this.canonicalCompetitorName(sComp));
     }
 
     // If evidence is competitor, claim must be for that competitor
     if (isCompEv) {
-      return Boolean(sComp && (!eComp || sComp.toLowerCase() === eComp.toLowerCase()));
+      return Boolean(sComp && (!eComp || this.canonicalCompetitorName(sComp) === this.canonicalCompetitorName(eComp)));
     }
 
     // If evidence is target brand, claim must not be competitor
