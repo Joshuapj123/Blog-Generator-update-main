@@ -105,6 +105,7 @@ import { EvidenceExtractionService } from '@/lib/intelligence/EvidenceExtraction
 import { ContentGapService } from '@/lib/intelligence/ContentGapService';
 import { SectionEvidenceMapper } from '@/lib/intelligence/SectionEvidenceMapper';
 import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceValidator';
+import { ClaimExtractionService } from '@/lib/intelligence/ClaimExtractionService';
 
 export enum AgentStage {
   DISCOVER = "DISCOVER",
@@ -1710,7 +1711,7 @@ WORD BUDGET:
 
         const secDuration = Date.now() - secStart;
         this.budgetGuard.recordSectionDuration(section.heading, secDuration);
-        sectionTexts[i] = text;
+        sectionTexts[i] = ClaimExtractionService.normalizeMarkdownLinks(text);
 
         this.options.onStageUpdate?.(AgentStage.GENERATE, "running", {
           type: "section",
@@ -1974,6 +1975,8 @@ ${hasTitleIssue ? 'OPTIMIZED TITLE: [Your optimized short title here]\n\n' : ''}
     } else if (responseText.includes('REPAIRED BODY:')) {
       repairedBody = responseText.split('REPAIRED BODY:')[1].trim();
     }
+
+    repairedBody = ClaimExtractionService.normalizeMarkdownLinks(repairedBody);
 
     const wordCount = repairedBody.split(/\s+/).filter(Boolean).length;
 

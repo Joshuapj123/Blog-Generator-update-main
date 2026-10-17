@@ -75,6 +75,7 @@ export class ContentEvidenceValidator {
     targetBrand?: string,
     gapMatrix?: ContentGapMatrix
   ): EvidenceValidationResult {
+    bodyMarkdown = ClaimExtractionService.normalizeMarkdownLinks(bodyMarkdown || '');
     const warnings: string[] = [];
     const criticalErrors: string[] = [];
     const unsupportedClaims: string[] = [];
@@ -82,7 +83,7 @@ export class ContentEvidenceValidator {
     const repetitionIssues: string[] = [];
     const accuracyIssues: string[] = [];
 
-    const bodyLower = (bodyMarkdown || '').toLowerCase();
+    const bodyLower = bodyMarkdown.toLowerCase();
     const primaryKeyword = (brief.targetKeywords?.[0] || '').toLowerCase().trim();
     const allEvidence = evidenceSet?.items || [];
 

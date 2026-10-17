@@ -28,12 +28,16 @@ export class ClaimExtractionService {
   ];
 
   /**
-   * External attribution patterns
+   * External empirical research attribution patterns.
+   * Matches explicit attributions to named research sources, surveys, studies, or benchmark publications.
+   * NOTE: Ordinary documentation or reference links (e.g. [MDN Web Docs](...), [W3C](...)) must NOT
+   * be classified as empirical research attributions unless accompanied by an explicit research attribution phrase.
    */
   private static ATTRIBUTION_PATTERNS = [
-    /\b(?:[Aa]ccording to|[Aa]s reported by|[Pp]ublished by|[Cc]ited by|[Ss]ource:|[Cc]ite:|[Ss]tudy by|[Ss]urvey by|[Rr]esearch from)\s+([A-Z][A-Za-z0-9&.-]+(?:\s+[A-Z][A-Za-z0-9&.-]+)?)/,
-    /\b(?:[Pp]er)\s+([A-Z][A-Za-z0-9&.-]+(?:\s+[A-Z][A-Za-z0-9&.-]+)?)\b/,
-    /\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/i,
+    /\b(?:[Aa]ccording to|[Aa]s reported by|[Pp]ublished by|[Cc]ited by|[Ss]ource:|[Cc]ite:|[Ss]tudy by|[Ss]urvey by|[Rr]esearch from)\s+\[?([A-Z][A-Za-z0-9&.-]+(?:\s+[A-Z][A-Za-z0-9&.-]+)?)\]?/i,
+    /\b(?:[Pp]er)\s+\[?([A-Z][A-Za-z0-9&.-]+(?:\s+[A-Z][A-Za-z0-9&.-]+)?)\]?\b/,
+    /\[([A-Z][A-Za-z0-9&.-]+(?:\s+[A-Z][A-Za-z0-9&.-]+)?)\s+(?:study|survey|research|benchmark|report|findings)\]\((https?:\/\/[^\)]+)\)/i,
+    /\[([A-Z][A-Za-z0-9&.-]+(?:\s+[A-Z][A-Za-z0-9&.-]+)?)\]\((https?:\/\/[^\)]+)\)\s+(?:found|reported|showed|discovered|demonstrated|estimated|measured|surveyed|concluded)\b/i,
   ];
 
   private static NON_ATTRIBUTION_SOURCES = new Set([
@@ -234,6 +238,37 @@ export class ClaimExtractionService {
   ];
 
   /**
+   * Deterministically normalizes malformed Markdown links (e.g. nested links produced by LLMs or prompt echoing)
+   * into clean Markdown links [anchor](url), while preserving valid links and their exact destinations.
+   * - [anchor]\([url](url)) -> [anchor](url)
+   * - [anchor]([url](url)) -> [anchor](url)
+   * - [anchor]\(url\) -> [anchor](url)
+   */
+  public static normalizeMarkdownLinks(text: string): string {
+    if (!text) return '';
+
+    // 1. Nested duplicate URL links with optional backslash before paren:
+    // e.g. [MDN Web Docs]\([https://developer.mozilla.org/](https://developer.mozilla.org/))
+    // or [MDN Web Docs]([https://developer.mozilla.org/](https://developer.mozilla.org/))
+    let result = text.replace(
+      /\[([^\]\n]+)\]\\?\(\s*\[(https?:\/\/[^\s\]\n]+)\]\(\s*(https?:\/\/[^\s\)\n]+)\s*\)\s*\)/g,
+      (_, anchor, innerAnchor, targetUrl) => {
+        return `[${anchor.trim()}](${targetUrl.trim()})`;
+      }
+    );
+
+    // 2. Escaped parenthesis on simple markdown link: [anchor]\(url\) or [anchor]\(url)
+    result = result.replace(
+      /\[([^\]\n]+)\]\\\(\s*(https?:\/\/[^\s\)\n]+)\s*\\?\)/g,
+      (_, anchor, url) => {
+        return `[${anchor.trim()}](${url.trim()})`;
+      }
+    );
+
+    return result;
+  }
+
+  /**
    * Extracts canonical claims from full markdown content.
    */
   public static extractClaimsFromMarkdown(
@@ -244,12 +279,14 @@ export class ClaimExtractionService {
     const claims: CanonicalClaim[] = [];
     if (!markdown || !markdown.trim()) return claims;
 
+    const normalizedMarkdown = this.normalizeMarkdownLinks(markdown);
+
     // Split markdown into sections by headings
     const sectionRegex = /(?:^|\n)(#{2,3})\s+([^\n]+)/g;
     const sectionIndices: { heading: string; level: string; headingStart: number; contentStart: number }[] = [];
     let match: RegExpExecArray | null;
 
-    while ((match = sectionRegex.exec(markdown)) !== null) {
+    while ((match = sectionRegex.exec(normalizedMarkdown)) !== null) {
       sectionIndices.push({
         heading: match[2].trim(),
         level: match[1],
@@ -260,13 +297,13 @@ export class ClaimExtractionService {
 
     if (sectionIndices.length === 0) {
       // Treat entire content as single section 0
-      return this.extractClaimsFromSection(markdown, 0, 'Introduction', targetBrand, knownCompetitors);
+      return this.extractClaimsFromSection(normalizedMarkdown, 0, 'Introduction', targetBrand, knownCompetitors);
     }
 
     for (let i = 0; i < sectionIndices.length; i++) {
       const current = sectionIndices[i];
-      const end = i + 1 < sectionIndices.length ? sectionIndices[i + 1].headingStart : markdown.length;
-      const sectionText = markdown.slice(current.contentStart, end).trim();
+      const end = i + 1 < sectionIndices.length ? sectionIndices[i + 1].headingStart : normalizedMarkdown.length;
+      const sectionText = normalizedMarkdown.slice(current.contentStart, end).trim();
       const secClaims = this.extractClaimsFromSection(
         sectionText,
         i,
@@ -293,8 +330,10 @@ export class ClaimExtractionService {
     const claims: CanonicalClaim[] = [];
     if (!sectionContent || !sectionContent.trim()) return claims;
 
+    const normalizedContent = this.normalizeMarkdownLinks(sectionContent);
+
     // Split text into paragraphs, skipping tables, code blocks, and markdown headings
-    const paragraphs = sectionContent
+    const paragraphs = normalizedContent
       .split(/\n\s*\n/)
       .map(p => p.trim())
       .filter(p => p.length > 0 && !p.startsWith('|') && !p.startsWith('```') && !p.startsWith('#'));
@@ -988,12 +1027,12 @@ export class ClaimExtractionService {
    * Helper: splits text into clean sentences.
    */
   public static splitIntoSentences(text: string): string[] {
-    // Preserve decimals (e.g. 99.9%) and abbreviations (e.g. e.g., vs.)
+    // Preserve decimals (e.g. 99.9%) and abbreviations (e.g. e.g., vs., etc., al., inc., corp., ltd.)
     const normalized = text
       .replace(/(\d+)\.(\d+)/g, '$1__DOT__$2')
-      .replace(/\b(?:e\.g\.|i\.e\.|vs\.|approx\.)/gi, match => match.replace(/\./g, '__DOT__'));
+      .replace(/\b(?:e\.g\.|i\.e\.|vs\.|approx\.|etc\.|al\.|inc\.|corp\.|ltd\.)/gi, match => match.replace(/\./g, '__DOT__'));
 
-    const sentences = normalized.split(/(?<=[.!?])\s+/);
+    const sentences = normalized.split(/(?<=[.!?]['"”’\)])\s+|(?<=[.!?])\s+/);
     return sentences
       .map(s => s.replace(/__DOT__/g, '.').trim())
       .filter(s => s.length > 0);
