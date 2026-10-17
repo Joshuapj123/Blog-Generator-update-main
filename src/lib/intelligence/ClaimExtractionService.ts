@@ -141,13 +141,15 @@ export class ClaimExtractionService {
    * where features are discussed as criteria to verify or examine rather than asserted vendor capabilities.
    */
   private static EVALUATION_GUIDANCE_PATTERNS = [
-    /\b(?:verify|check|confirm|ask|ensure|determine|evaluate|investigate|test|assess)\s+(?:if|whether|that|how|(?:the|your|a|any)\s+(?:platform|tool|software|solution|system|vendor))\b/i,
-    /\b(?:before\s+you\s+(?:commit|buy|purchase|choose|decide|sign|subscribe))\b/i,
-    /\b(?:when\s+(?:assessing|evaluating|choosing|selecting|considering|shopping\s+for)\s+(?:tools|platforms|software|solutions|vendors|options|systems))\b/i,
+    /\b(?:verify|check|confirm|ask|ensure|determine|evaluate|investigate|test|assess|identify|gauge|judge|decide|examine|explore)\s+(?:if|whether|that|how|(?:the|your|a|any)\s+(?:platform|tool|software|solution|system|vendor))\b/i,
+    /\b(?:before\s+(?:you\s+)?(?:commit(?:ting)?|buy(?:ing)?|purchas(?:e|ing)|choos(?:e|ing)|decid(?:e|ing)|sign(?:ing)?|subscrib(?:e|ing)|select(?:ing)?))\b/i,
+    /\b(?:when\s+(?:assessing|evaluating|choosing|selecting|considering|shopping\s+for|benchmarking)\s+(?:tools?|platforms?|software|solutions?|vendors?|options?|systems?))\b/i,
     /\b(?:look\s+for|seek\s+out|watch\s+out\s+for|pay\s+attention\s+to)\s+(?:tools?|platforms?|solutions?|features?)\b/i,
     /\b(?:you\s+can\s+(?:also\s+)?(?:explore|check|review|evaluate|look\s+into|examine|test|browse))\b/i,
+    /\b(?:to\s+(?:see|determine|find\s+out|evaluate|assess|gauge|identify|judge|check|uncover))\s+(?:if|whether)\b/i,
     /\b(?:to\s+see\s+if|to\s+determine\s+if|to\s+find\s+out\s+if)\s+(?:your|the|a|any)\b/i,
-    /\b(?:helps?\s+you\s+(?:see|determine|evaluate|find\s+out|understand))\s+if\b/i,
+    /\b(?:helps?|allows?|enables?|guides?|assists?)\s+(?:you|teams?|buyers?|users?|organizations?|companies|evaluators?|readers?)(?:\s+to)?\s+(?:see|determine|evaluate|find\s+out|understand|identify|gauge|assess|judge|decide|tell|learn|clarify|uncover)\s+(?:if|whether)\b/i,
+    /\b(?:key\s+criteria|factors?\s+to\s+consider|questions?\s+to\s+ask|checklist\s+for)\s+(?:when|to|for)\s+(?:evaluating|assessing|choosing|selecting)\b/i,
   ];
 
   public static isEvaluationGuidance(text: string): boolean {
@@ -571,8 +573,8 @@ export class ClaimExtractionService {
       }
     }
 
-    // Detect evaluation guidance
-    const isEvaluationAdvice = this.isEvaluationGuidance(trimmed);
+    // Detect evaluation guidance (clause-level or enclosing sentence)
+    const isEvaluationAdvice = this.isEvaluationGuidance(trimmed) || this.isEvaluationGuidance(fullSentence);
 
     // If pure evaluation guidance/advice and NO quantitative metric,
     // classify as general guidance / framing (SUPPLEMENTAL), not an affirmative target-brand capability
@@ -1052,7 +1054,9 @@ export class ClaimExtractionService {
       const contextHasCompetitor = knownCompetitors.some(c => this.hasWordBoundaryMatch(contextText, c));
 
       // Do not associate generic "the platform/tool" with target brand in buyer evaluation guidance
-      if (contextHasTarget && !contextHasCompetitor && !this.isEvaluationGuidance(sentence)) {
+      // or conditional inquiry clauses ("if the platform...", "whether the platform...")
+      const isConditionalInquiry = /\b(?:if|whether)\s+(?:the|this)\s+(?:platform|software|system|tool|solution|product)\b/i.test(sentence);
+      if (contextHasTarget && !contextHasCompetitor && !this.isEvaluationGuidance(sentence) && !isConditionalInquiry) {
         subjectEntity = targetBrand;
       }
       // Ambiguous context -> do not invent entity association
