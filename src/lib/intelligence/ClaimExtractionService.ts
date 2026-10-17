@@ -45,7 +45,7 @@ export class ClaimExtractionService {
    * Comparative patterns
    */
   private static COMPARATIVE_PATTERNS = [
-    /\b(?:faster than|cheaper than|better than|more affordable than|outperforms?|superior to|compared to|versus|vs\.?|unlike)\s+([A-Z][A-Za-z0-9&.-]+)/i,
+    /\b(?:faster than|cheaper than|better than|more affordable than|outperforms?|superior to|compared\s+(?:to|with)|versus|vs\.?|unlike)\s+([A-Z][A-Za-z0-9&.-]+)/i,
     /\b(\d+(?:\.\d+)?)\s*(?:x|times|fold)\s*(?:faster|more|higher|lower|cheaper|reduction|growth)/i,
     /\b(?:in contrast to|as opposed to|whereas)\s+([A-Z][A-Za-z0-9&.-]+)/i,
   ];
@@ -77,7 +77,7 @@ export class ClaimExtractionService {
    * Capability and feature patterns
    */
   private static CAPABILITY_PATTERNS = [
-    /\b(?:supports?|provides?|features?|integrates?(?:\s+with)?|offers?|delivers?|includes?|automates?|handles?|built with|certified for|compliant with|operates?|manufactures?|invents?|develops?|builds?|eliminates?|guarantees?|achieves?|streamlines?|accelerates?|optimizes?|ensures?|prevents?|reduces?|simplifies?|enables?|empowers?|allows?)\b/i,
+    /\b(?:supports?|provides?|features?|integrates?(?:\s+with)?|offers?|delivers?|includes?|automates?|handles?|built with|certified for|compliant with|operates?|manufactures?|invents?|develops?|builds?|eliminates?|guarantees?|achieves?|streamlines?|accelerates?|optimizes?|ensures?|prevents?|reduces?|simplifies?|enables?|empowers?|allows?|improves?|boosts?|increases?)\b/i,
   ];
 
   /**
@@ -117,6 +117,9 @@ export class ClaimExtractionService {
     /\b(?:independent|third-party)\s+(?:tests?|evaluations?|audits?|benchmarks?|observers?|researchers?)\s+(?:found|reported|showed|discovered|noted)\s+(?:delays?|issues?|problems?|limitations?|bottlenecks?|failures?)\b/i,
     /\b(?:advertises?|allegedly|purportedly|supposedly)\s+(?:instant|effortless|frictionless|risk-free|seamless)\b/i,
     /\b(?:question\s+whether|doubt\s+whether|debated\s+whether|unclear\s+whether|dispute\s+whether)\b/i,
+    /\b(?:evidence|data|research|studies|benchmarks?|findings?)\s+(?:does\s+not|doesn't|do\s+not|don't|cannot|can't|fails?\s+to)\s+(?:establish|prove|demonstrate|show|confirm|validate|support|substantiate)\b/i,
+    /\b(?:not\s+proven|unproven|unverified|inconclusive|not\s+established)\s+(?:whether|that)\b/i,
+    /\b(?:no\s+evidence|little\s+evidence|insufficient\s+evidence)\s+(?:to\s+suggest|to\s+prove|that|shows?)\b/i,
   ];
 
   /**
@@ -198,7 +201,7 @@ export class ClaimExtractionService {
   /**
    * Lead indicators for coordinate predicate clauses
    */
-  private static VERB_LEAD_REGEX = /^(?:guarantees?|provides?|features?|integrates?(?:\s+with)?|offers?|delivers?|includes?|automates?|handles?|eliminates?|achieves?|streamlines?|accelerates?|optimizes?|ensures?|prevents?|reduces?|simplifies?|enables?|empowers?|operates?|manufactures?|invents?|develops?|builds?|does\s+not|doesn't|cannot|can't)\b/i;
+  private static VERB_LEAD_REGEX = /^(?:guarantees?|provides?|features?|integrates?(?:\s+with)?|offers?|delivers?|includes?|automates?|handles?|eliminates?|achieves?|streamlines?|accelerates?|optimizes?|ensures?|prevents?|reduces?|simplifies?|enables?|empowers?|operates?|manufactures?|invents?|develops?|builds?|improves?|boosts?|increases?|does\s+not|doesn't|cannot|can't)\b/i;
 
   private static PROMISE_LEAD_REGEX = /^(?:instant|effortless|frictionless|risk-free|turnkey|seamless|zero[- ]downtime)\b/i;
 
@@ -596,6 +599,27 @@ export class ClaimExtractionService {
       }];
     }
 
+    // If explicitly skeptical context, concessive analysis, or disclaimer stating lack of proof,
+    // and NO quantitative metric, classify as general editorial framing (SUPPLEMENTAL),
+    // not an affirmative target-brand capability that would trigger false-positive grounding failures.
+    if (isSkeptical && quantValues.length === 0) {
+      return [{
+        id: `claim-${sectionIndex}-${claimIndex}-0`,
+        sectionIndex,
+        sectionHeading,
+        sentence: fullSentence,
+        claimText: trimmed,
+        claimType: 'GENERAL_FACT',
+        subjectEntity: undefined,
+        targetEntity: undefined,
+        temporalAnchor,
+        confidence: 0.7,
+        materiality: 'SUPPLEMENTAL',
+        supportStatus: 'UNSUPPORTED',
+        groundedEvidenceIds: [],
+      }];
+    }
+
     // Preliminary subject indicators
     const isTargetSubject = Boolean(targetBrand && this.isEntitySubjectOfClause(trimmed, targetBrand));
     const isCompetitorSubject = knownCompetitors.some(c => this.isEntitySubjectOfClause(trimmed, c));
@@ -604,10 +628,12 @@ export class ClaimExtractionService {
     const isCommercialSubjectContext = !isEvaluationAdvice && (isTargetSubject || isCompetitorSubject || isFirstPerson || isDefiniteProduct);
 
     // Commercial capability assertion:
-    // Matches commercial promise pattern OR has capability verb in affirmative commercial subject context.
-    // Disqualified if affirmative capability is explicitly negated, hypothetical, skeptical/concessive, or evaluation guidance.
-    const isCommercialCapability = !isNegatedCapability && !isHypothetical && !isSkeptical && !isEvaluationAdvice && (
-      isCommercialPromise || (isCapability && isCommercialSubjectContext)
+    // A commercial promise (guarantees, SLAs, zero-downtime) is ALWAYS a commercial capability assertion
+    // unless explicitly negated or skeptical/concessive. A modal hedge (e.g. "could potentially guarantee zero downtime")
+    // does NOT downgrade an ungrounded commercial promise into a safe general fact.
+    // For standard capabilities (supports, integrates, reduces), disqualify if hypothetical, skeptical, or evaluation guidance.
+    const isCommercialCapability = !isNegatedCapability && !isSkeptical && (
+      isCommercialPromise || (!isHypothetical && !isEvaluationAdvice && isCapability && isCommercialSubjectContext)
     );
 
     // Detect subject entity and target entity (context-aware & boundary-safe)
@@ -712,9 +738,10 @@ export class ClaimExtractionService {
       const isMetaEditorial = this.META_EDITORIAL_COMPARATIVE_PATTERNS.some(pat => pat.test(trimmed));
       const hasExplicitSuperiority = this.SUPERIORITY_COMPARATIVE_PATTERNS.some(pat => pat.test(trimmed));
 
-      // If it is meta-editorial or navigational framing and lacks explicit empirical superiority assertions,
+      // If it is meta-editorial framing, a qualified hypothesis, or skeptical/concessive context,
+      // and lacks explicit empirical superiority assertions and commercial promises,
       // classify as a general framing statement (SUPPLEMENTAL), not a CRITICAL empirical comparative claim.
-      if (isMetaEditorial && !hasExplicitSuperiority) {
+      if (((isMetaEditorial || isHypothetical || isSkeptical) && !hasExplicitSuperiority && !isCommercialPromise)) {
         return [{
           id: `claim-${sectionIndex}-${claimIndex}-0`,
           sectionIndex,
@@ -769,7 +796,7 @@ export class ClaimExtractionService {
     }
 
     // Entity capability or commercial product promise
-    if (!isNegatedCapability && !isHypothetical && !isSkeptical && (isCommercialCapability || (isCapability && subjectEntity))) {
+    if (!isNegatedCapability && !isSkeptical && (isCommercialCapability || (!isHypothetical && isCapability && subjectEntity))) {
       const isTargetBrand = Boolean(
         targetBrand && subjectEntity && subjectEntity.toLowerCase() === targetBrand.toLowerCase()
       );

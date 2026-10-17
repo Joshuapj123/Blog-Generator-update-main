@@ -37,6 +37,28 @@ export class ClaimGroundingEngine {
     /\b(?:\d+(?:\.\d+)?)\s*(?:ms|milliseconds?|seconds?|minutes?|hours?|days?|req\/s|rps|tps|qps|gbps|mbps|tb|gb|mb|ghz|iops)\b/i,
   ];
 
+  /**
+   * Directional and superiority stems for comparative claims.
+   * When a comparative claim asserts a differential outcome (e.g. "reduces turnover"),
+   * supporting evidence MUST support the differential outcome itself, not merely mention
+   * the competitor or the problem domain.
+   */
+  private static COMPARATIVE_DIFFERENTIAL_STEMS = new Set([
+    'reduce', 'lower', 'less', 'fewer', 'decrease', 'drop', 'cut', 'save', 'minimize', 'eliminate',
+    'faster', 'cheaper', 'better', 'superior', 'preferable',
+    'improve', 'boost', 'accelerate', 'streamline', 'increase', 'higher', 'greater', 'more',
+    'outperform', 'exceed', 'surpass', 'lead', 'advantage'
+  ]);
+
+  /**
+   * Empirical performance and outcome patterns (turnover, churn, costs, downtime, latency, errors)
+   * that can NEVER be substantiated by an INFERENCE or LOW-confidence evidence item.
+   */
+  private static EMPIRICAL_OUTCOME_PATTERNS = [
+    /\b(?:reduces?|reducing|reduction|lowers?|lowering|decreases?|decreasing|cuts?|cutting|saves?|saving|minimizes?|minimizing|eliminates?|eliminating)\s+(?:turnover|churn|costs?|expenses?|downtime|latency|errors?|defects?|bugs?|incidents?|overhead|waste|friction|risk)\b/i,
+    /\b(?:increases?|increasing|boosts?|boosting|accelerates?|accelerating|improves?|improving)\s+(?:retention|revenue|sales?|speed|velocity|productivity|efficiency|throughput|uptime|accuracy)\b/i,
+  ];
+
   private static GENERIC_STOPWORDS = new Set([
     'software', 'platform', 'service', 'services', 'business', 'company',
     'solutions', 'solution', 'provides', 'delivers', 'verified', 'capability',
@@ -165,6 +187,51 @@ export class ClaimGroundingEngine {
     launch: 'launch',
     launches: 'launch',
     launched: 'launch',
+    reduces: 'reduce',
+    reducing: 'reduce',
+    reduced: 'reduce',
+    reduction: 'reduce',
+    lowers: 'reduce',
+    lowering: 'reduce',
+    lowered: 'reduce',
+    lower: 'reduce',
+    decreases: 'reduce',
+    decreasing: 'reduce',
+    decreased: 'reduce',
+    decrease: 'reduce',
+    cuts: 'reduce',
+    cutting: 'reduce',
+    saves: 'save',
+    saving: 'save',
+    saved: 'save',
+    minimizes: 'minimize',
+    minimizing: 'minimize',
+    minimized: 'minimize',
+    eliminates: 'eliminate',
+    eliminating: 'eliminate',
+    eliminated: 'eliminate',
+    improves: 'improve',
+    improving: 'improve',
+    improved: 'improve',
+    improvement: 'improve',
+    boosts: 'improve',
+    boosting: 'improve',
+    boosted: 'improve',
+    increases: 'improve',
+    increasing: 'improve',
+    increased: 'improve',
+    streamlines: 'streamline',
+    streamlining: 'streamline',
+    streamlined: 'streamline',
+    accelerates: 'accelerate',
+    accelerating: 'accelerate',
+    accelerated: 'accelerate',
+    outperforms: 'outperform',
+    outperforming: 'outperform',
+    outperformed: 'outperform',
+    exceeds: 'exceed',
+    exceeding: 'exceed',
+    exceeded: 'exceed',
   };
 
   private static normalizeToken(token: string): string {
@@ -936,10 +1003,14 @@ export class ClaimGroundingEngine {
       claim.quantitativeValue ||
       (claim.claimText && ClaimExtractionService.parseQuantitativeValues(claim.claimText).length > 0)
     );
+    const isEmpiricalOutcomeClaim = this.EMPIRICAL_OUTCOME_PATTERNS.some(pat =>
+      pat.test(claim.claimText || '') || pat.test(claim.sentence)
+    );
     const isHardFactualClaim =
       isQuantitativeClaim ||
       claim.claimType === 'ATTRIBUTION' ||
       claim.claimType === 'COMPARATIVE' ||
+      isEmpiricalOutcomeClaim ||
       this.HARD_FACTUAL_PATTERNS.some(pat => pat.test(claim.claimText || '') || pat.test(claim.sentence));
 
     for (const ev of sortedCandidates) {
@@ -981,6 +1052,68 @@ export class ClaimGroundingEngine {
           (ev.entities && ev.entities.some(e => e.toLowerCase().includes(src))) ||
           evLower.includes(src);
         if (!evMatches) continue;
+      }
+
+      // 1. Comparator non-inversion check:
+      // If the claim compares against a target entity (comparator), and the evidence attributes
+      // the capability or differential action to that comparator itself, the evidence cannot support
+      // target brand superiority over that comparator.
+      if (claim.claimType === 'COMPARATIVE' && claim.targetEntity) {
+        const compTargetRegex = new RegExp(`\\b${claim.targetEntity}\\s+(?:reduces?|lowers?|offers?|delivers?|is|provides?|has)\\b`, 'i');
+        if (compTargetRegex.test(ev.claim)) {
+          continue;
+        }
+      }
+
+      // 2. Comparative differential support check:
+      // For COMPARATIVE claims, verify that the evidence actually supports the comparative superiority / differential
+      // rather than merely mentioning the competitor and the problem domain (e.g. general contractor turnover).
+      if (claim.claimType === 'COMPARATIVE') {
+        const comparativeTokens = claimTokens.filter(t => ClaimGroundingEngine.COMPARATIVE_DIFFERENTIAL_STEMS.has(t));
+        if (comparativeTokens.length > 0) {
+          const evTokenSet = new Set(evTokens);
+          const hasComparativeSupport = comparativeTokens.some(t => evTokenSet.has(t));
+          if (!hasComparativeSupport) {
+            continue; // Evidence does not support the comparative outcome/predicate
+          }
+        }
+      }
+
+      // 3. Target brand capability vs general industry trends / goals:
+      // An affirmative capability claim about the target brand cannot be grounded
+      // by generic industry trends or goals that do not reference the target brand or its specific product.
+      const hasTargetBrandContext = Boolean(
+        targetBrand && (
+          (claim.subjectEntity && claim.subjectEntity.toLowerCase() === targetBrand.toLowerCase()) ||
+          ClaimExtractionService.hasWordBoundaryMatch(claim.claimText || '', targetBrand) ||
+          ClaimExtractionService.hasWordBoundaryMatch(claim.sentence, targetBrand) ||
+          ClaimExtractionService.FIRST_PERSON_SUBJECT_PATTERNS.some(pat => pat.test(claim.claimText || '') || pat.test(claim.sentence))
+        )
+      );
+
+      if (hasTargetBrandContext && claim.claimType === 'ENTITY_CAPABILITY') {
+        const isTargetEv = Boolean(
+          ev.sourceType === 'TARGET_SITE' ||
+          ev.evidenceType === 'BUSINESS_FACT' ||
+          ev.evidenceType === 'FEATURE' ||
+          ev.evidenceType === 'DIFFERENTIATOR' ||
+          ev.evidenceType === 'TECHNICAL_SPEC' ||
+          (targetBrand && (
+            (ev.entities && ev.entities.some(e => e.toLowerCase() === targetBrand.toLowerCase())) ||
+            evLower.includes(targetBrand.toLowerCase())
+          ))
+        );
+
+        if (!isTargetEv) {
+          // External evidence must not be a mere macro industry trend ("across the industry") or aspiration ("industry goal").
+          const isGenericTrendOrGoal = /\b(?:common\s+industry\s+goal|across\s+the\s+industry|industry[- ]wide\s+trend|industry\s+average|industry\s+trend|common\s+goal)\b/i.test(ev.claim);
+          if (isGenericTrendOrGoal) {
+            continue;
+          }
+          if (!/\b(?:service|platform|software|tool|product|solution|subscription|system|model)\b/i.test(ev.claim)) {
+            continue;
+          }
+        }
       }
 
       // Helper to return properly qualified support status
