@@ -262,6 +262,7 @@ export class AgentOrchestrator {
   private gapMatrix?: ContentGapMatrix;
   private sectionEvidenceMaps: SectionEvidenceMap[] = [];
   private internalLinks: string[] = [];
+  private saasProfile?: any;
   public budgetGuard: RuntimeBudgetGuard;
 
   constructor(private options: AgentOrchestratorOptions) {
@@ -417,6 +418,7 @@ export class AgentOrchestrator {
   async run(input: OrchestrationInput): Promise<OrchestrationResult> {
     console.log('[agent] run started');
     this.targetBrand = input.saasProfile?.name || '';
+    this.saasProfile = input.saasProfile;
     this.internalLinks = input.internalLinks || [];
     
     let discovery: DiscoveryResult | undefined;
@@ -1792,7 +1794,8 @@ WORD BUDGET:
       this.evidenceSet,
       this.sectionEvidenceMaps,
       this.targetBrand,
-      this.gapMatrix
+      this.gapMatrix,
+      this.saasProfile
     );
 
     this.telemetry.researchIntelligence = evidenceValidation.diagnostics;

@@ -88,6 +88,35 @@ export class WebsiteIntelligenceService {
     // Strategy 1: Safe homepage DOM cleaning
     const dom1 = new JSDOM(cleanHtml, { url });
     const doc1 = dom1.window.document;
+
+    // Preserve critical metadata from <head> before cleaning DOM
+    const metaParts: string[] = [];
+    const titleEl = doc1.querySelector('title');
+    if (titleEl?.textContent?.trim()) {
+      metaParts.push(`Title: ${titleEl.textContent.trim()}`);
+    }
+    const metaDesc = doc1.querySelector('meta[name="description" i]')?.getAttribute('content')?.trim();
+    if (metaDesc) {
+      metaParts.push(`Description: ${metaDesc}`);
+    }
+    const ogTitle = doc1.querySelector('meta[property="og:title" i]')?.getAttribute('content')?.trim();
+    if (ogTitle && (!titleEl || ogTitle !== titleEl.textContent?.trim())) {
+      metaParts.push(`OG Title: ${ogTitle}`);
+    }
+    const ogDesc = doc1.querySelector('meta[property="og:description" i]')?.getAttribute('content')?.trim();
+    if (ogDesc && ogDesc !== metaDesc) {
+      metaParts.push(`OG Description: ${ogDesc}`);
+    }
+    const ogSiteName = doc1.querySelector('meta[property="og:site_name" i]')?.getAttribute('content')?.trim();
+    if (ogSiteName) {
+      metaParts.push(`Site Name: ${ogSiteName}`);
+    }
+    const metaKeywords = doc1.querySelector('meta[name="keywords" i]')?.getAttribute('content')?.trim();
+    if (metaKeywords) {
+      metaParts.push(`Keywords: ${metaKeywords}`);
+    }
+    const metaHeader = metaParts.join('\n');
+
     this.cleanHomepageDom(doc1);
 
     // Priority 1: Extract substantive content container (<main>, <article>, #content, etc.)
@@ -136,6 +165,10 @@ export class WebsiteIntelligenceService {
         cleanedText = regexStripped;
       }
     }
+
+    if (metaHeader) {
+      cleanedText = `${metaHeader}\n\n${cleanedText}`.trim();
+    }
     
     return cleanedText;
   }
@@ -163,24 +196,40 @@ export class WebsiteIntelligenceService {
       const cleanHost = resolvedHost.replace(/^www\./i, '');
       const brandRaw = cleanHost.split('.')[0] || 'Brand';
       const brandName = brandRaw.charAt(0).toUpperCase() + brandRaw.slice(1);
+      const detected = detectBusinessTypeFromTextAndUrl(cleanedText, url);
+
+      const isNonSaaS = detected.businessType !== 'SaaS';
+      const fallbackDesc = isNonSaaS
+        ? `${brandName} ${detected.businessType.toLowerCase()} and consulting practice.`
+        : `${brandName} web platform.`;
 
       const fallbackProfile: SaaSProfile = {
         name: brandName,
         website: safety.normalizedUrl || url,
-        description: `${brandName} web platform.`,
-        keyFeatures: [],
+        description: fallbackDesc,
+        businessType: detected.businessType,
+        verifiedOfferings: detected.verifiedOfferings,
+        identityConfidence: detected.identityConfidence,
+        keyFeatures: detected.verifiedOfferings,
         primaryCompetitors: [],
-        targetAudience: 'Business and technical professionals',
+        targetAudience: isNonSaaS ? 'Product leaders and founders' : 'Business and technical professionals',
         tone: 'Professional and authoritative',
         customInsights: ''
       };
 
-      const fallbackKeywords = [
-        `${brandRaw} software`,
-        `${brandRaw} platform`,
-        `best ${brandRaw} alternatives`,
-        `${brandRaw} review`
-      ];
+      const fallbackKeywords = isNonSaaS
+        ? [
+            `${brandRaw} design services`,
+            `how to fix product friction`,
+            `ux audit checklist`,
+            `how to improve onboarding conversion`
+          ]
+        : [
+            `${brandRaw} software`,
+            `${brandRaw} platform`,
+            `best ${brandRaw} alternatives`,
+            `${brandRaw} review`
+          ];
 
       return {
         profile: fallbackProfile,
@@ -189,12 +238,19 @@ export class WebsiteIntelligenceService {
     }
 
     // 3. Structured SaaSProfile extraction
-    const profilePrompt = `You are an elite business analyst. Analyze the following website homepage content to extract details for this business/SaaS:
+    const detected = detectBusinessTypeFromTextAndUrl(cleanedText, url);
+    const profilePrompt = `You are an elite business analyst. Analyze the following website homepage content to extract details for this business:
 URL: ${url}
 Website Text:
 ${cleanedText}
 
-Generate a structured business profile matching the requested schema. Ensure the keyFeatures and primaryCompetitors are filled out, description is comprehensive, and name is the actual business name.`;
+Generate a structured business profile matching the requested schema.
+CRITICAL ARCHETYPE & OFFERING ACCURACY:
+1. Accurately identify the businessType: 'SaaS' (software product/tool/app), 'Agency/Portfolio' (design studio, consultancy, freelancer, agency, portfolio), 'Ecommerce' (online store selling physical goods), 'Publisher/Blog' (media/content site), 'Services' (professional service provider), or 'Other'.
+2. DO NOT classify consultancies, design studios, agencies, or individual portfolios as 'SaaS' or software platforms!
+3. Populate verifiedOfferings with concrete, explicit services or capabilities mentioned in the text (e.g. ['UX Audits', 'Onboarding Redesign']).
+4. Set identityConfidence to 'HIGH' if the archetype is clearly stated, 'MEDIUM' if inferred, or 'LOW' if ambiguous.
+5. Ensure keyFeatures reflects their actual services or capabilities, and name is the actual business name.`;
 
     const profile = await this.llm.structuredGenerate<SaaSProfile>(profilePrompt, SaaSProfileSchema, {
       operation: 'URL Profile Extraction',
@@ -202,24 +258,44 @@ Generate a structured business profile matching the requested schema. Ensure the
       systemInstruction: 'Output a valid JSON matching the SaaSProfileSchema.'
     });
 
+    // Deterministic archetype alignment if domain/signals strongly establish Agency/Portfolio
+    if (detected.businessType !== 'SaaS' && (!profile.businessType || profile.businessType === 'SaaS')) {
+      profile.businessType = detected.businessType;
+      if (!profile.verifiedOfferings || profile.verifiedOfferings.length === 0) {
+        profile.verifiedOfferings = detected.verifiedOfferings;
+      }
+      profile.identityConfidence = detected.identityConfidence;
+    }
+
     // 4. Generate candidate seed keywords spanning distinct business pillars
     const keywordSchema = z.object({
       keywords: z.array(z.string().min(1)).min(4).max(6).describe('List of 4-6 high-intent target SEO search terms covering distinct business pillars.')
     });
 
+    const isNonSaaS = profile.businessType && profile.businessType !== 'SaaS';
+    const nonSaaSRules = isNonSaaS
+      ? `NON-SAAS BUSINESS RULES:
+This business is an ${profile.businessType} (Offerings: ${profile.verifiedOfferings?.join(', ') || 'Consulting / Design'}). It is NOT a SaaS tool or software product.
+DO NOT generate "[brand] alternatives", "[brand] vs [competitor]", or "[brand] software".
+Instead, generate high-intent search queries targeting the problems their clients face (e.g., "how to fix onboarding drop off", "ux audit checklist", "how to improve checkout conversion") or industry best practices.`
+      : '';
+
     const keywordPrompt = `You are an elite SEO strategist. Based on this business profile, generate 4 to 6 target SEO search queries that represent the company's primary business across distinct strategic pillars.
 
-SaaS Name: ${profile.name}
+Business Name: ${profile.name}
+Business Type: ${profile.businessType || 'SaaS'}
 Description: ${profile.description}
-Key Features: ${profile.keyFeatures?.join(', ')}
+Key Offerings / Features: ${(profile.verifiedOfferings && profile.verifiedOfferings.length > 0 ? profile.verifiedOfferings : profile.keyFeatures)?.join(', ')}
 Target Audience: ${profile.targetAudience}
+
+${nonSaaSRules}
 
 CRITICAL DIVERSIFICATION RULES:
 1. Cover at least 3 distinct conceptual pillars:
-   - Pillar 1: Core Product / Primary Value Proposition (e.g., "best [core product category] app", "[core solution] software")
+   - Pillar 1: Core Offering / Primary Value Proposition
    - Pillar 2: Core Problem / JTBD (e.g., "how to [solve primary customer problem]", "manage [core job]")
-   - Pillar 3: Category Alternative / Comparison (e.g., "[brand/category] alternatives", "[brand] vs [competitor]")
-   - Pillar 4: Feature Differentiator (a key unique feature or capability)
+   - Pillar 3: ${isNonSaaS ? 'Audit / Evaluation Checklist' : 'Category Alternative / Comparison'}
+   - Pillar 4: Feature / Service Differentiator
 2. SECONDARY FEATURE RULE: Secondary features, integrations, or auxiliary capabilities MUST NOT dominate the candidate set. Novelty or low competition alone must NOT cause a secondary feature to dominate.
 3. DOMINANT CLUSTER RULE: No more than 50% of candidates may belong to the same semantic cluster (e.g., sharing the same feature root like 'podcast' or 'audio' when the core product is an RSS reader).
 4. Ground every keyword in the primary business offering. Return lowercase, search-friendly query strings.`;
@@ -235,12 +311,20 @@ CRITICAL DIVERSIFICATION RULES:
     } catch (err: any) {
       console.warn('[website-intelligence] Seed keyword generation failed, using profile fallback:', err.message);
       const name = profile.name.toLowerCase().trim();
-      candidateKeywords = [
-        `best ${name} alternatives`,
-        `how to choose ${name} platform`,
-        `${name} review`,
-        `how to use ${name}`
-      ];
+      const isAgency = profile.businessType && profile.businessType !== 'SaaS';
+      candidateKeywords = isAgency
+        ? [
+            `${name} design services`,
+            `how to fix product friction`,
+            `ux audit checklist`,
+            `how to reduce onboarding drop off`
+          ]
+        : [
+            `best ${name} alternatives`,
+            `how to choose ${name} platform`,
+            `${name} review`,
+            `how to use ${name}`
+          ];
     }
 
     // 5. Programmatic cluster concentration detection and enforcement
@@ -420,12 +504,20 @@ export function enforceKeywordDiversification(
 
   // Backfill with primary business keywords covering Core Product & Problem/JTBD
   const name = profile.name.toLowerCase().trim();
-  const fallbackCandidates = [
-    `best ${name} alternatives`,
-    `how to choose ${name} platform`,
-    `${name} review for small business`,
-    `how to use ${name}`
-  ];
+  const isNonSaaS = profile.businessType && profile.businessType !== 'SaaS';
+  const fallbackCandidates = isNonSaaS
+    ? [
+        `${name} design services`,
+        `how to fix product friction`,
+        `ux audit checklist`,
+        `how to reduce onboarding drop off`
+      ]
+    : [
+        `best ${name} alternatives`,
+        `how to choose ${name} platform`,
+        `${name} review for small business`,
+        `how to use ${name}`
+      ];
 
   for (const fallback of fallbackCandidates) {
     if (preserved.length >= keywords.length) break;
@@ -440,5 +532,73 @@ export function enforceKeywordDiversification(
     keywords: preserved,
     clusterAnalysis: finalAnalysis,
     wasAdjusted: true
+  };
+}
+
+export function detectBusinessTypeFromTextAndUrl(text: string, url: string): {
+  businessType: 'SaaS' | 'Agency/Portfolio' | 'Ecommerce' | 'Publisher/Blog' | 'Services' | 'Other';
+  verifiedOfferings: string[];
+  identityConfidence: 'HIGH' | 'MEDIUM' | 'LOW';
+} {
+  const lowerText = text.toLowerCase();
+  let parsedUrl: URL | null = null;
+  try {
+    parsedUrl = new URL(url);
+  } catch {}
+
+  const hostname = (parsedUrl?.hostname || '').toLowerCase();
+
+  // Agency/Portfolio domain signals
+  const isAgencyDomain = hostname.endsWith('.design') ||
+    hostname.endsWith('.agency') ||
+    hostname.endsWith('.studio') ||
+    hostname.includes('design') ||
+    hostname.includes('studio') ||
+    hostname.includes('portfolio') ||
+    hostname.includes('agency');
+
+  // Text signals
+  const agencyKeywords = [
+    'ux audit', 'redesign', 'portfolio', 'design studio', 'freelance designer',
+    'product designer', 'ux consultant', 'case study', 'case studies', 'selected work',
+    'hire me', 'book a call', 'book an audit', 'i fix friction', 'design consultancy',
+    'audit and redesign', 'friction in digital products'
+  ];
+  const matchedAgencyKeywords = agencyKeywords.filter(k => lowerText.includes(k));
+
+  const saasKeywords = [
+    'pricing plan', 'sign up free', 'start free trial', 'saas platform',
+    'cloud software', 'api documentation', 'integrations with', 'web app',
+    'monthly subscription', 'per user per month', 'software as a service'
+  ];
+  const matchedSaasKeywords = saasKeywords.filter(k => lowerText.includes(k));
+
+  const verifiedOfferings: string[] = [];
+  if (lowerText.includes('ux audit') || lowerText.includes('ux audits')) verifiedOfferings.push('UX Audits');
+  if (lowerText.includes('redesign') || lowerText.includes('redesigns')) verifiedOfferings.push('Product Redesigns');
+  if (lowerText.includes('onboarding')) verifiedOfferings.push('Onboarding Optimization');
+  if (lowerText.includes('checkout')) verifiedOfferings.push('Checkout Flow Optimization');
+  if (lowerText.includes('friction')) verifiedOfferings.push('UX Friction Remediation');
+
+  if (isAgencyDomain || matchedAgencyKeywords.length >= 2 || (matchedAgencyKeywords.length >= 1 && matchedSaasKeywords.length === 0)) {
+    return {
+      businessType: 'Agency/Portfolio',
+      verifiedOfferings: verifiedOfferings.length > 0 ? verifiedOfferings : ['UX Audits', 'Design Consulting'],
+      identityConfidence: (isAgencyDomain || matchedAgencyKeywords.length >= 2) ? 'HIGH' : 'MEDIUM'
+    };
+  }
+
+  if (lowerText.includes('add to cart') || lowerText.includes('shopping cart') || (lowerText.includes('checkout') && lowerText.includes('store'))) {
+    return {
+      businessType: 'Ecommerce',
+      verifiedOfferings: ['Online Retail'],
+      identityConfidence: 'HIGH'
+    };
+  }
+
+  return {
+    businessType: 'SaaS',
+    verifiedOfferings: [],
+    identityConfidence: matchedSaasKeywords.length >= 1 ? 'HIGH' : 'LOW'
   };
 }

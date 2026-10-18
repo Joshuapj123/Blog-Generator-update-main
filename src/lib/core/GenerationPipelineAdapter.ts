@@ -11,6 +11,7 @@ import { Article } from '@/lib/firebase/firestore';
 import { saveArticleAdmin } from '@/lib/firebase/admin-firestore';
 import { TemporaryArticleStore, resolvePersistenceBackend } from '@/lib/test-storage/TemporaryArticleStore';
 import { normalizeAiOutput } from '@/app/(main)/engine/utils/normalizeAiOutput';
+import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceValidator';
 import { 
   LLMProvider, 
   SearchProvider, 
@@ -474,6 +475,19 @@ export class GenerationPipelineAdapter {
 
     // Convert markdown to clean HTML for editor and storage
     const htmlContent = normalizeAiOutput(finalAsset?.bodyMarkdown || '');
+
+    // Validate HTML Completeness, listicle promises, placeholders, and entity premise before persisting
+    const htmlValidation = ContentEvidenceValidator.validateHtmlCompleteness(
+      htmlContent,
+      finalArticle.title,
+      payload.saasProfile?.name,
+      payload.saasProfile
+    );
+    if (!htmlValidation.passed) {
+      const errMsg = `HTML Completeness Validation Failed: ${htmlValidation.criticalErrors.join(', ')}`;
+      console.error(`[Adapter] ${errMsg}`);
+      throw new Error(errMsg);
+    }
 
     const rawFallbackFormat = payload.contentType ? normalizeContentType(payload.contentType) : undefined;
     const isExplicitFormatProvided = payload.contentType !== undefined && payload.contentType !== null &&

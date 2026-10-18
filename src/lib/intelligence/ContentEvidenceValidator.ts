@@ -73,7 +73,8 @@ export class ContentEvidenceValidator {
     evidenceSet?: EvidenceSet,
     sectionEvidenceMaps?: SectionEvidenceMap[],
     targetBrand?: string,
-    gapMatrix?: ContentGapMatrix
+    gapMatrix?: ContentGapMatrix,
+    saasProfile?: any
   ): EvidenceValidationResult {
     bodyMarkdown = ClaimExtractionService.normalizeMarkdownLinks(bodyMarkdown || '');
     const warnings: string[] = [];
@@ -298,7 +299,22 @@ export class ContentEvidenceValidator {
       warnings.push(`Overall claim grounding rate is ${overallGroundingRate}% (target: >= ${CONTENT_INTELLIGENCE_POLICY.GROUNDING_RATE_MIN_PERCENT}%).`);
     }
 
-    // 7. Compute Diagnostics
+    // 7. Article Completeness, Listicle Promises, Entity Premise & CTA Verification (Phase 7)
+    const completenessResults = this.validateCompletenessAndIntegrity(
+      bodyMarkdown,
+      brief,
+      targetBrand,
+      saasProfile
+    );
+    if (completenessResults.criticalErrors.length > 0) {
+      criticalErrors.push(...completenessResults.criticalErrors);
+      accuracyIssues.push(...completenessResults.criticalErrors);
+    }
+    if (completenessResults.warnings.length > 0) {
+      warnings.push(...completenessResults.warnings);
+    }
+
+    // 8. Compute Diagnostics
     const sectionsCount = sectionEvidenceMaps?.length || brief.outline.length;
     const sectionsWithEvidence = (sectionEvidenceMaps || []).filter(m => m.evidenceIds.length > 0).length || sectionsCount;
     const sectionsWithoutEvidence = sectionsCount - sectionsWithEvidence;
@@ -460,5 +476,247 @@ export class ContentEvidenceValidator {
     }
 
     return claims;
+  }
+
+  private static NON_ITEM_HEADING_PATTERNS = [
+    /^(?:introduction|overview|background|summary|conclusion|final thoughts|wrapping up|next steps|verdict)\b/i,
+    /^(?:how to choose|how we (?:tested|evaluated|picked)|evaluation criteria|buying guide|key factors|what to look for)\b/i,
+    /^(?:frequently asked questions|faq|faqs|common questions|q&a)\b/i,
+    /^(?:understanding|what is|why you need|methodology)\b/i,
+    /^(?:compar|comparing|comparison|versus|vs)\b/i,
+    /^(?:case study|case studies)\b/i
+  ];
+
+  public static isItemHeading(headingText: string): boolean {
+    const clean = headingText.replace(/^[#\s\d\.\-\:\)]+/, '').trim().toLowerCase();
+    if (!clean || clean.length < 2) return false;
+    return !this.NON_ITEM_HEADING_PATTERNS.some(pat => pat.test(clean));
+  }
+
+  public static extractPromisedListicleCount(title: string): number | null {
+    if (!title) return null;
+    const cleanTitle = title.trim();
+
+    // Pattern 1: e.g. "Top 7 Best ...", "7 Best ...", "Top 10 Collaboration Tools ...", "15 Alternatives to ..."
+    const match1 = cleanTitle.match(/\b(?:top\s+)?(\d{1,2})\s+(?:best\s+|top\s+)?(?:[a-z0-9-]+\s+)?(?:alternatives|tools|platforms|software|apps|ways|strategies|solutions|reasons|tips|steps|examples|practices|recommendations|rules|metrics|services|options|methods)\b/i);
+    if (match1 && match1[1]) {
+      const num = parseInt(match1[1], 10);
+      if (num >= 2 && num <= 50) return num;
+    }
+
+    // Pattern 2: e.g. "Best 7 ...", "7 Alternatives ..."
+    const match2 = cleanTitle.match(/^(\d{1,2})\s+[A-Za-z]/);
+    if (match2 && match2[1]) {
+      const num = parseInt(match2[1], 10);
+      if (num >= 2 && num <= 50) return num;
+    }
+
+    // Pattern 3: e.g. "...: 5 Best Tools", "... - 10 Ways to ..."
+    const match3 = cleanTitle.match(/[:\-–—]\s*(?:top\s+)?(\d{1,2})\s+[A-Za-z]/i);
+    if (match3 && match3[1]) {
+      const num = parseInt(match3[1], 10);
+      if (num >= 2 && num <= 50) return num;
+    }
+
+    return null;
+  }
+
+  public static validateCompletenessAndIntegrity(
+    bodyMarkdown: string,
+    brief: ContentBrief,
+    targetBrand?: string,
+    saasProfile?: any
+  ): { criticalErrors: string[]; warnings: string[] } {
+    const criticalErrors: string[] = [];
+    const warnings: string[] = [];
+    const title = brief.title || '';
+    const promisedCount = this.extractPromisedListicleCount(title);
+
+    // 1. Placeholder detection (applies to all content)
+    const placeholderMatches = bodyMarkdown.match(/\[(?:insert|add|tbd|placeholder|todo)[^\]]*\]|\b(?:TODO|TBD|PLACEHOLDER)\b/gi) || [];
+    if (placeholderMatches.length > 0) {
+      const uniquePlaceholders = Array.from(new Set(placeholderMatches));
+      criticalErrors.push(`Article Completeness Alert: Incomplete placeholder text detected: ${uniquePlaceholders.slice(0, 3).map(p => `"${p}"`).join(', ')}.`);
+    }
+
+    // 2. Section parsing & duplicate heading detection (applies to all content)
+    const headingLines = bodyMarkdown.match(/^#{2,3}\s+(.+)$/gm) || [];
+    const sectionHeadings = headingLines.map(h => h.replace(/^#{2,3}\s+/, '').trim());
+
+    const seenHeadings = new Set<string>();
+    const dupHeadings = new Set<string>();
+    for (const heading of sectionHeadings) {
+      const norm = heading.toLowerCase().replace(/^[#\s\d\.\-\:\)]+/, '').trim();
+      if (norm.length > 3) {
+        if (seenHeadings.has(norm)) {
+          dupHeadings.add(heading);
+        } else {
+          seenHeadings.add(norm);
+        }
+      }
+    }
+    if (dupHeadings.size > 0) {
+      criticalErrors.push(`Article Completeness Alert: Duplicate section heading detected: ${Array.from(dupHeadings).map(h => `"${h}"`).join(', ')}.`);
+    }
+
+    // 3. Listicle promise and stub item validation (applies when title promises N items)
+    if (promisedCount !== null && promisedCount > 0) {
+      const sectionBlocks = bodyMarkdown.split(/\n(?=#{2,3}\s+)/);
+      const substantiveItems: { heading: string; wordCount: number }[] = [];
+
+      for (const block of sectionBlocks) {
+        const headingMatch = block.match(/^#{2,3}\s+(.+)/);
+        if (!headingMatch) continue;
+        const heading = headingMatch[1].trim();
+
+        if (this.isItemHeading(heading)) {
+          const bodyLines = block.split('\n').slice(1).join(' ');
+          const words = bodyLines.split(/\s+/).filter(Boolean);
+          const wordCount = words.length;
+
+          if (wordCount < 25) {
+            criticalErrors.push(`Article Completeness Alert: Section "${heading}" is an incomplete stub with only ${wordCount} words.`);
+          } else {
+            substantiveItems.push({ heading, wordCount });
+          }
+        }
+      }
+
+      if (substantiveItems.length < promisedCount) {
+        criticalErrors.push(`Article Completeness Alert: Title promises ${promisedCount} items, but content only provides ${substantiveItems.length} distinct substantive sections.`);
+      }
+    }
+
+    // 4. Entity Premise Validation
+    const businessType = saasProfile?.businessType;
+    if (businessType && businessType !== 'SaaS') {
+      const brandClean = (targetBrand || saasProfile?.name || '').trim();
+      if (brandClean) {
+        const brandEscaped = brandClean.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const softwareAssertions = [
+          new RegExp(`\\b${brandEscaped}\\b\\s+(?:is|offers?|provides?)\\s+(?:a|an)?\\s*(?:all-in-one\\s+)?(?:software|collaboration\\s+(?:tool|platform|software)|task\\s+management\\s+(?:tool|platform|software)|saas\\s+platform|cloud\\s+tool|project\\s+management\\s+platform)`, 'i'),
+          new RegExp(`(?:software|collaboration\\s+(?:tool|platform)|task\\s+management\\s+platform)\\s+like\\s+\\b${brandEscaped}\\b`, 'i'),
+          new RegExp(`\\b${brandEscaped}\\b\\s+alternatives\\b`, 'i'),
+          new RegExp(`\\balternatives\\s+to\\s+\\b${brandEscaped}\\b`, 'i')
+        ];
+
+        for (const pat of softwareAssertions) {
+          if (pat.test(bodyMarkdown)) {
+            criticalErrors.push(`Entity Premise Alert: Entity premise violation: Target brand "${brandClean}" is an ${businessType}, but content treats it as software/SaaS.`);
+            break;
+          }
+        }
+      }
+
+      // 5. CTA Relevance Validation
+      const ctaMismatchPat = /(?:start\s+(?:your\s+)?(?:14-day\s+|30-day\s+|free\s+)?trial|sign\s+up\s+for\s+(?:free|the\s+software|the\s+platform)|download\s+(?:the\s+app|the\s+software)|create\s+(?:your\s+)?free\s+account)/i;
+      const tailContent = bodyMarkdown.slice(Math.floor(bodyMarkdown.length * 0.7));
+      if (ctaMismatchPat.test(tailContent) || (brief.ctaStrategy && ctaMismatchPat.test(brief.ctaStrategy))) {
+        criticalErrors.push(`CTA Relevance Alert: Contextual CTA proposes a software trial or account signup for an ${businessType} business.`);
+      }
+    }
+
+    return { criticalErrors, warnings };
+  }
+
+  public static validateHtmlCompleteness(
+    html: string,
+    title: string,
+    targetBrand?: string,
+    saasProfile?: any
+  ): { passed: boolean; criticalErrors: string[]; warnings: string[] } {
+    const criticalErrors: string[] = [];
+    const warnings: string[] = [];
+    const promisedCount = this.extractPromisedListicleCount(title);
+
+    // 1. Placeholder detection
+    const placeholderMatches = html.match(/\[(?:insert|add|tbd|placeholder|todo)[^\]]*\]|\b(?:TODO|TBD|PLACEHOLDER)\b/gi) || [];
+    if (placeholderMatches.length > 0) {
+      const uniquePlaceholders = Array.from(new Set(placeholderMatches));
+      criticalErrors.push(`Article Completeness Alert: Incomplete placeholder text detected in HTML: ${uniquePlaceholders.slice(0, 3).map(p => `"${p}"`).join(', ')}.`);
+    }
+
+    // 2. Headings and item sections
+    const headingMatches = Array.from(html.matchAll(/<h[23][^>]*>(.*?)<\/h[23]>/gi)).map(m => m[1].replace(/<[^>]*>/g, '').trim());
+    const seenHeadings = new Set<string>();
+    const dupHeadings = new Set<string>();
+
+    for (const heading of headingMatches) {
+      const norm = heading.toLowerCase().replace(/^[#\s\d\.\-\:\)]+/, '').trim();
+      if (norm.length > 3) {
+        if (seenHeadings.has(norm)) {
+          dupHeadings.add(heading);
+        } else {
+          seenHeadings.add(norm);
+        }
+      }
+    }
+    if (dupHeadings.size > 0) {
+      criticalErrors.push(`Article Completeness Alert: Duplicate section heading detected: ${Array.from(dupHeadings).map(h => `"${h}"`).join(', ')}.`);
+    }
+
+    // Listicle promise and stub item validation (applies when title promises N items)
+    if (promisedCount !== null && promisedCount > 0) {
+      const sectionHtmlParts = html.split(/(?=<h[23][^>]*>)/i);
+      const substantiveItems: { heading: string; wordCount: number }[] = [];
+
+      for (const part of sectionHtmlParts) {
+        const hMatch = part.match(/<h[23][^>]*>(.*?)<\/h[23]>/i);
+        if (!hMatch) continue;
+        const heading = hMatch[1].replace(/<[^>]*>/g, '').trim();
+
+        if (this.isItemHeading(heading)) {
+          // Strip tags and heading
+          const textOnly = part.replace(/<h[23][^>]*>.*?<\/h[23]>/i, '').replace(/<[^>]*>/g, ' ').trim();
+          const words = textOnly.split(/\s+/).filter(Boolean);
+          const wordCount = words.length;
+
+          if (wordCount < 25) {
+            criticalErrors.push(`Article Completeness Alert: Section "${heading}" is an incomplete stub with only ${wordCount} words.`);
+          } else {
+            substantiveItems.push({ heading, wordCount });
+          }
+        }
+      }
+
+      if (substantiveItems.length < promisedCount) {
+        criticalErrors.push(`Article Completeness Alert: Title promises ${promisedCount} items, but HTML content only provides ${substantiveItems.length} distinct substantive sections.`);
+      }
+    }
+
+    // 3. Entity Premise & CTA checks on HTML
+    const businessType = saasProfile?.businessType;
+    if (businessType && businessType !== 'SaaS') {
+      const brandClean = (targetBrand || saasProfile?.name || '').trim();
+      if (brandClean) {
+        const brandEscaped = brandClean.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const textOnly = html.replace(/<[^>]*>/g, ' ');
+        const softwareAssertions = [
+          new RegExp(`\\b${brandEscaped}\\b\\s+(?:is|offers?|provides?)\\s+(?:a|an)?\\s*(?:all-in-one\\s+)?(?:software|collaboration\\s+(?:tool|platform|software)|task\\s+management\\s+(?:tool|platform|software)|saas\\s+platform|cloud\\s+tool|project\\s+management\\s+platform)`, 'i'),
+          new RegExp(`(?:software|collaboration\\s+(?:tool|platform)|task\\s+management\\s+platform)\\s+like\\s+\\b${brandEscaped}\\b`, 'i'),
+          new RegExp(`\\b${brandEscaped}\\b\\s+alternatives\\b`, 'i'),
+          new RegExp(`\\balternatives\\s+to\\s+\\b${brandEscaped}\\b`, 'i')
+        ];
+
+        for (const pat of softwareAssertions) {
+          if (pat.test(textOnly)) {
+            criticalErrors.push(`Entity Premise Alert: Entity premise violation: Target brand "${brandClean}" is an ${businessType}, but content treats it as software/SaaS.`);
+            break;
+          }
+        }
+      }
+
+      const ctaMismatchPat = /(?:start\s+(?:your\s+)?(?:14-day\s+|30-day\s+|free\s+)?trial|sign\s+up\s+for\s+(?:free|the\s+software|the\s+platform)|download\s+(?:the\s+app|the\s+software)|create\s+(?:your\s+)?free\s+account)/i;
+      const tailContent = html.slice(Math.floor(html.length * 0.7));
+      if (ctaMismatchPat.test(tailContent)) {
+        criticalErrors.push(`CTA Relevance Alert: Contextual CTA proposes a software trial or account signup for an ${businessType} business.`);
+      }
+    }
+
+    return {
+      passed: criticalErrors.length === 0,
+      criticalErrors,
+      warnings
+    };
   }
 }

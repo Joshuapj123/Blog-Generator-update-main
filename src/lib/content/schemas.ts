@@ -6,6 +6,7 @@ import {
   SearchIntentSchema,
   SaaSProfile,
 } from '@/core/contracts/schemas';
+import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceValidator';
 
 export type { ContentBrief };
 export {
@@ -360,7 +361,18 @@ export function enforceOutlineSectionBudget(
   evidenceSet?: any,
   gapMatrix?: any
 ): OutlineBudgetResult {
-  if (!maxHeadings || maxHeadings <= 0 || !brief.outline || brief.outline.length <= maxHeadings) {
+  const promisedCount = ContentEvidenceValidator.extractPromisedListicleCount(brief.title || '');
+  let effectiveMaxHeadings = maxHeadings;
+  if (promisedCount && promisedCount > 0) {
+    // If the title promises N items, outline must have room for N items + intro
+    const minNeededForListicle = promisedCount + 1; // Section 0 (intro) + N items
+    if (effectiveMaxHeadings && effectiveMaxHeadings < minNeededForListicle) {
+      console.warn(`[enforceOutlineSectionBudget] Title "${brief.title}" promises ${promisedCount} items. Adjusting maxHeadings from ${effectiveMaxHeadings} to ${minNeededForListicle} to prevent truncation.`);
+      effectiveMaxHeadings = minNeededForListicle;
+    }
+  }
+
+  if (!effectiveMaxHeadings || effectiveMaxHeadings <= 0 || !brief.outline || brief.outline.length <= effectiveMaxHeadings) {
     return {
       brief,
       budgetEnforced: false,
@@ -371,7 +383,7 @@ export function enforceOutlineSectionBudget(
   }
 
   const originalCount = brief.outline.length;
-  const targetCount = Math.max(1, maxHeadings);
+  const targetCount = Math.max(1, effectiveMaxHeadings);
   const originalOutline = [...brief.outline];
 
   // Section 0 is always preserved (Introduction / Canonical Keyword contract)

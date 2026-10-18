@@ -6,6 +6,7 @@ import { SerperProvider } from '@/lib/research/SerperProvider';
 import { GenerationPipelineAdapter, DryRunLLMProvider, DryRunSearchProvider } from '@/lib/core/GenerationPipelineAdapter';
 import { normalizeUrl } from '@/lib/research/url-verifier';
 import { getAdminAuth } from '@/lib/firebase/admin';
+import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceValidator';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -117,6 +118,9 @@ export async function POST(req: Request) {
           });
 
           // Hand off to existing GenerationPipelineAdapter.runPipeline
+          const promisedCount = ContentEvidenceValidator.extractPromisedListicleCount(bestOpportunity.keyword);
+          const maxHeadings = promisedCount ? Math.max(promisedCount + 2, 7) : 7;
+
           const payload = {
             title: bestOpportunity.keyword,
             targetKeywords: bestOpportunity.keyword,
@@ -126,7 +130,7 @@ export async function POST(req: Request) {
             customInsights: `SaaS Profile: ${profile.name} - ${profile.description}. key features: ${profile.keyFeatures?.join(', ')}.`,
             campaignMode: 'standard',
             externalLinks: [],
-            maxHeadings: 5,
+            maxHeadings,
             supportingTerms: bestOpportunity.supportingTerms || [],
             authenticatedUserId,
             articleId: body?.articleId || undefined

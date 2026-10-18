@@ -36,14 +36,25 @@ export class SearchOpportunityService {
     let candidateKeywords = [...seedKeywords];
     if (candidateKeywords.length === 0 || (options?.saasProfile && (options as any)?.discoverKeywords)) {
       console.log('[SearchOpportunityService] Launching AI Keyword Discovery stage...');
-      const discoveryPrompt = `You are an elite SEO strategist. Given the following SaaS product profile, generate 6-10 highly targeted, high-intent keyword ideas that this SaaS should target.
-SaaS Name: ${saasName}
+      const isAgencyOrServices = options?.saasProfile?.businessType && options?.saasProfile?.businessType !== 'SaaS';
+      const nonSaaSDiscoveryRule = isAgencyOrServices
+        ? `CRITICAL NON-SAAS RULE:
+This business is an ${options.saasProfile.businessType} (Offerings: ${(options.saasProfile.verifiedOfferings || []).join(', ') || 'Consulting/Services'}). It is NOT a SaaS tool or software product.
+DO NOT suggest "[brand] alternatives", "[brand] vs [competitor]", or "[brand] software".
+Instead, suggest problem-solving guides (JTBD), process audit checklists, best practices, and category evaluations relevant to their target audience.`
+        : '';
+
+      const discoveryPrompt = `You are an elite SEO strategist. Given the following business profile, generate 6-10 highly targeted, high-intent keyword ideas that this business should target.
+Business Name: ${saasName}
+Business Type: ${options?.saasProfile?.businessType || 'SaaS'}
 Category: ${category}
-Description: ${options?.saasProfile?.description || 'A software solution.'}
-Features: ${(options?.saasProfile?.keyFeatures || []).join(', ') || 'Standard features'}
+Description: ${options?.saasProfile?.description || 'A professional solution.'}
+Offerings/Features: ${(options?.saasProfile?.verifiedOfferings && options?.saasProfile?.verifiedOfferings.length > 0 ? options.saasProfile.verifiedOfferings : options?.saasProfile?.keyFeatures || []).join(', ') || 'Standard offerings'}
 Target Audience Hint: ${options?.saasProfile?.targetAudience || 'Target users'}
 
-Provide keyword ideas covering multiple angles: Listicles ("best X"), Comparisons ("X vs Y", "Alternatives to Z"), Use cases, Problem-solving guides, and transactional/feature keywords. Ensure they are clean, lower-case, search-friendly strings.`;
+${nonSaaSDiscoveryRule}
+
+Provide keyword ideas covering multiple angles: ${isAgencyOrServices ? 'Problem-solving guides (how to...), Evaluation checklists, Industry best practices, and Category guides' : 'Listicles ("best X"), Comparisons ("X vs Y", "Alternatives to Z"), Use cases, Problem-solving guides, and transactional/feature keywords'}. Ensure they are clean, lower-case, search-friendly strings.`;
 
       const discoverySchema = z.object({
         suggestedKeywords: z.array(z.string())
@@ -62,7 +73,11 @@ Provide keyword ideas covering multiple angles: Listicles ("best X"), Comparison
     }
 
     if (candidateKeywords.length === 0) {
-      candidateKeywords = [`best ${category} software`, `${category} alternatives`, `${category} tools`];
+      if (options?.saasProfile?.businessType && options?.saasProfile?.businessType !== 'SaaS') {
+        candidateKeywords = [`how to improve ${category}`, `${category} best practices`, `${category} checklist`];
+      } else {
+        candidateKeywords = [`best ${category} software`, `${category} alternatives`, `${category} tools`];
+      }
     }
 
     // Single keyword evaluation function (preserves identical scoring and fallback behavior)
@@ -158,6 +173,19 @@ Tasks:
           runId: options?.runId,
           systemInstruction: 'Output a valid JSON object matching the classification schemas.'
         });
+
+        // Entity Premise Safeguard:
+        // If the business is an Agency/Portfolio or Services firm, a comparative keyword targeting "[brand] alternatives"
+        // or "[brand] vs [tool]" represents an entity mismatch (an agency is not a software platform with direct alternatives).
+        const isAgencyOrServices = options?.saasProfile?.businessType && options?.saasProfile?.businessType !== 'SaaS';
+        const brandEscaped = saasName.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const isBrandComparison = new RegExp(`\\b${brandEscaped}\\b.*\\b(alternatives?|vs|versus)\\b|\\b(alternatives?|vs|versus)\\b.*\\b${brandEscaped}\\b`, 'i').test(keyword);
+
+        if (isAgencyOrServices && isBrandComparison) {
+          result.businessRelevance = Math.min(result.businessRelevance, 15);
+          result.priority = 'Low';
+          result.explanation = `Entity premise mismatch: ${saasName} is classified as ${options?.saasProfile?.businessType}, not a software platform with direct tool alternatives.`;
+        }
 
         // 3. Compute Deterministic Opportunity Score
         // Score = 0.40 * Business Relevance + 0.25 * Intent Value + 0.25 * Content Gap Score + 0.10 * (100 - Difficulty)
