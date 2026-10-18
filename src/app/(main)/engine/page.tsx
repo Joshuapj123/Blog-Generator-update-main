@@ -111,7 +111,12 @@ function EnginePageContent() {
         const sanitizedContent = DiagramAssetService.stripDiagramPlaceholders(matched.content || '');
         engine.setTiptapContent(sanitizedContent);
         engine.setIsGenerated(true);
-        if (matched.blueprint) engine.setBlueprint(matched.blueprint);
+        if (matched.blueprint) {
+            engine.setBlueprint(matched.blueprint);
+            if (Array.isArray(matched.blueprint.sections)) {
+                engine.setSections(matched.blueprint.sections);
+            }
+        }
         if (matched.referenceUrl) engine.setReferenceUrl(matched.referenceUrl);
         engine.setCurrentArticleId(matched.id!);
         engine.setCurrentArticleStage(matched.stage);

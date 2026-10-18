@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { InlineEditableText } from '@/components/InlineEditableText';
 import { toMarkdown, toHtml, toPlainText, triggerDownload, slugify, renderMarkdown } from '@/lib/article-utils';
 import { YouTubeEmbed } from '@/components/SectionEditor';
+import { DownloadMenu } from '@/app/(main)/engine/components/DownloadMenu';
 
 interface ResolvedArticleData {
   blueprint: Partial<ArticleBlueprint>;
@@ -223,17 +224,12 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
             </div>
             
             <div className="flex items-center gap-3">
-                <Button 
-                    variant="outline"
-                    className="gap-2 border-primary/40 text-primary hover:bg-primary/10 font-medium"
-                    onClick={() => {
-                        const mdContent = toMarkdown(blueprint, sections);
-                        triggerDownload(`${slugify(blueprint.title || 'article')}.md`, mdContent, 'text/markdown');
-                    }}
-                >
-                    <Download className="w-4 h-4" />
-                    <span className="font-bold">Download</span>
-                </Button>
+                <DownloadMenu
+                    blueprint={blueprint}
+                    sections={sections}
+                    editorHtml={article.content}
+                    targetBrand={article.referenceUrl}
+                />
                 <Button 
                     variant="default" 
                     className="gap-2"

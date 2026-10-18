@@ -358,7 +358,7 @@ export class GenerationPipelineAdapter {
     console.log('[PHASE10] CONTENT ASSET CREATED');
     console.log('[Adapter] Completed orchestration. Building response blueprint...');
 
-    let finalArticle = this.parseMarkdownToBlueprint(finalAsset.title, finalAsset.bodyMarkdown);
+    let finalArticle = this.parseMarkdownToBlueprint(finalAsset.title, finalAsset.bodyMarkdown, payload.saasProfile, result.plan?.ctaStrategy);
     console.log('[PHASE10] ARTICLE BLUEPRINT CREATED');
 
     // Inject diagnostics telemetry stats
@@ -600,7 +600,7 @@ export class GenerationPipelineAdapter {
     return finalArticle;
   }
 
-  private static parseMarkdownToBlueprint(title: string, markdown: string): any {
+  private static parseMarkdownToBlueprint(title: string, markdown: string, saasProfile?: any, ctaStrategy?: string): any {
     const lines = markdown.split('\n');
     const introParagraphs: string[] = [];
     const sections: any[] = [];
@@ -721,9 +721,15 @@ export class GenerationPipelineAdapter {
       section_outlines: sections.map(s => ({ heading: s.heading, level: s.level })),
       sections,
       cta: {
-        heading: 'Ready to scale your business?',
-        description: 'Get in touch to see how our growth solutions can help.',
-        button_text: 'Get Started'
+        heading: (saasProfile?.businessType === 'Agency/Portfolio' || saasProfile?.businessType === 'Agency/Consultancy')
+          ? `Partner with ${saasProfile?.name || 'Our Team'}`
+          : `Ready to evaluate ${title}?`,
+        description: (saasProfile?.businessType === 'Agency/Portfolio' || saasProfile?.businessType === 'Agency/Consultancy') && saasProfile?.verifiedOfferings?.length
+          ? `Schedule an expert consultation covering ${saasProfile.verifiedOfferings.slice(0, 2).join(' and ')}.`
+          : (ctaStrategy || `Explore detailed implementation strategies and tailored workflows for your team.`),
+        button_text: (saasProfile?.businessType === 'Agency/Portfolio' || saasProfile?.businessType === 'Agency/Consultancy')
+          ? 'Contact Us'
+          : 'Get Started'
       }
     };
   }

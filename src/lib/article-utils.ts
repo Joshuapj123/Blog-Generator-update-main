@@ -1,5 +1,6 @@
 import { ArticleBlueprint, SectionBlock } from '@/types/article';
 import { DiagramAssetService } from '@/lib/content/DiagramAssetService';
+import { ArticleExportService } from '@/lib/export/ArticleExportService';
 
 export function renderMarkdown(text: string) {
   return (text || '')
@@ -75,6 +76,19 @@ export function markdownTableToHtml(mdTable: string): string {
 }
 
 export function toMarkdown(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]): string {
+  if (!secs || secs.length === 0) {
+    if ((bp as any)?.bodyMarkdown) return (bp as any).bodyMarkdown;
+    if ((bp as any)?.content && typeof (bp as any).content === 'string') {
+      const c = (bp as any).content.trim();
+      if (/<[a-z][\s\S]*>/i.test(c)) {
+        return htmlToMarkdown(c);
+      }
+      if (c.startsWith('#') || c.length > 50) {
+        return c;
+      }
+    }
+  }
+
   const lines: string[] = [];
   lines.push(`# ${bp.title || 'Untitled'}`);
   lines.push('');
@@ -168,6 +182,17 @@ export function toMarkdown(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]):
 }
 
 export function toHtml(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]): string {
+  if ((bp as any)?.content || (bp as any)?.bodyMarkdown) {
+    return ArticleExportService.generateStandaloneHtml({
+      title: bp.title || '',
+      slug: bp.slug,
+      content: (bp as any)?.content,
+      bodyMarkdown: (bp as any)?.bodyMarkdown,
+      blueprint: bp,
+      sections: secs
+    }, { skipValidation: true });
+  }
+
   const render = (t: string) => {
     if (!t) return '';
     let rendered = t;

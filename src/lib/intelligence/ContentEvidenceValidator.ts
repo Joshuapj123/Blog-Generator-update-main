@@ -498,13 +498,20 @@ export class ContentEvidenceValidator {
     const cleanTitle = title.trim();
 
     // Pattern 1: e.g. "Top 7 Best ...", "7 Best ...", "Top 10 Collaboration Tools ...", "15 Alternatives to ..."
-    const match1 = cleanTitle.match(/\b(?:top\s+)?(\d{1,2})\s+(?:best\s+|top\s+)?(?:[a-z0-9-]+\s+)?(?:alternatives|tools|platforms|software|apps|ways|strategies|solutions|reasons|tips|steps|examples|practices|recommendations|rules|metrics|services|options|methods)\b/i);
+    const match1 = cleanTitle.match(/\b(?:top\s+)?(\d{1,2})\s+(?:best\s+|top\s+)?(?:[a-z0-9-]+\s+)?(?:alternatives|tools|platforms|software|apps|ways|strategies|solutions|reasons|tips|steps|examples|practices|recommendations|rules|metrics|services|options|methods|environments|ides|products|approaches|libraries)\b/i);
     if (match1 && match1[1]) {
       const num = parseInt(match1[1], 10);
       if (num >= 2 && num <= 50) return num;
     }
 
-    // Pattern 2: e.g. "Best 7 ...", "7 Alternatives ..."
+    // Pattern 2: e.g. "Top 5 ...", "Top 10 ..."
+    const matchTop = cleanTitle.match(/^top\s+(\d{1,2})\s+[A-Za-z]/i);
+    if (matchTop && matchTop[1]) {
+      const num = parseInt(matchTop[1], 10);
+      if (num >= 2 && num <= 50) return num;
+    }
+
+    // Pattern 3: e.g. "Best 7 ...", "7 Alternatives ..."
     const match2 = cleanTitle.match(/^(\d{1,2})\s+[A-Za-z]/);
     if (match2 && match2[1]) {
       const num = parseInt(match2[1], 10);

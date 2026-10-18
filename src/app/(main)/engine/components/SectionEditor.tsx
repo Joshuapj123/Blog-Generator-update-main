@@ -864,7 +864,10 @@ export function SectionEditor() {
                   </Button>
                   <DownloadMenu 
                     blueprint={engine.blueprint as any} 
-                    sections={engine.sections} 
+                    sections={engine.sections}
+                    editorHtml={editor?.getHTML() || engine.tiptapContent}
+                    targetBrand={engine.referenceUrl}
+                    saasProfile={engine.aiStrategyProfile}
                   />
                 </div>
               </div>
