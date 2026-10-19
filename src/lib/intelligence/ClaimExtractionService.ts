@@ -220,13 +220,48 @@ export class ClaimExtractionService {
   }
 
   /**
+   * Validates whether a definite product phrase ("the platform", "this software", "the tool")
+   * is genuinely functioning as the grammatical subject asserting a commercial capability,
+   * rather than appearing as a direct object, prepositional phrase, or noun adjunct
+   * (e.g. "product core", "product roadmap", "product team").
+   */
+  public static isDefiniteProductSubject(trimmed: string): boolean {
+    if (!this.DEFINITE_PRODUCT_PATTERNS.some(pat => pat.test(trimmed))) {
+      return false;
+    }
+
+    // Reject if "product" is a noun adjunct modifying another noun (e.g. "product core", "product roadmap", "product team")
+    if (/\b(?:the|this)\s+product\s+(?:core|roadmap|team|teams|backlog|lifecycle|catalog|manager|managers|owner|owners|lead|leads|designer|designers|market|fit|analytics|metric|metrics|requirement|requirements|flow|flows|spec|specs|specification|specifications)\b/i.test(trimmed)) {
+      return false;
+    }
+
+    // Reject if in prepositional phrase
+    if (/\b(?:to|with|from|for|against|between|than|like|as|in|within|into|via|through|about|of|on|across|under|over)\s+(?:the|this)\s+(?:platform|software|system|tool|tools|solution|solutions|service|services|product|products|application|app|engine|api)\b/i.test(trimmed)) {
+      return false;
+    }
+
+    // Reject if direct object of a transitive verb
+    if (/\b(?:impact(?:s|ed|ing)?|affect(?:s|ed|ing)?|use(?:s|d|ing)?|modify(?:ing)?|modifies|test(?:s|ed|ing)?|audit(?:s|ed|ing)?|inspect(?:s|ed|ing)?|evaluat(?:e|es|ed|ing)|deploy(?:s|ed|ing)?|review(?:s|ed|ing)?|integrat(?:e|es|ed|ing)|purchas(?:e|es|ed|ing)|buy(?:ing|s)?|build(?:s|ing)?|choos(?:e|es|ing)|select(?:s|ed|ing)?|develop(?:s|ed|ing)?|run(?:s|ning)?|support(?:s|ed|ing)?|optimiz(?:e|es|ed|ing)|customiz(?:e|es|ed|ing)|configure(?:s|d|ing)?|enhanc(?:e|es|ed|ing)|maintain(?:s|ed|ing)?|scale(?:s|d|ing)?|access(?:es|ed|ing)?|monit(?:or|ors|ored|oring))\s+(?:the|this)\s+(?:platform|software|system|tool|tools|solution|solutions|service|services|product|products|application|app|engine|api)\b/i.test(trimmed)) {
+      return false;
+    }
+
+    // Must function as grammatical subject: starts the clause OR followed by active verb of assertion
+    const startsWithProduct = /^(?:the|this)\s+(?:platform|software|system|tool|tools|solution|solutions|service|services|product|products|application|app|engine|api)\b/i.test(trimmed);
+    const followedByVerb = /\b(?:the|this)\s+(?:platform|software|system|tool|tools|solution|solutions|service|services|product|products|application|app|engine|api)\s+(?:is|are|was|were|has|have|had|offers?|provides?|features?|supports?|delivers?|includes?|automates?|enables?|guarantees?|ensures?|reduces?|prevents?|optimizes?|streamlines?|built|integrates?)\b/i.test(trimmed);
+
+    return startsWithProduct || followedByVerb;
+  }
+
+  /**
    * Lead indicators for coordinate predicate clauses
    */
-  private static VERB_LEAD_REGEX = /^(?:guarantees?|provides?|features?|integrates?(?:\s+with)?|offers?|delivers?|includes?|automates?|handles?|eliminates?|achieves?|streamlines?|accelerates?|optimizes?|ensures?|prevents?|reduces?|simplifies?|enables?|empowers?|operates?|manufactures?|invents?|develops?|builds?|improves?|boosts?|increases?|does\s+not|doesn't|cannot|can't)\b/i;
+  private static VERB_LEAD_REGEX = /^(?:guarantees?|provides?|providing|features?|featuring|integrates?(?:\s+with)?|offers?|offering|delivers?|delivering|includes?|including|automates?|handles?|eliminates?|achieves?|streamlines?|accelerates?|optimizes?|ensures?|prevents?|reduces?|simplifies?|enables?|empowers?|operates?|manufactures?|invents?|develops?|builds?|improves?|boosts?|increases?|does\s+not|doesn't|cannot|can't)\b/i;
 
   private static PROMISE_LEAD_REGEX = /^(?:instant|effortless|frictionless|risk-free|turnkey|seamless|zero[- ]downtime)\b/i;
 
   private static SUBORDINATE_LEAD_REGEX = /^(?:while|whereas|although|though|if|unless|since|because|even\s+if)\b/i;
+
+  private static SUBJECT_FINITE_VERB_REGEX = /^(?:our\s+[a-z0-9_-]+|the\s+[a-z0-9_-]+|this\s+[a-z0-9_-]+|we|they|it|teams?|enterprises?|users?|developers?|customers?|engineers?|product\s+teams?|[A-Z][a-zA-Z0-9_]+)\s+(?:(?:can|could|may|might|will|would|should|must|do|does|did|is|are|was|were|has|have|had|also|always|typically|often|consistently|never|rarely)\s+)*(?:is|are|was|were|has|have|had|lose|loses|lost|provide|provides|provided|offer|offers|offered|deliver|delivers|delivered|require|requires|help|helps|build|builds|create|creates|ensure|ensures|reduce|reduces|spend|spends|spent|face|faces|experience|experiences|find|finds|see|sees|need|needs|want|wants)\b/i;
 
   /**
    * Temporal patterns (years, founding, launching)
@@ -396,7 +431,10 @@ export class ClaimExtractionService {
       }
     );
 
-    const splitRegex = /(?:;\s*|,\s*(?:and|but|while|whereas|although|though|however|yet|plus|as well as)\s+|,\s*(?=(?:guarantees?|delivers?|provides?|eliminates?|automates?|features?|reduces?|achieves?|streamlines?|optimizes?|ensures?)\b)|\s+(?:and|but|while|whereas|although|though|yet|plus|as well as)\s+|\s+with\s+(?=(?:instant|effortless|frictionless|risk-free|seamless|zero[- ]downtime)\b))/gi;
+    const splitRegex = /(?:;\s*|,\s*(?:and|but|while|whereas|although|though|however|yet|plus|as well as)\s+|,\s*(?=(?:guarantees?|delivers?|delivering|provides?|providing|offers?|offering|eliminates?|automates?|features?|reduces?|achieves?|streamlines?|optimizes?|ensures?)\b)|,\s*(?=(?:our\s+|the\s+|this\s+|we\b|teams?\b|enterprises?\b|users?\b|developers?\b|customers?\b|engineers?\b|product\s+teams?\b|[A-Z][a-zA-Z0-9_]*\b))|\s+(?:and|but|while|whereas|although|though|yet|plus|as well as)\s+|\s+with\s+(?=(?:instant|effortless|frictionless|risk-free|seamless|zero[- ]downtime)\b))/gi;
+
+    const FRONTED_SUBORDINATE_REGEX = /^(?:when|if|while|whereas|although|though|unless|because|since|as|even\s+if)\b/i;
+    const HAS_FINITE_VERB_REGEX = /\b(?:is|are|was|were|has|have|had|do|does|did|can|could|may|might|will|would|should|must|provides?|providing|offers?|offering|delivers?|delivering|features?|includes?|requires?|helps?|builds?|creates?|ensures?|reduces?|loses?|spend|spends?|maintains?|charges?|faces?|encounters?|experiences?|finds?|sees?|reviews?|optimizes?|eliminates?|supports?|focuses?|relies?|benefits?|chooses?)\b/i;
 
     const rawSplits: string[] = [];
     let lastIndex = 0;
@@ -407,13 +445,30 @@ export class ClaimExtractionService {
       const delimiter = match[0];
       const remainingAfter = protectedSentence.slice(match.index + delimiter.length).trim();
 
-      const isPunctuationDelimiter = delimiter.includes(';') || delimiter.includes(',');
+      // Quotation protection: do not split inside quotes or immediately before an open quote
+      if (/^["'“”‘’]/.test(remainingAfter) || /["'“”‘’]$/.test(clauseBefore)) continue;
+
+      // Abbreviation protection: e.g. "e.g.", "i.e.", "etc."
+      if (/\b(?:e\.g|i\.e|etc|vs|vol|no)\b$/i.test(clauseBefore)) continue;
+
+      // Fronted subordinate clause separation (e.g. "When an agency delivers a generic audit, developers lose time...")
+      const isCommaOnly = delimiter.trim() === ',';
+      const isFrontedSubordinateComma = isCommaOnly && FRONTED_SUBORDINATE_REGEX.test(clauseBefore) && HAS_FINITE_VERB_REGEX.test(clauseBefore);
+
+      // Serial list item protection: if delimiter is ", and " but follower has no finite verb predicate, do not split
+      const isCommaAnd = /,\s*and\s+/i.test(delimiter);
+      if (isCommaAnd && !HAS_FINITE_VERB_REGEX.test(remainingAfter)) {
+        continue;
+      }
+
+      const isPunctuationDelimiter = delimiter.includes(';');
       const isClauseFollower =
         isPunctuationDelimiter ||
+        isFrontedSubordinateComma ||
         this.VERB_LEAD_REGEX.test(remainingAfter) ||
         this.PROMISE_LEAD_REGEX.test(remainingAfter) ||
         this.SUBORDINATE_LEAD_REGEX.test(remainingAfter) ||
-        /^(?:our\s+|the\s+|this\s+|we\b|teams?\b|enterprises?\b|users?\b|developers?\b|customers?\b|[A-Z][a-zA-Z0-9_]*\b)/.test(remainingAfter);
+        this.SUBJECT_FINITE_VERB_REGEX.test(remainingAfter);
 
       if (clauseBefore.length >= 10 && remainingAfter.length >= 10 && isClauseFollower) {
         rawSplits.push(clauseBefore);
@@ -659,8 +714,7 @@ export class ClaimExtractionService {
     const isTargetSubject = Boolean(targetBrand && this.isEntitySubjectOfClause(trimmed, targetBrand));
     const isCompetitorSubject = knownCompetitors.some(c => this.isEntitySubjectOfClause(trimmed, c));
     const isFirstPerson = this.FIRST_PERSON_SUBJECT_PATTERNS.some(pat => pat.test(trimmed));
-    const isPrepositionalProduct = /\b(?:to|with|from|for|against|between|than|like|as|in|within|into|via|through|about)\s+(?:the|this)\s+(?:platform|software|system|tool|tools|solution|solutions|service|services|product|products|application|app|engine|api)\b/i.test(trimmed);
-    const isDefiniteProduct = !isPrepositionalProduct && this.DEFINITE_PRODUCT_PATTERNS.some(pat => pat.test(trimmed));
+    const isDefiniteProduct = this.isDefiniteProductSubject(trimmed);
     const hasBrandOrFirstPersonSubject = isTargetSubject || isCompetitorSubject || isFirstPerson || Boolean(inheritedSubject);
     const hasExplicitVendorSubject = hasBrandOrFirstPersonSubject || (isDefiniteProduct && !this.isEvaluationGuidance(trimmed));
 

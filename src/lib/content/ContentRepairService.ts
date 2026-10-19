@@ -231,9 +231,12 @@ ${hasTitleIssue ? 'OPTIMIZED TITLE: [Your optimized title here]\n\n' : ''}REPAIR
       // Check for unbacked causal outcome promises (e.g. "improve retention", "guarantee conversion", "boost sales")
       // or unverified deliverables (e.g. "give teams a roadmap to improve retention")
       if (/\b(?:give\s+teams\s+a\s+roadmap\s+to\s+improve\s+retention|give\s+teams\s+a\s+roadmap|provide\s+a\s+roadmap|guarantees?\s+higher\s+retention|improve\s+retention)\b/i.test(repaired)) {
+        const offeringName = (saasProfile?.verifiedOfferings && saasProfile.verifiedOfferings.length > 0)
+          ? saasProfile.verifiedOfferings[0]
+          : 'services';
         repaired = repaired.replace(
           /\bgive\s+teams\s+a\s+roadmap\s+to\s+improve\s+retention\b/i,
-          'provide verified services to address critical user friction points'
+          `provide verified ${offeringName} to address critical user friction points`
         );
         repaired = repaired.replace(
           /\bgive\s+teams\s+a\s+roadmap\b/i,
@@ -293,6 +296,50 @@ ${hasTitleIssue ? 'OPTIMIZED TITLE: [Your optimized title here]\n\n' : ''}REPAIR
         // If no verified offerings are available in saasProfile, leave repaired untouched
         // so the ungrounded critical claim strictly blocks publication according to safety policy.
       }
+
+      // Check for unbacked deliverable or documentation promises (e.g. "provide documented insights that help your engineering team understand how to implement...")
+      if (/\b(?:documented\s+insights|implementation\s+(?:guidance|manuals?|guides?)|developer\s+handoff\s+guides?)\b/i.test(repaired) ||
+          /\b(?:help(?:s)?\s+(?:your\s+)?engineering\s+team\s+understand\s+how\s+to\s+implement)\b/i.test(repaired)) {
+        if (saasProfile?.verifiedOfferings && saasProfile.verifiedOfferings.length > 0) {
+          const isFirstPerson = /^(?:we\b|our\s+)/i.test(repaired);
+          const brand = isFirstPerson ? 'We' : (saasProfile.name || 'Our team');
+          const primary = saasProfile.verifiedOfferings[0];
+          const secondary = saasProfile.verifiedOfferings.length > 1 ? saasProfile.verifiedOfferings[1] : undefined;
+          if (secondary && secondary !== primary) {
+            repaired = `${brand} provide${isFirstPerson ? '' : 's'} verified ${primary} and offer${isFirstPerson ? '' : 's'} ${secondary}.`;
+          } else {
+            repaired = `${brand} provide${isFirstPerson ? '' : 's'} verified ${primary}.`;
+          }
+        }
+        // If no verified offerings are available in saasProfile, leave repaired untouched
+        // so the ungrounded critical claim strictly blocks publication according to safety policy.
+      }
+
+      // Check for unbacked brand process or positioning claims (e.g. "builds trust by focusing on transparent research and proven methods")
+      if (/\b(?:builds?\s+trust\s+by\s+focusing\s+on\s+transparent\s+research|transparent\s+research\s+and\s+proven\s+methods|proven\s+methods)\b/i.test(repaired) ||
+          /\b(?:builds?\s+trust\s+by\s+focusing\s+on)\b/i.test(repaired)) {
+        if (saasProfile?.verifiedOfferings && saasProfile.verifiedOfferings.length > 0) {
+          const isFirstPerson = /^(?:we\b|our\s+)/i.test(repaired);
+          const brand = isFirstPerson ? 'We' : (saasProfile.name || 'Our team');
+          const primary = saasProfile.verifiedOfferings[0];
+          const secondary = saasProfile.verifiedOfferings.length > 1 ? saasProfile.verifiedOfferings[1] : undefined;
+          if (secondary && secondary !== primary) {
+            repaired = `${brand} focus${isFirstPerson ? '' : 'es'} on verified ${primary} and ${secondary}.`;
+          } else {
+            repaired = `${brand} focus${isFirstPerson ? '' : 'es'} on verified ${primary}.`;
+          }
+        }
+        // If no verified offerings are available in saasProfile, leave repaired untouched
+        // so the ungrounded critical claim strictly blocks publication according to safety policy.
+      }
+    }
+
+    // 3. Empirical causal statements (e.g. categorical assertions about developer time loss)
+    if (/\b(?:developers\s+lose\s+time\s+trying\s+to\s+fix\s+issues\s+that\s+do\s+not\s+impact\s+the\s+product\s+core|developers\s+lose\s+time\s+fixing\s+issues\s+that\s+do\s+not\s+affect\s+the\s+product\s+core)\b/i.test(repaired)) {
+      repaired = repaired.replace(
+        /\bdevelopers\s+lose\s+time\s+(?:trying\s+to\s+fix|fixing)\s+issues\s+that\s+do\s+not\s+(?:impact|affect)\s+the\s+product\s+core\b/i,
+        'product teams risk having developers spend time on minor issues rather than addressing core product friction'
+      );
     }
 
     return repaired;
