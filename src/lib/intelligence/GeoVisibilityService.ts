@@ -312,39 +312,60 @@ export class GeoVisibilityService {
     geoScore: number;
     metrics: any;
   }> {
-    const prompts = PromptDiscoveryService.discoverPrompts(opportunities, options?.promptBudget || 5);
+    const promptLimit = Math.min(2, options?.promptBudget || 3);
+    const prompts = PromptDiscoveryService.discoverPrompts(opportunities, promptLimit);
     const visibilityResults: z.infer<typeof GEOVisibilityResultSchema>[] = [];
-    for (const promptObj of prompts) {
-      for (const provider of this.providers) {
-        console.log(`[GeoVisibilityService] Querying ${provider.providerName} for prompt: "${promptObj.prompt}"`);
-        const answerMeta = await provider.query(promptObj.prompt, { runId: options?.runId });
 
-        if (answerMeta.success && answerMeta.answer) {
-          const mentionResult = BrandMentionAnalyzer.analyze(answerMeta.answer, saasName, competitorDomains);
-          const citations = CitationAnalyzer.extractAndClassify(answerMeta.answer, brandDomain, competitorDomains, promptObj.id);
+    const queryPromises = prompts.flatMap((promptObj) =>
+      this.providers.map(async (provider) => {
+        try {
+          console.log(`[GeoVisibilityService] Querying ${provider.providerName} for prompt: "${promptObj.prompt}"`);
+          const answerMeta = await Promise.race([
+            provider.query(promptObj.prompt, { runId: options?.runId }),
+            new Promise<any>((_, reject) => setTimeout(() => reject(new Error('Provider query timed out')), 10000))
+          ]);
 
-          visibilityResults.push({
-            prompt: promptObj.prompt,
-            provider: provider.providerName,
-            brandMentioned: mentionResult.brandMentioned,
-            competitorsMentioned: mentionResult.competitorsMentioned,
-            citations,
-            answerMetadata: answerMeta,
-            visibilityScore: mentionResult.brandMentioned ? 100 : 0
-          });
-        } else {
-          visibilityResults.push({
+          if (answerMeta && answerMeta.success && answerMeta.answer) {
+            const mentionResult = BrandMentionAnalyzer.analyze(answerMeta.answer, saasName, competitorDomains);
+            const citations = CitationAnalyzer.extractAndClassify(answerMeta.answer, brandDomain, competitorDomains, promptObj.id);
+
+            return {
+              prompt: promptObj.prompt,
+              provider: provider.providerName,
+              brandMentioned: mentionResult.brandMentioned,
+              competitorsMentioned: mentionResult.competitorsMentioned,
+              citations,
+              answerMetadata: answerMeta,
+              visibilityScore: mentionResult.brandMentioned ? 100 : 0
+            };
+          } else {
+            return {
+              prompt: promptObj.prompt,
+              provider: provider.providerName,
+              brandMentioned: false,
+              competitorsMentioned: [],
+              citations: [],
+              answerMetadata: answerMeta || { provider: provider.providerName, success: false, answer: 'No answer returned' },
+              visibilityScore: 0
+            };
+          }
+        } catch (err: any) {
+          console.warn(`[GeoVisibilityService] Provider ${provider.providerName} query failed or timed out:`, err.message);
+          return {
             prompt: promptObj.prompt,
             provider: provider.providerName,
             brandMentioned: false,
             competitorsMentioned: [],
             citations: [],
-            answerMetadata: answerMeta,
+            answerMetadata: { provider: provider.providerName, success: false, answer: `Query error: ${err.message}` },
             visibilityScore: 0
-          });
+          };
         }
-      }
-    }
+      })
+    );
+
+    const settledResults = await Promise.all(queryPromises);
+    settledResults.forEach(r => visibilityResults.push(r as any));
 
     const scoreData = GEOScoringService.calculate(visibilityResults, brandDomain);
     const geoOpportunities = GEORecommendationService.generate(

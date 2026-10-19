@@ -121,12 +121,23 @@ export async function POST(req: Request) {
           const promisedCount = ContentEvidenceValidator.extractPromisedListicleCount(bestOpportunity.keyword);
           const maxHeadings = promisedCount ? Math.max(promisedCount + 2, 7) : 7;
 
+          const discoveredComps = (profile.primaryCompetitors && profile.primaryCompetitors.length > 0)
+            ? profile.primaryCompetitors
+            : (bestOpportunity.competitors && bestOpportunity.competitors.length > 0)
+            ? bestOpportunity.competitors
+            : (bestOpportunity.rankingDomains || []).slice(0, 3);
+
+          const profileWithComps = {
+            ...profile,
+            primaryCompetitors: discoveredComps
+          };
+
           const payload = {
             title: bestOpportunity.keyword,
             targetKeywords: bestOpportunity.keyword,
             contentType: bestOpportunity.contentType || 'Guide',
             targetAudience: profile.targetAudience,
-            saasProfile: profile,
+            saasProfile: profileWithComps,
             customInsights: `SaaS Profile: ${profile.name} - ${profile.description}. key features: ${profile.keyFeatures?.join(', ')}.`,
             campaignMode: 'standard',
             externalLinks: [],

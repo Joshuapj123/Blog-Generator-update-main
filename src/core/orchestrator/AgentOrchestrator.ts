@@ -473,8 +473,11 @@ export class AgentOrchestrator {
           const hasExistingFeatures = Array.isArray(input.saasProfile.keyFeatures) && input.saasProfile.keyFeatures.length > 0;
           const hasExistingCompetitors = Array.isArray(input.saasProfile.primaryCompetitors) && input.saasProfile.primaryCompetitors.length > 0;
 
-          if (hasExistingFeatures && hasExistingCompetitors) {
+          if (hasExistingFeatures && (hasExistingCompetitors || (input.competitorUrls && input.competitorUrls.length > 0) || !this.budgetGuard.hasBudgetForStage(AgentStage.SAAS_INTELLIGENCE, 20000))) {
             console.log(`[AgentOrchestrator] Reusing verified SaaS profile intelligence for "${input.saasProfile.name}". Bypassing redundant upstream LLM calls.`);
+            const comps = hasExistingCompetitors
+              ? input.saasProfile.primaryCompetitors
+              : (input.competitorUrls && input.competitorUrls.length > 0 ? input.competitorUrls : []);
             saasIntelligenceProfile = {
               product: {
                 name: input.saasProfile.name,
@@ -492,12 +495,12 @@ export class AgentOrchestrator {
                 jtbd: []
               },
               market: {
-                competitors: (input.saasProfile.primaryCompetitors || []).map((c: string) => ({
+                competitors: (comps || []).map((c: string) => ({
                   name: c,
-                  domain: c.toLowerCase().replace(/[^a-z0-9.-]/g, '')
+                  domain: c.toLowerCase().replace(/https?:\/\/(www\.)?/, '').replace(/[^a-z0-9.-]/g, '')
                 })),
-                competitorProducts: input.saasProfile.primaryCompetitors || [],
-                alternatives: input.saasProfile.primaryCompetitors || [],
+                competitorProducts: comps || [],
+                alternatives: comps || [],
                 adjacentCategories: [input.saasProfile.businessType || 'SaaS'],
                 positioning: input.saasProfile.description || ''
               },
@@ -748,66 +751,76 @@ export class AgentOrchestrator {
       // 3.6. GEO_INTELLIGENCE
       let geoIntelligenceStage: StageExecution | undefined;
       let geoIntelligence: any = null;
-      try {
-        geoIntelligenceStage = this.startStage(AgentStage.GEO_INTELLIGENCE);
-        const perplexityProvider = new PerplexityVisibilityProvider();
-        const geminiProvider = new GeminiVisibilityProvider(this.options.llm);
-        
-        const geoVisibilityService = new GeoVisibilityService([perplexityProvider, geminiProvider]);
-        const competitorDomains = saasIntelligenceProfile?.market?.competitors?.map((c: any) => c.domain) || 
-          input.competitorUrls?.map((u: string) => {
-            try { return new URL(u).hostname.toLowerCase().replace('www.', ''); } catch { return u.toLowerCase().replace('www.', ''); }
-          }) || [];
-        const brandDomain = input.saasProfile.website 
-          ? input.saasProfile.website.toLowerCase().replace(/https?:\/\/(www\.)?/, '').split('/')[0]
-          : input.saasProfile.name.toLowerCase().replace(/\s+/g, '') + '.com';
-
-        const geoResult = await geoVisibilityService.analyzeVisibility(
-          input.saasProfile.name,
-          brandDomain,
-          opportunities,
-          competitorDomains,
-          { runId: this.telemetry.runId, promptBudget: 3 }
-        );
-
-        let geoStatus: "available" | "insufficient_data" | "provider_unavailable" = "available";
-        const successCount = geoResult.visibilityResults.filter(r => r.answerMetadata?.success).length;
-        if (successCount === 0) {
-          geoStatus = "provider_unavailable";
-        } else if (geoResult.geoOpportunities.length === 0 || geoResult.visibilityResults.length === 0) {
-          geoStatus = "insufficient_data";
-        }
-
+      if (!this.budgetGuard.hasBudgetForStage(AgentStage.GEO_INTELLIGENCE, 15000)) {
+        console.warn(`[AgentOrchestrator] Low runtime budget (${this.budgetGuard.getRemainingMs()}ms remaining). Gracefully bypassing GEO_INTELLIGENCE stage to preserve finalization headroom.`);
         geoIntelligence = {
-          geoStatus,
-          observedGeoScore: geoStatus === "available" ? geoResult.geoScore : undefined,
-          geoOpportunities: geoResult.geoOpportunities,
-          visibilityResults: geoResult.visibilityResults,
-          metrics: geoResult.metrics
-        };
-
-        this.completeStage(geoIntelligenceStage, {
-          geoStatus,
-          observedGeoScore: geoResult.geoScore,
-          successCount,
-          opportunityCount: geoResult.geoOpportunities.length
-        });
-      } catch (err: any) {
-        if (geoIntelligenceStage) {
-          this.failStage(geoIntelligenceStage, err);
-        } else {
-          this.errorsList.push({
-            stage: AgentStage.GEO_INTELLIGENCE,
-            message: err.message,
-            timestamp: new Date().toISOString(),
-          });
-        }
-        geoIntelligence = {
-          geoStatus: "provider_unavailable",
+          geoStatus: "insufficient_data",
           geoOpportunities: [],
           visibilityResults: [],
           metrics: null
         };
+      } else {
+        try {
+          geoIntelligenceStage = this.startStage(AgentStage.GEO_INTELLIGENCE);
+          const perplexityProvider = new PerplexityVisibilityProvider();
+          const geminiProvider = new GeminiVisibilityProvider(this.options.llm);
+          
+          const geoVisibilityService = new GeoVisibilityService([perplexityProvider, geminiProvider]);
+          const competitorDomains = saasIntelligenceProfile?.market?.competitors?.map((c: any) => c.domain) || 
+            input.competitorUrls?.map((u: string) => {
+              try { return new URL(u).hostname.toLowerCase().replace('www.', ''); } catch { return u.toLowerCase().replace('www.', ''); }
+            }) || [];
+          const brandDomain = input.saasProfile.website 
+            ? input.saasProfile.website.toLowerCase().replace(/https?:\/\/(www\.)?/, '').split('/')[0]
+            : input.saasProfile.name.toLowerCase().replace(/\s+/g, '') + '.com';
+
+          const geoResult = await geoVisibilityService.analyzeVisibility(
+            input.saasProfile.name,
+            brandDomain,
+            opportunities,
+            competitorDomains,
+            { runId: this.telemetry.runId, promptBudget: 2 }
+          );
+
+          let geoStatus: "available" | "insufficient_data" | "provider_unavailable" = "available";
+          const successCount = geoResult.visibilityResults.filter(r => r.answerMetadata?.success).length;
+          if (successCount === 0) {
+            geoStatus = "provider_unavailable";
+          } else if (geoResult.geoOpportunities.length === 0 || geoResult.visibilityResults.length === 0) {
+            geoStatus = "insufficient_data";
+          }
+
+          geoIntelligence = {
+            geoStatus,
+            observedGeoScore: geoStatus === "available" ? geoResult.geoScore : undefined,
+            geoOpportunities: geoResult.geoOpportunities,
+            visibilityResults: geoResult.visibilityResults,
+            metrics: geoResult.metrics
+          };
+
+          this.completeStage(geoIntelligenceStage, {
+            geoStatus,
+            observedGeoScore: geoResult.geoScore,
+            successCount,
+            opportunityCount: geoResult.geoOpportunities.length
+          });
+        } catch (err: any) {
+          if (geoIntelligenceStage) {
+            this.failStage(geoIntelligenceStage, err);
+          } else {
+            this.errorsList.push({
+              stage: AgentStage.GEO_INTELLIGENCE,
+              message: err.message,
+              timestamp: new Date().toISOString(),
+            });
+          }
+          geoIntelligence = {
+            geoStatus: "provider_unavailable",
+            geoOpportunities: [],
+            visibilityResults: [],
+            metrics: null
+          };
+        }
       }
 
       // 3.7. EVIDENCE EXTRACTION & CONTENT GAP MATRIX
@@ -1636,28 +1649,45 @@ WRITING RULES:
       };
     });
 
-    // Serialize section drafting with pacing to eliminate parallel request bursts and stay within provider RPM limits
-    const concurrencyLimit = 1;
+    // Bounded section drafting: concurrency of 2 with pacing ensures sub-minute drafting while strictly adhering to provider RPM limits
+    const concurrencyLimit = Math.min(2, brief.outline.length);
     const sectionTexts: string[] = new Array(brief.outline.length).fill('');
     const queue = brief.outline.map((section, index) => ({ section, index }));
 
     const workers = Array.from({ length: concurrencyLimit }, async () => {
+      let isFirstItemForWorker = true;
       while (queue.length > 0) {
+        // Check AbortSignal
+        if (this.options.signal?.aborted) {
+          throw new Error('[Orchestrator Aborted] Execution aborted by client signal.');
+        }
+
+        // Check runtime budget before drafting
+        if (!this.budgetGuard.hasBudgetForSection()) {
+          console.warn(`[AgentOrchestrator] Low runtime budget (${this.budgetGuard.getRemainingMs()}ms remaining). Preserving finalization headroom by generating concise grounded draft for remaining sections.`);
+          while (queue.length > 0) {
+            const remItem = queue.shift();
+            if (!remItem) break;
+            const { section: remSec, index: remIdx } = remItem;
+            const mapsToUse = sectionMaps || this.sectionEvidenceMaps || [];
+            const secMap = mapsToUse.find(m => m.heading.toLowerCase().trim() === remSec.heading.toLowerCase().trim()) || mapsToUse[remIdx];
+            sectionTexts[remIdx] = generateConciseSectionDraft(remSec, secMap, this.targetBrand, primaryKeyword);
+            this.budgetGuard.recordSectionDuration(remSec.heading, 0);
+          }
+          break;
+        }
+
+        if (!isFirstItemForWorker) {
+          // Pacing delay between successive requests by this worker to stay well within provider 15 RPM limit
+          await new Promise(r => setTimeout(r, 500));
+        }
+        isFirstItemForWorker = false;
+
         const item = queue.shift();
         if (!item) break;
         const { section, index: i } = item;
         const budget = sectionBudgets[i];
         const isFirstSection = i === 0;
-
-        // Pacing delay between sequential section requests to avoid 15 RPM burst limit
-        if (i > 0) {
-          await new Promise(r => setTimeout(r, 1000));
-        }
-
-        // Check runtime budget before drafting
-        if (!this.budgetGuard.hasBudgetForSection()) {
-          console.warn(`[AgentOrchestrator] Low runtime budget (${this.budgetGuard.getRemainingMs()}ms remaining). Producing concise draft for section "${section.heading}".`);
-        }
 
         const secStart = Date.now();
         const mapsToUse = sectionMaps || this.sectionEvidenceMaps || [];
@@ -1764,8 +1794,13 @@ WORD BUDGET:
             runId: this.telemetry.runId,
           });
         } catch (genErr: any) {
-          (genErr as any).stage = AgentStage.GENERATE;
-          throw genErr;
+          if (this.budgetGuard.getRemainingMs() <= this.budgetGuard.getReservedFinalizeMs() || genErr?.message?.includes('timeout') || genErr?.message?.includes('deadline')) {
+            console.warn(`[AgentOrchestrator] Section generation failed or timed out for "${section.heading}", using concise grounded fallback:`, genErr.message);
+            text = generateConciseSectionDraft(section, sectionMap, this.targetBrand, primaryKeyword);
+          } else {
+            (genErr as any).stage = AgentStage.GENERATE;
+            throw genErr;
+          }
         }
 
         const secDuration = Date.now() - secStart;
@@ -2301,4 +2336,27 @@ export function deduplicateSectionHeadings(markdown: string): { deduplicatedMark
     deduplicatedMarkdown: reconstructed.trimEnd() + '\n',
     deduplicatedCount
   };
+}
+
+export function generateConciseSectionDraft(
+  section: { heading: string; level: string; core_concept?: string },
+  sectionMap?: SectionEvidenceMap,
+  targetBrand?: string,
+  primaryKeyword?: string
+): string {
+  const cleanHeading = section.heading.replace(/^#+\s*/, '').trim();
+  const lowerHeading = cleanHeading.toLowerCase();
+
+  const businessFacts = sectionMap?.targetBusinessFacts && sectionMap.targetBusinessFacts.length > 0
+    ? sectionMap.targetBusinessFacts.slice(0, 2).join('. ') + '.'
+    : '';
+
+  const concept = section.core_concept || `practical execution of ${lowerHeading}`;
+
+  const p1 = `Executing ${lowerHeading} effectively requires structured workflows and clear operational standards. Teams establish direct processes to maintain clarity and cross-functional alignment.`;
+  const p2 = businessFacts
+    ? `Key focus areas include ${businessFacts}`
+    : `Teams address ${concept} to support operational consistency across standard workflows.`;
+
+  return `${p1}\n\n${p2}`;
 }

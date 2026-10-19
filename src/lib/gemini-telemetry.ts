@@ -776,6 +776,18 @@ export async function retryWithBackoff<T>(
         ? retryAfterMs + jitter
         : Math.min(10000, baseDelay * Math.pow(2, attempt - 1) + jitter);
 
+      if (computedDelay > maxWaitAllowedMs) {
+        const waitSec = Math.ceil(computedDelay / 1000);
+        const deadlineErr: any = new Error(
+          `AI provider backoff delay (${waitSec}s) exceeds the maximum allowable retry deadline (${Math.round(maxWaitAllowedMs / 1000)}s).`
+        );
+        deadlineErr.status = 429;
+        deadlineErr.code = 'RESOURCE_EXHAUSTED';
+        deadlineErr.category = 'RATE_LIMIT';
+        deadlineErr.retryAfterSec = waitSec;
+        throw deadlineErr;
+      }
+
       console.warn(`[Gemini Retry] ${isRateLimit ? 'Rate limit' : 'Transient capacity'} error encountered on attempt ${attempt}. Backing off for ${computedDelay}ms... (Remaining retries: ${retries}, Retry-After=${retryAfterMs !== null ? `${retryAfterMs}ms` : 'none'})`);
       await new Promise(resolve => setTimeout(resolve, computedDelay));
       return retryWithBackoff(fn, retries - 1, baseDelay, attempt + 1, options);
