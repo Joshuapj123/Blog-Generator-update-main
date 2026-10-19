@@ -547,7 +547,8 @@ export class ContentEvidenceValidator {
     }
 
     // 2. Section parsing & duplicate heading detection (applies to all content)
-    const headingLines = bodyMarkdown.match(/^#{2,3}\s+(.+)$/gm) || [];
+    const textWithoutCodeBlocks = bodyMarkdown.replace(/```[\s\S]*?```/g, '');
+    const headingLines = textWithoutCodeBlocks.match(/^#{2,3}\s+(.+)$/gm) || [];
     const sectionHeadings = headingLines.map(h => h.replace(/^#{2,3}\s+/, '').trim());
 
     const seenHeadings = new Set<string>();
@@ -568,7 +569,7 @@ export class ContentEvidenceValidator {
 
     // 3. Listicle promise and stub item validation (applies when title promises N items)
     if (promisedCount !== null && promisedCount > 0) {
-      const sectionBlocks = bodyMarkdown.split(/\n(?=#{2,3}\s+)/);
+      const sectionBlocks = textWithoutCodeBlocks.split(/\n(?=#{2,3}\s+)/);
       const substantiveItems: { heading: string; wordCount: number }[] = [];
 
       for (const block of sectionBlocks) {

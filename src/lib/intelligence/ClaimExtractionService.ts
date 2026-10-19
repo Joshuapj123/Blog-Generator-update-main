@@ -624,7 +624,8 @@ export class ClaimExtractionService {
     const isTargetSubject = Boolean(targetBrand && this.isEntitySubjectOfClause(trimmed, targetBrand));
     const isCompetitorSubject = knownCompetitors.some(c => this.isEntitySubjectOfClause(trimmed, c));
     const isFirstPerson = this.FIRST_PERSON_SUBJECT_PATTERNS.some(pat => pat.test(trimmed));
-    const isDefiniteProduct = this.DEFINITE_PRODUCT_PATTERNS.some(pat => pat.test(trimmed));
+    const isPrepositionalProduct = /\b(?:to|with|from|for|against|between|than|like|as|in|within|into|via|through|about)\s+(?:the|this)\s+(?:platform|software|system|tool|tools|solution|solutions|service|services|product|products|application|app|engine|api)\b/i.test(trimmed);
+    const isDefiniteProduct = !isPrepositionalProduct && this.DEFINITE_PRODUCT_PATTERNS.some(pat => pat.test(trimmed));
     const hasBrandOrFirstPersonSubject = isTargetSubject || isCompetitorSubject || isFirstPerson || Boolean(inheritedSubject);
     const hasExplicitVendorSubject = hasBrandOrFirstPersonSubject || (isDefiniteProduct && !this.isEvaluationGuidance(trimmed));
 

@@ -163,6 +163,25 @@ export function normalizeContentBrief(raw: any): { normalized: any; normalizatio
     }
   }
 
+  // 4. outline heading uniqueness normalization
+  if (Array.isArray(normalized.outline)) {
+    const seenOutlineNorms = new Set<string>();
+    for (const node of normalized.outline) {
+      if (node && typeof node.heading === 'string') {
+        const norm = node.heading.toLowerCase().replace(/^[#\s\d\.\-\:\)]+/, '').replace(/[^\w\s]/g, '').trim();
+        if (norm.length > 3) {
+          if (seenOutlineNorms.has(norm)) {
+            const qualifier = node.generate_table ? 'Comparison Table' : (node.core_concept ? node.core_concept.slice(0, 25).trim() : 'Implementation Details');
+            node.heading = `${node.heading.trim()} (${qualifier})`;
+            normalizationApplied = true;
+          }
+          const updatedNorm = node.heading.toLowerCase().replace(/^[#\s\d\.\-\:\)]+/, '').replace(/[^\w\s]/g, '').trim();
+          seenOutlineNorms.add(updatedNorm);
+        }
+      }
+    }
+  }
+
   return { normalized, normalizationApplied };
 }
 

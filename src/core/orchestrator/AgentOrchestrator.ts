@@ -1801,6 +1801,13 @@ WORD BUDGET:
       bodyMarkdown += `${section.level === 'H2' ? '##' : '###'} ${section.heading}\n\n${cleanedSectionText}\n\n`;
     }
 
+    // Ensure all section headings are unique and preserve substantive content
+    const dedupGen = deduplicateSectionHeadings(bodyMarkdown);
+    if (dedupGen.deduplicatedCount > 0) {
+      console.log(`[AgentOrchestrator] Resolved ${dedupGen.deduplicatedCount} duplicate section heading(s) in generated markdown while preserving all substantive content.`);
+      bodyMarkdown = dedupGen.deduplicatedMarkdown;
+    }
+
     const wordCount = bodyMarkdown.split(/\s+/).filter(Boolean).length;
 
     return {
@@ -2083,6 +2090,13 @@ ${hasTitleIssue ? 'OPTIMIZED TITLE: [Your optimized short title here]\n\n' : ''}
       }
     }
 
+    // Ensure all section headings remain unique after repair while preserving content
+    const dedupRepair = deduplicateSectionHeadings(repairedBody);
+    if (dedupRepair.deduplicatedCount > 0) {
+      console.log(`[AgentOrchestrator] Resolved ${dedupRepair.deduplicatedCount} duplicate section heading(s) in repaired markdown.`);
+      repairedBody = dedupRepair.deduplicatedMarkdown;
+    }
+
     const wordCount = repairedBody.split(/\s+/).filter(Boolean).length;
 
     return {
@@ -2143,13 +2157,15 @@ export function getSectionWordCounts(markdown: string): Array<{ heading: string;
 export function stripMatchingLeadingHeading(sectionText: string, heading: string): string {
   if (!sectionText) return '';
   const trimmed = sectionText.trim();
-  const normHeading = heading.toLowerCase().replace(/[^\w\s]/g, '').trim();
+  const normHeading = heading.toLowerCase().replace(/^[#\s\d\.\-\:\)]+/, '').replace(/[^\w\s]/g, '').trim();
 
   const lines = trimmed.split('\n');
   if (lines.length > 0) {
     const firstLine = lines[0].trim();
     const strippedFirstLine = firstLine
       .replace(/^#{1,6}\s+/, '')
+      .replace(/^(?:step\s+\d+|section\s+\d+|\d+)[\.\:\-\s]*/i, '')
+      .replace(/^[#\s\d\.\-\:\)]+/, '')
       .replace(/^\*\*|\*\*$/g, '')
       .replace(/^__|_$/g, '')
       .trim();
@@ -2167,4 +2183,122 @@ export function stripMatchingLeadingHeading(sectionText: string, heading: string
     }
   }
   return trimmed;
+}
+
+/**
+ * Detects and resolves duplicate section headings in article markdown
+ * while strictly preserving all substantive content from distinct sections.
+ * If sections are genuinely identical/redundant duplicates, merges their non-duplicate lines safely.
+ * If sections have distinct substantive content, disambiguates the duplicate heading.
+ */
+export function deduplicateSectionHeadings(markdown: string): { deduplicatedMarkdown: string; deduplicatedCount: number } {
+  if (!markdown || !markdown.includes('#')) {
+    return { deduplicatedMarkdown: markdown, deduplicatedCount: 0 };
+  }
+
+  const lines = markdown.split('\n');
+  let deduplicatedCount = 0;
+
+  interface SectionInfo {
+    level: string; // '##' or '###'
+    headingText: string;
+    norm: string;
+    headerLineIdx: number;
+    bodyLines: string[];
+  }
+
+  const sections: SectionInfo[] = [];
+  let currentSection: SectionInfo | null = null;
+  const preambleLines: string[] = [];
+
+  let inCodeBlock = false;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.trim().startsWith('```')) {
+      inCodeBlock = !inCodeBlock;
+    }
+    const match = !inCodeBlock ? line.match(/^(#{2,3})\s+(.+)$/) : null;
+    if (match) {
+      if (currentSection) {
+        sections.push(currentSection);
+      }
+      const level = match[1];
+      const headingText = match[2].trim();
+      const norm = headingText.toLowerCase().replace(/^[#\s\d\.\-\:\)]+/, '').replace(/[^\w\s]/g, '').trim();
+      currentSection = {
+        level,
+        headingText,
+        norm,
+        headerLineIdx: i,
+        bodyLines: []
+      };
+    } else {
+      if (currentSection) {
+        currentSection.bodyLines.push(line);
+      } else {
+        preambleLines.push(line);
+      }
+    }
+  }
+  if (currentSection) {
+    sections.push(currentSection);
+  }
+
+  const resultSections: SectionInfo[] = [];
+  const registeredNorms = new Set<string>();
+
+  for (const sec of sections) {
+    if (!sec.norm || sec.norm.length <= 3) {
+      resultSections.push(sec);
+      continue;
+    }
+
+    if (!registeredNorms.has(sec.norm)) {
+      registeredNorms.add(sec.norm);
+      resultSections.push(sec);
+    } else {
+      // Duplicate section heading detected
+      deduplicatedCount++;
+      const bodyText = sec.bodyLines.join(' ').trim();
+      const hasTable = sec.bodyLines.some(l => l.trim().startsWith('|'));
+
+      // If this section has substantive content (> 25 words or table), preserve it and disambiguate
+      const words = bodyText.split(/\s+/).filter(Boolean).length;
+      if (words >= 25 || hasTable) {
+        const suffix = hasTable ? 'Technical Matrix' : 'Implementation Analysis';
+        let candidateHeading = `${sec.headingText} (${suffix})`;
+        let candidateNorm = candidateHeading.toLowerCase().replace(/^[#\s\d\.\-\:\)]+/, '').replace(/[^\w\s]/g, '').trim();
+        let counter = 2;
+        while (registeredNorms.has(candidateNorm)) {
+          candidateHeading = `${sec.headingText} (${suffix} ${counter})`;
+          candidateNorm = candidateHeading.toLowerCase().replace(/^[#\s\d\.\-\:\)]+/, '').replace(/[^\w\s]/g, '').trim();
+          counter++;
+        }
+        sec.headingText = candidateHeading;
+        sec.norm = candidateNorm;
+        registeredNorms.add(candidateNorm);
+        resultSections.push(sec);
+      } else {
+        // Redundant stub duplicate: merge any non-empty lines into the previous section with this norm
+        const prev = resultSections.find(s => s.norm === sec.norm);
+        if (prev && bodyText.length > 0) {
+          prev.bodyLines.push('', ...sec.bodyLines);
+        }
+      }
+    }
+  }
+
+  // Reassemble markdown preserving all substantive paragraphs
+  let reconstructed = preambleLines.join('\n');
+  if (reconstructed && !reconstructed.endsWith('\n')) {
+    reconstructed += '\n\n';
+  }
+  for (const sec of resultSections) {
+    reconstructed += `${sec.level} ${sec.headingText}\n${sec.bodyLines.join('\n')}\n\n`;
+  }
+
+  return {
+    deduplicatedMarkdown: reconstructed.trimEnd() + '\n',
+    deduplicatedCount
+  };
 }

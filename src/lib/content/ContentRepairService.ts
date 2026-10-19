@@ -277,6 +277,22 @@ ${hasTitleIssue ? 'OPTIMIZED TITLE: [Your optimized title here]\n\n' : ''}REPAIR
           );
         }
       }
+
+      // Check for unbacked team engagement or frustration outcome claims (e.g. "reduces the frustration caused by ambiguous requirements and keeps the internal team engaged with the product's success")
+      if (/\b(?:reduces?\s+(?:the\s+)?frustration|keeps?\s+(?:the\s+)?(?:internal\s+)?teams?\s+engaged)\b/i.test(repaired)) {
+        if (saasProfile?.verifiedOfferings && saasProfile.verifiedOfferings.length > 0) {
+          const brand = saasProfile.name || 'Our team';
+          const primary = saasProfile.verifiedOfferings[0];
+          const secondary = saasProfile.verifiedOfferings[1];
+          if (secondary && secondary !== primary) {
+            repaired = `${brand} provides verified ${primary} and offers ${secondary}.`;
+          } else {
+            repaired = `${brand} provides verified ${primary}.`;
+          }
+        }
+        // If no verified offerings are available in saasProfile, leave repaired untouched
+        // so the ungrounded critical claim strictly blocks publication according to safety policy.
+      }
     }
 
     return repaired;
