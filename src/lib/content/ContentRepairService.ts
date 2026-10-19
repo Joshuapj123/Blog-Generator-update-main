@@ -244,6 +244,39 @@ ${hasTitleIssue ? 'OPTIMIZED TITLE: [Your optimized title here]\n\n' : ''}REPAIR
           'to address friction across user journeys'
         );
       }
+
+      // Check for unbacked performance promises or design feedback claims (e.g. "provide design feedback to help sharpen your product's performance")
+      if (/\b(?:provide\s+design\s+feedback\s+to\s+help\s+sharpen\s+your\s+product(?:'s|’s)?\s+performance|sharpen\s+(?:your\s+)?product(?:'s|’s)?\s+performance|provide\s+design\s+feedback)\b/i.test(repaired)) {
+        if (saasProfile?.verifiedOfferings && saasProfile.verifiedOfferings.length > 0) {
+          const primary = saasProfile.verifiedOfferings[0];
+          const secondary = saasProfile.verifiedOfferings[1] || saasProfile.verifiedOfferings[0];
+          repaired = repaired.replace(
+            /\bprovide\s+design\s+feedback\s+to\s+help\s+sharpen\s+your\s+product(?:'s|’s)?\s+performance\b/i,
+            `provide verified ${primary} and ${secondary} to address critical user friction points`
+          );
+          repaired = repaired.replace(
+            /\bprovide\s+design\s+feedback\b/i,
+            `provide verified ${primary}`
+          );
+          repaired = repaired.replace(
+            /\bsharpen\s+(?:your\s+)?product(?:'s|’s)?\s+performance\b/i,
+            'address critical user friction points across key flows'
+          );
+        } else {
+          repaired = repaired.replace(
+            /\bprovide\s+design\s+feedback\s+to\s+help\s+sharpen\s+your\s+product(?:'s|’s)?\s+performance\b/i,
+            'provide verified services to address critical user friction points'
+          );
+          repaired = repaired.replace(
+            /\bprovide\s+design\s+feedback\b/i,
+            'provide verified services'
+          );
+          repaired = repaired.replace(
+            /\bsharpen\s+(?:your\s+)?product(?:'s|’s)?\s+performance\b/i,
+            'address critical user friction points across key flows'
+          );
+        }
+      }
     }
 
     return repaired;

@@ -61,7 +61,7 @@ export class ClaimGroundingEngine {
 
   private static GENERIC_STOPWORDS = new Set([
     'software', 'platform', 'service', 'services', 'business', 'company',
-    'solutions', 'solution', 'provides', 'delivers', 'verified', 'capability',
+    'solutions', 'solution', 'provides', 'provide', 'providing', 'delivers', 'deliver', 'delivering', 'verified', 'capability',
     'enterprise', 'features', 'feature', 'system', 'tool', 'product',
     'without', 'within', 'across', 'between', 'during', 'through', 'about',
     'their', 'there', 'which', 'where', 'while', 'after', 'before', 'other',
@@ -71,6 +71,10 @@ export class ClaimGroundingEngine {
     'might', 'must', 'they', 'them', 'its', 'our', 'your', 'his', 'her', 'also',
     'than', 'then', 'very', 'such', 'more', 'most', 'some', 'any', 'each', 'every',
     'both', 'all', 'under', 'over', 'per', 'via', 'not', 'following', 'reached', 'totaled', 'stands'
+  ]);
+
+  private static ALLOWED_2_LETTER_TOKENS = new Set([
+    'ux', 'ui', 'ai', 'ml', 'qa', 'db', 'os', 'ci', 'cd'
   ]);
 
   private static UNIT_DIMENSIONS: Set<string>[] = [
@@ -109,12 +113,15 @@ export class ClaimGroundingEngine {
     creates: 'develop',
     creating: 'develop',
     created: 'develop',
+    provide: 'deliver',
     provides: 'deliver',
     providing: 'deliver',
     provided: 'deliver',
+    deliver: 'deliver',
     delivers: 'deliver',
     delivering: 'deliver',
     delivered: 'deliver',
+    offer: 'deliver',
     offers: 'deliver',
     offering: 'deliver',
     offered: 'deliver',
@@ -266,7 +273,7 @@ export class ClaimGroundingEngine {
       .toLowerCase()
       .replace(/[^\w\s]/g, ' ')
       .split(/\s+/)
-      .filter(t => t.length > 2 && !this.GENERIC_STOPWORDS.has(t));
+      .filter(t => (t.length > 2 || this.ALLOWED_2_LETTER_TOKENS.has(t)) && !this.GENERIC_STOPWORDS.has(t));
 
     const brandTokens = new Set<string>();
     if (targetBrand) {
@@ -279,7 +286,7 @@ export class ClaimGroundingEngine {
     return rawTokens
       .filter(t => !brandTokens.has(t) && !this.LOCATION_TOKENS.has(t))
       .map(t => this.normalizeToken(t))
-      .filter(t => t.length > 2);
+      .filter(t => t.length > 2 || this.ALLOWED_2_LETTER_TOKENS.has(t));
   }
 
   /**
@@ -1029,10 +1036,19 @@ export class ClaimGroundingEngine {
       if (evTokens.length === 0) continue;
 
       if (!entityCheck.valid) {
-        if (entityCheck.leakage) {
+        if (entityCheck.leakage && (claim.claimType === 'ENTITY_CAPABILITY' || claim.claimType === 'COMPETITOR_ASSERTION')) {
           const evTokenSet = new Set(evTokens);
-          const matches = claimTokens.filter(t => evTokenSet.has(t)).length;
-          if (matches >= 2 && !leakageResult) {
+          const matched = claimTokens.filter(t => evTokenSet.has(t));
+          const requiredMatches = Math.min(3, Math.ceil(claimTokens.length * 0.5));
+          const union = new Set([...claimTokens, ...evTokens]).size;
+          const jaccard = union > 0 ? matched.length / union : 0;
+
+          const isSubstantiveMatch =
+            (matched.length >= requiredMatches && matched.length >= 2) ||
+            (jaccard >= 0.35 && matched.length >= 2) ||
+            (evTokens.length >= 3 && claimTokens.length >= 3 && claimTokens.join(' ').includes(evTokens.slice(0, 3).join(' ')));
+
+          if (isSubstantiveMatch && !leakageResult) {
             leakageResult = {
               ...claim,
               supportStatus: 'UNSUPPORTED',
@@ -1243,10 +1259,17 @@ export class ClaimGroundingEngine {
     // Neutral educational, architectural, or market-context claims (where neither target brand nor a competitor is claimed)
     // are NOT target brand assertions and do NOT constitute entity leakage.
     if (hasTargetMention && isCompetitorEvidence && !isTargetEvidence) {
+      if (claim.claimType === 'ENTITY_CAPABILITY' || claim.materiality === 'CRITICAL') {
+        return {
+          valid: false,
+          leakage: true,
+          reason: `Entity isolation violation: competitor evidence (${ev.id}) cannot support target brand (${targetBrand}) claim.`,
+        };
+      }
       return {
         valid: false,
-        leakage: true,
-        reason: `Entity isolation violation: competitor evidence (${ev.id}) cannot support target brand (${targetBrand}) claim.`,
+        leakage: false,
+        reason: `Competitor evidence (${ev.id}) cannot support general target brand statement.`,
       };
     }
 

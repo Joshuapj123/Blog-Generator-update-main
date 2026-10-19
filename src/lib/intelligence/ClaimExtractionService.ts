@@ -157,6 +157,9 @@ export class ClaimExtractionService {
     /\b(?:to\s+see\s+if|to\s+determine\s+if|to\s+find\s+out\s+if)\s+(?:your|the|a|any)\b/i,
     /\b(?:helps?|allows?|enables?|guides?|assists?)\s+(?:you|teams?|buyers?|users?|organizations?|companies|evaluators?|readers?)(?:\s+to)?\s+(?:see|determine|evaluate|find\s+out|understand|identify|gauge|assess|judge|decide|tell|learn|clarify|uncover)\s+(?:if|whether)\b/i,
     /\b(?:key\s+criteria|factors?\s+to\s+consider|questions?\s+to\s+ask|checklist\s+for)\s+(?:when|to|for)\s+(?:evaluating|assessing|choosing|selecting)\b/i,
+    // UI/UX design guidance & recommendations: "ensure navigation serves...", "verify layout remains...", "design forms to..."
+    /\b(?:ensure|make\s+sure|verify|design|structure|organize)\s+(?:that\s+)?(?:navigation|layouts?|flows?|forms?|menus?|buttons?|content|pages?|steps?|interfaces?|components?|elements?|experiences?)\s+(?:serves?|provides?|remains?|keeps?|offers?|guides?|has|is|are|focuses?)\b/i,
+    /\b(?:ensure|verify|confirm)\s+(?:navigation|layout|flow|hierarchy)\s+(?:serves|has|provides|remains)\b/i,
   ];
 
   public static isEvaluationGuidance(text: string): boolean {
@@ -185,7 +188,7 @@ export class ClaimExtractionService {
 
     // Check if entity is followed directly by an active verb of assertion
     const verbFollower = new RegExp(
-      `\\b${escaped}(?:'s)?\\s+(?:is|are|was|were|has|have|had|offers?|provides?|features?|supports?|charges?|costs?|requires?|delivers?|includes?|lacks?|fails?|built|enables?|guarantees?)\\b`,
+      `\\b${escaped}(?:'s)?\\s+(?:is|are|was|were|has|have|had|offers?|provides?|features?|supports?|charges?|costs?|requires?|delivers?|includes?|lacks?|fails?|built|enables?|guarantees?|ensures?|reduces?|prevents?|optimizes?|streamlines?)\\b`,
       'i'
     );
 
@@ -468,6 +471,8 @@ export class ClaimExtractionService {
     let inheritedSubject = sentenceSubject;
 
     for (const clause of clauses) {
+      const isGuidance = this.isEvaluationGuidance(clause);
+      const subjectToInherit = isGuidance ? undefined : inheritedSubject;
       const clauseClaims = this.extractClaimsFromClause(
         clause,
         trimmed,
@@ -477,7 +482,7 @@ export class ClaimExtractionService {
         targetBrand,
         knownCompetitors,
         contextParagraph,
-        inheritedSubject
+        subjectToInherit
       );
 
       for (const c of clauseClaims) {
@@ -615,8 +620,17 @@ export class ClaimExtractionService {
       }
     }
 
+    // Preliminary subject indicators on this specific clause
+    const isTargetSubject = Boolean(targetBrand && this.isEntitySubjectOfClause(trimmed, targetBrand));
+    const isCompetitorSubject = knownCompetitors.some(c => this.isEntitySubjectOfClause(trimmed, c));
+    const isFirstPerson = this.FIRST_PERSON_SUBJECT_PATTERNS.some(pat => pat.test(trimmed));
+    const isDefiniteProduct = this.DEFINITE_PRODUCT_PATTERNS.some(pat => pat.test(trimmed));
+    const hasBrandOrFirstPersonSubject = isTargetSubject || isCompetitorSubject || isFirstPerson || Boolean(inheritedSubject);
+    const hasExplicitVendorSubject = hasBrandOrFirstPersonSubject || (isDefiniteProduct && !this.isEvaluationGuidance(trimmed));
+
     // Detect evaluation guidance (clause-level or enclosing sentence)
-    const isEvaluationAdvice = this.isEvaluationGuidance(trimmed) || this.isEvaluationGuidance(fullSentence);
+    // Only applies if the clause itself does NOT have an explicit vendor/brand subject asserting capability
+    const isEvaluationAdvice = !hasExplicitVendorSubject && (this.isEvaluationGuidance(trimmed) || (!inheritedSubject && this.isEvaluationGuidance(fullSentence)));
 
     // If pure evaluation guidance/advice and NO quantitative metric,
     // classify as general guidance / framing (SUPPLEMENTAL), not an affirmative target-brand capability
@@ -659,11 +673,6 @@ export class ClaimExtractionService {
       }];
     }
 
-    // Preliminary subject indicators
-    const isTargetSubject = Boolean(targetBrand && this.isEntitySubjectOfClause(trimmed, targetBrand));
-    const isCompetitorSubject = knownCompetitors.some(c => this.isEntitySubjectOfClause(trimmed, c));
-    const isFirstPerson = this.FIRST_PERSON_SUBJECT_PATTERNS.some(pat => pat.test(trimmed));
-    const isDefiniteProduct = this.DEFINITE_PRODUCT_PATTERNS.some(pat => pat.test(trimmed));
     const isCommercialSubjectContext = !isEvaluationAdvice && (isTargetSubject || isCompetitorSubject || isFirstPerson || isDefiniteProduct);
 
     // Commercial capability assertion:
