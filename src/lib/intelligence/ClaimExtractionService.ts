@@ -78,6 +78,20 @@ export class ClaimExtractionService {
   ];
 
   /**
+   * Conceptual, architectural, or strategic trade-off patterns (e.g. "build vs. buy", "on-prem vs. cloud")
+   * that discuss decision frameworks rather than empirical competitor comparisons.
+   */
+  private static CONCEPTUAL_TRADEOFF_PATTERNS = [
+    /\b(?:build\s+(?:vs\.?|versus)\s+buy|buy\s+(?:vs\.?|versus)\s+build)\b/i,
+    /\b(?:on[- ]prem(?:ises?)?\s+(?:vs\.?|versus)\s+cloud|cloud\s+(?:vs\.?|versus)\s+on[- ]prem(?:ises?)?)\b/i,
+    /\b(?:in[- ]house\s+(?:vs\.?|versus)\s+(?:outsourced?|vendor|agency)|(?:outsourced?|vendor|agency)\s+(?:vs\.?|versus)\s+in[- ]house)\b/i,
+    /\b(?:open[- ]source\s+(?:vs\.?|versus)\s+proprietary|proprietary\s+(?:vs\.?|versus)\s+open[- ]source)\b/i,
+    /\b(?:manual\s+(?:vs\.?|versus)\s+automated|automated\s+(?:vs\.?|versus)\s+manual)\b/i,
+    /\b(?:monolith\s+(?:vs\.?|versus)\s+microservices|microservices\s+(?:vs\.?|versus)\s+monolith)\b/i,
+    /\b(?:pros\s+(?:and|vs\.?|versus)\s+cons|features\s+(?:vs\.?|versus)\s+benefits|cost\s+(?:vs\.?|versus)\s+value|risk\s+(?:vs\.?|versus)\s+reward)\b/i,
+  ];
+
+  /**
    * Capability and feature patterns
    */
   private static CAPABILITY_PATTERNS = [
@@ -472,7 +486,9 @@ export class ClaimExtractionService {
 
     for (const clause of clauses) {
       const isGuidance = this.isEvaluationGuidance(clause);
-      const subjectToInherit = isGuidance ? undefined : inheritedSubject;
+      const isSubordinate = /^(?:while|whereas|although|though|if|when|unless|because|since|as)\b/i.test(clause.trim());
+      const isTradeoff = this.CONCEPTUAL_TRADEOFF_PATTERNS.some(pat => pat.test(clause));
+      const subjectToInherit = (isGuidance || isSubordinate || isTradeoff) ? undefined : inheritedSubject;
       const clauseClaims = this.extractClaimsFromClause(
         clause,
         trimmed,
@@ -575,6 +591,16 @@ export class ClaimExtractionService {
       }
     }
 
+    // Exclude conceptual decision trade-offs (e.g. "build vs. buy", "on-prem vs. cloud")
+    // unless an explicit empirical superiority claim or known competitor entity is present
+    if (isComparative && this.CONCEPTUAL_TRADEOFF_PATTERNS.some(pat => pat.test(trimmed))) {
+      const hasExplicitSuperiority = this.SUPERIORITY_COMPARATIVE_PATTERNS.some(pat => pat.test(trimmed));
+      const hasCompetitorEntity = knownCompetitors.some(c => this.hasWordBoundaryMatch(trimmed, c));
+      if (!hasExplicitSuperiority && !hasCompetitorEntity) {
+        isComparative = false;
+      }
+    }
+
     // Detect commercial promise patterns
     let isCommercialPromise = false;
     for (const pat of this.COMMERCIAL_PROMISE_PATTERNS) {
@@ -591,6 +617,15 @@ export class ClaimExtractionService {
         isCapability = true;
         break;
       }
+    }
+
+    // "build" in "build vs. buy" or "build versus buy" is part of a decision matrix, not a software capability verb
+    if (isCapability && this.CONCEPTUAL_TRADEOFF_PATTERNS.some(pat => pat.test(trimmed))) {
+      const strippedTradeoff = trimmed.replace(
+        /\b(?:build\s+(?:vs\.?|versus)\s+buy|buy\s+(?:vs\.?|versus)\s+build)\b/gi,
+        ''
+      );
+      isCapability = this.CAPABILITY_PATTERNS.some(pat => pat.test(strippedTradeoff));
     }
 
     // Detect negated capability
