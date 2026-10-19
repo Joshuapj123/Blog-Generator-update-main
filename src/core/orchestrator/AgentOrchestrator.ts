@@ -467,63 +467,101 @@ export class AgentOrchestrator {
       if (input.saasProfile && input.saasProfile.name) {
         try {
           saasIntelligenceStage = this.startStage(AgentStage.SAAS_INTELLIGENCE);
-          const profileService = new SaaSProfileService(this.options.llm);
-          const compService = new CompetitorDiscoveryService(this.options.search, this.options.llm);
-          const marketService = new MarketIntelligenceService(this.options.llm);
 
-          // 1. Normalize profile
-          const normalized = await profileService.normalizeProfile({
-            name: input.saasProfile.name,
-            description: input.saasProfile.description,
-            website: input.saasProfile.website,
-            keyFeatures: input.saasProfile.keyFeatures,
-            targetAudience: input.saasProfile.targetAudience
-          }, { runId: this.telemetry.runId });
+          // If SaaS profile is already fully extracted with verified offerings/features and competitors,
+          // reuse the existing verified intelligence to eliminate 3 redundant upstream LLM calls.
+          const hasExistingFeatures = Array.isArray(input.saasProfile.keyFeatures) && input.saasProfile.keyFeatures.length > 0;
+          const hasExistingCompetitors = Array.isArray(input.saasProfile.primaryCompetitors) && input.saasProfile.primaryCompetitors.length > 0;
 
-          // 2. Discover competitors
-          const competitorsList = await compService.discoverCompetitors({
-            name: input.saasProfile.name,
-            category: normalized.product?.category || 'SaaS',
-            description: input.saasProfile.description
-          }, { runId: this.telemetry.runId });
+          if (hasExistingFeatures && hasExistingCompetitors) {
+            console.log(`[AgentOrchestrator] Reusing verified SaaS profile intelligence for "${input.saasProfile.name}". Bypassing redundant upstream LLM calls.`);
+            saasIntelligenceProfile = {
+              product: {
+                name: input.saasProfile.name,
+                category: (input.saasProfile as any).category || (input.saasProfile.businessType === 'Agency/Portfolio' ? 'UX Consultancy' : 'SaaS'),
+                features: input.saasProfile.keyFeatures || [],
+                differentiators: input.saasProfile.verifiedOfferings || [],
+                integrations: []
+              },
+              audience: {
+                icp: input.saasProfile.targetAudience || 'B2B',
+                personas: [],
+                industries: [],
+                jobRoles: [],
+                painPoints: [],
+                jtbd: []
+              },
+              market: {
+                competitors: (input.saasProfile.primaryCompetitors || []).map((c: string) => ({
+                  name: c,
+                  domain: c.toLowerCase().replace(/[^a-z0-9.-]/g, '')
+                })),
+                competitorProducts: input.saasProfile.primaryCompetitors || [],
+                alternatives: input.saasProfile.primaryCompetitors || [],
+                adjacentCategories: [input.saasProfile.businessType || 'SaaS'],
+                positioning: input.saasProfile.description || ''
+              },
+              opportunities: []
+            };
+          } else {
+            const profileService = new SaaSProfileService(this.options.llm);
+            const compService = new CompetitorDiscoveryService(this.options.search, this.options.llm);
+            const marketService = new MarketIntelligenceService(this.options.llm);
 
-          // 3. Extract audience details
-          const marketData = await marketService.extractMarketIntelligence({
-            name: input.saasProfile.name,
-            description: input.saasProfile.description,
-            features: normalized.product?.features || []
-          }, { runId: this.telemetry.runId });
-
-          // Build combined intelligence profile
-          saasIntelligenceProfile = {
-            product: normalized?.product || {
+            // 1. Normalize profile
+            const normalized = await profileService.normalizeProfile({
               name: input.saasProfile.name,
-              category: 'SaaS',
-              features: [],
-              differentiators: [],
-              integrations: []
-            },
-            audience: marketData?.audience || {
-              icp: input.saasProfile.targetAudience || 'B2B',
-              personas: [],
-              industries: [],
-              jobRoles: [],
-              painPoints: [],
-              jtbd: []
-            },
-            market: {
-              competitors: competitorsList || [],
-              competitorProducts: (competitorsList || []).map(c => c.name),
-              alternatives: (competitorsList || []).map(c => c.name),
-              adjacentCategories: [normalized?.product?.category || 'SaaS'],
-              positioning: marketData?.positioning || ''
-            },
-            opportunities: []
-          };
+              description: input.saasProfile.description,
+              website: input.saasProfile.website,
+              keyFeatures: input.saasProfile.keyFeatures,
+              targetAudience: input.saasProfile.targetAudience
+            }, { runId: this.telemetry.runId });
+
+            // 2. Discover competitors
+            const competitorsList = await compService.discoverCompetitors({
+              name: input.saasProfile.name,
+              category: normalized.product?.category || 'SaaS',
+              description: input.saasProfile.description
+            }, { runId: this.telemetry.runId });
+
+            // 3. Extract audience details
+            const marketData = await marketService.extractMarketIntelligence({
+              name: input.saasProfile.name,
+              description: input.saasProfile.description,
+              features: normalized.product?.features || []
+            }, { runId: this.telemetry.runId });
+
+            // Build combined intelligence profile
+            saasIntelligenceProfile = {
+              product: normalized?.product || {
+                name: input.saasProfile.name,
+                category: 'SaaS',
+                features: [],
+                differentiators: [],
+                integrations: []
+              },
+              audience: marketData?.audience || {
+                icp: input.saasProfile.targetAudience || 'B2B',
+                personas: [],
+                industries: [],
+                jobRoles: [],
+                painPoints: [],
+                jtbd: []
+              },
+              market: {
+                competitors: competitorsList || [],
+                competitorProducts: (competitorsList || []).map(c => c.name),
+                alternatives: (competitorsList || []).map(c => c.name),
+                adjacentCategories: [normalized?.product?.category || 'SaaS'],
+                positioning: marketData?.positioning || ''
+              },
+              opportunities: []
+            };
+          }
 
           this.completeStage(saasIntelligenceStage, {
-            competitorsDiscoveredCount: competitorsList.length,
-            positioning: marketData.positioning
+            competitorsDiscoveredCount: saasIntelligenceProfile?.market?.competitors?.length || 0,
+            positioning: saasIntelligenceProfile?.market?.positioning || ''
           });
         } catch (err: any) {
           if (saasIntelligenceStage) {
@@ -542,7 +580,10 @@ export class AgentOrchestrator {
       let researchStage: StageExecution | undefined;
       try {
         researchStage = this.startStage(AgentStage.RESEARCH);
-        const searchResults = await this.options.search.search(discovery.targetKeyword);
+        const rawSearchResults = await this.options.search.search(discovery.targetKeyword);
+        const searchResults: SearchResult[] = Array.isArray(rawSearchResults)
+          ? rawSearchResults
+          : ((rawSearchResults as any)?.organic || []);
         const organicUrls = searchResults.map(r => r.link).filter(Boolean);
         
         // Scrape top 3 organic competitors
@@ -1595,7 +1636,8 @@ WRITING RULES:
       };
     });
 
-    const concurrencyLimit = Math.min(3, brief.outline.length);
+    // Serialize section drafting with pacing to eliminate parallel request bursts and stay within provider RPM limits
+    const concurrencyLimit = 1;
     const sectionTexts: string[] = new Array(brief.outline.length).fill('');
     const queue = brief.outline.map((section, index) => ({ section, index }));
 
@@ -1606,6 +1648,11 @@ WRITING RULES:
         const { section, index: i } = item;
         const budget = sectionBudgets[i];
         const isFirstSection = i === 0;
+
+        // Pacing delay between sequential section requests to avoid 15 RPM burst limit
+        if (i > 0) {
+          await new Promise(r => setTimeout(r, 1000));
+        }
 
         // Check runtime budget before drafting
         if (!this.budgetGuard.hasBudgetForSection()) {
@@ -1710,10 +1757,16 @@ WORD BUDGET:
 - Target word count for this section: ${budget.target} words.
 - Range: ${budget.min} to ${budget.max} words. Stay strictly within budget. Write concisely.`;
 
-        const text = await this.options.llm.generate(prompt, {
-          operation: 'Section Generation',
-          runId: this.telemetry.runId,
-        });
+        let text: string;
+        try {
+          text = await this.options.llm.generate(prompt, {
+            operation: 'Section Generation',
+            runId: this.telemetry.runId,
+          });
+        } catch (genErr: any) {
+          (genErr as any).stage = AgentStage.GENERATE;
+          throw genErr;
+        }
 
         const secDuration = Date.now() - secStart;
         this.budgetGuard.recordSectionDuration(section.heading, secDuration);

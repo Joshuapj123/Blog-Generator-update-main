@@ -359,6 +359,10 @@ export function useGenerationPipeline() {
   };
 
   const startAutopilotPipeline = async (url: string) => {
+    if (engine.isRunning) {
+      console.warn('[useGenerationPipeline] Autopilot generation is already running. Duplicate request blocked.');
+      return;
+    }
     engine.setIsRunning(true);
     engine.setGenStatus('Analyzing website URL and verifying safety...');
     engine.setGenProgress(5);

@@ -754,9 +754,9 @@ export class GenerationPipelineAdapter {
     }
   }
 
-  public static sanitizeOrchestrationError(e: OrchestrationError | any): string {
+  public static sanitizeOrchestrationError(e: OrchestrationError | any, stageOverride?: AgentStage | string): string {
     const rawMsg = (typeof e === 'string' ? e : e?.message) || '';
-    const stage = e?.stage as AgentStage | undefined;
+    const stage = (stageOverride || e?.stage) as AgentStage | undefined;
     const category = e?.category;
     const statusCode = e?.statusCode || e?.status;
     const code = e?.code;
@@ -771,15 +771,48 @@ export class GenerationPipelineAdapter {
       return rawMsg;
     }
 
-    // 2. Classify Rate Limit (HTTP 429 / RESOURCE_EXHAUSTED / quota)
+    // 2. Classify Hard Quota / Billing Exhaustion (Non-retryable)
+    const isPermanentQuota =
+      category === 'QUOTA_EXHAUSTED' ||
+      category === 'BILLING_EXHAUSTED' ||
+      /quota metric.*Queries per day|daily (?:request|quota) limit|insufficient quota|credit exhausted|billing not enabled|check your plan and billing|exceeded your current quota/i.test(combined);
+
+    if (isPermanentQuota) {
+      const stageLabel = stage ? this.formatStageName(stage) : '';
+      return stageLabel
+        ? `AI provider quota exceeded during ${stageLabel} stage. Please check your API quota or billing plan in Google AI Studio.`
+        : 'AI provider quota exceeded. Please check your API quota or billing plan in Google AI Studio.';
+    }
+
+    // 3. Classify Authentication / Permissions (Non-retryable)
+    const isAuth =
+      category === 'AUTH_FAILURE' ||
+      statusCode === 401 ||
+      statusCode === 403 ||
+      /api_key_invalid|api key not valid|invalid api key|permission denied|caller does not have permission/i.test(combined);
+
+    if (isAuth) {
+      const stageLabel = stage ? this.formatStageName(stage) : '';
+      return stageLabel
+        ? `AI provider authentication failed during ${stageLabel} stage. Please verify your API key configuration.`
+        : 'AI provider authentication failed. Please verify your API key configuration.';
+    }
+
+    // 4. Classify Transient Rate Limit (HTTP 429 / RESOURCE_EXHAUSTED / per-minute limit)
     const isRateLimit =
       category === 'RATE_LIMIT' ||
       statusCode === 429 ||
       code === 'RESOURCE_EXHAUSTED' ||
-      /\b429\b|resource_exhausted|rate[- ]?limit|quota\s*exceeded/i.test(combined);
+      /\b429\b|resource_exhausted|rate[- ]?limit|too many requests/i.test(combined);
 
     if (isRateLimit) {
       const stageLabel = stage ? this.formatStageName(stage) : '';
+      if (e?.retryAfterSec || /requires waiting \d+s/i.test(rawMsg)) {
+        const sec = e?.retryAfterSec || (rawMsg.match(/requires waiting (\d+)s/i)?.[1] ?? '30');
+        return stageLabel
+          ? `AI provider rate limit reached during ${stageLabel} stage. Please wait ${sec} seconds and try again.`
+          : `AI provider rate limit reached. Please wait ${sec} seconds and try again.`;
+      }
       return stageLabel
         ? `AI provider rate limit reached during ${stageLabel} stage. Please wait a moment and try again.`
         : 'AI provider rate limit reached. Please wait a moment and try again.';

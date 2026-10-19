@@ -296,6 +296,7 @@ function EnginePageContent() {
                       />
                       <Button
                         onClick={() => {
+                          if (engine.isRunning) return;
                           const trimmed = autopilotUrl.trim();
                           if (trimmed) {
                             const hasProtocol = /^https?:\/\//i.test(trimmed);
@@ -311,11 +312,20 @@ function EnginePageContent() {
                             startAutopilotPipeline(normalized);
                           }
                         }}
-                        disabled={!autopilotUrl.trim()}
+                        disabled={!autopilotUrl.trim() || engine.isRunning}
                         className="px-6 rounded-xl font-semibold bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white gap-2 shadow-lg shadow-indigo-200 border-none shrink-0"
                       >
-                        Generate Blog
-                        <ArrowRight className="w-4 h-4" />
+                        {engine.isRunning ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Generating Blog...
+                          </>
+                        ) : (
+                          <>
+                            Generate Blog
+                            <ArrowRight className="w-4 h-4" />
+                          </>
+                        )}
                       </Button>
                     </div>
                   </div>

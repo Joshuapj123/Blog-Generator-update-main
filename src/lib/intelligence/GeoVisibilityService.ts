@@ -313,8 +313,9 @@ export class GeoVisibilityService {
     metrics: any;
   }> {
     const prompts = PromptDiscoveryService.discoverPrompts(opportunities, options?.promptBudget || 5);
-    const queryTasks = prompts.flatMap((promptObj) =>
-      this.providers.map(async (provider) => {
+    const visibilityResults: z.infer<typeof GEOVisibilityResultSchema>[] = [];
+    for (const promptObj of prompts) {
+      for (const provider of this.providers) {
         console.log(`[GeoVisibilityService] Querying ${provider.providerName} for prompt: "${promptObj.prompt}"`);
         const answerMeta = await provider.query(promptObj.prompt, { runId: options?.runId });
 
@@ -322,7 +323,7 @@ export class GeoVisibilityService {
           const mentionResult = BrandMentionAnalyzer.analyze(answerMeta.answer, saasName, competitorDomains);
           const citations = CitationAnalyzer.extractAndClassify(answerMeta.answer, brandDomain, competitorDomains, promptObj.id);
 
-          return {
+          visibilityResults.push({
             prompt: promptObj.prompt,
             provider: provider.providerName,
             brandMentioned: mentionResult.brandMentioned,
@@ -330,9 +331,9 @@ export class GeoVisibilityService {
             citations,
             answerMetadata: answerMeta,
             visibilityScore: mentionResult.brandMentioned ? 100 : 0
-          };
+          });
         } else {
-          return {
+          visibilityResults.push({
             prompt: promptObj.prompt,
             provider: provider.providerName,
             brandMentioned: false,
@@ -340,12 +341,10 @@ export class GeoVisibilityService {
             citations: [],
             answerMetadata: answerMeta,
             visibilityScore: 0
-          };
+          });
         }
-      })
-    );
-
-    const visibilityResults = await Promise.all(queryTasks);
+      }
+    }
 
     const scoreData = GEOScoringService.calculate(visibilityResults, brandDomain);
     const geoOpportunities = GEORecommendationService.generate(

@@ -604,27 +604,100 @@ export function logPipelineCheckpoint(stage: string, title: string, keyword: str
   }
 }
 
-export function isTransientCapacityOrAvailabilityError(err: any): boolean {
+export function isPermanentQuotaError(err: any): boolean {
+  if (!err) return false;
+  const msg = String(err?.message || err?.cause?.message || err).toLowerCase();
+  return (
+    msg.includes('quota metric') ||
+    msg.includes('per day') ||
+    msg.includes('queries per day') ||
+    msg.includes('daily limit') ||
+    msg.includes('billing not enabled') ||
+    msg.includes('insufficient quota') ||
+    msg.includes('credit exhausted') ||
+    msg.includes('exceeded your current quota') ||
+    msg.includes('check your plan and billing')
+  );
+}
+
+export function isAuthError(err: any): boolean {
   if (!err) return false;
   const status = err.status || err.statusCode;
-  const msg = String(err?.message || err);
-
-  // Explicit non-fallbacks per user instructions:
-  // "Do NOT fallback on: invalid API key, authentication failure, malformed request, schema bug, security failure"
-  if (
+  const msg = String(err?.message || err?.cause?.message || err).toLowerCase();
+  return (
     status === 401 ||
     status === 403 ||
-    msg.includes('API key') ||
-    msg.includes('invalid_api_key') ||
+    msg.includes('api_key_invalid') ||
+    msg.includes('api key not valid') ||
+    msg.includes('invalid api key') ||
     msg.includes('permission denied') ||
-    msg.includes('Forbidden') ||
-    msg.includes('Unauthorized') ||
-    msg.includes('ZodError') ||
-    msg.includes('schema') ||
-    msg.includes('validation')
-  ) {
-    return false;
+    msg.includes('caller does not have permission')
+  );
+}
+
+export function isTransientRateLimitError(err: any): boolean {
+  if (!err || isPermanentQuotaError(err) || isAuthError(err)) return false;
+  const status = err.status || err.statusCode;
+  const code = err.code;
+  const msg = String(err?.message || err?.cause?.message || err).toLowerCase();
+  return (
+    status === 429 ||
+    code === 'RESOURCE_EXHAUSTED' ||
+    msg.includes('429') ||
+    msg.includes('resource_exhausted') ||
+    msg.includes('rate limit') ||
+    msg.includes('too many requests')
+  );
+}
+
+export function extractRetryAfterMs(err: any): number | null {
+  if (!err) return null;
+  // 1. Inspect responseHeaders / headers object or method
+  const headers = err.responseHeaders || err.headers;
+  let headerVal: string | null = null;
+  if (headers) {
+    if (typeof headers.get === 'function') {
+      headerVal = headers.get('retry-after') || headers.get('Retry-After');
+    } else if (typeof headers === 'object') {
+      headerVal = headers['retry-after'] || headers['Retry-After'];
+    }
   }
+  if (headerVal && typeof headerVal === 'string') {
+    const trimmed = headerVal.trim();
+    // 1A. Integer or decimal seconds
+    if (/^\d+(\.\d+)?$/.test(trimmed)) {
+      const parsedSec = parseFloat(trimmed);
+      if (!isNaN(parsedSec) && parsedSec >= 0) {
+        return Math.round(parsedSec * 1000);
+      }
+    }
+    // 1B. HTTP-Date (e.g. "Wed, 21 Oct 2026 07:28:00 GMT")
+    const dateMs = Date.parse(trimmed);
+    if (!isNaN(dateMs)) {
+      const diffMs = dateMs - Date.now();
+      return Math.max(0, diffMs);
+    }
+  }
+
+  // 2. Parse from message or cause message
+  const msg = `${err.message || ''} ${err.cause?.message || ''} ${typeof err.cause === 'string' ? err.cause : ''}`;
+  const match = msg.match(/(?:retry\s*(?:after|in)|reset\s*in|wait\s*for|wait)\s*(\d+(?:\.\d+)?)\s*(s|sec|seconds?|ms|milliseconds?)?/i);
+  if (match) {
+    const val = parseFloat(match[1]);
+    const unit = (match[2] || 's').toLowerCase();
+    const ms = unit.startsWith('ms') ? val : val * 1000;
+    if (!isNaN(ms) && ms >= 0) {
+      return Math.round(ms);
+    }
+  }
+  return null;
+}
+
+export function isTransientCapacityOrAvailabilityError(err: any): boolean {
+  if (!err) return false;
+  if (isPermanentQuotaError(err) || isAuthError(err)) return false;
+  const status = err.status || err.statusCode;
+  const msg = String(err?.message || err);
 
   // Model capacity / 503 / High demand
   if (
@@ -639,7 +712,7 @@ export function isTransientCapacityOrAvailabilityError(err: any): boolean {
   }
 
   // Transient rate limit (429)
-  if (status === 429 || msg.includes('429') || msg.includes('rate limit') || msg.includes('RESOURCE_EXHAUSTED')) {
+  if (isTransientRateLimitError(err)) {
     return true;
   }
 
@@ -658,21 +731,56 @@ export function getFallbackModelId(primaryModelId: string): string {
   return 'gemini-3.5-flash-lite';
 }
 
-async function retryWithBackoff<T>(fn: () => Promise<T>, retries = 2, delay = 1000): Promise<T> {
+export async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  retries = 2,
+  baseDelay = 2000,
+  attempt = 1,
+  options?: { maxWaitAllowedMs?: number }
+): Promise<T> {
+  const maxWaitAllowedMs = options?.maxWaitAllowedMs ?? 30000; // 30s deadline limit to prevent serverless function hangs
   try {
     return await fn();
   } catch (err: any) {
-    if (retries <= 0) {
+    // Non-retryable errors: permanent quota exhaustion, auth/permissions, schema validation
+    if (isPermanentQuotaError(err) || isAuthError(err) || retries <= 0) {
       throw err;
     }
-    const isRateLimit = err.status === 429 || err.statusCode === 429 || String(err).includes("429") || String(err).includes("Rate limit");
-    const isTransient = isRateLimit || err.status >= 500 || String(err).includes("500") || String(err).includes("503") || isTransientCapacityOrAvailabilityError(err);
-    
-    if (isTransient) {
-      console.warn(`[Gemini Retry] Transient capacity error encountered. Retrying in ${delay}ms... (Remaining retries: ${retries})`, err.message || err);
-      await new Promise(resolve => setTimeout(resolve, delay));
-      return retryWithBackoff(fn, retries - 1, delay * 2);
+
+    const isRateLimit = isTransientRateLimitError(err);
+    const isCapacity = err.status === 503 || err.statusCode === 503 || isTransientCapacityOrAvailabilityError(err);
+
+    if (isRateLimit || isCapacity) {
+      const retryAfterMs = extractRetryAfterMs(err);
+
+      // If the provider explicitly requested a delay that exceeds our allowed deadline,
+      // fail cleanly with actionable guidance rather than retrying prematurely or timing out.
+      if (retryAfterMs !== null && retryAfterMs > maxWaitAllowedMs) {
+        const waitSec = Math.ceil(retryAfterMs / 1000);
+        const deadlineErr: any = new Error(
+          `AI provider rate limit requires waiting ${waitSec}s, which exceeds the maximum allowable retry deadline (${Math.round(maxWaitAllowedMs / 1000)}s). Please wait ${waitSec} seconds and try again.`
+        );
+        deadlineErr.status = 429;
+        deadlineErr.code = 'RESOURCE_EXHAUSTED';
+        deadlineErr.category = 'RATE_LIMIT';
+        deadlineErr.retryAfterSec = waitSec;
+        throw deadlineErr;
+      }
+
+      // Jitter (100 - 400ms)
+      const jitter = Math.floor(Math.random() * 300) + 100;
+      
+      // When provider requested a valid delay within deadline, honor it with jitter.
+      // Otherwise use bounded exponential backoff with jitter capped at 10,000ms.
+      const computedDelay = retryAfterMs !== null
+        ? retryAfterMs + jitter
+        : Math.min(10000, baseDelay * Math.pow(2, attempt - 1) + jitter);
+
+      console.warn(`[Gemini Retry] ${isRateLimit ? 'Rate limit' : 'Transient capacity'} error encountered on attempt ${attempt}. Backing off for ${computedDelay}ms... (Remaining retries: ${retries}, Retry-After=${retryAfterMs !== null ? `${retryAfterMs}ms` : 'none'})`);
+      await new Promise(resolve => setTimeout(resolve, computedDelay));
+      return retryWithBackoff(fn, retries - 1, baseDelay, attempt + 1, options);
     }
+
     throw err;
   }
 }
@@ -740,7 +848,8 @@ export async function generateObjectWithTelemetry<T>(
     try {
       result = await retryWithBackoff(() => aiGenerateObject(options));
     } catch (err: any) {
-      if (isTransientCapacityOrAvailabilityError(err)) {
+      const isCapacityOrAvail = isTransientCapacityOrAvailabilityError(err) && !isPermanentQuotaError(err) && !isAuthError(err) && !isTransientRateLimitError(err);
+      if (isCapacityOrAvail) {
         const fallbackId = getFallbackModelId(modelName);
         console.warn(`[Gemini Fallback] Model "${modelName}" failed with capacity/availability error (${err.message}). Failing over to verified model: "${fallbackId}"...`);
         effectiveModel = fallbackId;
@@ -748,7 +857,7 @@ export async function generateObjectWithTelemetry<T>(
           ...options,
           model: google(fallbackId)
         };
-        result = await retryWithBackoff(() => aiGenerateObject(fallbackOptions));
+        result = await retryWithBackoff(() => aiGenerateObject(fallbackOptions), 1, 2000);
       } else {
         throw err;
       }
@@ -787,9 +896,16 @@ export async function generateObjectWithTelemetry<T>(
       cached: false,
       dryRun: false
     };
-  } catch (err) {
+  } catch (err: any) {
     const duration = Date.now() - startTime;
     logGeminiCall(`${operation} (failed)`, modelName, 0, 0, duration, false, runId);
+    if (isPermanentQuotaError(err)) {
+      err.category = 'QUOTA_EXHAUSTED';
+    } else if (isAuthError(err)) {
+      err.category = 'AUTH_FAILURE';
+    } else if (isTransientRateLimitError(err)) {
+      err.category = 'RATE_LIMIT';
+    }
     throw err;
   }
 }
@@ -857,7 +973,8 @@ export async function generateTextWithTelemetry(
     try {
       result = await retryWithBackoff(() => aiGenerateText(options));
     } catch (err: any) {
-      if (isTransientCapacityOrAvailabilityError(err)) {
+      const isCapacityOrAvail = isTransientCapacityOrAvailabilityError(err) && !isPermanentQuotaError(err) && !isAuthError(err) && !isTransientRateLimitError(err);
+      if (isCapacityOrAvail) {
         const fallbackId = getFallbackModelId(modelName);
         console.warn(`[Gemini Fallback] Model "${modelName}" failed with capacity/availability error (${err.message}). Failing over to verified model: "${fallbackId}"...`);
         effectiveModel = fallbackId;
@@ -865,7 +982,7 @@ export async function generateTextWithTelemetry(
           ...options,
           model: google(fallbackId)
         };
-        result = await retryWithBackoff(() => aiGenerateText(fallbackOptions));
+        result = await retryWithBackoff(() => aiGenerateText(fallbackOptions), 1, 2000);
       } else {
         throw err;
       }
@@ -904,9 +1021,16 @@ export async function generateTextWithTelemetry(
       cached: false,
       dryRun: false
     };
-  } catch (err) {
+  } catch (err: any) {
     const duration = Date.now() - startTime;
     logGeminiCall(`${operation} (failed)`, modelName, 0, 0, duration, false, runId);
+    if (isPermanentQuotaError(err)) {
+      err.category = 'QUOTA_EXHAUSTED';
+    } else if (isAuthError(err)) {
+      err.category = 'AUTH_FAILURE';
+    } else if (isTransientRateLimitError(err)) {
+      err.category = 'RATE_LIMIT';
+    }
     throw err;
   }
 }
