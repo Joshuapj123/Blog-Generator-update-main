@@ -112,6 +112,26 @@ export class EvidenceExtractionService {
         }
       }
 
+      if (Array.isArray(p.verifiedOfferings) && p.verifiedOfferings.length > 0) {
+        for (const offering of p.verifiedOfferings) {
+          const cleanO = offering.trim();
+          if (!cleanO) continue;
+          addEvidence({
+            idPrefix: 'biz_offering',
+            sourceUrl: targetUrl,
+            sourceTitle: `${brandName} Verified Offerings`,
+            sourceType: 'TARGET_SITE',
+            claim: `${brandName} provides verified service offering: ${cleanO}`,
+            evidenceType: 'FEATURE',
+            confidence: 'HIGH',
+            extractedFrom: cleanO,
+            entities: [brandName, cleanO],
+            topics: ['verified_offerings', 'services'],
+            citationRequired: false,
+          });
+        }
+      }
+
       if (p.customInsights) {
         addEvidence({
           idPrefix: 'biz_ins',

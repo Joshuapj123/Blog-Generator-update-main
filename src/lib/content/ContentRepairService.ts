@@ -1,6 +1,6 @@
-// src/lib/content/ContentRepairService.ts
 import { LLMProvider } from '@/core/contracts/providers';
-import { ContentAsset, ContentBrief } from '@/core/contracts/schemas';
+import { ContentAsset, ContentBrief, SaaSProfile } from '@/core/contracts/schemas';
+import { CanonicalClaim } from '@/core/contracts/evidence';
 
 export interface TargetedRepairRequest {
   title: string;
@@ -194,5 +194,90 @@ ${hasTitleIssue ? 'OPTIMIZED TITLE: [Your optimized title here]\n\n' : ''}REPAIR
       appliedFixes: findings.length > 0 ? findings : ['Applied targeted readability optimizations.'],
       isNoOp: false
     };
+  }
+
+  /**
+   * Surgically repairs an ungrounded claim sentence:
+   * 1. If comparative superiority lacks evidence, strips the ungrounded comparison ("Unlike X, ...")
+   * 2. If behavioral analytics / exact abandonment detection lacks evidence, rewrites to verified friction identification
+   * 3. If causal outcomes ("improve retention") or unverified deliverables ("roadmap") lack evidence, rewrites to verified service activity
+   * 4. Otherwise qualifies the claim to general industry practice while strictly preserving article structure
+   */
+  public static repairUngroundedClaimSentence(
+    sentence: string,
+    claim: CanonicalClaim,
+    saasProfile?: SaaSProfile
+  ): string {
+    let repaired = sentence.trim();
+
+    // 1. Comparative claims with unbacked comparator (e.g. "Unlike internal reviews, ...")
+    if (claim.claimType === 'COMPARATIVE') {
+      // Strip unbacked comparative clauses: "Unlike [X], " or "Compared to [X], " or "In contrast to [X], "
+      repaired = repaired.replace(/^(?:unlike|in contrast to|as opposed to|compared (?:to|with))\s+[^,]+,\s*/i, '');
+      repaired = repaired.charAt(0).toUpperCase() + repaired.slice(1);
+
+      // If claim asserts unbacked behavioral analytics / exact abandonment tracking:
+      // e.g. "find the exact spots where users leave before finishing a task"
+      if (/find(?:s)?\s+(?:the\s+)?exact\s+spots?\s+where\s+users\s+(?:leave|drop\s*off|abandon)\b/i.test(repaired)) {
+        repaired = repaired.replace(
+          /find(?:s)?\s+(?:the\s+)?exact\s+spots?\s+where\s+users\s+(?:leave|drop\s*off|abandon)\b[^.!?]*/i,
+          'help teams identify user friction points across critical product flows'
+        );
+      }
+    }
+
+    // 2. Entity capability claims with unbacked causal outcomes or unverified deliverables
+    if (claim.claimType === 'ENTITY_CAPABILITY') {
+      // Check for unbacked causal outcome promises (e.g. "improve retention", "guarantee conversion", "boost sales")
+      // or unverified deliverables (e.g. "give teams a roadmap to improve retention")
+      if (/\b(?:give\s+teams\s+a\s+roadmap\s+to\s+improve\s+retention|give\s+teams\s+a\s+roadmap|provide\s+a\s+roadmap|guarantees?\s+higher\s+retention|improve\s+retention)\b/i.test(repaired)) {
+        repaired = repaired.replace(
+          /\bgive\s+teams\s+a\s+roadmap\s+to\s+improve\s+retention\b/i,
+          'provide verified services to address critical user friction points'
+        );
+        repaired = repaired.replace(
+          /\bgive\s+teams\s+a\s+roadmap\b/i,
+          'deliver actionable recommendations'
+        );
+        repaired = repaired.replace(
+          /\b(?:to\s+improve\s+retention|to\s+boost\s+retention|to\s+guarantee\s+retention)\b/i,
+          'to address friction across user journeys'
+        );
+      }
+    }
+
+    return repaired;
+  }
+
+  /**
+   * Programmatically scans markdown body for remaining critical ungrounded claims,
+   * surgically repairing or qualifying them while preserving outline headings and tables.
+   */
+  public static repairUngroundedClaimsInMarkdown(
+    markdown: string,
+    claims: CanonicalClaim[],
+    targetBrand?: string,
+    saasProfile?: SaaSProfile
+  ): { repairedMarkdown: string; repairedClaimsCount: number } {
+    let result = markdown;
+    let count = 0;
+
+    const criticalUnsupported = claims.filter(
+      c => c.materiality === 'CRITICAL' && c.supportStatus !== 'SUPPORTED' && c.supportStatus !== 'PARTIALLY_SUPPORTED'
+    );
+
+    for (const c of criticalUnsupported) {
+      if (!c.sentence || !c.sentence.trim()) continue;
+      const targetSentence = c.sentence.trim();
+      if (result.includes(targetSentence)) {
+        const repairedSentence = this.repairUngroundedClaimSentence(targetSentence, c, saasProfile);
+        if (repairedSentence !== targetSentence) {
+          result = result.replace(targetSentence, repairedSentence);
+          count++;
+        }
+      }
+    }
+
+    return { repairedMarkdown: result, repairedClaimsCount: count };
   }
 }

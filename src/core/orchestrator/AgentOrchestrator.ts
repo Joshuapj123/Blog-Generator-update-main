@@ -106,6 +106,8 @@ import { ContentGapService } from '@/lib/intelligence/ContentGapService';
 import { SectionEvidenceMapper } from '@/lib/intelligence/SectionEvidenceMapper';
 import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceValidator';
 import { ClaimExtractionService } from '@/lib/intelligence/ClaimExtractionService';
+import { ClaimGroundingEngine } from '@/lib/intelligence/ClaimGroundingEngine';
+import { ContentRepairService } from '@/lib/content/ContentRepairService';
 
 export enum AgentStage {
   DISCOVER = "DISCOVER",
@@ -1650,7 +1652,9 @@ CRITICAL EVIDENCE ACCURACY RULES:
 - Address the assigned buyer question directly with practical, actionable explanation.
 - Naturally incorporate the researched evidence items and target business facts.
 - FACTUAL INTEGRITY CONTRACT: DO NOT invent, fabricate, or hallucinate statistical numbers, metrics (ms, %, $, users, multipliers), or external analyst surveys (e.g. Gartner, Forrester) not explicitly listed in the evidence.
-- COMPARATIVE CLAIMS BAN: Never invent ungrounded comparative superiority outcome claims (e.g., claiming a model or product reduces turnover, cuts costs, or outperforms an alternative) unless verified research evidence explicitly establishes that exact comparative outcome. Do NOT invert ICP buyer pain points into affirmative product claims.
+- COMPARATIVE CLAIMS BAN: Never invent ungrounded comparative superiority outcome claims (e.g., claiming a model or product reduces turnover, cuts costs, or outperforms an alternative) unless verified research evidence explicitly establishes that exact comparative outcome. Never introduce unbacked comparative clauses against unverified internal or external comparators (e.g., "Unlike internal reviews, ..."). Do NOT invert ICP buyer pain points into affirmative product claims.
+- TELEMETRY & BEHAVIORAL TRACKING BAN: Never invent session replay, analytics telemetry, or user drop-off tracking capabilities (e.g., claiming to "find the exact spots where users leave before finishing a task") unless verified by explicit evidence.
+- CAUSAL OUTCOME & DELIVERABLE BAN: Never promise unverified causal business outcomes (e.g., "improve retention", "guarantee conversion") or unverified deliverables (e.g., "give teams a roadmap") unless explicitly supported by verified offerings or evidence. Frame capabilities in terms of verified service activities (e.g., UX audits, onboarding and checkout redesigns, and user friction remediation).
 - STRICT ENTITY ISOLATION: Never attribute competitor statistics or features to ${this.targetBrand || 'the target brand'}, and never attribute ${this.targetBrand || 'the target brand'}'s features or metrics to competitors.
 - CONTRADICTION BAN: Never assert that a product lacks or fails to provide capabilities that the evidence proves it has.
 - Do NOT make ungrounded promotional superlatives.
@@ -1923,9 +1927,26 @@ WORD BUDGET:
     const primaryKeyword = brief.targetKeywords?.[0] || '';
     const hasTitleIssue = issues.some(i => i.toLowerCase().includes('title'));
     
+    const verifiedOfferingsList = (this.saasProfile?.verifiedOfferings || [])
+      .map((o: string) => `- ${o}`)
+      .join('\n');
+    const verifiedFeaturesList = (this.evidenceSet?.items || [])
+      .filter(e => e.sourceType === 'TARGET_SITE' && (e.evidenceType === 'FEATURE' || e.evidenceType === 'DIFFERENTIATOR'))
+      .map(e => `- [${e.evidenceType}] ${e.claim}`)
+      .slice(0, 15)
+      .join('\n');
+
+    let verifiedContextPrompt = '';
+    if (verifiedOfferingsList || verifiedFeaturesList) {
+      verifiedContextPrompt = `
+=== VERIFIED BRAND OFFERINGS & CAPABILITIES ===
+${verifiedOfferingsList ? `Verified Offerings:\n${verifiedOfferingsList}\n` : ''}${verifiedFeaturesList ? `Verified Target Facts:\n${verifiedFeaturesList}\n` : ''}Only attribute capabilities and offerings supported by the verified facts above. Never invent unverified services, features, or deliverables.
+`;
+    }
+
     const prompt = `You are an elite editorial proofreader and SEO copyeditor. Rewrite and repair the article body to fix ALL of the following validation issues:
 ${issues.map(i => `- ${i}`).join('\n')}
-
+${verifiedContextPrompt}
 === STRICT EDITORIAL REPAIR RULES ===
 1. READABILITY & PLAIN ENGLISH (CRITICAL):
    - Rewrite complex, dense sentences into clear, active-voice English at an 8th-grade reading level (Flesch Reading Ease score >= 60, minimum 55).
@@ -1945,7 +1966,9 @@ ${issues.map(i => `- ${i}`).join('\n')}
    - Preserve all internal links intact.
 7. EVIDENCE FIDELITY & TRUTHFULNESS (CLAIM GROUNDING SAFETY):
    - Remove any ungrounded statistical claims, unbacked percentages, or fabricated metrics flagged in the validation issues.
-   - Remove or accurately qualify any ungrounded comparative superiority outcome claims (e.g. claims asserting reduced turnover, lower costs, faster delivery, or superior outcomes compared to alternatives) that lack verified research evidence. Do NOT invent new citations, metrics, or substitute capabilities during repair.
+   - Remove or accurately qualify any ungrounded comparative superiority outcome claims (e.g. claims asserting reduced turnover, lower costs, faster delivery, or superior outcomes compared to alternatives, or comparative clauses like "Unlike internal reviews, ...") that lack verified research evidence. Do NOT invent new citations, metrics, or substitute capabilities during repair.
+   - If a claim asserts unverified behavioral analytics or user drop-off telemetry (e.g. "find the exact spots where users leave"), rewrite it to verified friction identification or UX audit activities.
+   - If a claim asserts unverified causal business outcomes (e.g. "improve retention") or unverified deliverables ("give teams a roadmap"), rewrite it to verified service activities (e.g. "address critical user friction points across onboarding and checkout flows").
    - Fix all factual contradictions: if the text asserted that a product lacks a capability that research proves it has, remove or reverse that assertion to align with the facts.
    - Enforce strict entity isolation: remove any cross-brand attribution where competitor metrics or features were attributed to ${this.targetBrand || 'the brand'} or vice versa.
    - Remove any unverified external citations or surveys (e.g. fake Gartner/Forrester citations).
@@ -1980,6 +2003,32 @@ ${hasTitleIssue ? 'OPTIMIZED TITLE: [Your optimized short title here]\n\n' : ''}
     }
 
     repairedBody = ClaimExtractionService.normalizeMarkdownLinks(repairedBody);
+
+    // Post-repair surgical claim qualification:
+    // Extract remaining claims and check for ungrounded critical claims
+    if (this.evidenceSet) {
+      try {
+        const claims = ClaimExtractionService.extractClaimsFromMarkdown(repairedBody, this.targetBrand);
+        const groundingResult = ClaimGroundingEngine.groundAllClaims(
+          claims,
+          this.evidenceSet,
+          this.sectionEvidenceMaps,
+          this.targetBrand
+        );
+        const surgicalResult = ContentRepairService.repairUngroundedClaimsInMarkdown(
+          repairedBody,
+          groundingResult.claims,
+          this.targetBrand,
+          this.saasProfile
+        );
+        if (surgicalResult.repairedClaimsCount > 0) {
+          console.log(`[AgentOrchestrator] Surgically qualified ${surgicalResult.repairedClaimsCount} ungrounded critical claim(s) in repaired markdown.`);
+          repairedBody = surgicalResult.repairedMarkdown;
+        }
+      } catch (err: any) {
+        console.warn('[AgentOrchestrator] Surgical grounding repair encountered non-fatal error:', err?.message || err);
+      }
+    }
 
     const wordCount = repairedBody.split(/\s+/).filter(Boolean).length;
 
