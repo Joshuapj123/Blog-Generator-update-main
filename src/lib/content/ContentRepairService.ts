@@ -230,22 +230,24 @@ ${hasTitleIssue ? 'OPTIMIZED TITLE: [Your optimized title here]\n\n' : ''}REPAIR
     if (claim.claimType === 'ENTITY_CAPABILITY') {
       // Check for unbacked causal outcome promises (e.g. "improve retention", "guarantee conversion", "boost sales")
       // or unverified deliverables (e.g. "give teams a roadmap to improve retention")
-      if (/\b(?:give\s+teams\s+a\s+roadmap\s+to\s+improve\s+retention|give\s+teams\s+a\s+roadmap|provide\s+a\s+roadmap|guarantees?\s+higher\s+retention|improve\s+retention)\b/i.test(repaired)) {
-        const offeringName = (saasProfile?.verifiedOfferings && saasProfile.verifiedOfferings.length > 0)
-          ? saasProfile.verifiedOfferings[0]
-          : 'services';
-        repaired = repaired.replace(
-          /\bgive\s+teams\s+a\s+roadmap\s+to\s+improve\s+retention\b/i,
-          `provide verified ${offeringName} to address critical user friction points`
-        );
-        repaired = repaired.replace(
-          /\bgive\s+teams\s+a\s+roadmap\b/i,
-          'deliver actionable recommendations'
-        );
-        repaired = repaired.replace(
-          /\b(?:to\s+improve\s+retention|to\s+boost\s+retention|to\s+guarantee\s+retention)\b/i,
-          'to address friction across user journeys'
-        );
+      if (/\b(?:give(?:s)?\s+teams\s+a\s+roadmap\s+to\s+improve\s+retention|give(?:s)?\s+teams\s+a\s+roadmap|provide\s+a\s+roadmap|guarantees?\s+higher\s+retention|improve\s+retention)\b/i.test(repaired)) {
+        if (saasProfile?.verifiedOfferings && saasProfile.verifiedOfferings.length > 0) {
+          const offeringName = saasProfile.verifiedOfferings[0];
+          repaired = repaired.replace(
+            /\bgive(?:s)?\s+teams\s+a\s+roadmap\s+to\s+improve\s+retention\b/i,
+            `provide verified ${offeringName} to address critical user friction points`
+          );
+          repaired = repaired.replace(
+            /\bgive(?:s)?\s+teams\s+a\s+roadmap\b/i,
+            'deliver actionable recommendations'
+          );
+          repaired = repaired.replace(
+            /\b(?:to\s+improve\s+retention|to\s+boost\s+retention|to\s+guarantee\s+retention)\b/i,
+            'to address friction across user journeys'
+          );
+        }
+        // If no verified offerings are available in saasProfile, leave repaired untouched
+        // so the ungrounded critical claim strictly blocks publication according to safety policy.
       }
 
       // Check for unbacked performance promises or design feedback claims (e.g. "provide design feedback to help sharpen your product's performance")
@@ -265,20 +267,9 @@ ${hasTitleIssue ? 'OPTIMIZED TITLE: [Your optimized title here]\n\n' : ''}REPAIR
             /\bsharpen\s+(?:your\s+)?product(?:'s|’s)?\s+performance\b/i,
             'address critical user friction points across key flows'
           );
-        } else {
-          repaired = repaired.replace(
-            /\bprovide\s+design\s+feedback\s+to\s+help\s+sharpen\s+your\s+product(?:'s|’s)?\s+performance\b/i,
-            'provide verified services to address critical user friction points'
-          );
-          repaired = repaired.replace(
-            /\bprovide\s+design\s+feedback\b/i,
-            'provide verified services'
-          );
-          repaired = repaired.replace(
-            /\bsharpen\s+(?:your\s+)?product(?:'s|’s)?\s+performance\b/i,
-            'address critical user friction points across key flows'
-          );
         }
+        // If no verified offerings are available in saasProfile, leave repaired untouched
+        // so the ungrounded critical claim strictly blocks publication according to safety policy.
       }
 
       // Check for unbacked team engagement or frustration outcome claims (e.g. "reduces the frustration caused by ambiguous requirements and keeps the internal team engaged with the product's success")

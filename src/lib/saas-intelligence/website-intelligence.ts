@@ -734,8 +734,14 @@ export function extractTargetExcerpts(
           currentChunk = trimmedSent;
         }
       }
-      if (currentChunk.length >= minLen && currentChunk.length <= maxLen) {
-        candidates.push(currentChunk);
+      if (currentChunk.length >= minLen) {
+        if (currentChunk.length <= maxLen) {
+          candidates.push(currentChunk);
+        } else {
+          const clauseMatch = currentChunk.slice(0, maxLen).match(/^(.*[,;:\-])\s+[^\s,;:\-]+$/);
+          const sliced = clauseMatch && clauseMatch[1].length >= minLen ? clauseMatch[1].trim() : currentChunk.slice(0, maxLen).trim();
+          candidates.push(sliced);
+        }
       }
     } else {
       candidates.push(cleaned);

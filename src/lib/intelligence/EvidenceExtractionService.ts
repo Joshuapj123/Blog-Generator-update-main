@@ -37,8 +37,10 @@ export class EvidenceExtractionService {
       if (!cleanClaim || cleanClaim.length < 10) return;
 
       const normClaim = cleanClaim.toLowerCase().replace(/[^\w\s]/g, '').trim();
-      if (seenClaims.has(normClaim)) return;
-      seenClaims.add(normClaim);
+      const entityKey = (item.entities || []).map(e => e.toLowerCase().trim()).sort().join(',');
+      const sourceKey = `${item.sourceType || 'UNKNOWN'}:${item.sourceUrl || ''}:${entityKey}:${normClaim}`;
+      if (seenClaims.has(sourceKey)) return;
+      seenClaims.add(sourceKey);
 
       // 2. Validate URL safety if URL is present (remove fabricated internal URLs)
       let safeUrl = (item.sourceUrl || '').trim();
@@ -78,6 +80,11 @@ export class EvidenceExtractionService {
       const targetUrl = (p.website && !p.website.includes('.internal')) ? p.website : '';
       const brandName = p.name || 'Target Business';
 
+      // Define evidence confidence based on crawl status and identity confidence
+      const profileConfidence: EvidenceConfidence = (p.identityConfidence === 'LOW' || p.crawlStatus === 'SPARSE')
+        ? 'LOW'
+        : (p.identityConfidence === 'MEDIUM' ? 'MEDIUM' : 'HIGH');
+
       if (p.description) {
         addEvidence({
           idPrefix: 'biz',
@@ -86,7 +93,7 @@ export class EvidenceExtractionService {
           sourceType: 'TARGET_SITE',
           claim: `${brandName} Core Mission: ${p.description}`,
           evidenceType: 'BUSINESS_FACT',
-          confidence: 'HIGH',
+          confidence: profileConfidence,
           extractedFrom: p.description,
           entities: [brandName],
           topics: ['business_overview', 'core_capabilities'],
@@ -105,7 +112,7 @@ export class EvidenceExtractionService {
             sourceType: 'TARGET_SITE',
             claim: `${brandName} provides verified capability: ${cleanF}`,
             evidenceType: 'FEATURE',
-            confidence: 'HIGH',
+            confidence: profileConfidence,
             extractedFrom: feature,
             entities: [brandName, cleanF],
             topics: ['key_features', 'technical_capabilities'],
@@ -125,7 +132,7 @@ export class EvidenceExtractionService {
             sourceType: 'TARGET_SITE',
             claim: `${brandName} provides verified service offering: ${cleanO}`,
             evidenceType: 'FEATURE',
-            confidence: 'HIGH',
+            confidence: profileConfidence,
             extractedFrom: cleanO,
             entities: [brandName, cleanO],
             topics: ['verified_offerings', 'services'],
@@ -142,7 +149,7 @@ export class EvidenceExtractionService {
           sourceType: 'TARGET_SITE',
           claim: `${brandName} Operational Fact: ${p.customInsights}`,
           evidenceType: 'DIFFERENTIATOR',
-          confidence: 'HIGH',
+          confidence: profileConfidence,
           extractedFrom: p.customInsights,
           entities: [brandName],
           topics: ['operational_expertise', 'regional_presence'],
@@ -158,7 +165,7 @@ export class EvidenceExtractionService {
           sourceType: 'TARGET_SITE',
           claim: `${brandName} is specifically designed for: ${p.targetAudience}`,
           evidenceType: 'BUSINESS_FACT',
-          confidence: 'HIGH',
+          confidence: profileConfidence,
           extractedFrom: p.targetAudience,
           entities: [brandName, p.targetAudience],
           topics: ['target_audience', 'buyer_persona'],
@@ -196,7 +203,7 @@ export class EvidenceExtractionService {
           sourceType: 'TARGET_SITE',
           claim: `${brandName} website content: ${cleanExcerpt}`,
           evidenceType: hasStatistic ? 'STATISTIC' : 'FACT',
-          confidence: 'HIGH',
+          confidence: 'MEDIUM',
           extractedFrom: cleanExcerpt,
           entities: [brandName],
           topics: ['target_offerings', 'verified_context', 'site_content'],

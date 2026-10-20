@@ -25,6 +25,26 @@ export class ClaimGroundingEngine {
     /\bwithout\s+(?:support\s+for|providing|offering)\b/i,
   ];
 
+  private static CONDITIONAL_EVIDENCE_PATTERNS = [
+    /\b(?:if\s+approved|unless|depending\s+on|subject\s+to|may\s+offer|might\s+offer|may\s+provide|might\s+provide|case[- ]by[- ]case|upon\s+request|select\s+clients?|select\s+projects?|beta\s+only|at\s+discretion|conditional\s+on|potential\s+availability)\b/i,
+  ];
+
+  private static UNCONDITIONAL_GUARANTEE_PATTERNS = [
+    /\b(?:guarantees?|guaranteed|promises?|sla|zero[- ]downtime|100%|always|every|all\s+clients|all\s+projects)\b/i,
+  ];
+
+  private static STALE_EVIDENCE_PATTERNS = [
+    /\b(?:discontinued|deprecated|retired|sunsetted|legacy\s+only|no\s+longer\s+(?:offered|supported|available|provided)|previously\s+offered|formerly|prior\s+to\s+(?:19\d\d|20[0-2]\d)|as\s+of\s+(?:19\d\d|20[01]\d|202[0-2]))\b/i,
+  ];
+
+  private static PROBLEM_OBSERVATION_PATTERNS = [
+    /\b(?:teams?\s+(?:lose|waste|struggle|face|suffer|spend\s+hours)|developers?\s+(?:lose|waste|struggle|face|spend)|challenges?\s+with|problems?\s+with|pain\s+points?|difficulties?\s+with|failures?\s+in|costly\s+mistakes?)\b/i,
+  ];
+
+  private static VENDOR_CAPABILITY_INDICATORS = [
+    /\b(?:we\b|our\b|provides?|offers?|delivers?|specializ(?:es?|ing|ed)|services?|features?|capabilities|platform|package|workflow|audits?|fix(?:es)?|redesigns?|optimiz(?:es?|ation)|mission)\b/i,
+  ];
+
   /**
    * Hard factual, quantitative, pricing, guarantee, SLA, and regulatory patterns
    * that can NEVER be substantiated by an INFERENCE or LOW confidence evidence item.
@@ -773,6 +793,14 @@ export class ClaimGroundingEngine {
       }
     }
 
+    if (!hasNegationInArticle && hasNegationInEvidence) {
+      // Evidence explicitly negates capability, article affirms it positively
+      const overlapTokens = this.getDistinctiveTokens(evClaimLower).filter(t => sentenceLower.includes(t));
+      if (overlapTokens.length >= 2) {
+        return `Contradiction detected: article affirms capability or statement explicitly negated in evidence (${ev.id}): "${ev.claim}"`;
+      }
+    }
+
     // B. Temporal Contradiction (e.g. "founded in 2018" vs "founded in 2012")
     if (claim.temporalAnchor) {
       const evTemporalMatch = evClaimLower.match(/\b(19\d\d|20\d\d)\b/);
@@ -840,6 +868,18 @@ export class ClaimGroundingEngine {
               return `Numeric contradiction: article asserts ${claimNum} ${claim.quantitativeValue.unit || ''} but evidence (${ev.id}) states ${evNum} ${eq.unit || ''}.`;
             }
           }
+        }
+      }
+    }
+
+    // D. Stale / Discontinued Evidence Contradiction (Case 12)
+    const isEvStale = ClaimGroundingEngine.STALE_EVIDENCE_PATTERNS.some(pat => pat.test(evClaimLower));
+    if (isEvStale) {
+      const isPresentCapability = /\b(?:provides?|offers?|delivers?|features?|supports?|includes?|operates?|develops?|builds?)\b/i.test(sentenceLower);
+      if (isPresentCapability) {
+        const overlapTokens = this.getDistinctiveTokens(evClaimLower).filter(t => sentenceLower.includes(t));
+        if (overlapTokens.length >= 2) {
+          return `Temporal contradiction: article asserts active capability but evidence (${ev.id}) proves it was discontinued, deprecated, or historical: "${ev.claim}"`;
         }
       }
     }
@@ -1020,12 +1060,21 @@ export class ClaimGroundingEngine {
       isEmpiricalOutcomeClaim ||
       this.HARD_FACTUAL_PATTERNS.some(pat => pat.test(claim.claimText || '') || pat.test(claim.sentence));
 
+    const hasTargetBrandContext = Boolean(
+      targetBrand && (
+        (claim.subjectEntity && claim.subjectEntity.toLowerCase() === targetBrand.toLowerCase()) ||
+        ClaimExtractionService.hasWordBoundaryMatch(claim.claimText || '', targetBrand) ||
+        ClaimExtractionService.hasWordBoundaryMatch(claim.sentence, targetBrand) ||
+        ClaimExtractionService.FIRST_PERSON_SUBJECT_PATTERNS.some(pat => pat.test(claim.claimText || '') || pat.test(claim.sentence))
+      )
+    );
+
     for (const ev of sortedCandidates) {
       const isInferential = ev.evidenceType === 'INFERENCE' || ev.confidence === 'LOW';
 
-      // P0 / Phase 4 & Phase 6.3: Inferences and low-confidence items cannot ground hard factual,
-      // quantitative, pricing, guarantee, SLA, or compliance claims.
-      if (isInferential && isHardFactualClaim) {
+      // P0 / Phase 4 & Phase 2: Inferences and low-confidence items cannot ground CRITICAL claims
+      // (including hard factual, quantitative, pricing, guarantee, SLA, compliance, or critical entity capabilities)
+      if (isInferential && (claim.materiality === 'CRITICAL' || isHardFactualClaim)) {
         continue;
       }
 
@@ -1056,6 +1105,40 @@ export class ClaimGroundingEngine {
             };
           }
         }
+        continue;
+      }
+
+      // Negation polarity alignment check (Case 6)
+      let evHasNegation = false;
+      for (const pat of ClaimGroundingEngine.NEGATION_PATTERNS) {
+        if (pat.test(evLower)) {
+          evHasNegation = true;
+          break;
+        }
+      }
+      let claimHasNegation = false;
+      for (const pat of ClaimGroundingEngine.NEGATION_PATTERNS) {
+        if (pat.test(claimLower) || pat.test(claim.sentence.toLowerCase())) {
+          claimHasNegation = true;
+          break;
+        }
+      }
+      if (evHasNegation !== claimHasNegation) {
+        continue; // Polarity mismatch: negated evidence cannot support positive claim and vice versa
+      }
+
+      // Conditional evidence vs unconditional guarantee / commitment check (Case 7)
+      const evIsConditional = ClaimGroundingEngine.CONDITIONAL_EVIDENCE_PATTERNS.some(pat => pat.test(evLower));
+      const claimIsGuarantee = ClaimGroundingEngine.UNCONDITIONAL_GUARANTEE_PATTERNS.some(pat =>
+        pat.test(claimLower) || pat.test(claim.sentence.toLowerCase())
+      );
+      if (evIsConditional && claimIsGuarantee) {
+        continue; // Conditional evidence cannot ground an unconditional guarantee
+      }
+
+      // Stale / discontinued evidence cannot substantiate present-tense capabilities (Case 12)
+      const isEvStale = ClaimGroundingEngine.STALE_EVIDENCE_PATTERNS.some(pat => pat.test(evLower));
+      if (isEvStale && /\b(?:provides?|offers?|delivers?|features?|supports?|includes?|operates?|develops?|builds?)\b/i.test(claimLower)) {
         continue;
       }
 
@@ -1098,16 +1181,15 @@ export class ClaimGroundingEngine {
       // 3. Target brand capability vs general industry trends / goals:
       // An affirmative capability claim about the target brand cannot be grounded
       // by generic industry trends or goals that do not reference the target brand or its specific product.
-      const hasTargetBrandContext = Boolean(
-        targetBrand && (
-          (claim.subjectEntity && claim.subjectEntity.toLowerCase() === targetBrand.toLowerCase()) ||
-          ClaimExtractionService.hasWordBoundaryMatch(claim.claimText || '', targetBrand) ||
-          ClaimExtractionService.hasWordBoundaryMatch(claim.sentence, targetBrand) ||
-          ClaimExtractionService.FIRST_PERSON_SUBJECT_PATTERNS.some(pat => pat.test(claim.claimText || '') || pat.test(claim.sentence))
-        )
-      );
-
       if (hasTargetBrandContext && claim.claimType === 'ENTITY_CAPABILITY') {
+        // Problem / Pain-point observation vs Vendor capability check (Case 3)
+        const evIsProblemOnly =
+          ClaimGroundingEngine.PROBLEM_OBSERVATION_PATTERNS.some(pat => pat.test(evLower)) &&
+          !ClaimGroundingEngine.VENDOR_CAPABILITY_INDICATORS.some(pat => pat.test(evLower));
+        if (evIsProblemOnly) {
+          continue; // Problem description does not substantiate vendor capability
+        }
+
         const isTargetEv = Boolean(
           ev.sourceType === 'TARGET_SITE' ||
           ev.evidenceType === 'BUSINESS_FACT' ||
