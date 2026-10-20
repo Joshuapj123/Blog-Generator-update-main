@@ -161,7 +161,15 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
         content: isLegacy
           ? JSON.stringify({ blueprint: updatedBlueprint, sections })
           : toHtml(updatedBlueprint, sections),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        // Phase 4: Content edits invalidate prior validation approval until revalidated
+        validationStatus: 'DRAFT',
+        validationFingerprint: undefined,
+        contentVersion: (Number(article.contentVersion) || 1) + 1,
+        evidenceMetadata: article.evidenceMetadata ? {
+          ...article.evidenceMetadata,
+          validationStatus: 'STALE_NEEDS_REVALIDATION'
+        } : undefined
       };
       await saveArticle(updatedArticle);
       alert('Article updated successfully!');

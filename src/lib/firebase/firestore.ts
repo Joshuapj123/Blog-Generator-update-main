@@ -47,6 +47,10 @@ export interface Article {
   contentScore?: any;
   evidenceMetadata?: any;
   diagnostics?: any;
+  validationStatus?: string;
+  validationFingerprint?: string;
+  contentVersion?: number | string;
+  validatedAt?: string;
   runId?: string;
   persistedAt?: string;
   persistenceStatus?: 'SAVED' | 'SAVE_FAILED';
@@ -128,6 +132,17 @@ export const saveArticle = async (article: Article, timeoutMs: number = 15000): 
   });
 
   const savePromise = (async () => {
+    // Fail-closed publication gate: Only validated content can be saved directly as Published
+    if (cleanData.stage === 'Published') {
+      const valStatus = (cleanData as any).validationStatus || (cleanData as any).evidenceMetadata?.validationStatus;
+      if (valStatus === 'REJECTED' || valStatus === 'FAILED') {
+        throw new Error(`Publication Blocked: Article cannot be published because its validation status is "${valStatus}".`);
+      }
+      if (valStatus !== 'READY' && valStatus !== 'PASSED' && valStatus !== 'PASSED_WITH_WARNINGS') {
+        throw new Error(`Publication Blocked: Article has not passed factual validation (status="${valStatus || 'UNVALIDATED'}").`);
+      }
+    }
+
     const articlesCol = collection(db, "articles");
 
     if (cleanData.id) {
@@ -232,13 +247,20 @@ export const createFolder = async (name: string) => {
 export const updateArticleStage = async (id: string, stage: ArticleStage, userId?: string) => {
     const docRef = doc(db, "articles", id);
     const effectiveUid = userId || auth?.currentUser?.uid;
-    if (effectiveUid) {
-      const snap = await getDoc(docRef);
-      if (snap.exists()) {
-        const data = snap.data();
-        const existingOwner = data?.userId || data?.ownerId;
-        if (existingOwner && existingOwner !== effectiveUid) {
-          throw new Error(`Forbidden: Caller does not have permission to update article "${id}" owned by "${existingOwner}".`);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      const data = snap.data();
+      const existingOwner = data?.userId || data?.ownerId;
+      if (effectiveUid && existingOwner && existingOwner !== effectiveUid) {
+        throw new Error(`Forbidden: Caller does not have permission to update article "${id}" owned by "${existingOwner}".`);
+      }
+      if (stage === 'Published') {
+        const valStatus = data?.validationStatus || data?.evidenceMetadata?.validationStatus;
+        if (valStatus === 'REJECTED' || valStatus === 'FAILED') {
+          throw new Error(`Publication Blocked: Article "${id}" failed factual validation and cannot be published.`);
+        }
+        if (valStatus !== 'READY' && valStatus !== 'PASSED' && valStatus !== 'PASSED_WITH_WARNINGS') {
+          throw new Error(`Publication Blocked: Article "${id}" has not passed factual validation (status="${valStatus || 'UNVALIDATED'}").`);
         }
       }
     }

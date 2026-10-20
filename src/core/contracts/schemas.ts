@@ -109,7 +109,11 @@ export const ContentAssetSchema = z.object({
   geoReadinessScore: z.number().optional(),
   geoMetrics: z.any().optional(),
   geoOpportunities: z.array(z.any()).optional(),
-  geoProviderResults: z.array(z.any()).optional()
+  geoProviderResults: z.array(z.any()).optional(),
+  targetBrand: z.string().optional(),
+  validationFingerprint: z.string().optional(),
+  contentVersion: z.union([z.number(), z.string()]).optional(),
+  validatedAt: z.string().optional()
 });
 
 export type ContentAsset = z.infer<typeof ContentAssetSchema>;

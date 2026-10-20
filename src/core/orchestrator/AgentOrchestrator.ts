@@ -1444,6 +1444,13 @@ geminiModel: "${this.telemetry.geminiModel || 'gemini-3.5-flash-lite'}"
           content.targetKeyword = input.targetKeyword;
           content.validationStatus = finalValStatus === 'FAILED' ? 'REJECTED' : 'READY';
           content.qualityScore = finalValStatus === 'PASSED' ? 95 : (finalValStatus === 'PASSED_WITH_WARNINGS' ? 88 : 65);
+          content.targetBrand = input.saasProfile?.name || input.saasProfile?.website || input.targetKeyword;
+          content.validationFingerprint = ContentEvidenceValidator.computeValidationFingerprint(
+            content.bodyMarkdown || '',
+            content.targetBrand
+          );
+          content.contentVersion = 1;
+          content.validatedAt = new Date().toISOString();
 
           // Populate real GEO data model fields
           content.geoStatus = geoIntelligence?.geoStatus || "provider_unavailable";

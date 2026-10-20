@@ -516,6 +516,16 @@ export class ClaimGroundingEngine {
       };
     }
 
+    // Invariant: Conditional evidence cannot substantiate an unconditional guarantee / promise
+    const isClaimGuarantee = /\b(?:guarantees?|guaranteeing|guaranteed|promise|promises|unconditional)\b/i.test(sLower);
+    const isEvConditional = /\b(?:targets?|aims?|strives?|normal operating conditions|subject to|conditional|estimated)\b/i.test(eLower);
+    if (isClaimGuarantee && isEvConditional) {
+      return {
+        valid: false,
+        reason: `Proposition mismatch: article asserts unconditional guarantee ("${claim.claimText}") but evidence (${ev.id}) provides only a conditional target or estimate: "${ev.claim}"`,
+      };
+    }
+
     return { valid: true };
   }
 

@@ -30,10 +30,15 @@ export async function POST(req: Request) {
     }
 
     // 3. Map stored Article model to ContentAsset structure
+    const rawValStatus = (article as any).validationStatus ||
+      ((article as any).evidenceMetadata?.validationStatus === 'PASSED' ? 'READY' :
+      ((article as any).evidenceMetadata?.validationStatus === 'FAILED' ? 'REJECTED' :
+      undefined));
+
     const contentAsset: ContentAsset = {
       title: article.title,
-      bodyMarkdown: article.content || 'Mock content body',
-      wordCount: (article.content || '').split(/\s+/).filter(Boolean).length || 100,
+      bodyMarkdown: article.content || '',
+      wordCount: (article.content || '').split(/\s+/).filter(Boolean).length,
       seoScore: (article as any).seoScore || 80,
       references: (article as any).references || [],
       slug: (article as any).slug || article.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
@@ -41,7 +46,10 @@ export async function POST(req: Request) {
       targetKeyword: article.sourceKeyword || '',
       metaTitle: (article as any).metaTitle || article.title,
       metaDescription: (article as any).metaDescription || '',
-      validationStatus: (article as any).validationStatus || 'READY'
+      validationStatus: rawValStatus,
+      targetBrand: article.referenceUrl || (article as any).targetBrand || (article as any).blueprint?.targetBrand,
+      validationFingerprint: (article as any).validationFingerprint || (article as any).blueprint?.validationFingerprint,
+      contentVersion: (article as any).contentVersion || (article as any).blueprint?.contentVersion
     };
 
     // 4. Default SaaS profile fallback

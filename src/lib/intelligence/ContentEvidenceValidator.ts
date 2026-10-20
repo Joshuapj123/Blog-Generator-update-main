@@ -126,6 +126,33 @@ export class ContentEvidenceValidator {
   }
 
   /**
+   * Computes a deterministic content validation fingerprint from normalized markdown and target entity.
+   * Any change in substantive text, headings, or entity attribution produces a distinct fingerprint.
+   */
+  public static computeValidationFingerprint(bodyMarkdown: string, targetBrand?: string): string {
+    const normText = (bodyMarkdown || '')
+      .replace(/\r\n/g, '\n')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const normBrand = (targetBrand || '').toLowerCase().trim();
+    const payload = `${normBrand}:::${normText}`;
+
+    // Deterministic 64-bit FNV-1a like hashing
+    let h1 = 0x811c9dc5;
+    let h2 = 0x9e3779b9;
+    for (let i = 0; i < payload.length; i++) {
+      const code = payload.charCodeAt(i);
+      h1 ^= code;
+      h1 = Math.imul(h1, 0x01000193);
+      h2 ^= code;
+      h2 = Math.imul(h2, 0x5bd1e995);
+    }
+    const hex1 = (h1 >>> 0).toString(16).padStart(8, '0');
+    const hex2 = (h2 >>> 0).toString(16).padStart(8, '0');
+    return `vfp-${hex1}${hex2}`;
+  }
+
+  /**
    * Validates generated article content against verified research evidence and policy thresholds.
    */
   public static validate(

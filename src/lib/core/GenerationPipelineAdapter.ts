@@ -517,6 +517,14 @@ export class GenerationPipelineAdapter {
       assetType: resolvedAssetType
     };
 
+    const resolvedValidationStatus = result.content?.validationStatus ||
+      (result.review?.finalValidationStatus === 'FAILED' ? 'REJECTED' : 'READY');
+
+    finalArticle.validationStatus = resolvedValidationStatus;
+    finalArticle.validationFingerprint = result.content?.validationFingerprint;
+    finalArticle.contentVersion = result.content?.contentVersion || 1;
+    finalArticle.targetBrand = targetDomain;
+
     const articleToSave: Article = {
       id: idempotentArticleId,
       userId: payload.authenticatedUserId || undefined,
@@ -534,6 +542,9 @@ export class GenerationPipelineAdapter {
       contentFormat: resolvedContentFormat,
       assetType: resolvedAssetType,
       evidenceMetadata: finalArticle.evidenceMetadata,
+      validationStatus: resolvedValidationStatus,
+      validationFingerprint: result.content?.validationFingerprint,
+      contentVersion: result.content?.contentVersion || 1,
       runId,
       persistedAt: new Date().toISOString(),
       persistenceStatus: 'SAVED'

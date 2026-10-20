@@ -8,6 +8,7 @@ import {
 import { DistributionProvider } from '@/core/contracts/distribution-providers';
 import { DistributionPlanner } from './DistributionPlanner';
 import { DistributionTransformer } from './DistributionTransformer';
+import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceValidator';
 // Firestore functions are resolved dynamically to decouple tests.
 
 export interface DistributionRepository {
@@ -58,6 +59,40 @@ export class DistributionService {
         status: 'FAILED',
         error: `Distribution blocked: ContentAsset validationStatus is "${statusLabel}". Only 'READY' assets can be distributed.`
       }];
+    }
+
+    // Phase 4: Strict entity isolation between asset target brand and distribution profile
+    if (asset.targetBrand && saasProfile?.name) {
+      const normAssetBrand = asset.targetBrand.toLowerCase().trim();
+      const normProfileBrand = saasProfile.name.toLowerCase().trim();
+      if (
+        normAssetBrand !== normProfileBrand &&
+        !normProfileBrand.includes(normAssetBrand) &&
+        !normAssetBrand.includes(normProfileBrand)
+      ) {
+        console.warn(`[DistributionService] Refusing distribution: Entity mismatch between asset brand (${asset.targetBrand}) and distribution profile (${saasProfile.name}).`);
+        return [{
+          channel: 'website',
+          status: 'FAILED',
+          error: `Distribution blocked: Entity mismatch between asset target brand "${asset.targetBrand}" and profile "${saasProfile.name}".`
+        }];
+      }
+    }
+
+    // Phase 4: Stale validation detection via content fingerprinting.
+    if (asset.validationFingerprint) {
+      const currentFingerprint = ContentEvidenceValidator.computeValidationFingerprint(
+        asset.bodyMarkdown,
+        asset.targetBrand || saasProfile?.name
+      );
+      if (asset.validationFingerprint !== currentFingerprint) {
+        console.warn(`[DistributionService] Refusing distribution: ContentAsset "${asset.title}" content has been modified since validation (fingerprint mismatch).`);
+        return [{
+          channel: 'website',
+          status: 'FAILED',
+          error: `Distribution blocked: Content has been modified since validation (fingerprint mismatch). Stale validation result cannot authorize distribution.`
+        }];
+      }
     }
 
     const results: DistributionResult[] = [];

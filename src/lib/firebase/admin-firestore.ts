@@ -34,6 +34,17 @@ export async function saveArticleAdmin(
 
     const now = FieldValue.serverTimestamp();
 
+    // Fail-closed publication gate: Only validated content can be saved directly as Published
+    if (cleanData.stage === 'Published') {
+      const valStatus = (cleanData as any).validationStatus || (cleanData as any).evidenceMetadata?.validationStatus;
+      if (valStatus === 'REJECTED' || valStatus === 'FAILED') {
+        throw new Error(`Publication Blocked: Article "${cleanData.id || 'new'}" failed factual validation and cannot be published.`);
+      }
+      if (valStatus !== 'READY' && valStatus !== 'PASSED' && valStatus !== 'PASSED_WITH_WARNINGS') {
+        throw new Error(`Publication Blocked: Article "${cleanData.id || 'new'}" has not passed factual validation (status="${valStatus || 'UNVALIDATED'}").`);
+      }
+    }
+
     if (cleanData.id) {
       const docRef = articlesCol.doc(cleanData.id as string);
       const docSnap = await docRef.get();
