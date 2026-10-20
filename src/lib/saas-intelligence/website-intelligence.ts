@@ -95,6 +95,10 @@ export class WebsiteIntelligenceService {
     if (titleEl?.textContent?.trim()) {
       metaParts.push(`Title: ${titleEl.textContent.trim()}`);
     }
+    const canonicalLink = doc1.querySelector('link[rel="canonical" i]')?.getAttribute('href')?.trim();
+    if (canonicalLink) {
+      metaParts.push(`Canonical URL: ${canonicalLink}`);
+    }
     const metaDesc = doc1.querySelector('meta[name="description" i]')?.getAttribute('content')?.trim();
     if (metaDesc) {
       metaParts.push(`Description: ${metaDesc}`);
@@ -181,55 +185,113 @@ export class WebsiteIntelligenceService {
     }
 
     // 2. Fetch/Scrape homepage text content using dedicated safe crawler
-    const textContent = await this.crawlUrl(url);
-    if (!textContent) {
-      throw new Error(`Failed to extract content from website URL: ${url}`);
+    let textContent = '';
+    let crawlFailureReason: string | undefined;
+    try {
+      textContent = await this.crawlUrl(url);
+    } catch (crawlErr: any) {
+      crawlFailureReason = crawlErr.message || 'Crawl request failed';
+      console.warn(`[website-intelligence] Crawl failed for ${url}:`, crawlFailureReason);
+    }
+
+    const resolvedHost = safety.url?.hostname || new URL(url).hostname;
+    const cleanHost = resolvedHost.replace(/^www\./i, '');
+    const brandRaw = cleanHost.split('.')[0] || 'Brand';
+    const brandName = brandRaw.charAt(0).toUpperCase() + brandRaw.slice(1);
+
+    // If crawl produced zero text or failed completely
+    if (!textContent || textContent.trim().length === 0) {
+      console.warn(`[website-intelligence] Website returned zero content for ${url}. Returning explicit FAILED crawl status.`);
+      const failedProfile: SaaSProfile = {
+        name: brandName,
+        website: safety.normalizedUrl || url,
+        canonicalUrl: safety.normalizedUrl || url,
+        description: `${brandName} website (unreadable content).`,
+        businessType: 'UNKNOWN',
+        verifiedOfferings: [],
+        keyFeatures: [],
+        identityConfidence: 'LOW',
+        primaryCompetitors: [],
+        targetAudience: 'General audience',
+        tone: 'Professional and authoritative',
+        customInsights: '',
+        crawlStatus: 'FAILED',
+        extractedTextLength: 0,
+        crawlFailureReason: crawlFailureReason || 'Website returned empty or unreadable content',
+        targetExcerpts: []
+      };
+
+      return {
+        profile: failedProfile,
+        candidateKeywords: [
+          `${brandRaw} overview`,
+          `${brandRaw} guide`,
+          `evaluating ${brandRaw}`,
+          `${brandRaw} industry analysis`
+        ]
+      };
     }
 
     // Truncate to limit token costs while preserving primary branding/copy
     const cleanedText = textContent.trim().slice(0, 12000);
+    const canonicalMatch = cleanedText.match(/^Canonical URL:\s*(\S+)/m);
+    const canonicalUrl = canonicalMatch ? canonicalMatch[1] : (safety.normalizedUrl || url);
+    const targetExcerpts = extractTargetExcerpts(cleanedText, 8);
 
-    // Guard against sparse/empty pages forcing hallucinations
+    // Guard against sparse/empty pages forcing hallucinations (<80 chars)
     if (cleanedText.length < 80) {
       console.warn(`[website-intelligence] Website text is sparse (${cleanedText.length} chars) for ${url}. Using conservative fallback profile without inventing features.`);
-      const resolvedHost = safety.url?.hostname || new URL(url).hostname;
-      const cleanHost = resolvedHost.replace(/^www\./i, '');
-      const brandRaw = cleanHost.split('.')[0] || 'Brand';
-      const brandName = brandRaw.charAt(0).toUpperCase() + brandRaw.slice(1);
       const detected = detectBusinessTypeFromTextAndUrl(cleanedText, url);
 
-      const isNonSaaS = detected.businessType !== 'SaaS';
-      const fallbackDesc = isNonSaaS
-        ? `${brandName} ${detected.businessType.toLowerCase()} and consulting practice.`
-        : `${brandName} web platform.`;
+      const isKnownAgency = detected.businessType === 'Agency/Portfolio' || detected.businessType === 'Services';
+      const isKnownSaaS = detected.businessType === 'SaaS';
+
+      let fallbackDesc = `${brandName} digital presence.`;
+      if (isKnownAgency) {
+        fallbackDesc = `${brandName} professional practice and services.`;
+      } else if (isKnownSaaS) {
+        fallbackDesc = `${brandName} software service.`;
+      }
 
       const fallbackProfile: SaaSProfile = {
         name: brandName,
         website: safety.normalizedUrl || url,
+        canonicalUrl: canonicalUrl,
         description: fallbackDesc,
         businessType: detected.businessType,
-        verifiedOfferings: detected.verifiedOfferings,
-        identityConfidence: detected.identityConfidence,
+        verifiedOfferings: detected.verifiedOfferings, // only offerings in text; empty if none
+        identityConfidence: 'LOW',
         keyFeatures: detected.verifiedOfferings,
         primaryCompetitors: [],
-        targetAudience: isNonSaaS ? 'Product leaders and founders' : 'Business and technical professionals',
+        targetAudience: isKnownAgency ? 'Clients and partners' : (isKnownSaaS ? 'Software users and teams' : 'General audience'),
         tone: 'Professional and authoritative',
-        customInsights: ''
+        customInsights: '',
+        crawlStatus: 'SPARSE',
+        extractedTextLength: cleanedText.length,
+        targetExcerpts: targetExcerpts
       };
 
-      const fallbackKeywords = isNonSaaS
+      const fallbackKeywords = isKnownAgency
         ? [
-            `${brandRaw} design services`,
-            `how to fix product friction`,
-            `ux audit checklist`,
-            `how to improve onboarding conversion`
+            `${brandRaw} services`,
+            `${brandRaw} methodology`,
+            `best practices for ${brandRaw}`,
+            `${brandRaw} process`
           ]
-        : [
-            `${brandRaw} software`,
-            `${brandRaw} platform`,
-            `best ${brandRaw} alternatives`,
-            `${brandRaw} review`
-          ];
+        : (isKnownSaaS
+          ? [
+              `${brandRaw} software`,
+              `${brandRaw} overview`,
+              `best ${brandRaw} alternatives`,
+              `${brandRaw} review`
+            ]
+          : [
+              `${brandRaw} overview`,
+              `${brandRaw} guide`,
+              `evaluating ${brandRaw}`,
+              `how to choose ${brandRaw}`
+            ]
+        );
 
       return {
         profile: fallbackProfile,
@@ -257,6 +319,12 @@ CRITICAL ARCHETYPE & OFFERING ACCURACY:
       runId,
       systemInstruction: 'Output a valid JSON matching the SaaSProfileSchema.'
     });
+
+    // Populate provenance and target excerpts
+    profile.canonicalUrl = canonicalUrl;
+    profile.crawlStatus = 'SUCCESS';
+    profile.extractedTextLength = cleanedText.length;
+    profile.targetExcerpts = targetExcerpts;
 
     // Deterministic archetype alignment if domain/signals strongly establish Agency/Portfolio
     if (detected.businessType !== 'SaaS' && (!profile.businessType || profile.businessType === 'SaaS')) {
@@ -536,7 +604,7 @@ export function enforceKeywordDiversification(
 }
 
 export function detectBusinessTypeFromTextAndUrl(text: string, url: string): {
-  businessType: 'SaaS' | 'Agency/Portfolio' | 'Ecommerce' | 'Publisher/Blog' | 'Services' | 'Other';
+  businessType: 'SaaS' | 'Agency/Portfolio' | 'Ecommerce' | 'Publisher/Blog' | 'Services' | 'Other' | 'UNKNOWN';
   verifiedOfferings: string[];
   identityConfidence: 'HIGH' | 'MEDIUM' | 'LOW';
 } {
@@ -580,14 +648,25 @@ export function detectBusinessTypeFromTextAndUrl(text: string, url: string): {
   if (lowerText.includes('checkout')) verifiedOfferings.push('Checkout Flow Optimization');
   if (lowerText.includes('friction')) verifiedOfferings.push('UX Friction Remediation');
 
-  if (isAgencyDomain || matchedAgencyKeywords.length >= 2 || (matchedAgencyKeywords.length >= 1 && matchedSaasKeywords.length === 0)) {
+  // 1. Definite Agency signals from text
+  if (matchedAgencyKeywords.length >= 2 || (matchedAgencyKeywords.length >= 1 && matchedSaasKeywords.length === 0)) {
     return {
       businessType: 'Agency/Portfolio',
-      verifiedOfferings: verifiedOfferings.length > 0 ? verifiedOfferings : ['UX Audits', 'Design Consulting'],
-      identityConfidence: (isAgencyDomain || matchedAgencyKeywords.length >= 2) ? 'HIGH' : 'MEDIUM'
+      verifiedOfferings,
+      identityConfidence: matchedAgencyKeywords.length >= 2 ? 'HIGH' : 'MEDIUM'
     };
   }
 
+  // 2. Domain-only agency signal (Do NOT invent UX Audits / Design Consulting when text lacks evidence)
+  if (isAgencyDomain) {
+    return {
+      businessType: 'Agency/Portfolio',
+      verifiedOfferings, // only populated if verified in text; otherwise empty
+      identityConfidence: verifiedOfferings.length > 0 ? 'MEDIUM' : 'LOW'
+    };
+  }
+
+  // 3. Ecommerce signals
   if (lowerText.includes('add to cart') || lowerText.includes('shopping cart') || (lowerText.includes('checkout') && lowerText.includes('store'))) {
     return {
       businessType: 'Ecommerce',
@@ -596,9 +675,82 @@ export function detectBusinessTypeFromTextAndUrl(text: string, url: string): {
     };
   }
 
+  // 4. Substantive SaaS signals
+  if (matchedSaasKeywords.length >= 1) {
+    return {
+      businessType: 'SaaS',
+      verifiedOfferings: [],
+      identityConfidence: matchedSaasKeywords.length >= 2 ? 'HIGH' : 'MEDIUM'
+    };
+  }
+
+  // 5. Sparse or unverified business archetype: do NOT default to SaaS
   return {
-    businessType: 'SaaS',
+    businessType: 'UNKNOWN',
     verifiedOfferings: [],
-    identityConfidence: matchedSaasKeywords.length >= 1 ? 'HIGH' : 'LOW'
+    identityConfidence: 'LOW'
   };
+}
+
+/**
+ * Extracts bounded, deduplicated factual excerpts from raw target website content,
+ * filtering out boilerplate navigation, cookie, and legal text.
+ */
+export function extractTargetExcerpts(
+  rawText: string,
+  maxExcerpts = 8,
+  minLen = 40,
+  maxLen = 300
+): string[] {
+  if (!rawText || !rawText.trim()) return [];
+
+  const rawBlocks = rawText.split(/\n\s*\n|\n+/);
+  const candidates: string[] = [];
+
+  const noisePatterns = [
+    /\b(?:cookie|privacy policy|terms of service|all rights reserved|copyright|cookie policy|gdpr|manage cookies|subscribe to our newsletter)\b/i,
+    /\b(?:sign in|log in|forgot password|register|cart\s*\(\d+\)|checkout now)\b/i,
+    /^(?:home|about|contact|pricing|blog|careers|legal|support|menu)$/i,
+    /^(?:title:|description:|og title:|og description:|site name:|keywords:|canonical url:)/i
+  ];
+
+  for (const block of rawBlocks) {
+    const cleaned = block.replace(/\s+/g, ' ').trim();
+    if (cleaned.length < minLen) continue;
+    if (noisePatterns.some(pat => pat.test(cleaned))) continue;
+
+    if (cleaned.length > maxLen) {
+      const sentences = cleaned.split(/(?<=[.!?])\s+/);
+      let currentChunk = '';
+      for (const sent of sentences) {
+        const trimmedSent = sent.trim();
+        if (noisePatterns.some(pat => pat.test(trimmedSent))) continue;
+        if ((currentChunk + ' ' + trimmedSent).trim().length <= maxLen) {
+          currentChunk = (currentChunk + ' ' + trimmedSent).trim();
+        } else {
+          if (currentChunk.length >= minLen) {
+            candidates.push(currentChunk);
+          }
+          currentChunk = trimmedSent;
+        }
+      }
+      if (currentChunk.length >= minLen && currentChunk.length <= maxLen) {
+        candidates.push(currentChunk);
+      }
+    } else {
+      candidates.push(cleaned);
+    }
+  }
+
+  const seen = new Set<string>();
+  const uniqueExcerpts: string[] = [];
+  for (const c of candidates) {
+    const norm = c.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (!norm || seen.has(norm)) continue;
+    seen.add(norm);
+    uniqueExcerpts.push(c);
+    if (uniqueExcerpts.length >= maxExcerpts) break;
+  }
+
+  return uniqueExcerpts;
 }

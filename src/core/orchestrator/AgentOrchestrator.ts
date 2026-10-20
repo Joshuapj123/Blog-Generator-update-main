@@ -911,7 +911,7 @@ ${input.maxHeadings ? `Generate at most ${input.maxHeadings} headings in the out
 3. OUTLINE STRUCTURE:
    - Generate ${input.maxHeadings ? Math.min(input.maxHeadings, 5) : '4–7'} logical H2 sections.${input.maxHeadings ? ` HARD CAP: You MUST generate NO MORE than ${input.maxHeadings} sections total.` : ''}
    - Design at least one section suited for a practical comparison/feature breakdown table.
-   - Design sections that cover concrete practitioner workflows (e.g. managing sales pipelines, assigning tasks, lead scoring, marketing automation, customer conversations).
+   - Design sections that cover concrete practitioner workflows, implementation frameworks, or evaluation criteria relevant to the primary keyword and business offerings.
 
 === CRITICAL SCHEMA CONTRACTS ===
 - intent.intentType MUST be exactly one of:
@@ -1738,6 +1738,34 @@ CRITICAL EVIDENCE ACCURACY RULES:
 ======================================================`;
         }
 
+        const bType = this.saasProfile?.businessType;
+        let terminologyGuidance = '';
+        if (bType === 'Agency/Portfolio' || bType === 'Services') {
+          terminologyGuidance = `- Use natural phrasing suited for a professional agency, studio, or consultancy: "the agency", "the team", "the consultants", "the practice", or the specific verified service name.
+   - STRICT BAN: DO NOT refer to this organization as "the platform", "the software", "the tool", "the CRM", or "the system".`;
+        } else if (bType === 'SaaS') {
+          terminologyGuidance = `- Use natural phrasing suited for a software product: "the platform", "the software", or "the solution" only when supported by verified profile capabilities.
+   - DO NOT refer to it as "the CRM" unless the profile explicitly verifies CRM functionality.`;
+        } else if (bType === 'Ecommerce') {
+          terminologyGuidance = `- Use phrasing suited for retail/commerce: "the store", "the company", "the brand".
+   - DO NOT refer to it as a software platform, CRM, or agency.`;
+        } else {
+          terminologyGuidance = `- Use neutral terminology: "the organization", "the company", "the team", or "the brand".
+   - DO NOT assume or assert that it is a software product, platform, CRM, or tool without verified evidence.`;
+        }
+
+        let tacticalGuidance = '';
+        if (bType === 'Agency/Portfolio' || bType === 'Services') {
+          tacticalGuidance = `   - Focus on practical client challenges, audit procedures, evaluation criteria, and design/remediation methodologies.
+   - Answer: "What actionable guidance, process steps, or evaluation standards should practitioners apply?"`;
+        } else if (bType === 'SaaS') {
+          tacticalGuidance = `   - Focus on concrete practitioner workflows and practical execution steps relevant to this software domain.
+   - Answer: "What would a practitioner or team member actually do with these capabilities in daily practice?"`;
+        } else {
+          tacticalGuidance = `   - Focus on practical processes, evaluation criteria, execution steps, and industry best practices.
+   - Answer: "What concrete steps should a practitioner or team actually execute in practice?"`;
+        }
+
         const prompt = `Write a clear, practical, and highly readable section for the article "${brief.title}".
 Section Heading: "${section.heading}" (Level: ${section.level})
 Section Position: ${i + 1} of ${brief.outline.length}
@@ -1768,14 +1796,20 @@ ${isFirstSection ? `   - FIRST PARAGRAPH CONTRACT: The very first paragraph of t
    - Average sentence length: 12–18 words. HARD MAXIMUM: 35 words for any single sentence.
    - Mix short and medium sentences naturally.
 
-5. NATURAL STRUCTURAL VARIETY:
+5. NATURAL STRUCTURAL VARIETY & TERMINOLOGY:
    - Do NOT begin 3 consecutive sentences or paragraphs with the same word or structure.
    - Avoid repeating "${this.targetBrand || 'Brand'} provides...", "${this.targetBrand || 'Brand'} helps...", "${this.targetBrand || 'Brand'} allows...".
-   - Use natural phrasing: "the platform", "the CRM", "this tool", "the system".
+   ${terminologyGuidance}
 
 6. TACTICAL & PRACTITIONER DEPTH:
-   - Include concrete daily workflow actions (e.g. assigning tasks, managing sales pipelines, lead scoring, marketing automation, customer conversations, inbox management, reporting, workflow triggers).
-   - Answer: "What would a real business owner or team member actually do with this in practice?"
+${tacticalGuidance}
+
+=== FACTUAL GROUNDING & CAPABILITY INTEGRITY ===
+- Ground all assertions about ${this.targetBrand || 'the business'} strictly in the supplied target-site evidence and verified profile.
+- DO NOT invent software features, deliverables, integrations, performance metrics, SLAs, or guarantees.
+- DO NOT transfer competitor capabilities or benchmarks to ${this.targetBrand || 'the target business'}.
+- If evidence is insufficient to make a specific factual claim about ${this.targetBrand || 'the business'}, write an objective, educational analysis or general best-practice discussion rather than inventing a capability.
+- Keep general editorial recommendations and educational best practices distinct from factual assertions about ${this.targetBrand || 'the business'}.
 
 7. COMPARISON TABLE CONTRACT:
 ${((assetType === 'COMPARISON' && (section.heading.toLowerCase().includes('compar') || i === 2)) || section.heading.toLowerCase().includes('comparison') || section.heading.toLowerCase().includes(' versus ') || section.heading.toLowerCase().includes(' vs ')) ? `   - Include at least ONE clean, factual Markdown comparison table summarizing features, capabilities, or workflow benefits. Example columns: | Feature / Workflow | Primary Capability | Key Benefit |. Only use factual values.` : `   - Present information using clear paragraphs, structured bullet points, or numbered steps. Do NOT generate unnecessary comparison tables for this section.`}
@@ -2050,7 +2084,7 @@ ${verifiedContextPrompt}
    - Split ANY paragraph longer than 80 words into 2-3 shorter paragraphs of 30-60 words (1-3 sentences each). NO paragraph may exceed 80 words.
 3. SENTENCE CONTRACT & STRUCTURAL VARIETY:
    - Split any sentence longer than 35 words into two shorter sentences. Average sentence length must be 12-18 words.
-   - Eliminate repetitive sentence starters (e.g. "HubSpot provides...", "HubSpot helps..."). Vary sentence openings naturally.
+   - Eliminate repetitive sentence starters (e.g. "${this.targetBrand || 'Brand'} provides...", "${this.targetBrand || 'Brand'} helps..."). Vary sentence openings naturally.
 4. CANONICAL PRIMARY KEYWORD:
    - Ensure the exact primary keyword "${primaryKeyword}" appears naturally in the very first paragraph, in the title, and in the body without alterations, punctuation splits, or word reordering.
 5. OUTLINE HEADINGS:

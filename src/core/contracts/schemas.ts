@@ -10,10 +10,15 @@ export const SaaSProfileSchema = z.object({
   website: z.string().optional(),
   tone: z.string().optional().default('professional'),
   customInsights: z.string().optional().default(''),
-  businessType: z.enum(['SaaS', 'Agency/Portfolio', 'Ecommerce', 'Publisher/Blog', 'Services', 'Other']).optional(),
+  businessType: z.enum(['SaaS', 'Agency/Portfolio', 'Ecommerce', 'Publisher/Blog', 'Services', 'Other', 'UNKNOWN']).optional(),
   verifiedOfferings: z.array(z.string()).optional(),
   evidenceSources: z.array(z.object({ type: z.string(), value: z.string() })).optional(),
   identityConfidence: z.enum(['HIGH', 'MEDIUM', 'LOW']).optional(),
+  canonicalUrl: z.string().optional(),
+  crawlStatus: z.enum(['SUCCESS', 'SPARSE', 'FAILED']).optional(),
+  extractedTextLength: z.number().optional(),
+  crawlFailureReason: z.string().optional(),
+  targetExcerpts: z.array(z.string()).optional(),
 });
 
 export type SaaSProfile = z.infer<typeof SaaSProfileSchema>;
@@ -134,7 +139,7 @@ export const ProductSchema = z.object({
   website: z.string().optional().default(''),
   description: z.string(),
   category: z.string(),
-  businessType: z.enum(['SaaS', 'Agency/Portfolio', 'Ecommerce', 'Publisher/Blog', 'Services', 'Other']).optional().default('SaaS'),
+  businessType: z.enum(['SaaS', 'Agency/Portfolio', 'Ecommerce', 'Publisher/Blog', 'Services', 'Other', 'UNKNOWN']).optional().default('SaaS'),
   features: z.array(z.string()).default([]),
   integrations: z.array(z.string()).default([]),
   pricingInfo: z.string().optional().default(''),

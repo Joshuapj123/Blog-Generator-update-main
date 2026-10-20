@@ -19,6 +19,8 @@ export interface EvidenceExtractionInput {
   opportunities?: any[];
   geoIntelligence?: any;
   targetKeyword?: string;
+  targetRawContent?: string;
+  targetExcerpts?: string[];
 }
 
 export class EvidenceExtractionService {
@@ -160,6 +162,44 @@ export class EvidenceExtractionService {
           extractedFrom: p.targetAudience,
           entities: [brandName, p.targetAudience],
           topics: ['target_audience', 'buyer_persona'],
+          citationRequired: false,
+        });
+      }
+
+      // Extract verified factual excerpts from target website DOM
+      const targetExcerpts: string[] = [
+        ...(Array.isArray(p.targetExcerpts) ? p.targetExcerpts : []),
+        ...(Array.isArray(input.targetExcerpts) ? input.targetExcerpts : [])
+      ];
+
+      // If raw target content is supplied without pre-split excerpts, extract bounded excerpts
+      if (targetExcerpts.length === 0 && input.targetRawContent && input.targetRawContent.trim().length >= 40) {
+        const rawBlocks = input.targetRawContent.split(/\n\s*\n|\n+/);
+        for (const b of rawBlocks) {
+          const clean = b.replace(/\s+/g, ' ').trim();
+          if (clean.length >= 40 && clean.length <= 300) {
+            targetExcerpts.push(clean);
+            if (targetExcerpts.length >= 8) break;
+          }
+        }
+      }
+
+      const canonicalSourceUrl = p.canonicalUrl || targetUrl;
+      for (const excerpt of targetExcerpts.slice(0, 10)) {
+        const cleanExcerpt = this.sanitizeText(excerpt).trim();
+        if (cleanExcerpt.length < 30) continue;
+        const hasStatistic = /\b\d+(?:\.\d+)?%|\$\d+(?:,\d+)?|\b\d+\s+(?:days|hours|years|clients|projects|engineers|users)\b/i.test(cleanExcerpt);
+        addEvidence({
+          idPrefix: 'target_site_excerpt',
+          sourceUrl: canonicalSourceUrl,
+          sourceTitle: `${brandName} Official Website`,
+          sourceType: 'TARGET_SITE',
+          claim: `${brandName} website content: ${cleanExcerpt}`,
+          evidenceType: hasStatistic ? 'STATISTIC' : 'FACT',
+          confidence: 'HIGH',
+          extractedFrom: cleanExcerpt,
+          entities: [brandName],
+          topics: ['target_offerings', 'verified_context', 'site_content'],
           citationRequired: false,
         });
       }
