@@ -9,6 +9,7 @@ import { DistributionProvider } from '@/core/contracts/distribution-providers';
 import { DistributionPlanner } from './DistributionPlanner';
 import { DistributionTransformer } from './DistributionTransformer';
 import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceValidator';
+import { PipelineTelemetryService } from '@/lib/observability/PipelineTelemetryService';
 // Firestore functions are resolved dynamically to decouple tests.
 
 export interface DistributionRepository {
@@ -54,6 +55,17 @@ export class DistributionService {
     if (!asset || asset.validationStatus !== 'READY' || !asset.bodyMarkdown || asset.bodyMarkdown.trim().length === 0) {
       const statusLabel = !asset ? 'MISSING_ASSET' : (asset.validationStatus || 'UNVALIDATED');
       console.warn(`[DistributionService] Refusing distribution: ContentAsset "${asset?.title || 'Untitled'}" has validationStatus "${statusLabel}". Only 'READY' assets can be distributed.`);
+      PipelineTelemetryService.getInstance().recordEvent({
+        runId: request?.idempotencyKey || `dist_${Date.now()}`,
+        stage: 'DISTRIBUTION',
+        eventType: 'STAGE_FAILED',
+        outcome: 'REJECTED',
+        failureCategory: 'DISTRIBUTION_FAILURE',
+        details: {
+          reason: `Distribution blocked: ContentAsset validationStatus is "${statusLabel}". Only 'READY' assets can be distributed.`,
+          channelsCount: request?.channels?.length || 0,
+        }
+      });
       return [{
         channel: 'website',
         status: 'FAILED',
@@ -71,6 +83,17 @@ export class DistributionService {
         !normAssetBrand.includes(normProfileBrand)
       ) {
         console.warn(`[DistributionService] Refusing distribution: Entity mismatch between asset brand (${asset.targetBrand}) and distribution profile (${saasProfile.name}).`);
+        PipelineTelemetryService.getInstance().recordEvent({
+          runId: request?.idempotencyKey || `dist_${Date.now()}`,
+          stage: 'DISTRIBUTION',
+          eventType: 'STAGE_FAILED',
+          outcome: 'REJECTED',
+          failureCategory: 'DISTRIBUTION_FAILURE',
+          details: {
+            reason: `Distribution blocked: Entity mismatch between asset target brand "${asset.targetBrand}" and profile "${saasProfile.name}".`,
+            channelsCount: request?.channels?.length || 0,
+          }
+        });
         return [{
           channel: 'website',
           status: 'FAILED',
@@ -87,6 +110,17 @@ export class DistributionService {
       );
       if (asset.validationFingerprint !== currentFingerprint) {
         console.warn(`[DistributionService] Refusing distribution: ContentAsset "${asset.title}" content has been modified since validation (fingerprint mismatch).`);
+        PipelineTelemetryService.getInstance().recordEvent({
+          runId: request?.idempotencyKey || `dist_${Date.now()}`,
+          stage: 'DISTRIBUTION',
+          eventType: 'STAGE_FAILED',
+          outcome: 'REJECTED',
+          failureCategory: 'DISTRIBUTION_FAILURE',
+          details: {
+            reason: 'Distribution blocked: Content has been modified since validation (fingerprint mismatch).',
+            channelsCount: request?.channels?.length || 0,
+          }
+        });
         return [{
           channel: 'website',
           status: 'FAILED',
@@ -220,6 +254,18 @@ export class DistributionService {
         });
       }
     }
+
+    const anyFailed = results.some(r => r.status === 'FAILED');
+    PipelineTelemetryService.getInstance().recordEvent({
+      runId: request?.idempotencyKey || `dist_${Date.now()}`,
+      stage: 'DISTRIBUTION',
+      eventType: anyFailed ? 'STAGE_FAILED' : 'STAGE_COMPLETE',
+      outcome: anyFailed ? 'FAILURE' : 'SUCCESS',
+      failureCategory: anyFailed ? 'DISTRIBUTION_FAILURE' : undefined,
+      details: {
+        channelsCount: results.length,
+      }
+    });
 
     return results;
   }

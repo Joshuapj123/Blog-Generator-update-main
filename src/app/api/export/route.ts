@@ -4,6 +4,7 @@ import { getArticleByIdAdmin } from '@/lib/firebase/admin-firestore';
 import { ArticleExportService, ExportArticleInput } from '@/lib/export/ArticleExportService';
 import { slugify } from '@/lib/article-utils';
 import { TemporaryArticleStore } from '@/lib/test-storage/TemporaryArticleStore';
+import { PipelineTelemetryService } from '@/lib/observability/PipelineTelemetryService';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -156,6 +157,17 @@ export async function POST(req: Request) {
     // 4. Validate completeness and integrity
     const validation = ArticleExportService.validateBeforeExport(exportInput);
     if (!validation.canExport) {
+      PipelineTelemetryService.getInstance().recordEvent({
+        runId: `export_${Date.now()}`,
+        stage: 'EXPORT',
+        eventType: 'STAGE_FAILED',
+        outcome: 'REJECTED',
+        failureCategory: 'EXPORT_FAILURE',
+        details: {
+          format,
+          reason: validation.errors?.join(', ') || 'Article Completeness or Integrity Validation Failed',
+        }
+      });
       return NextResponse.json(
         {
           error: 'Export Blocked: Article Completeness or Integrity Validation Failed',

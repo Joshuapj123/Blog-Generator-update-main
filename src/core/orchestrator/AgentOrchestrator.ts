@@ -108,6 +108,7 @@ import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceVali
 import { ClaimExtractionService } from '@/lib/intelligence/ClaimExtractionService';
 import { ClaimGroundingEngine } from '@/lib/intelligence/ClaimGroundingEngine';
 import { ContentRepairService } from '@/lib/content/ContentRepairService';
+import { PipelineTelemetryService } from '@/lib/observability/PipelineTelemetryService';
 
 export enum AgentStage {
   DISCOVER = "DISCOVER",
@@ -1293,6 +1294,18 @@ Return only the schema-compliant structured object.`;
           retries++;
           reviewHistory.push(...repairableIssues);
           console.log(`[agent] Quality issues detected (${repairableIssues.length} repairable). Starting repair attempt ${retries}/${maxRetries}...`);
+
+          PipelineTelemetryService.getInstance().recordEvent({
+            runId: this.telemetry.runId,
+            stage: 'REPAIR',
+            eventType: 'REPAIR_ATTEMPT',
+            outcome: 'RETRY',
+            retryCount: retries,
+            details: {
+              retryCount: retries,
+              reason: repairableIssues[0],
+            }
+          });
           
           let repairStage: StageExecution | undefined;
           try {
@@ -1318,6 +1331,20 @@ Return only the schema-compliant structured object.`;
             attemptIndex: retries,
             unrepairableClaimIds: this.lastUnrepairableClaimIds
           });
+
+          PipelineTelemetryService.getInstance().recordEvent({
+            runId: this.telemetry.runId,
+            stage: 'REVIEW',
+            eventType: 'REVALIDATION',
+            outcome: review.passed ? 'SUCCESS' : 'FAILURE',
+            retryCount: retries,
+            failureCategory: review.passed ? undefined : (this.lastUnrepairableClaimIds.length > 0 ? 'REPAIR_UNAVAILABLE' : 'REPAIR_REVALIDATION_FAILED'),
+            details: {
+              retryCount: retries,
+              unrepairableClaimsCount: this.lastUnrepairableClaimIds.length,
+            }
+          });
+
           repairableIssues = getRepairableIssues(review);
         }
 

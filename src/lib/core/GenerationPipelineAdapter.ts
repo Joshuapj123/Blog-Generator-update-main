@@ -19,6 +19,13 @@ import {
   SearchResult, 
   ScrapeResult 
 } from '@/core/contracts/providers';
+import { PipelineTelemetryService } from '@/lib/observability/PipelineTelemetryService';
+import {
+  classifyPipelineFailure,
+  sanitizeOperationalText,
+  PipelineStageName,
+  NormalizedFailureCategory
+} from '@/core/contracts/observability';
 
 // Local Mock Providers for DRY_RUN mode
 export class DryRunLLMProvider implements LLMProvider {
@@ -140,12 +147,24 @@ export class GenerationPipelineAdapter {
       requestStartTs?: number;
     }
   ): Promise<any> {
-    const runId = 'run_' + Math.random().toString(36).substring(2, 15) + '_' + Date.now();
+    const runId = payload.runId || ('run_' + Math.random().toString(36).substring(2, 15) + '_' + Date.now());
     const startTime = Date.now();
+    const primaryKeyword = payload.targetKeywords?.split(',')[0].trim() || payload.title;
     console.log(`[PIPELINE] REQUEST START - runId=${runId} timestamp=${new Date().toISOString()}`);
 
+    PipelineTelemetryService.getInstance().recordEvent({
+      runId,
+      correlationId: payload.correlationId,
+      stage: 'INTAKE',
+      eventType: 'PIPELINE_START',
+      outcome: 'SUCCESS',
+      details: {
+        sourceKeyword: primaryKeyword,
+        targetDomain: payload.saasProfile?.website,
+      }
+    });
+
     const dryRunEnabled = process.env.ENABLE_DRY_RUN === 'true' || payload.dryRun === true;
-    const primaryKeyword = payload.targetKeywords?.split(',')[0].trim() || payload.title;
     console.log(`[PIPELINE] PAYLOAD VALIDATED - runId=${runId} elapsed=${Date.now() - startTime}ms`);
 
     console.log(`[Adapter] Initializing pipeline. Dry Run = ${dryRunEnabled}`);
@@ -211,6 +230,38 @@ export class GenerationPipelineAdapter {
       signal,
       requestStartTs: options?.requestStartTs,
       onStageUpdate: (stage, status, metadata) => {
+        const stageUpper = String(stage).toUpperCase() as PipelineStageName;
+        if (status === 'running') {
+          PipelineTelemetryService.getInstance().recordEvent({
+            runId,
+            correlationId: payload.correlationId,
+            stage: stageUpper,
+            eventType: 'STAGE_START',
+            outcome: 'SUCCESS',
+          });
+        } else if (status === 'completed') {
+          PipelineTelemetryService.getInstance().recordEvent({
+            runId,
+            correlationId: payload.correlationId,
+            stage: stageUpper,
+            eventType: 'STAGE_COMPLETE',
+            outcome: 'SUCCESS',
+          });
+        } else if (status === 'failed') {
+          const failCat = classifyPipelineFailure(stageUpper, metadata?.error || metadata);
+          PipelineTelemetryService.getInstance().recordEvent({
+            runId,
+            correlationId: payload.correlationId,
+            stage: stageUpper,
+            eventType: 'STAGE_FAILED',
+            outcome: 'FAILURE',
+            failureCategory: failCat,
+            details: {
+              reason: typeof metadata?.error === 'string' ? metadata.error : undefined,
+            }
+          });
+        }
+
         if (stage === AgentStage.GENERATE && status === 'running' && !metadata?.repaired) {
           console.log('[PHASE10] GENERATION START');
         }
@@ -345,6 +396,25 @@ export class GenerationPipelineAdapter {
       const errorList = collectedErrors.length > 0
         ? Array.from(new Set(collectedErrors))
         : ['Content validation failed critical quality gates. Please try again.'];
+
+      const failureCat: NormalizedFailureCategory =
+        result?.review?.finalValidationStatus === 'FAILED' || result?.content?.validationStatus === 'REJECTED'
+          ? (result?.review?.criticalErrors?.some(e => e.includes('repair') || e.includes('unrepairable')) ? 'REPAIR_REVALIDATION_FAILED' : 'GROUNDING_REJECTION')
+          : classifyPipelineFailure('REVIEW', errorList.join(' '));
+
+      PipelineTelemetryService.getInstance().recordEvent({
+        runId,
+        correlationId: payload.correlationId,
+        stage: 'REVIEW',
+        eventType: 'PIPELINE_FAILED',
+        outcome: 'REJECTED',
+        failureCategory: failureCat,
+        details: {
+          reason: errorList[0],
+          groundingFailureBreakdown: result?.telemetry?.researchIntelligence?.groundingFailureBreakdown,
+        }
+      });
+
       throw new Error(`Orchestration execution failed: ${errorList.join(', ')}`);
     }
 
@@ -608,6 +678,19 @@ export class GenerationPipelineAdapter {
     console.log(`[PHASE10] FINAL CHECK - title="${finalArticle.title}" sectionCount=${finalArticle.sections?.length || 0} markdownLength=${finalAsset.bodyMarkdown?.length || 0} contentLength=${finalArticle.intro?.hook?.length || 0} hasContent=${!!finalAsset.bodyMarkdown}`);
     console.log('[PHASE10] RETURNING RESULT');
     console.log(`[PIPELINE] RETURN - runId=${runId} elapsed=${Date.now() - startTime}ms`);
+
+    PipelineTelemetryService.getInstance().recordEvent({
+      runId,
+      correlationId: payload.correlationId,
+      stage: 'FINALIZE',
+      eventType: 'PIPELINE_COMPLETE',
+      durationMs: Date.now() - startTime,
+      outcome: 'SUCCESS',
+      details: {
+        durationMs: Date.now() - startTime,
+      }
+    });
+
     return finalArticle;
   }
 
@@ -926,22 +1009,8 @@ export class GenerationPipelineAdapter {
       return 'An unexpected error occurred during generation. Please try again.';
     }
 
-    // Redact tokens/credentials
-    let cleaned = rawMsg
-      .replace(/AIza[0-9A-Za-z_-]+/g, '[REDACTED_API_KEY]')
-      .replace(/sk-[0-9A-Za-z_-]{15,}/g, '[REDACTED_API_KEY]')
-      .replace(/Bearer\s+[A-Za-z0-9._~+/-]+=*/gi, 'Bearer [REDACTED_TOKEN]')
-      .replace(/(?:key|token|secret|password|auth|apiKey)=([^\s&]+)/gi, '$1=[REDACTED]');
-
-    // Strip file paths if any remain
-    cleaned = cleaned.replace(/[A-Za-z]:\\[\w\s.-]+(?:\\[\w\s.-]+)*/g, '[PATH]');
-    cleaned = cleaned.replace(/\/(?:[\w.-]+\/)+[\w.-]+/g, '[PATH]');
-
-    // Trim length
-    if (cleaned.length > 200) {
-      cleaned = cleaned.slice(0, 197) + '...';
-    }
-
+    // Redact tokens/credentials, HTML, and file paths using unified operational sanitizer
+    const cleaned = sanitizeOperationalText(rawMsg, 200);
     return cleaned.trim() || 'An unexpected error occurred during generation. Please try again.';
   }
 }

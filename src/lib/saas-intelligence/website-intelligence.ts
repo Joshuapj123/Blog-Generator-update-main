@@ -5,6 +5,7 @@ import { DryRunLLMProvider } from '../core/GenerationPipelineAdapter';
 import { verifyUrlSafety } from '../research/url-verifier';
 import { SaaSProfileSchema, SaaSProfile } from '@/core/contracts/schemas';
 import { LLMProvider } from '@/core/contracts/providers';
+import { PipelineTelemetryService } from '@/lib/observability/PipelineTelemetryService';
 import { z } from 'zod';
 
 export class WebsiteIntelligenceService {
@@ -202,6 +203,18 @@ export class WebsiteIntelligenceService {
     // If crawl produced zero text or failed completely
     if (!textContent || textContent.trim().length === 0) {
       console.warn(`[website-intelligence] Website returned zero content for ${url}. Returning explicit FAILED crawl status.`);
+      const isTimeout = crawlFailureReason?.toLowerCase().includes('timeout');
+      PipelineTelemetryService.getInstance().recordEvent({
+        runId: runId || `crawl_${Date.now()}`,
+        stage: 'CRAWL',
+        eventType: 'STAGE_FAILED',
+        outcome: 'FAILURE',
+        failureCategory: isTimeout ? 'CRAWL_TIMEOUT' : 'CRAWL_FAILURE',
+        details: {
+          targetDomain: cleanHost,
+          reason: crawlFailureReason || 'Website returned empty or unreadable content',
+        }
+      });
       const failedProfile: SaaSProfile = {
         name: brandName,
         website: safety.normalizedUrl || url,
@@ -241,6 +254,17 @@ export class WebsiteIntelligenceService {
     // Guard against sparse/empty pages forcing hallucinations (<80 chars)
     if (cleanedText.length < 80) {
       console.warn(`[website-intelligence] Website text is sparse (${cleanedText.length} chars) for ${url}. Using conservative fallback profile without inventing features.`);
+      PipelineTelemetryService.getInstance().recordEvent({
+        runId: runId || `crawl_${Date.now()}`,
+        stage: 'CRAWL',
+        eventType: 'STAGE_FAILED',
+        outcome: 'FAILURE',
+        failureCategory: 'SPARSE_EVIDENCE',
+        details: {
+          targetDomain: cleanHost,
+          reason: `Website text is sparse (${cleanedText.length} chars)`,
+        }
+      });
       const detected = detectBusinessTypeFromTextAndUrl(cleanedText, url);
 
       const isKnownAgency = detected.businessType === 'Agency/Portfolio' || detected.businessType === 'Services';
@@ -325,6 +349,16 @@ CRITICAL ARCHETYPE & OFFERING ACCURACY:
     profile.crawlStatus = 'SUCCESS';
     profile.extractedTextLength = cleanedText.length;
     profile.targetExcerpts = targetExcerpts;
+
+    PipelineTelemetryService.getInstance().recordEvent({
+      runId: runId || `crawl_${Date.now()}`,
+      stage: 'CRAWL',
+      eventType: 'STAGE_COMPLETE',
+      outcome: 'SUCCESS',
+      details: {
+        targetDomain: cleanHost,
+      }
+    });
 
     // Deterministic archetype alignment if domain/signals strongly establish Agency/Portfolio
     if (detected.businessType !== 'SaaS' && (!profile.businessType || profile.businessType === 'SaaS')) {

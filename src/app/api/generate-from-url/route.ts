@@ -7,6 +7,8 @@ import { GenerationPipelineAdapter, DryRunLLMProvider, DryRunSearchProvider } fr
 import { normalizeUrl } from '@/lib/research/url-verifier';
 import { getAdminAuth } from '@/lib/firebase/admin';
 import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceValidator';
+import { PipelineTelemetryService } from '@/lib/observability/PipelineTelemetryService';
+import { classifyPipelineFailure, sanitizeOperationalText } from '@/core/contracts/observability';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -14,6 +16,7 @@ export const maxDuration = 300;
 
 export async function POST(req: Request) {
   const requestStartTs = Date.now();
+  const runId = 'run_' + Math.random().toString(36).substring(2, 15) + '_' + Date.now();
   try {
     const body = await req.json().catch(() => ({}));
     const rawUrl = body?.url;
@@ -70,7 +73,7 @@ export async function POST(req: Request) {
           sendChunk({ type: 'status', message: 'Analyzing website URL and verifying safety...', progress: 5 });
           
           const intelService = new WebsiteIntelligenceService();
-          const { profile, candidateKeywords } = await intelService.extractBusinessProfile(url);
+          const { profile, candidateKeywords } = await intelService.extractBusinessProfile(url, runId);
 
           // Understanding business profile
           sendChunk({ 
@@ -133,6 +136,7 @@ export async function POST(req: Request) {
           };
 
           const payload = {
+            runId,
             title: bestOpportunity.keyword,
             targetKeywords: bestOpportunity.keyword,
             contentType: bestOpportunity.contentType || 'Guide',
@@ -153,10 +157,24 @@ export async function POST(req: Request) {
           });
         } catch (err: any) {
           console.error('[API Route] URL Autopilot failed:', err.message);
+          const sanitizedMsg = sanitizeOperationalText(err.message || 'Autopilot generation failed.');
+          const failureCat = classifyPipelineFailure('CRAWL', err);
+          PipelineTelemetryService.getInstance().recordEvent({
+            runId,
+            stage: 'CRAWL',
+            eventType: 'PIPELINE_FAILED',
+            outcome: 'FAILURE',
+            failureCategory: failureCat,
+            details: {
+              sanitizedMessage: sanitizedMsg,
+            }
+          });
           sendChunk({ 
             type: 'error', 
-            message: err.message || 'Autopilot generation failed.',
-            reason: err.message || 'Unknown generation error'
+            message: sanitizedMsg,
+            reason: sanitizedMsg,
+            failureCategory: failureCat,
+            runId
           });
         } finally {
           controller.close();
