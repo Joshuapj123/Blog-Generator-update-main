@@ -11,6 +11,7 @@ import {
   GroundingDecisionDiagnostic
 } from '@/core/contracts/evidence';
 import { ContentBrief } from '@/core/contracts/schemas';
+import { KeywordAuditService } from '../seo-intelligence/KeywordAuditService';
 import { ClaimExtractionService } from './ClaimExtractionService';
 import { ClaimGroundingEngine, GroundingResult } from './ClaimGroundingEngine';
 
@@ -234,30 +235,42 @@ export class ContentEvidenceValidator {
       warnings.push(`Detected ${unsupportedClaims.length} quantitative, statistical, or performance claim(s) without supporting research evidence: ${unsupportedClaims.slice(0, 3).join(', ')}.`);
     }
 
-    // 3. Keyword Stuffing & Repetitive City/Keyword Loops
-    const cleanText = bodyMarkdown
-      .replace(/!\[[^\]]*\]\([^\)]+\)/g, ' ')
-      .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
-      .replace(/https?:\/\/[^\s\)\],]+/gi, ' ');
-    const words = cleanText.split(/\s+/).filter(Boolean);
-    const totalWords = words.length || 1;
-
+    // 3. Keyword Stuffing & Repetitive City/Keyword Loops Audit
+    let keywordAuditWarnings = 0;
+    let finalPrimaryDensity = 0;
     if (primaryKeyword && primaryKeyword.trim().length > 0) {
-      const escapedKw = primaryKeyword.trim().split(/\s+/).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+');
-      const kwRegex = new RegExp(`\\b${escapedKw}\\b`, 'gi');
-      const kwMatches = cleanText.match(kwRegex) || [];
-      const kwWords = primaryKeyword.split(/\s+/).filter(Boolean).length;
-      const density = ((kwMatches.length * kwWords) / totalWords) * 100;
+      const secondaryKeywords = (brief.targetKeywords || []).slice(1);
+      const audit = KeywordAuditService.auditKeywords(
+        bodyMarkdown,
+        primaryKeyword,
+        secondaryKeywords,
+        {
+          warningThresholdPercent: 2.0,
+          criticalThresholdPercent: CONTENT_INTELLIGENCE_POLICY.KEYWORD_DENSITY_MAX_PERCENT,
+          minOccurrencesForStuffing: 3
+        }
+      );
 
-      if (density > CONTENT_INTELLIGENCE_POLICY.KEYWORD_DENSITY_MAX_PERCENT) {
-        const msg = `Keyword Stuffing Alert: Keyword "${primaryKeyword}" has density of ${density.toFixed(2)}% (exceeds maximum safe limit of ${CONTENT_INTELLIGENCE_POLICY.KEYWORD_DENSITY_MAX_PERCENT}%).`;
-        keywordStuffingIssues.push(msg);
-        criticalErrors.push(msg);
+      finalPrimaryDensity = audit.primaryDensity;
+      keywordAuditWarnings = audit.warnings.length;
+
+      for (const err of audit.criticalErrors) {
+        keywordStuffingIssues.push(err);
+        criticalErrors.push(err);
+      }
+      for (const warn of audit.warnings) {
+        if (warn.includes('Repetitive phrase pattern')) {
+          repetitionIssues.push(warn);
+        } else {
+          keywordStuffingIssues.push(warn);
+        }
+        warnings.push(warn);
       }
 
       // Check paragraph repetition of primary keyword
-      const paragraphs = cleanText.split(/\n\s*\n/).filter(p => p.trim().length > 0 && !p.trim().startsWith('#'));
+      const paragraphs = audit.cleanText.split(/\n\s*\n/).filter(p => p.trim().length > 0 && !p.trim().startsWith('#'));
       let kwParagraphCount = 0;
+      const kwRegex = KeywordAuditService.buildKeywordRegex(primaryKeyword);
       for (const p of paragraphs) {
         kwRegex.lastIndex = 0;
         if (kwRegex.test(p)) {
@@ -498,6 +511,8 @@ export class ContentEvidenceValidator {
       evidenceUsageRate,
       repetitionFlags: repetitionIssues.length,
       keywordStuffingFlags: keywordStuffingIssues.length,
+      keywordWarningCount: keywordAuditWarnings,
+      primaryKeywordDensity: finalPrimaryDensity,
       claimGrounding: groundingResult.diagnostics,
       structuredGroundingDiagnostics: structuredDiagnostics,
       groundingFailureBreakdown,

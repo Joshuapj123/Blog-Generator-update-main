@@ -5,7 +5,7 @@ import { CanonicalClaim } from '@/core/contracts/evidence';
 export interface TargetedRepairRequest {
   title: string;
   bodyMarkdown: string;
-  targetDimension: 'readability' | 'semantic' | 'entity' | 'structure' | 'gap' | 'all';
+  targetDimension: 'readability' | 'semantic' | 'entity' | 'structure' | 'gap' | 'keyword_density' | 'all';
   currentScore?: number;
   targetThreshold?: number;
   findings: string[];
@@ -45,8 +45,13 @@ Original Article Title: ${brief.title}
 Original Article Body:
 ${content.bodyMarkdown}`;
 
+    const hasKeywordStuffing = issues.some(i => i.toLowerCase().includes('keyword stuffing') || i.toLowerCase().includes('density'));
+    const systemInstruction = hasKeywordStuffing
+      ? 'You are an elite copyeditor. Rewrite the article body to fix all listed quality and keyword density issues, pruning repetitive keyword stuffing down to natural 1.0-2.0% density using pronouns, synonyms, and natural phrasing, while keeping all factual claims, outline headings, and diagram placeholders intact.'
+      : 'You are an elite copyeditor. Rewrite the article body to fix all listed quality and readability issues while keeping all facts, keywords, and outline headings exactly the same.';
+
     const repairedBody = await this.llmProvider.generate(prompt, {
-      systemInstruction: 'You are an elite copyeditor. Rewrite the article body to fix all listed quality and readability issues while keeping all facts, keywords, and outline headings exactly the same.',
+      systemInstruction,
       operation: 'Content Quality Repair',
       runId,
     });
@@ -128,6 +133,24 @@ SPECIFIC READABILITY ACTIONS REQUIRED:
 5. MINIMAL SURGICAL CHANGE & WORD COUNT PRESERVATION:
    - Only modify sentences and paragraphs that suffer from poor readability. Leave clear, well-written sections untouched.
    - Maintain the overall word count within 5% of the original article. Do NOT aggressively truncate content.`;
+    } else if (targetDimension === 'keyword_density') {
+      dimensionInstructions = `=== TARGETED KEYWORD DENSITY REPAIR OBJECTIVE ===
+Your sole objective is to normalize KEYWORD DENSITY and eliminate KEYWORD STUFFING while keeping the article natural, fluent, and factually intact.
+Concrete issues reported:
+${findings.map(f => `• ${f}`).join('\n')}
+
+SPECIFIC KEYWORD DENSITY ACTIONS REQUIRED:
+1. Target keyword: "${primaryKeyword || 'primary keyword'}".
+2. Calibrate density to a healthy, natural 1.0%–2.0% range.
+3. Prune unnatural, robotic, or repeated mentions of the keyword across consecutive sentences or paragraphs.
+4. Replace redundant mentions with pronouns (e.g. it, they, this system, these tools), concise synonyms, or contextual references.
+5. Preserve the primary keyword naturally in the title, introduction, and conclusion.`;
+
+      strictPreservationRules = `=== PRESERVATION CONSTRAINTS ===
+- Keep ALL existing ## (H2) and ### (H3) section headings EXACTLY as they are.
+- Preserve all facts, statistics, entities, quotes, tables, and internal links intact.
+- Do NOT delete entire sections or paragraphs; prune or substitute keywords in-place.
+- Make the smallest surgical change necessary to normalize keyword frequency.`;
     } else {
       // General targeted repair fallback
       dimensionInstructions = `=== TARGETED QUALITY REPAIR: ${targetDimension.toUpperCase()} ===

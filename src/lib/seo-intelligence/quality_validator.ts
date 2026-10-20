@@ -1,3 +1,5 @@
+import { KeywordAuditService } from './KeywordAuditService';
+
 export interface QualityValidationReport {
   valid: boolean;
   errors: string[];
@@ -304,31 +306,35 @@ export function validateArticleQuality(
     });
   }
 
-  // 8. Keyword stuffing density check (>3% keyword density)
+  // 8. Keyword stuffing density check (>3% keyword density via KeywordAuditService)
   let maxKeyword = '';
   let maxDensity = 0;
-  if (totalWordCount > 0) {
-    for (const kw of keywords) {
-      if (!kw || kw.trim().length === 0) continue;
-      const kwLower = kw.toLowerCase().trim();
-      const kwWords = kwLower.split(/\s+/).length;
-      
-      // Use regex to count occurrences of the keyword phrase safely
-      const escapedKw = kwLower.split(/\s+/).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+');
-      const regex = new RegExp(`\\b${escapedKw}\\b`, 'gi');
-      const occurrences = (normalizedText.match(regex) || []).length;
-      
-      // Keyword density formula: (occurrences * keywordLength) / totalWords * 100
-      const density = (occurrences * kwWords / totalWordCount) * 100;
-      if (density > maxDensity) {
-        maxDensity = density;
-        maxKeyword = kw;
+  const validKeywords = (keywords || []).filter(kw => kw && kw.trim().length > 0);
+  if (validKeywords.length > 0 && totalWordCount > 0) {
+    const primaryKw = validKeywords[0];
+    const secondaryKws = validKeywords.slice(1);
+    const audit = KeywordAuditService.auditKeywords(text, primaryKw, secondaryKws, {
+      warningThresholdPercent: 2.0,
+      criticalThresholdPercent: 3.0,
+      minOccurrencesForStuffing: 3,
+    });
+
+    maxKeyword = audit.primaryKeyword;
+    maxDensity = audit.primaryDensity;
+
+    for (const sm of audit.secondaryKeywordMetrics) {
+      if (sm.density > maxDensity) {
+        maxDensity = sm.density;
+        maxKeyword = sm.keyword;
       }
     }
-  }
 
-  if (maxDensity > 3.0) {
-    errors.push(`Keyword Stuffing Alert: Keyword "${maxKeyword}" has density of ${maxDensity.toFixed(2)}% (exceeds limit of 3%).`);
+    for (const err of audit.criticalErrors) {
+      errors.push(err);
+    }
+    for (const warn of audit.warnings) {
+      warnings.push(warn);
+    }
   }
 
   // 9. Entity stuffing check (repeated >12 times for non-brand entities)

@@ -421,7 +421,7 @@ export class AgentOrchestrator {
 
   async run(input: OrchestrationInput): Promise<OrchestrationResult> {
     console.log('[agent] run started');
-    this.targetBrand = input.saasProfile?.name || '';
+    this.targetBrand = input.saasProfile?.name || input.saasProfile?.website || '';
     this.saasProfile = input.saasProfile;
     this.internalLinks = input.internalLinks || [];
     
@@ -866,15 +866,21 @@ export class AgentOrchestrator {
 
       try {
         planStage = this.startStage(AgentStage.PLAN);
+        const bTypeForPlan = (this.saasProfile?.businessType || '').toLowerCase();
+        const catForPlan = ((this.saasProfile as any)?.category || '').toLowerCase();
+        const isSoftwarePlan = bTypeForPlan === 'saas' || catForPlan.includes('saas') || catForPlan.includes('software');
+        const entityLabelPlan = isSoftwarePlan ? 'SaaS / Product Name' : 'Target Business Name';
+        const offeringsLabelPlan = isSoftwarePlan ? 'Key Features' : 'Key Offerings & Capabilities';
+
         const saasIntelText = saasIntelligenceProfile 
-          ? `SaaS Name: ${saasIntelligenceProfile.product.name}
-Category: ${saasIntelligenceProfile.product.category}
-Key Features: ${(saasIntelligenceProfile.product.features || []).join(', ')}
-Product Differentiators: ${(saasIntelligenceProfile.product.differentiators || []).join(', ')}
-Target ICP: ${saasIntelligenceProfile.audience.icp}
+          ? `${entityLabelPlan}: ${saasIntelligenceProfile.product.name}
+Business Category: ${saasIntelligenceProfile.product.category}
+${offeringsLabelPlan}: ${(saasIntelligenceProfile.product.features || []).join(', ')}
+Key Differentiators: ${(saasIntelligenceProfile.product.differentiators || []).join(', ')}
+Target Audience / ICP: ${saasIntelligenceProfile.audience.icp}
 Persona Pain Points: ${(saasIntelligenceProfile.audience.painPoints || []).join(', ')}
-Jobs-To-Be-Done: ${(saasIntelligenceProfile.audience.jtbd || []).join(', ')}`
-          : `SaaS Profile: ${input.saasProfile.name} - ${input.saasProfile.description}`;
+Jobs-To-Be-Done / Goals: ${(saasIntelligenceProfile.audience.jtbd || []).join(', ')}`
+          : `Business Profile: ${input.saasProfile?.name || 'Target Business'} - ${input.saasProfile?.description || ''}`;
 
         const geoContextText = geoIntelligence && geoIntelligence.geoOpportunities?.length > 0
           ? `GEO AI-Visibility Requirements and Recommendations:
@@ -894,7 +900,26 @@ ${this.gapMatrix.gaps.map(g => `- Topic: "${g.topic}" (Treatment: ${g.recommende
         const evidenceContextText = this.evidenceSet && this.evidenceSet.items.length > 0
           ? `=== RESEARCHED EVIDENCE & FACTS TO ANCHOR SECTIONS ===
 Incorporate these specific researched facts and differentiators into section core concepts and topics:
-${this.evidenceSet.items.slice(0, 15).map(e => `- [${e.evidenceType}] ${e.claim}`).join('\n')}`
+${this.evidenceSet.items.slice(0, 15).map(e => {
+  let provenance = '[RESEARCH EVIDENCE]';
+  if (
+    e.evidenceType === 'BUSINESS_FACT' ||
+    e.evidenceType === 'FEATURE' ||
+    e.evidenceType === 'DIFFERENTIATOR' ||
+    e.evidenceType === 'TECHNICAL_SPEC' ||
+    e.sourceType === 'TARGET_SITE'
+  ) {
+    provenance = '[TARGET BRAND EVIDENCE]';
+  } else if (
+    e.evidenceType === 'COMPETITOR_OBSERVATION' ||
+    e.sourceType === 'COMPETITOR'
+  ) {
+    provenance = '[COMPETITOR EVIDENCE - DO NOT ATTRIBUTE TO TARGET]';
+  } else if (e.evidenceType === 'INFERENCE') {
+    provenance = '[EDITORIAL INFERENCE]';
+  }
+  return `- ${provenance} ${e.claim}`;
+}).join('\n')}`
           : '';
 
         const prompt = `Create a structured content brief and outline for an article targeting the canonical primary keyword: "${discovery.targetKeyword}".
@@ -1436,6 +1461,8 @@ readabilityStatus: "${readabilityStatus}"
 entityValidationStatus: "${entityValidationStatus}"
 structureValidationStatus: "${structureValidationStatus}"
 keywordValidationStatus: "${keywordValidationStatus}"
+primaryKeywordDensity: ${this.telemetry.researchIntelligence?.primaryKeywordDensity !== undefined ? this.telemetry.researchIntelligence.primaryKeywordDensity.toFixed(2) + '%' : '"N/A"'}
+keywordWarningCount: ${this.telemetry.researchIntelligence?.keywordWarningCount || 0}
 repairAttempts: ${retries}
 repairReasons: ${JSON.stringify(reviewHistory)}
 claimGroundingDiagnostics: ${JSON.stringify(this.telemetry.researchIntelligence?.claimGrounding || null)}
@@ -1472,7 +1499,7 @@ geminiModel: "${this.telemetry.geminiModel || 'gemini-3.5-flash-lite'}"
           content.targetKeyword = input.targetKeyword;
           content.validationStatus = finalValStatus === 'FAILED' ? 'REJECTED' : 'READY';
           content.qualityScore = finalValStatus === 'PASSED' ? 95 : (finalValStatus === 'PASSED_WITH_WARNINGS' ? 88 : 65);
-          content.targetBrand = input.saasProfile?.name || input.saasProfile?.website || input.targetKeyword;
+          content.targetBrand = this.targetBrand || input.saasProfile?.name || input.saasProfile?.website || '';
           content.validationFingerprint = ContentEvidenceValidator.computeValidationFingerprint(
             content.bodyMarkdown || '',
             content.targetBrand
@@ -1739,7 +1766,26 @@ WRITING RULES:
         if (sectionMap) {
           const evItems = (this.evidenceSet?.items || []).filter(e => sectionMap.evidenceIds.includes(e.id));
           const factsList = evItems.length > 0
-            ? `Researched Evidence to incorporate or reference:\n${evItems.map(e => `- [${e.evidenceType}] ${e.claim}`).join('\n')}`
+            ? `Researched Evidence to incorporate or reference:\n${evItems.map(e => {
+              let provenance = '[RESEARCH EVIDENCE]';
+              if (
+                e.evidenceType === 'BUSINESS_FACT' ||
+                e.evidenceType === 'FEATURE' ||
+                e.evidenceType === 'DIFFERENTIATOR' ||
+                e.evidenceType === 'TECHNICAL_SPEC' ||
+                e.sourceType === 'TARGET_SITE'
+              ) {
+                provenance = '[TARGET BRAND EVIDENCE]';
+              } else if (
+                e.evidenceType === 'COMPETITOR_OBSERVATION' ||
+                e.sourceType === 'COMPETITOR'
+              ) {
+                provenance = '[COMPETITOR EVIDENCE - DO NOT ATTRIBUTE TO TARGET]';
+              } else if (e.evidenceType === 'INFERENCE') {
+                provenance = '[EDITORIAL INFERENCE]';
+              }
+              return `- ${provenance} ${e.claim}`;
+            }).join('\n')}`
             : '';
           const bizFactsList = sectionMap.targetBusinessFacts && sectionMap.targetBusinessFacts.length > 0
             ? `Target Business Facts to emphasize:\n${sectionMap.targetBusinessFacts.map(f => `- ${f}`).join('\n')}`
@@ -1775,32 +1821,61 @@ CRITICAL EVIDENCE ACCURACY RULES:
 - TELEMETRY & BEHAVIORAL TRACKING BAN: Never invent session replay, analytics telemetry, or user drop-off tracking capabilities (e.g., claiming to "find the exact spots where users leave before finishing a task") unless verified by explicit evidence.
 - CAUSAL OUTCOME & DELIVERABLE BAN: Never promise unverified causal business outcomes (e.g., "improve retention", "guarantee conversion") or unverified deliverables (e.g., "give teams a roadmap") unless explicitly supported by verified offerings or evidence. Frame capabilities in terms of verified service activities (e.g., UX audits, onboarding and checkout redesigns, and user friction remediation).
 - STRICT ENTITY ISOLATION: Never attribute competitor statistics or features to ${this.targetBrand || 'the target brand'}, and never attribute ${this.targetBrand || 'the target brand'}'s features or metrics to competitors.
+- STRICT EVIDENCE PROVENANCE: Items tagged [TARGET BRAND EVIDENCE] belong strictly to ${this.targetBrand || 'the target business'}. Items tagged [COMPETITOR EVIDENCE - DO NOT ATTRIBUTE TO TARGET] must NEVER be attributed to ${this.targetBrand || 'the target business'}. Items tagged [EDITORIAL INFERENCE] represent general analysis, not empirical facts.
 - CONTRADICTION BAN: Never assert that a product lacks or fails to provide capabilities that the evidence proves it has.
 - Do NOT make ungrounded promotional superlatives.
 ======================================================`;
         }
 
-        const bType = this.saasProfile?.businessType;
+        const bType = (this.saasProfile?.businessType || '').toLowerCase();
+        const category = ((this.saasProfile as any)?.category || '').toLowerCase();
+        const desc = (this.saasProfile?.description || '').toLowerCase();
+
+        const isAgencyOrConsultancy = bType.includes('agency') || bType.includes('services') || bType.includes('portfolio') || category.includes('consultan') || category.includes('agency');
+        const isLegal = bType.includes('legal') || category.includes('legal') || desc.includes('law firm') || desc.includes('attorney') || desc.includes('legal');
+        const isIndustrial = bType.includes('industrial') || category.includes('industrial') || desc.includes('manufacturing') || desc.includes('industrial') || desc.includes('fabrication');
+        const isMarketplace = bType.includes('marketplace') || category.includes('marketplace') || desc.includes('two-sided market') || desc.includes('marketplace') || desc.includes('vendor directory');
+        const isEcommerce = bType.includes('ecommerce') || category.includes('ecommerce') || desc.includes('online store');
+        const isSaaS = bType === 'saas' || category.includes('saas') || category.includes('software');
+
         let terminologyGuidance = '';
-        if (bType === 'Agency/Portfolio' || bType === 'Services') {
+        if (isAgencyOrConsultancy) {
           terminologyGuidance = `- Use natural phrasing suited for a professional agency, studio, or consultancy: "the agency", "the team", "the consultants", "the practice", or the specific verified service name.
    - STRICT BAN: DO NOT refer to this organization as "the platform", "the software", "the tool", "the CRM", or "the system".`;
-        } else if (bType === 'SaaS') {
-          terminologyGuidance = `- Use natural phrasing suited for a software product: "the platform", "the software", or "the solution" only when supported by verified profile capabilities.
-   - DO NOT refer to it as "the CRM" unless the profile explicitly verifies CRM functionality.`;
-        } else if (bType === 'Ecommerce') {
+        } else if (isLegal) {
+          terminologyGuidance = `- Use phrasing suited for a professional legal practice: "the firm", "the legal practice", "the attorneys", "the counsel", "the legal team".
+   - STRICT BAN: DO NOT refer to this organization as "the software", "the platform", "the tool", or "the SaaS".`;
+        } else if (isIndustrial) {
+          terminologyGuidance = `- Use phrasing suited for industrial manufacturing or production: "the manufacturer", "the facility", "the producer", "the supplier", "the engineering team".
+   - STRICT BAN: DO NOT refer to this organization as "the platform", "the app", "the software", or "the CRM" unless explicitly verified industrial IoT software.`;
+        } else if (isMarketplace) {
+          terminologyGuidance = `- Use phrasing suited for a marketplace or directory: "the marketplace", "the network", "the directory", "the exchange", "the platform".
+   - DO NOT refer to it as a single-vendor SaaS tool or an agency.`;
+        } else if (isEcommerce) {
           terminologyGuidance = `- Use phrasing suited for retail/commerce: "the store", "the company", "the brand".
    - DO NOT refer to it as a software platform, CRM, or agency.`;
+        } else if (isSaaS) {
+          terminologyGuidance = `- Use natural phrasing suited for a software product: "the platform", "the software", or "the solution" only when supported by verified profile capabilities.
+   - DO NOT refer to it as "the CRM" unless the profile explicitly verifies CRM functionality.`;
         } else {
           terminologyGuidance = `- Use neutral terminology: "the organization", "the company", "the team", or "the brand".
    - DO NOT assume or assert that it is a software product, platform, CRM, or tool without verified evidence.`;
         }
 
         let tacticalGuidance = '';
-        if (bType === 'Agency/Portfolio' || bType === 'Services') {
+        if (isAgencyOrConsultancy) {
           tacticalGuidance = `   - Focus on practical client challenges, audit procedures, evaluation criteria, and design/remediation methodologies.
    - Answer: "What actionable guidance, process steps, or evaluation standards should practitioners apply?"`;
-        } else if (bType === 'SaaS') {
+        } else if (isLegal) {
+          tacticalGuidance = `   - Focus on regulatory compliance, risk mitigation frameworks, statutory considerations, and procedural steps.
+   - Answer: "What compliance standards, legal risks, or audit steps should organizations apply?"`;
+        } else if (isIndustrial) {
+          tacticalGuidance = `   - Focus on manufacturing standards, operational safety, supply chain reliability, tolerance specifications, and quality assurance.
+   - Answer: "What operational specifications and quality criteria must teams verify in production?"`;
+        } else if (isMarketplace) {
+          tacticalGuidance = `   - Focus on vendor vetting, buyer-seller liquidity, transaction integrity, discovery filters, and platform governance.
+   - Answer: "How should buyers and suppliers evaluate partners and navigate marketplace workflows?"`;
+        } else if (isSaaS) {
           tacticalGuidance = `   - Focus on concrete practitioner workflows and practical execution steps relevant to this software domain.
    - Answer: "What would a practitioner or team member actually do with these capabilities in daily practice?"`;
         } else {

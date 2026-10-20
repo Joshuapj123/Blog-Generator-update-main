@@ -190,6 +190,8 @@ export interface ResearchIntelligenceDiagnostics {
   evidenceUsageRate: number; // 0 to 100%
   repetitionFlags: number;
   keywordStuffingFlags: number;
+  keywordWarningCount?: number;
+  primaryKeywordDensity?: number;
   claimGrounding?: ClaimGroundingDiagnostics;
   structuredGroundingDiagnostics?: GroundingDecisionDiagnostic[];
   groundingFailureBreakdown?: Record<GroundingFailureCategory, number>;
