@@ -6,7 +6,9 @@ import {
   ResearchIntelligenceDiagnostics,
   CONTENT_INTELLIGENCE_POLICY,
   CanonicalClaim,
-  ClaimGroundingDiagnostics
+  ClaimGroundingDiagnostics,
+  GroundingFailureCategory,
+  GroundingDecisionDiagnostic
 } from '@/core/contracts/evidence';
 import { ContentBrief } from '@/core/contracts/schemas';
 import { ClaimExtractionService } from './ClaimExtractionService';
@@ -24,6 +26,8 @@ export interface EvidenceValidationResult {
   criticalErrors: string[];
   canonicalClaims?: CanonicalClaim[];
   claimGroundingDiagnostics?: ClaimGroundingDiagnostics;
+  structuredDiagnostics?: GroundingDecisionDiagnostic[];
+  groundingFailureBreakdown?: Record<GroundingFailureCategory, number>;
 }
 
 export class ContentEvidenceValidator {
@@ -65,6 +69,63 @@ export class ContentEvidenceValidator {
   ]);
 
   /**
+   * Sanitizes diagnostic URLs to remove basic auth credentials and sensitive query parameters
+   * (e.g. api keys, tokens, session IDs, passwords).
+   */
+  public static sanitizeDiagnosticUrl(urlStr: string): string {
+    if (!urlStr) return '';
+    try {
+      const targetUrl = urlStr.startsWith('http://') || urlStr.startsWith('https://')
+        ? urlStr
+        : `https://${urlStr}`;
+      const parsed = new URL(targetUrl);
+      // Strip userinfo credentials (user:password@)
+      parsed.username = '';
+      parsed.password = '';
+      // Redact sensitive query parameters
+      const sensitiveParams = [
+        'key', 'api_key', 'apikey', 'api-key', 'secret', 'token',
+        'access_token', 'refresh_token', 'auth', 'password', 'passwd', 'pwd',
+        'credential', 'credentials', 'session', 'session_id'
+      ];
+      for (const p of sensitiveParams) {
+        if (parsed.searchParams.has(p)) {
+          parsed.searchParams.set(p, '[REDACTED]');
+        }
+      }
+      return parsed.toString();
+    } catch {
+      return ContentEvidenceValidator.sanitizeDiagnosticText(urlStr);
+    }
+  }
+
+  /**
+   * Sanitizes diagnostic text to prevent leaking sensitive API keys, secrets, tokens,
+   * passwords, session cookies, or raw HTML dumps in diagnostic telemetry.
+   */
+  public static sanitizeDiagnosticText(text: string): string {
+    if (!text) return '';
+    let sanitized = text;
+    // Strip raw HTML tags (including attributes)
+    sanitized = sanitized.replace(/<[^>]+>/g, ' ');
+    // Redact Google AI Studio / Gemini API keys
+    sanitized = sanitized.replace(/AIza[0-9A-Za-z_-]{20,}/g, '[REDACTED_API_KEY]');
+    // Redact OpenAI, Perplexity, Anthropic, Stripe API keys
+    sanitized = sanitized.replace(/sk-[0-9A-Za-z_-]{10,}/g, '[REDACTED_API_KEY]');
+    // Redact Authorization Bearer & Basic tokens
+    sanitized = sanitized.replace(/Bearer\s+[A-Za-z0-9._~+/-]+=*/gi, 'Bearer [REDACTED_TOKEN]');
+    sanitized = sanitized.replace(/Basic\s+[A-Za-z0-9+/=]{10,}/gi, 'Basic [REDACTED_TOKEN]');
+    // Redact Cookies and session IDs
+    sanitized = sanitized.replace(/(?:cookie|set-cookie):\s*[^;\r\n]+/gi, 'Cookie: [REDACTED_COOKIE]');
+    sanitized = sanitized.replace(/(?:session_id|sessionid|sess_token)=[^\s;&]+/gi, 'session_id=[REDACTED]');
+    // Redact key=value secret patterns
+    sanitized = sanitized.replace(/(?:api[-_]?key|secret|token|access[-_]?token|refresh[-_]?token|password|passwd|pwd|auth|credential)[=:\s]+[A-Za-z0-9_.-]+/gi, '$1=[REDACTED]');
+    // Redact config/env variable constants
+    sanitized = sanitized.replace(/\b(?:API_KEY|SECRET_KEY|TOKEN|PASSWORD|AUTH_TOKEN)_[A-Za-z0-9_-]+\b/gi, '[REDACTED_SECRET]');
+    return sanitized.replace(/\s+/g, ' ').trim();
+  }
+
+  /**
    * Validates generated article content against verified research evidence and policy thresholds.
    */
   public static validate(
@@ -74,7 +135,13 @@ export class ContentEvidenceValidator {
     sectionEvidenceMaps?: SectionEvidenceMap[],
     targetBrand?: string,
     gapMatrix?: ContentGapMatrix,
-    saasProfile?: any
+    saasProfile?: any,
+    options?: {
+      correlationId?: string;
+      repairAttempted?: boolean;
+      repairPassedRevalidation?: boolean;
+      unrepairableClaimIds?: string[];
+    }
   ): EvidenceValidationResult {
     bodyMarkdown = ClaimExtractionService.normalizeMarkdownLinks(bodyMarkdown || '');
     const warnings: string[] = [];
@@ -314,7 +381,67 @@ export class ContentEvidenceValidator {
       warnings.push(...completenessResults.warnings);
     }
 
-    // 8. Compute Diagnostics
+    // 8. Compute Diagnostics and Structured Decision Artifacts
+    const publicationGateDecision: 'READY' | 'REJECTED' = criticalErrors.length === 0 ? 'READY' : 'REJECTED';
+    const isRepairAttempted = Boolean(options?.repairAttempted);
+    const isRepairPassed = options?.repairAttempted
+      ? (options.repairPassedRevalidation ?? (criticalErrors.length === 0))
+      : undefined;
+
+    const structuredDiagnostics: GroundingDecisionDiagnostic[] = [];
+    const groundingFailureBreakdown: Record<GroundingFailureCategory, number> = {
+      TARGET_EVIDENCE_MISSING: 0,
+      TARGET_EVIDENCE_LOW_CONFIDENCE: 0,
+      ENTITY_ISOLATION_VIOLATION: 0,
+      PROPOSITION_MISMATCH: 0,
+      NEGATION_CONTRADICTION: 0,
+      CONDITIONAL_GUARANTEE_MISMATCH: 0,
+      STALE_EVIDENCE: 0,
+      UNSUPPORTED_QUANTITATIVE_CLAIM: 0,
+      REPAIR_UNAVAILABLE: 0,
+      REPAIR_REVALIDATION_FAILED: 0,
+    };
+
+    for (const c of groundingResult.claims) {
+      if (isRepairAttempted && !isRepairPassed && c.materiality === 'CRITICAL' && c.supportStatus !== 'SUPPORTED' && c.supportStatus !== 'PARTIALLY_SUPPORTED') {
+        if (options?.unrepairableClaimIds?.includes(c.id)) {
+          c.failureCategory = 'REPAIR_UNAVAILABLE';
+        } else {
+          c.failureCategory = 'REPAIR_REVALIDATION_FAILED';
+        }
+      }
+
+      if (c.failureCategory && groundingFailureBreakdown[c.failureCategory] !== undefined) {
+        groundingFailureBreakdown[c.failureCategory]++;
+      }
+
+      const groundedEv = allEvidence.filter(e => c.groundedEvidenceIds?.includes(e.id));
+      const isEntityViolation = Boolean(c.rejectionReason?.includes('Entity isolation violation'));
+
+      structuredDiagnostics.push({
+        correlationId: ContentEvidenceValidator.sanitizeDiagnosticText(options?.correlationId || 'correlation-undefined'),
+        claimId: c.id,
+        claimText: ContentEvidenceValidator.sanitizeDiagnosticText(c.claimText),
+        claimType: c.claimType,
+        materiality: c.materiality,
+        supportStatus: c.supportStatus,
+        failureCategory: c.failureCategory,
+        groundedEvidenceIds: c.groundedEvidenceIds || [],
+        evidenceSources: groundedEv.map(e => ({
+          id: e.id,
+          sourceType: e.sourceType,
+          sourceUrl: ContentEvidenceValidator.sanitizeDiagnosticUrl(e.sourceUrl),
+          confidence: e.confidence,
+          evidenceType: e.evidenceType,
+        })),
+        entityIsolationValid: !isEntityViolation,
+        rejectionReason: c.rejectionReason ? ContentEvidenceValidator.sanitizeDiagnosticText(c.rejectionReason) : undefined,
+        repairAttempted: isRepairAttempted,
+        repairPassedRevalidation: isRepairPassed,
+        publicationGateDecision,
+      });
+    }
+
     const sectionsCount = sectionEvidenceMaps?.length || brief.outline.length;
     const sectionsWithEvidence = (sectionEvidenceMaps || []).filter(m => m.evidenceIds.length > 0).length || sectionsCount;
     const sectionsWithoutEvidence = sectionsCount - sectionsWithEvidence;
@@ -339,6 +466,8 @@ export class ContentEvidenceValidator {
       repetitionFlags: repetitionIssues.length,
       keywordStuffingFlags: keywordStuffingIssues.length,
       claimGrounding: groundingResult.diagnostics,
+      structuredGroundingDiagnostics: structuredDiagnostics,
+      groundingFailureBreakdown,
     };
 
     return {
@@ -353,6 +482,8 @@ export class ContentEvidenceValidator {
       criticalErrors,
       canonicalClaims: groundingResult.claims,
       claimGroundingDiagnostics: groundingResult.diagnostics,
+      structuredDiagnostics,
+      groundingFailureBreakdown,
     };
   }
 

@@ -9,6 +9,17 @@ export class DistributionPlanner {
     eligibleChannels: DistributionChannel[];
     schedulingRules: { publishMode: 'now' | 'schedule'; scheduledAt?: string };
   } {
+    // Fail-closed gate: Only assets explicitly and freshly validated as 'READY' are eligible for distribution.
+    // Missing, undefined, null, unknown, malformed, or 'REJECTED' status strictly yields zero eligible channels.
+    if (!asset || asset.validationStatus !== 'READY' || !asset.bodyMarkdown || asset.bodyMarkdown.trim().length === 0) {
+      return {
+        eligibleChannels: [],
+        schedulingRules: {
+          publishMode: 'now'
+        }
+      };
+    }
+
     const candidateChannels = requestedChannels && requestedChannels.length > 0
       ? requestedChannels
       : (['website', 'webhook'] as DistributionChannel[]);

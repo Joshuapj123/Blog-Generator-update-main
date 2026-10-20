@@ -345,9 +345,15 @@ ${hasTitleIssue ? 'OPTIMIZED TITLE: [Your optimized title here]\n\n' : ''}REPAIR
     claims: CanonicalClaim[],
     targetBrand?: string,
     saasProfile?: SaaSProfile
-  ): { repairedMarkdown: string; repairedClaimsCount: number } {
+  ): {
+    repairedMarkdown: string;
+    repairedClaimsCount: number;
+    unrepairableClaimsCount: number;
+    unrepairableClaimIds: string[];
+  } {
     let result = markdown;
     let count = 0;
+    const unrepairableClaimIds: string[] = [];
 
     const criticalUnsupported = claims.filter(
       c => c.materiality === 'CRITICAL' && c.supportStatus !== 'SUPPORTED' && c.supportStatus !== 'PARTIALLY_SUPPORTED'
@@ -361,10 +367,19 @@ ${hasTitleIssue ? 'OPTIMIZED TITLE: [Your optimized title here]\n\n' : ''}REPAIR
         if (repairedSentence !== targetSentence) {
           result = result.replace(targetSentence, repairedSentence);
           count++;
+        } else {
+          unrepairableClaimIds.push(c.id);
         }
+      } else {
+        unrepairableClaimIds.push(c.id);
       }
     }
 
-    return { repairedMarkdown: result, repairedClaimsCount: count };
+    return {
+      repairedMarkdown: result,
+      repairedClaimsCount: count,
+      unrepairableClaimsCount: unrepairableClaimIds.length,
+      unrepairableClaimIds,
+    };
   }
 }

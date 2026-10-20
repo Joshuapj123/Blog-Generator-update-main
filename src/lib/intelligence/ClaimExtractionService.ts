@@ -286,7 +286,7 @@ export class ClaimExtractionService {
     // Multipliers
     /(?:(?:more than|greater than|over|above|exceeding|at least|minimum of|less than|fewer than|under|below|at most|up to|maximum of|approximately|approx\.|about|around|nearly|roughly|~)\s+)?\b\d+(?:\.\d+)?\s*(?:times|x|fold)\b/gi,
     // Quantities & counts (allowing optional descriptive adjective e.g. senior developers, integrations)
-    /(?:(?:more than|greater than|over|above|exceeding|at least|minimum of|less than|fewer than|under|below|at most|up to|maximum of|approximately|approx\.|about|around|nearly|roughly|~)\s+)?\b\d+(?:,\d+)?\s*(?:(?:senior|junior|lead|enterprise|cloud|active|total)\s+)?(?:users?|clients?|nodes?|servers?|clusters?|engineers?|developers?|microservices|pipelines?|tenants?|customers?|integrations?)\b/gi,
+    /(?:(?:more than|greater than|over|above|exceeding|at least|minimum of|less than|fewer than|under|below|at most|up to|maximum of|approximately|approx\.|about|around|nearly|roughly|~)\s+)?\b\d+(?:,\d+)?\s*(?:(?:senior|junior|lead|enterprise|cloud|active|total|concurrent|registered|connected)\s+)?(?:users?|clients?|nodes?|servers?|clusters?|engineers?|developers?|microservices|pipelines?|tenants?|customers?|integrations?)\b/gi,
   ];
 
   /**

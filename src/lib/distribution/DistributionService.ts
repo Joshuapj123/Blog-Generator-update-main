@@ -48,6 +48,18 @@ export class DistributionService {
     request: DistributionRequest,
     options?: { dryRun?: boolean }
   ): Promise<DistributionResult[]> {
+    // Fail-closed gate: Only assets explicitly and freshly validated as 'READY' are eligible for distribution.
+    // Missing, undefined, null, unknown, malformed, or 'REJECTED' status strictly blocks distribution.
+    if (!asset || asset.validationStatus !== 'READY' || !asset.bodyMarkdown || asset.bodyMarkdown.trim().length === 0) {
+      const statusLabel = !asset ? 'MISSING_ASSET' : (asset.validationStatus || 'UNVALIDATED');
+      console.warn(`[DistributionService] Refusing distribution: ContentAsset "${asset?.title || 'Untitled'}" has validationStatus "${statusLabel}". Only 'READY' assets can be distributed.`);
+      return [{
+        channel: 'website',
+        status: 'FAILED',
+        error: `Distribution blocked: ContentAsset validationStatus is "${statusLabel}". Only 'READY' assets can be distributed.`
+      }];
+    }
+
     const results: DistributionResult[] = [];
 
     const getJobKeyFn = this.repo

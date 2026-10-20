@@ -265,6 +265,7 @@ export class AgentOrchestrator {
   private sectionEvidenceMaps: SectionEvidenceMap[] = [];
   private internalLinks: string[] = [];
   private saasProfile?: any;
+  private lastUnrepairableClaimIds: string[] = [];
   public budgetGuard: RuntimeBudgetGuard;
 
   constructor(private options: AgentOrchestratorOptions) {
@@ -1263,7 +1264,7 @@ Return only the schema-compliant structured object.`;
       let reviewStage: StageExecution | undefined;
       try {
         reviewStage = this.startStage(AgentStage.REVIEW);
-        review = await this.runReview(content, plan);
+        review = await this.runReview(content, plan, { repairAttempted: false });
         
         // Bounded Repair Loop
         let retries = 0;
@@ -1312,7 +1313,11 @@ Return only the schema-compliant structured object.`;
             throw repairErr;
           }
 
-          review = await this.runReview(content, plan);
+          review = await this.runReview(content, plan, {
+            repairAttempted: true,
+            attemptIndex: retries,
+            unrepairableClaimIds: this.lastUnrepairableClaimIds
+          });
           repairableIssues = getRepairableIssues(review);
         }
 
@@ -1406,6 +1411,8 @@ keywordValidationStatus: "${keywordValidationStatus}"
 repairAttempts: ${retries}
 repairReasons: ${JSON.stringify(reviewHistory)}
 claimGroundingDiagnostics: ${JSON.stringify(this.telemetry.researchIntelligence?.claimGrounding || null)}
+groundingFailureBreakdown: ${JSON.stringify(this.telemetry.researchIntelligence?.groundingFailureBreakdown || null)}
+structuredGroundingDiagnosticsCount: ${this.telemetry.researchIntelligence?.structuredGroundingDiagnostics?.length || 0}
 finalValidationStatus: "${finalValidationStatus}"
 FirestoreSave: true
 EditorRendered: true
@@ -1896,7 +1903,15 @@ WORD BUDGET:
     };
   }
 
-  private async runReview(content: ContentAsset, brief: ContentBrief): Promise<ReviewResult> {
+  private async runReview(
+    content: ContentAsset,
+    brief: ContentBrief,
+    options?: {
+      repairAttempted?: boolean;
+      attemptIndex?: number;
+      unrepairableClaimIds?: string[];
+    }
+  ): Promise<ReviewResult> {
     const targetKeywords = brief.targetKeywords;
     const targetEntities = brief.outline.flatMap(node => node.assignedEntities || []);
 
@@ -1928,7 +1943,12 @@ WORD BUDGET:
       this.sectionEvidenceMaps,
       this.targetBrand,
       this.gapMatrix,
-      this.saasProfile
+      this.saasProfile,
+      {
+        correlationId: this.telemetry.runId || 'run-default',
+        repairAttempted: options?.repairAttempted ?? false,
+        unrepairableClaimIds: options?.unrepairableClaimIds || this.lastUnrepairableClaimIds,
+      }
     );
 
     this.telemetry.researchIntelligence = evidenceValidation.diagnostics;
@@ -2150,6 +2170,7 @@ ${hasTitleIssue ? 'OPTIMIZED TITLE: [Your optimized short title here]\n\n' : ''}
           this.targetBrand,
           this.saasProfile
         );
+        this.lastUnrepairableClaimIds = surgicalResult.unrepairableClaimIds || [];
         if (surgicalResult.repairedClaimsCount > 0) {
           console.log(`[AgentOrchestrator] Surgically qualified ${surgicalResult.repairedClaimsCount} ungrounded critical claim(s) in repaired markdown.`);
           repairedBody = surgicalResult.repairedMarkdown;

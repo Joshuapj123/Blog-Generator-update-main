@@ -7,6 +7,7 @@ import {
   EvidenceSet,
   SectionEvidenceMap,
   QuantitativeValue,
+  GroundingFailureCategory,
 } from '@/core/contracts/evidence';
 import { ClaimExtractionService } from './ClaimExtractionService';
 
@@ -649,6 +650,7 @@ export class ClaimGroundingEngine {
           ...claim,
           supportStatus: 'UNVERIFIABLE',
           rejectionReason: `Unattributed external statistic: source "${claim.attributionSource}" not found in verified research evidence.`,
+          failureCategory: 'UNSUPPORTED_QUANTITATIVE_CLAIM',
         };
       }
     }
@@ -674,6 +676,9 @@ export class ClaimGroundingEngine {
         ...claim,
         supportStatus: 'UNSUPPORTED',
         rejectionReason: 'No research evidence available.',
+        failureCategory: (claim.claimType === 'QUANTITATIVE' || (claim.quantitativeValue && claim.quantitativeValue.normalizedNumber !== undefined))
+          ? 'UNSUPPORTED_QUANTITATIVE_CLAIM'
+          : 'TARGET_EVIDENCE_MISSING',
       };
     }
 
@@ -688,11 +693,19 @@ export class ClaimGroundingEngine {
     for (const ev of candidateItems) {
       const contradiction = this.checkContradiction(claim, ev, targetBrand, knownCompetitors);
       if (contradiction) {
+        let failureCategory: GroundingFailureCategory = 'NEGATION_CONTRADICTION';
+        if (contradiction.includes('discontinued') || contradiction.includes('deprecated') || contradiction.includes('historical')) {
+          failureCategory = 'STALE_EVIDENCE';
+        } else if (contradiction.startsWith('Numeric contradiction') || contradiction.startsWith('Unit contradiction')) {
+          failureCategory = 'PROPOSITION_MISMATCH';
+        }
+
         return {
           ...claim,
           supportStatus: 'CONTRADICTED',
           contradictionEvidenceId: ev.id,
           rejectionReason: contradiction,
+          failureCategory,
         };
       }
     }
@@ -712,6 +725,7 @@ export class ClaimGroundingEngine {
         ...claim,
         supportStatus: 'UNSUPPORTED',
         rejectionReason: 'Quantitative metric not supported by research evidence.',
+        failureCategory: 'UNSUPPORTED_QUANTITATIVE_CLAIM',
       };
     }
 
@@ -748,6 +762,7 @@ export class ClaimGroundingEngine {
       ...claim,
       supportStatus: 'UNSUPPORTED',
       rejectionReason: 'No supporting evidence found matching claim assertions.',
+      failureCategory: 'TARGET_EVIDENCE_MISSING',
     };
   }
 
@@ -901,8 +916,23 @@ export class ClaimGroundingEngine {
     const claimUnit = qv.unit;
     const tolerance = qv.tolerance ?? 0.05;
     let leakageResult: CanonicalClaim | null = null;
+    let disqualifiedForLowConfidence = false;
 
     for (const ev of candidates) {
+      // Quantitative metrics cannot be substantiated by low-confidence or inference evidence
+      if (ev.confidence === 'LOW' || ev.evidenceType === 'INFERENCE') {
+        const evQuants = ClaimExtractionService.parseQuantitativeValues(ev.claim);
+        const hasMatchingMetric = evQuants.some(eq =>
+          eq.normalizedNumber !== undefined &&
+          claimNum !== undefined &&
+          Math.abs(claimNum - eq.normalizedNumber) / (eq.normalizedNumber || 1) <= tolerance
+        );
+        if (hasMatchingMetric) {
+          disqualifiedForLowConfidence = true;
+        }
+        continue;
+      }
+
       // 1. Entity isolation check (Phase 6)
       const entityCheck = this.validateEntityIsolation(claim, ev, targetBrand, knownCompetitors);
       if (!entityCheck.valid) {
@@ -918,6 +948,7 @@ export class ClaimGroundingEngine {
               ...claim,
               supportStatus: 'UNSUPPORTED',
               rejectionReason: entityCheck.reason,
+              failureCategory: 'ENTITY_ISOLATION_VIOLATION',
             };
           }
         }
@@ -946,6 +977,7 @@ export class ClaimGroundingEngine {
                 ...claim,
                 supportStatus: 'UNSUPPORTED',
                 rejectionReason: propCheck.reason,
+                failureCategory: 'PROPOSITION_MISMATCH',
               };
             }
             return {
@@ -967,6 +999,7 @@ export class ClaimGroundingEngine {
                 supportStatus: 'OVERSTATED',
                 contradictionEvidenceId: ev.id,
                 rejectionReason: `Overstated claim: evidence (${ev.id}) states at most ${evNum} but claim asserts over ${claimNum}.`,
+                failureCategory: 'PROPOSITION_MISMATCH',
               };
             }
           }
@@ -982,6 +1015,7 @@ export class ClaimGroundingEngine {
                 ...claim,
                 supportStatus: 'UNSUPPORTED',
                 rejectionReason: propCheck.reason,
+                failureCategory: 'PROPOSITION_MISMATCH',
               };
             }
             return {
@@ -996,6 +1030,7 @@ export class ClaimGroundingEngine {
               supportStatus: 'OVERSTATED',
               contradictionEvidenceId: ev.id,
               rejectionReason: `Overstated metric: claim asserts ${claimNum}${claimUnit || ''} but evidence (${ev.id}) only supports ${evNum}${eq.unit || ''}.`,
+              failureCategory: 'PROPOSITION_MISMATCH',
             };
           }
         }
@@ -1018,6 +1053,15 @@ export class ClaimGroundingEngine {
 
     if (leakageResult) {
       return leakageResult;
+    }
+
+    if (disqualifiedForLowConfidence) {
+      return {
+        ...claim,
+        supportStatus: 'UNSUPPORTED',
+        rejectionReason: 'Low-confidence or inferential evidence cannot ground quantitative or empirical metrics.',
+        failureCategory: 'TARGET_EVIDENCE_LOW_CONFIDENCE',
+      };
     }
 
     return null;
@@ -1069,24 +1113,35 @@ export class ClaimGroundingEngine {
       )
     );
 
+    let candidateDisqualifiedForLowConfidence = false;
+    let candidateDisqualifiedForStale = false;
+    let candidateDisqualifiedForConditional = false;
+    let candidateDisqualifiedForNegation = false;
+    let candidateDisqualifiedForProposition = false;
+
     for (const ev of sortedCandidates) {
       const isInferential = ev.evidenceType === 'INFERENCE' || ev.confidence === 'LOW';
+      const evLower = ev.claim.toLowerCase();
+      const evTokens = this.getPropositionalTokens(evLower, targetBrand, knownCompetitors);
+      if (evTokens.length === 0) continue;
+      const evTokenSet = new Set(evTokens);
+      const matchedTokens = claimTokens.filter(t => evTokenSet.has(t));
+      const hasTopicalOverlap = matchedTokens.length >= 1 || (evTokens.length >= 2 && claimTokens.some(t => evLower.includes(t)));
 
       // P0 / Phase 4 & Phase 2: Inferences and low-confidence items cannot ground CRITICAL claims
       // (including hard factual, quantitative, pricing, guarantee, SLA, compliance, or critical entity capabilities)
       if (isInferential && (claim.materiality === 'CRITICAL' || isHardFactualClaim)) {
+        if (hasTopicalOverlap) {
+          candidateDisqualifiedForLowConfidence = true;
+        }
         continue;
       }
 
       // Entity isolation check (Phase 2 / Defect 1 & Phase 6.3)
       const entityCheck = this.validateEntityIsolation(claim, ev, targetBrand, knownCompetitors);
-      const evLower = ev.claim.toLowerCase();
-      const evTokens = this.getPropositionalTokens(evLower, targetBrand, knownCompetitors);
-      if (evTokens.length === 0) continue;
 
       if (!entityCheck.valid) {
         if (entityCheck.leakage && (claim.claimType === 'ENTITY_CAPABILITY' || claim.claimType === 'COMPETITOR_ASSERTION')) {
-          const evTokenSet = new Set(evTokens);
           const matched = claimTokens.filter(t => evTokenSet.has(t));
           const requiredMatches = Math.min(3, Math.ceil(claimTokens.length * 0.5));
           const union = new Set([...claimTokens, ...evTokens]).size;
@@ -1102,6 +1157,7 @@ export class ClaimGroundingEngine {
               ...claim,
               supportStatus: 'UNSUPPORTED',
               rejectionReason: entityCheck.reason,
+              failureCategory: 'ENTITY_ISOLATION_VIOLATION',
             };
           }
         }
@@ -1124,6 +1180,9 @@ export class ClaimGroundingEngine {
         }
       }
       if (evHasNegation !== claimHasNegation) {
+        if (hasTopicalOverlap) {
+          candidateDisqualifiedForNegation = true;
+        }
         continue; // Polarity mismatch: negated evidence cannot support positive claim and vice versa
       }
 
@@ -1133,12 +1192,18 @@ export class ClaimGroundingEngine {
         pat.test(claimLower) || pat.test(claim.sentence.toLowerCase())
       );
       if (evIsConditional && claimIsGuarantee) {
+        if (hasTopicalOverlap) {
+          candidateDisqualifiedForConditional = true;
+        }
         continue; // Conditional evidence cannot ground an unconditional guarantee
       }
 
       // Stale / discontinued evidence cannot substantiate present-tense capabilities (Case 12)
       const isEvStale = ClaimGroundingEngine.STALE_EVIDENCE_PATTERNS.some(pat => pat.test(evLower));
       if (isEvStale && /\b(?:provides?|offers?|delivers?|features?|supports?|includes?|operates?|develops?|builds?)\b/i.test(claimLower)) {
+        if (hasTopicalOverlap) {
+          candidateDisqualifiedForStale = true;
+        }
         continue;
       }
 
@@ -1170,9 +1235,11 @@ export class ClaimGroundingEngine {
       if (claim.claimType === 'COMPARATIVE') {
         const comparativeTokens = claimTokens.filter(t => ClaimGroundingEngine.COMPARATIVE_DIFFERENTIAL_STEMS.has(t));
         if (comparativeTokens.length > 0) {
-          const evTokenSet = new Set(evTokens);
           const hasComparativeSupport = comparativeTokens.some(t => evTokenSet.has(t));
           if (!hasComparativeSupport) {
+            if (hasTopicalOverlap) {
+              candidateDisqualifiedForProposition = true;
+            }
             continue; // Evidence does not support the comparative outcome/predicate
           }
         }
@@ -1243,7 +1310,6 @@ export class ClaimGroundingEngine {
       }
 
       // Rule 2: Bounded Lexical Co-occurrence (matches on substantive propositional tokens)
-      const evTokenSet = new Set(evTokens);
       const matched = claimTokens.filter(t => evTokenSet.has(t));
       const requiredMatches = Math.min(3, Math.ceil(claimTokens.length * 0.5));
 
@@ -1262,6 +1328,47 @@ export class ClaimGroundingEngine {
 
     if (leakageResult) {
       return leakageResult;
+    }
+
+    if (candidateDisqualifiedForStale) {
+      return {
+        ...claim,
+        supportStatus: 'UNSUPPORTED',
+        rejectionReason: 'Evidence is historical, deprecated, or discontinued and cannot substantiate present-day capabilities.',
+        failureCategory: 'STALE_EVIDENCE',
+      };
+    }
+    if (candidateDisqualifiedForConditional) {
+      return {
+        ...claim,
+        supportStatus: 'UNSUPPORTED',
+        rejectionReason: 'Conditional or qualified evidence cannot substantiate an unconditional guarantee.',
+        failureCategory: 'CONDITIONAL_GUARANTEE_MISMATCH',
+      };
+    }
+    if (candidateDisqualifiedForLowConfidence) {
+      return {
+        ...claim,
+        supportStatus: 'UNSUPPORTED',
+        rejectionReason: 'Low-confidence or inferential evidence cannot ground critical or hard-factual assertions.',
+        failureCategory: 'TARGET_EVIDENCE_LOW_CONFIDENCE',
+      };
+    }
+    if (candidateDisqualifiedForNegation) {
+      return {
+        ...claim,
+        supportStatus: 'UNSUPPORTED',
+        rejectionReason: 'Negation polarity mismatch between claim and evidence.',
+        failureCategory: 'NEGATION_CONTRADICTION',
+      };
+    }
+    if (candidateDisqualifiedForProposition) {
+      return {
+        ...claim,
+        supportStatus: 'UNSUPPORTED',
+        rejectionReason: 'Comparative differential outcome is not supported by evidence.',
+        failureCategory: 'PROPOSITION_MISMATCH',
+      };
     }
 
     return null;

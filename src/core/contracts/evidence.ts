@@ -191,6 +191,8 @@ export interface ResearchIntelligenceDiagnostics {
   repetitionFlags: number;
   keywordStuffingFlags: number;
   claimGrounding?: ClaimGroundingDiagnostics;
+  structuredGroundingDiagnostics?: GroundingDecisionDiagnostic[];
+  groundingFailureBreakdown?: Record<GroundingFailureCategory, number>;
 }
 
 export type CanonicalClaimType =
@@ -209,6 +211,41 @@ export type ClaimSupportStatus =
   | 'CONTRADICTED'
   | 'OVERSTATED'
   | 'UNVERIFIABLE';
+
+export type GroundingFailureCategory =
+  | 'TARGET_EVIDENCE_MISSING'
+  | 'TARGET_EVIDENCE_LOW_CONFIDENCE'
+  | 'ENTITY_ISOLATION_VIOLATION'
+  | 'PROPOSITION_MISMATCH'
+  | 'NEGATION_CONTRADICTION'
+  | 'CONDITIONAL_GUARANTEE_MISMATCH'
+  | 'STALE_EVIDENCE'
+  | 'UNSUPPORTED_QUANTITATIVE_CLAIM'
+  | 'REPAIR_UNAVAILABLE'
+  | 'REPAIR_REVALIDATION_FAILED';
+
+export interface GroundingDecisionDiagnostic {
+  correlationId: string;
+  claimId: string;
+  claimText: string;
+  claimType: CanonicalClaimType;
+  materiality: 'CRITICAL' | 'IMPORTANT' | 'SUPPLEMENTAL';
+  supportStatus: ClaimSupportStatus;
+  failureCategory?: GroundingFailureCategory;
+  groundedEvidenceIds: string[];
+  evidenceSources: Array<{
+    id: string;
+    sourceType: SourceType;
+    sourceUrl: string;
+    confidence: EvidenceConfidence;
+    evidenceType?: EvidenceType;
+  }>;
+  entityIsolationValid: boolean;
+  rejectionReason?: string;
+  repairAttempted: boolean;
+  repairPassedRevalidation?: boolean;
+  publicationGateDecision: 'READY' | 'REJECTED';
+}
 
 export interface QuantitativeValue {
   raw: string;
@@ -238,6 +275,7 @@ export interface CanonicalClaim {
   groundedEvidenceIds: string[];
   rejectionReason?: string;
   contradictionEvidenceId?: string;
+  failureCategory?: GroundingFailureCategory;
 }
 
 export interface ClaimGroundingDiagnostics {
