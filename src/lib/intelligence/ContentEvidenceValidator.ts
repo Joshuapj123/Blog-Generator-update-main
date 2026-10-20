@@ -235,12 +235,17 @@ export class ContentEvidenceValidator {
     }
 
     // 3. Keyword Stuffing & Repetitive City/Keyword Loops
-    const words = bodyMarkdown.split(/\s+/).filter(Boolean);
+    const cleanText = bodyMarkdown
+      .replace(/!\[[^\]]*\]\([^\)]+\)/g, ' ')
+      .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
+      .replace(/https?:\/\/[^\s\)\],]+/gi, ' ');
+    const words = cleanText.split(/\s+/).filter(Boolean);
     const totalWords = words.length || 1;
 
-    if (primaryKeyword) {
-      const kwRegex = new RegExp(primaryKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-      const kwMatches = bodyMarkdown.match(kwRegex) || [];
+    if (primaryKeyword && primaryKeyword.trim().length > 0) {
+      const escapedKw = primaryKeyword.trim().split(/\s+/).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+');
+      const kwRegex = new RegExp(`\\b${escapedKw}\\b`, 'gi');
+      const kwMatches = cleanText.match(kwRegex) || [];
       const kwWords = primaryKeyword.split(/\s+/).filter(Boolean).length;
       const density = ((kwMatches.length * kwWords) / totalWords) * 100;
 
@@ -251,10 +256,11 @@ export class ContentEvidenceValidator {
       }
 
       // Check paragraph repetition of primary keyword
-      const paragraphs = bodyMarkdown.split(/\n\s*\n/).filter(p => p.trim().length > 0 && !p.trim().startsWith('#'));
+      const paragraphs = cleanText.split(/\n\s*\n/).filter(p => p.trim().length > 0 && !p.trim().startsWith('#'));
       let kwParagraphCount = 0;
       for (const p of paragraphs) {
-        if (p.toLowerCase().includes(primaryKeyword)) {
+        kwRegex.lastIndex = 0;
+        if (kwRegex.test(p)) {
           kwParagraphCount++;
         }
       }

@@ -135,7 +135,8 @@ Fix the following validation issues:
 ${findings.map(f => `• ${f}`).join('\n')}`;
 
       strictPreservationRules = `=== PRESERVATION CONSTRAINTS ===
-- Preserve all outline headings, facts, keywords, and tables.
+- Preserve all outline headings, facts, and tables.
+- If keyword stuffing was flagged, prune repetitive mentions of "${primaryKeyword || 'the primary keyword'}" to achieve natural density (1.0%–2.0%). Otherwise, preserve primary keywords.
 - Preserve all visual diagrams and diagram placeholders intact.
 - Preserve all internal links intact.
 - Make the smallest useful change necessary.`;
@@ -163,7 +164,7 @@ ${hasTitleIssue ? 'OPTIMIZED TITLE: [Your optimized title here]\n\n' : ''}REPAIR
 [Your repaired markdown body here]`;
 
     const responseText = await this.llmProvider.generate(prompt, {
-      systemInstruction: 'You are an elite copyeditor. Perform surgical, targeted readability and quality repairs on the provided markdown text while strictly preserving headings, facts, primary keywords, and markdown tables.',
+      systemInstruction: 'You are an elite copyeditor. Perform surgical, targeted readability and quality repairs on the provided markdown text while strictly preserving headings, verified facts, and markdown tables, maintaining natural keyword density (1.0%–2.0%).',
       operation: `Targeted Quality Repair (${targetDimension})`,
       runId,
     });

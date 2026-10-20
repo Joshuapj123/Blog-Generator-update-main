@@ -314,9 +314,9 @@ export function validateArticleQuality(
       const kwWords = kwLower.split(/\s+/).length;
       
       // Use regex to count occurrences of the keyword phrase safely
-      const escapedKw = kwLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const escapedKw = kwLower.split(/\s+/).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+');
       const regex = new RegExp(`\\b${escapedKw}\\b`, 'gi');
-      const occurrences = (text.match(regex) || []).length;
+      const occurrences = (normalizedText.match(regex) || []).length;
       
       // Keyword density formula: (occurrences * keywordLength) / totalWords * 100
       const density = (occurrences * kwWords / totalWordCount) * 100;
@@ -347,9 +347,9 @@ export function validateArticleQuality(
       brandNormalized.includes(entLower)
     );
 
-    const escapedEnt = entLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escapedEnt = entLower.split(/\s+/).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+');
     const regex = new RegExp(`\\b${escapedEnt}\\b`, 'gi');
-    const occurrences = (text.match(regex) || []).length;
+    const occurrences = (normalizedText.match(regex) || []).length;
 
     if (isBrand) {
       // For target brand, allow natural occurrence but check if density exceeds 3.5%

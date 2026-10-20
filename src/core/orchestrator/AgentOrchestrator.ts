@@ -912,6 +912,7 @@ ${input.maxHeadings ? `Generate at most ${input.maxHeadings} headings in the out
 2. SEO TITLE: The generated title MUST contain the exact canonical primary keyword "${discovery.targetKeyword}" without splitting it with internal commas or hyphens, substituting synonyms, or changing word order. Title length must be 5-12 words, <= 60 characters preferred (<= 70 characters maximum).
 3. OUTLINE STRUCTURE:
    - Generate ${input.maxHeadings ? Math.min(input.maxHeadings, 5) : '4–7'} logical H2 sections.${input.maxHeadings ? ` HARD CAP: You MUST generate NO MORE than ${input.maxHeadings} sections total.` : ''}
+   - Avoid repeating the exact primary keyword in multiple H2 headings; prefer descriptive, topic-specific headings that address concrete practitioner workflows.
    - Design at least one section suited for a practical comparison/feature breakdown table.
    - Design sections that cover concrete practitioner workflows, implementation frameworks, or evaluation criteria relevant to the primary keyword and business offerings.
 
@@ -1811,7 +1812,7 @@ CRITICAL EVIDENCE ACCURACY RULES:
 Section Heading: "${section.heading}" (Level: ${section.level})
 Section Position: ${i + 1} of ${brief.outline.length}
 Canonical Primary Keyword: "${primaryKeyword}"
-Assigned Section Keywords: ${section.assignedKeywords?.join(', ') || primaryKeyword}
+Assigned Section Keywords: ${section.assignedKeywords?.length ? section.assignedKeywords.join(', ') : 'None specifically assigned (focus on section topic and supporting terms)'}
 ${this.supportingTerms.length > 0 ? `Available Supporting Terms (use naturally where relevant): ${this.supportingTerms.join(', ')}\n` : ''}Assigned Entities: ${section.assignedEntities?.join(', ') || ''}
 Core Concept: ${section.core_concept || ''}
 ${this.internalLinks.length > 0 ? `Relevant Internal Links (integrate 1-2 naturally if relevant as markdown links [anchor text](url)): \n${this.internalLinks.slice(0, 5).join('\n')}\n` : ''}${assetInstructions}${intelligenceContext}${sectionEvidenceContext}
@@ -1820,7 +1821,9 @@ ${this.internalLinks.length > 0 ? `Relevant Internal Links (integrate 1-2 natura
 1. CANONICAL PRIMARY KEYWORD CONTRACT:
 ${isFirstSection ? `   - FIRST PARAGRAPH CONTRACT: The very first paragraph of this opening section MUST contain the exact primary keyword "${primaryKeyword}" naturally without splitting it with punctuation or changing word order.
    - Immediately explain what the product/subject is, who it is for, and why the reader should care.
-   - BAN generic filler intros like "In today's fast-paced digital landscape...", "Businesses today face unprecedented challenges...", "In the modern business environment...". Start directly with useful, practical facts.` : `   - Naturally mention or reinforce the primary keyword "${primaryKeyword}" where contextually appropriate without keyword stuffing.`}
+   - BAN generic filler intros like "In today's fast-paced digital landscape...", "Businesses today face unprecedented challenges...", "In the modern business environment...". Start directly with useful, practical facts.` : `   - Target overall keyword density of 1.0%–2.0% across the full article. Do NOT force the primary keyword into this section if it does not fit naturally.
+   - Limit exact-match usage of "${primaryKeyword}" to at most 1 natural mention in this section (or 0 if covered in preceding sections).
+   - Prefer semantic variations, pronouns, or topic-specific synonyms instead of repeating the exact phrase.`}
 
 2. PLAIN-LANGUAGE & 8TH-GRADE READING CONTRACT:
    - Target an 8th-grade reading level (Flesch Reading Ease score >= 60, minimum 55).
@@ -2139,8 +2142,10 @@ ${verifiedContextPrompt}
 3. SENTENCE CONTRACT & STRUCTURAL VARIETY:
    - Split any sentence longer than 35 words into two shorter sentences. Average sentence length must be 12-18 words.
    - Eliminate repetitive sentence starters (e.g. "${this.targetBrand || 'Brand'} provides...", "${this.targetBrand || 'Brand'} helps..."). Vary sentence openings naturally.
-4. CANONICAL PRIMARY KEYWORD:
-   - Ensure the exact primary keyword "${primaryKeyword}" appears naturally in the very first paragraph, in the title, and in the body without alterations, punctuation splits, or word reordering.
+4. CANONICAL PRIMARY KEYWORD & DENSITY (KEYWORD STUFFING REMEDIATION):
+   - Ensure the exact primary keyword "${primaryKeyword}" appears naturally in the very first paragraph, in the title, and in the body.
+   - If keyword stuffing or high keyword density was flagged in the validation issues, PRUNE excessive and mechanical repetitions of "${primaryKeyword}" across the body. Replace repetitive occurrences with semantic synonyms, pronouns, or natural topical references. Target a natural overall density of 1.0%–2.0% (strictly below 3.0%).
+   - Do NOT alter, split, or reorder the keyword when used in the first paragraph or title.
 5. OUTLINE HEADINGS:
    - Preserve all planned H2 (##) and H3 (###) section headings exactly. Do not introduce '# ' H1 headings in the body.
 6. TABLES & INTERNAL LINKS:
@@ -2168,7 +2173,7 @@ ${hasTitleIssue ? 'OPTIMIZED TITLE: [Your optimized short title here]\n\n' : ''}
 [Your repaired body markdown here]`;
 
     const responseText = await this.options.llm.generate(prompt, {
-      systemInstruction: 'You are an elite copyeditor and SEO specialist. Rewrite the article body to fix all listed quality and readability issues while keeping all facts, keywords, and outline headings exactly the same.',
+      systemInstruction: 'You are an elite copyeditor and SEO specialist. Rewrite the article body to fix all listed quality and readability issues while preserving verified facts, required headings, and natural keyword density (1.0%–2.0%).',
       operation: 'Content Quality Repair',
       runId: this.telemetry.runId,
     });
