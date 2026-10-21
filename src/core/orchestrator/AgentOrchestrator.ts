@@ -2002,6 +2002,17 @@ ${((assetType === 'COMPARISON' && (section.heading.toLowerCase().includes('compa
 8. NO IMAGES OR DIAGRAMS:
    - Do not generate images, diagrams, figure placeholders, image markdown, diagram placeholders, or asset-generation instructions. Write pure textual analysis, headings, lists, tables, and citations.
 
+=== EDITORIAL QUALITY & STRUCTURE DIRECTIVES ===
+- Every outline section must have a distinct information goal. Answer the reader's main question early.
+- Prefer specific mechanisms, examples, concrete implementation steps, limitations, and operational decisions when supported by evidence.
+- Remove or avoid paragraphs that merely repeat an earlier benefit or rehash generic advantages.
+- Write natural prose. Do NOT use a mechanical paragraph rotation (such as artificial short-medium-long cycles).
+- Never add filler, arbitrary fragments, or unnecessary lists to pass a rhythm check.
+- Require broad factual claims to have supporting evidence or appropriately qualified wording.
+- A list, table, or checklist must follow its introduction immediately in the logical document structure. Never promise a list, example, or resource that is absent.
+- Include only approved media that adds value not already supplied by the surrounding explanation. Never fill sections with generic media placeholders or YouTube references.
+- Return only the raw section markdown text. Never output meta-claims that validation passed.
+
 WORD BUDGET:
 - Target word count for this section: ${budget.target} words.
 - Range: ${budget.min} to ${budget.max} words. Stay strictly within budget. Write concisely.`;
@@ -2312,6 +2323,11 @@ ${verifiedContextPrompt}
    - Enforce strict entity isolation: remove any cross-brand attribution where competitor metrics or features were attributed to ${this.targetBrand || 'the brand'} or vice versa.
    - Remove any unverified external citations or surveys (e.g. fake Gartner/Forrester citations).
    - Retain all genuine verified facts, product differentiators, and answers to buyer questions.
+8. EDITORIAL QUALITY & LOGICAL COHERENCE:
+   - Ensure every section has a distinct information goal without repetitive benefit restatements.
+   - When a list, table, or checklist is introduced, its corresponding items must follow immediately in the document structure. Never promise a checklist or resource that is absent.
+   - Do NOT use mechanical paragraph rotation, filler sentences, or arbitrary fragments to manipulate rhythm.
+   - Output only the requested repaired body without meta-commentary or validation claims.
 
 ${hasTitleIssue ? `OPTIMIZED TITLE REQUIREMENT: Output an optimized short title (5-12 words, under 70 characters) containing the exact canonical primary keyword "${primaryKeyword}".` : ''}
 

@@ -405,6 +405,8 @@ Do not introduce off-topic headings on developer retention, agency staffing mode
   console.log('\n--- STEP 9: Persistence & Multi-Tenant Isolation ---');
 
   const canPersistAsAcceptedDeliverable =
+    orchestrationResult?.success === true &&
+    orchestrationResult?.status === 'completed' &&
     !isFinalValidationFailed &&
     !isContentRejected &&
     !hasCriticalErrors;
@@ -413,7 +415,7 @@ Do not introduce off-topic headings on developer retention, agency staffing mode
     'Step 9',
     'Article Qualified for Persistence as Accepted Deliverable',
     canPersistAsAcceptedDeliverable,
-    `validationStatus: ${orchestrationResult?.content?.validationStatus || 'N/A'}`
+    `success=${orchestrationResult?.success}, status=${orchestrationResult?.status}, validationStatus=${orchestrationResult?.content?.validationStatus || 'N/A'}`
   );
 
   const articleId = `art_acceptance_5d_${Date.now()}`;
@@ -435,26 +437,33 @@ Do not introduce off-topic headings on developer retention, agency staffing mode
     persistenceStatus: canPersistAsAcceptedDeliverable ? 'SAVED' : 'SAVE_FAILED'
   };
 
-  const savedId = await TemporaryArticleStore.saveArticle(testArticle, 'user_live_acceptance_pm');
-  record('Step 9', 'Initial Article Persisted in Isolated Temporary Store', Boolean(savedId), `ID: ${savedId}`);
+  let savedId: string | null = null;
+  if (canPersistAsAcceptedDeliverable) {
+    savedId = await TemporaryArticleStore.saveArticle(testArticle, 'user_live_acceptance_pm');
+    record('Step 9', 'Initial Article Persisted in Isolated Temporary Store', Boolean(savedId), `ID: ${savedId}`);
 
-  const loadedArticle = await TemporaryArticleStore.getArticleById(savedId, 'user_live_acceptance_pm');
-  record('Step 9', 'Reloaded Stored Article Matches Exact Title & Content', loadedArticle?.title === testArticle.title && loadedArticle?.stage === 'Draft');
+    const loadedArticle = await TemporaryArticleStore.getArticleById(savedId, 'user_live_acceptance_pm');
+    record('Step 9', 'Reloaded Stored Article Matches Exact Title & Content', loadedArticle?.title === testArticle.title && loadedArticle?.stage === 'Draft');
+  } else {
+    record('Step 9', 'Persistence Blocked for Rejected Generation', false, 'Generation rejected: deliverable persistence prohibited');
+  }
 
   // Autosave update simulation
-  const updatedArticle: Article = {
-    ...testArticle,
-    content: editedHtml,
-    stage: 'Published',
-    persistedAt: new Date().toISOString()
-  };
-  await TemporaryArticleStore.saveArticle(updatedArticle, 'user_live_acceptance_pm');
-  const reloadedUpdated = await TemporaryArticleStore.getArticleById(savedId, 'user_live_acceptance_pm');
-  record('Step 9', 'Autosave Update Persisted Successfully (Stage: Published)', reloadedUpdated?.stage === 'Published' && (reloadedUpdated?.content || '').includes('Practitioner Note:'));
+  if (savedId) {
+    const updatedArticle: Article = {
+      ...testArticle,
+      content: editedHtml,
+      stage: 'Published',
+      persistedAt: new Date().toISOString()
+    };
+    await TemporaryArticleStore.saveArticle(updatedArticle, 'user_live_acceptance_pm');
+    const reloadedUpdated = await TemporaryArticleStore.getArticleById(savedId, 'user_live_acceptance_pm');
+    record('Step 9', 'Autosave Update Persisted Successfully (Stage: Published)', reloadedUpdated?.stage === 'Published' && (reloadedUpdated?.content || '').includes('Practitioner Note:'));
 
-  // Multi-tenant check
-  const hackerQuery = await TemporaryArticleStore.getArticleById(savedId, 'unauthorized_tenant_99');
-  record('Step 9', 'Multi-Tenant Isolation Prevents Unauthorized Access', hackerQuery === null);
+    // Multi-tenant check
+    const hackerQuery = await TemporaryArticleStore.getArticleById(savedId, 'unauthorized_tenant_99');
+    record('Step 9', 'Multi-Tenant Isolation Prevents Unauthorized Access', hackerQuery === null);
+  }
 
   // ---------------------------------------------------------------------------
   // STEP 10: PDF EXPORT & STREAM INTEGRITY

@@ -37,7 +37,7 @@ export function isPassiveSentence(sentence: string): boolean {
   // Standard passive construction: be/is/am/are/was/were/been/being + past participle (usually ending in -ed, -en, -t, or irregulars)
   const passivePattern = /\b(is|am|are|was|were|be|been|being)\b\s+(?:[a-z]+\s+){0,2}[a-z]+(ed|en|t)\b/i;
   const irregularParticiples = /\b(is|am|are|was|were|be|been|being)\b\s+(?:[a-z]+\s+){0,2}(done|made|built|kept|set|run|read|met|paid|shown|known|given|held|seen|drawn|told|chosen|sent|spent|kept|felt)\b/i;
-  
+
   return passivePattern.test(clean) || irregularParticiples.test(clean);
 }
 
@@ -53,7 +53,7 @@ export function calculateJaccardSimilarity(text1: string, text2: string): number
   const tokens1 = getWordTokens(text1);
   const tokens2 = getWordTokens(text2);
   if (tokens1.size === 0 || tokens2.size === 0) return 0;
-  
+
   let intersectionSize = 0;
   for (const t of tokens1) {
     if (tokens2.has(t)) {
@@ -91,18 +91,85 @@ export function consecutiveParagraphStarts(paragraphs: string[]): boolean {
   return false;
 }
 
-export function consecutiveParagraphStructures(paragraphs: string[]): boolean {
+export function splitSentencesRobust(text: string): string[] {
+  if (!text || !text.trim()) return [];
+  const normalized = text
+    .replace(/https?:\/\/[^\s\)\],]+/gi, match => match.replace(/\./g, '__DOT__'))
+    .replace(/(\d+)\.(\d+)/g, (_, p1, p2) => `${p1}__DOT__${p2}`)
+    .replace(/\b(?:e\.g\.|i\.e\.|vs\.|approx\.|etc\.|al\.|inc\.|corp\.|ltd\.|dr\.|mr\.|ms\.)/gi, match => match.replace(/\./g, '__DOT__'));
+
+  const rawSentences = normalized.split(/(?<=[.!?]['"”’\)])\s+|(?<=[.!?])\s+/);
+  return rawSentences
+    .map(s => s.replace(/__DOT__/g, '.').trim())
+    .filter(s => s.length > 0);
+}
+
+export function computeParagraphSignature(paragraph: string): {
+  sentenceCount: number;
+  sentenceLengthSignature: string;
+  hasFormatting: boolean;
+} {
+  const sentences = splitSentencesRobust(paragraph);
+  const sentenceCount = sentences.length;
+  const sentenceLengthSignature = sentences.map(s => {
+    const wc = countWords(s);
+    return wc < 15 ? 'S' : wc <= 28 ? 'M' : 'L';
+  }).join('-');
+  const hasFormatting = paragraph.includes('**') || paragraph.includes('__') || paragraph.includes('*');
+  return { sentenceCount, sentenceLengthSignature, hasFormatting };
+}
+
+export function extractEligibleProseParagraphs(text: string, options?: { respectSectionBoundaries?: boolean }): string[] {
+  if (!text) return [];
+  const normalized = text.replace(/^(#{1,6}\s+[^\n]+)/gm, '\n\n$1\n\n');
+  const rawBlocks = normalized.split(/\n\s*\n/);
+  const eligible: string[] = [];
+
+  for (const raw of rawBlocks) {
+    const trimmed = raw.trim();
+    if (!trimmed) continue;
+
+    if (options?.respectSectionBoundaries && /^##\s+/.test(trimmed)) {
+      eligible.push('__SECTION_BOUNDARY__');
+      continue;
+    }
+
+    if (/^#{1,6}\s+/.test(trimmed)) continue;
+    if (trimmed.startsWith('|')) continue;
+    if (/^[-*]\s+/.test(trimmed) || /^\d+\.\s+/.test(trimmed)) continue;
+    if (trimmed.startsWith('![')) continue;
+    if (trimmed.startsWith('<')) continue;
+    if (/^[-*]{3,}$/.test(trimmed)) continue;
+    if (trimmed.startsWith('```')) continue;
+    if (trimmed.startsWith('>')) continue;
+
+    eligible.push(trimmed);
+  }
+
+  return eligible;
+}
+
+export function consecutiveParagraphStructures(
+  paragraphs: string[],
+  options?: { respectSectionBoundaries?: boolean }
+): boolean {
   if (paragraphs.length < 3) return false;
-  const fingerprints = paragraphs.map(p => {
-    const sentences = p.split(/[.!?]+/).filter(s => s.trim().length > 0);
-    const numSentences = sentences.length;
-    const hasList = p.includes('- ') || p.includes('* ') || /^\d+\.\s/.test(p);
-    const hasBold = p.includes('**');
-    return `${numSentences}_${hasList}_${hasBold}`;
-  });
-  
-  for (let i = 0; i <= fingerprints.length - 3; i++) {
-    if (fingerprints[i] === fingerprints[i + 1] && fingerprints[i] === fingerprints[i + 2]) {
+
+  const eligible = paragraphs.filter(p => p !== '__SECTION_BOUNDARY__');
+  if (eligible.length < 3) return false;
+
+  const signatures = eligible.map(p => computeParagraphSignature(p));
+
+  for (let i = 0; i <= signatures.length - 3; i++) {
+    const sameSentenceCount =
+      signatures[i].sentenceCount === signatures[i + 1].sentenceCount &&
+      signatures[i + 1].sentenceCount === signatures[i + 2].sentenceCount;
+
+    const sameStructure =
+      signatures[i].sentenceLengthSignature === signatures[i + 1].sentenceLengthSignature ||
+      signatures[i].hasFormatting === signatures[i + 1].hasFormatting;
+
+    if (sameSentenceCount && sameStructure) {
       return true;
     }
   }
@@ -117,8 +184,8 @@ export function checkSentencePatternRepeats(sentences: string[]): boolean {
       const opening = words.slice(0, 2).join(' ');
       // Ignore common helper or structural word patterns
       const ignored = [
-        'there is', 'there are', 'it is', 'we can', 'this is', 'in the', 'for example', 
-        'to do', 'if you', 'with the', 'on the', 'at the', 'and the', 'of the', 'as a', 
+        'there is', 'there are', 'it is', 'we can', 'this is', 'in the', 'for example',
+        'to do', 'if you', 'with the', 'on the', 'at the', 'and the', 'of the', 'as a',
         'in a', 'by using', 'this allows', 'to ensure', 'you can', 'we have', 'this will'
       ];
       if (ignored.includes(opening)) continue;
@@ -211,23 +278,12 @@ export function validateArticleQuality(
       .trim();
   };
 
-  // Parse paragraphs and sentences
-  // Exclude empty paragraphs, headings, tables, raw HTML blocks, and image lines from paragraph prose evaluation
-  const paragraphs = text.split('\n')
-    .map(p => p.trim())
-    .filter(p => (
-      p.length > 0 &&
-      !p.startsWith('#') &&
-      !p.startsWith('|') &&
-      !p.startsWith('![') &&
-      !p.startsWith('<') &&
-      !p.startsWith('---')
-    ));
+  // Parse eligible prose paragraphs and sentences
+  // Exclude empty paragraphs, headings, tables, raw HTML blocks, list items, and image lines from paragraph prose evaluation
+  const paragraphs = extractEligibleProseParagraphs(text);
 
   const normalizedText = normalizeTextForReadability(text);
-  const sentences = normalizedText.split(/[.!?]+/)
-    .map(s => s.trim())
-    .filter(s => s.length > 0);
+  const sentences = splitSentencesRobust(normalizedText);
 
   const words = normalizedText.trim().split(/\s+/).filter(Boolean);
   const totalWordCount = words.length;
@@ -345,7 +401,7 @@ export function validateArticleQuality(
   for (const ent of entities) {
     if (!ent || ent.trim().length === 0) continue;
     const entLower = ent.toLowerCase().trim();
-    
+
     // Check if this entity is the primary target brand / product name
     const isBrand = brandNormalized && (
       entLower === brandNormalized ||
@@ -412,4 +468,3 @@ export function hasIncompleteSentence(text: string): boolean {
   }
   return false;
 }
-

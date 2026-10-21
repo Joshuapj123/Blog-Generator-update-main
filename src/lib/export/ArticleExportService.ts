@@ -424,7 +424,9 @@ export class ArticleExportService {
 
     // 2. Render Article Blocks
     for (const block of blocks) {
-      if (block.type === 'h1' && this.sanitizeTextForPdf(block.text || '').toLowerCase() === cleanTitle.toLowerCase()) {
+      const normBlockText = this.sanitizeTextForPdf(block.text || '').toLowerCase().replace(/[^\w]/g, '');
+      const normCleanTitle = cleanTitle.toLowerCase().replace(/[^\w]/g, '');
+      if ((block.type === 'h1' || block.type === 'h2') && normBlockText === normCleanTitle) {
         continue; // Skip duplicate title
       }
 
@@ -783,12 +785,18 @@ export class ArticleExportService {
       });
     };
 
-    // Extract lists
-    clean = clean.replace(/<ul[^>]*>([\s\S]*?)<\/ul>/gi, (_, inner) => {
+    // Extract lists (supporting both <ul> and <ol>) in-place using placeholders to preserve document order
+    const listPlaceholders: { placeholder: string; block: ParsedPdfBlock }[] = [];
+    clean = clean.replace(/<(ul|ol)[^>]*>([\s\S]*?)<\/\1>/gi, (_, _tag, inner) => {
       const items: string[] = [];
       const liMatches = Array.from((inner as string).matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi));
       liMatches.forEach(m => items.push(preserveAnchorUrls(m[1]).replace(/<[^>]*>/g, '').trim()));
-      return `\n\n__LIST_BLOCK__:${JSON.stringify(items)}\n\n`;
+      const placeholder = `__LIST_PLACEHOLDER_${listPlaceholders.length}__`;
+      listPlaceholders.push({
+        placeholder,
+        block: { type: 'li', items }
+      });
+      return `<p>${placeholder}</p>`;
     });
 
     // Extract headings, blockquotes, and paragraphs
@@ -808,20 +816,19 @@ export class ArticleExportService {
         }
       }
 
+      if (text.startsWith('__LIST_PLACEHOLDER_')) {
+        const ph = listPlaceholders.find(p => text.includes(p.placeholder));
+        if (ph) {
+          blocks.push(ph.block);
+          continue;
+        }
+      }
+
       if (tag === 'h1') blocks.push({ type: 'h1', text });
       else if (tag === 'h2') blocks.push({ type: 'h2', text });
       else if (tag === 'h3') blocks.push({ type: 'h3', text });
       else if (tag === 'blockquote') blocks.push({ type: 'blockquote', text });
       else blocks.push({ type: 'p', text });
-    }
-
-    // Process list markers
-    const listMatches = Array.from(clean.matchAll(/__LIST_BLOCK__:(\[.*?\])/g));
-    for (const lm of listMatches) {
-      try {
-        const items = JSON.parse(lm[1]);
-        blocks.push({ type: 'li', items });
-      } catch {}
     }
 
     return blocks;
