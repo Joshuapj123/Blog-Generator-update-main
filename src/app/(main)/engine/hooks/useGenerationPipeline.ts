@@ -56,15 +56,13 @@ export function useGenerationPipeline() {
           lines.push(`> **Expert Insight:** ${sec.experience_or_data_point}\n`);
         }
         if (sec.example_brands?.length) lines.push(`**Examples:** ${sec.example_brands.join(', ')}\n`);
-        if (sec.outbound_authority_link?.resolved_url) {
-          lines.push(`📎 [${sec.outbound_authority_link.resolved_title || 'Source'}](${sec.outbound_authority_link.resolved_url})\n`);
+        if (sec.outbound_authority_link?.resolved_url && /^https?:\/\//i.test(sec.outbound_authority_link.resolved_url.trim())) {
+          lines.push(`📎 [${sec.outbound_authority_link.resolved_title || 'Source'}](${sec.outbound_authority_link.resolved_url.trim()})\n`);
         }
-        if (sec.rich_media_query?.youtube_video_id) {
+        const vidId = String(sec.rich_media_query?.youtube_video_id || '').trim();
+        if (/^[a-zA-Z0-9_-]{11}$/.test(vidId)) {
           const vid = sec.rich_media_query;
-          lines.push(`🎬 **YouTube Reference:** [${vid.suggested_search_query || 'Watch Video'}](https://www.youtube.com/watch?v=${vid.youtube_video_id})\n`);
-        } else if (sec.rich_media_query?.suggested_search_query) {
-          const query = sec.rich_media_query.suggested_search_query;
-          lines.push(`🎬 **YouTube Search:** [${query}](https://www.youtube.com/results?search_query=${encodeURIComponent(query)})\n`);
+          lines.push(`🎬 **YouTube Reference:** [${vid?.suggested_search_query || 'Watch Video'}](https://www.youtube.com/watch?v=${vidId})\n`);
         }
         return lines.join('\n');
       }).join('\n\n');
@@ -209,6 +207,8 @@ export function useGenerationPipeline() {
           ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
         body: JSON.stringify({
+          articleId: engine.currentArticleId || undefined,
+          folder: engine.currentArticleFolder || undefined,
           title: engine.title,
           targetKeywords: engine.targetKeywords,
           referenceData: engine.referenceData,
@@ -243,6 +243,9 @@ export function useGenerationPipeline() {
           if (parsed.progress) engine.setGenProgress(parsed.progress);
         } else if (parsed.type === 'outline') {
           engine.setBlueprint(parsed.data);
+          if (parsed.data?.title) {
+            engine.setTitle(parsed.data.title);
+          }
           if (!hasFiredGenStarted) {
             hasFiredGenStarted = true;
             captureEvent('content_generation_started', {
@@ -258,6 +261,9 @@ export function useGenerationPipeline() {
           });
         } else if (parsed.type === 'complete') {
           engine.setBlueprint((prev: any) => ({ ...prev, ...parsed.data }));
+          if (parsed.data?.title) {
+            engine.setTitle(parsed.data.title);
+          }
           if (parsed.data.sections) {
             engine.setSections(parsed.data.sections);
           }
@@ -411,7 +417,11 @@ export function useGenerationPipeline() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({
+          url,
+          articleId: engine.currentArticleId || undefined,
+          folder: engine.currentArticleFolder || undefined,
+        }),
         signal: controller.signal,
       });
 
@@ -465,6 +475,9 @@ export function useGenerationPipeline() {
         } else if (parsed.type === 'outline') {
           currentStage = 'outline';
           engine.setBlueprint(parsed.data);
+          if (parsed.data?.title) {
+            engine.setTitle(parsed.data.title);
+          }
 
           if (!hasFiredGenStarted) {
             hasFiredGenStarted = true;
@@ -483,6 +496,9 @@ export function useGenerationPipeline() {
         } else if (parsed.type === 'complete') {
           currentStage = 'complete';
           engine.setBlueprint((prev: any) => ({ ...prev, ...parsed.data }));
+          if (parsed.data?.title) {
+            engine.setTitle(parsed.data.title);
+          }
           if (parsed.data.sections) {
             engine.setSections(parsed.data.sections);
           }

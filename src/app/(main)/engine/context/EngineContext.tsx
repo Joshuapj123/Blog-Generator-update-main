@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState } from 'react';
 import { ArticleBlueprint, SectionBlock, KeywordBank } from '@/types/article';
-import { Article, Folder, ExternalLink as ExternalLinkType, saveArticle, deleteArticle } from '@/lib/firebase/firestore';
+import { Article, Folder, ExternalLink as ExternalLinkType, saveArticle, deleteArticle, extractTitleFromContent } from '@/lib/firebase/firestore';
 import { auth } from '@/lib/firebase/config';
 import { ExtractedDesign } from '@/lib/extract-reference-design';
 import { 
@@ -135,6 +135,10 @@ interface EngineContextType {
   setExternalLinks: (links: ExternalLinkType[]) => void;
   folders: Folder[];
   setFolders: (folders: Folder[]) => void;
+  currentArticleFolder: string;
+  setCurrentArticleFolder: (folder: string) => void;
+  saveStatus: 'idle' | 'saving' | 'saved' | 'error';
+  saveError: string | null;
 
   // Selection
   selectedTodoIdea: string;
@@ -226,20 +230,41 @@ export function EngineProvider({ children }: { children: React.ReactNode }) {
   const editorRef = React.useRef<Editor | null>(null);
   const [activeWeakChip, setActiveWeakChip] = useState<number | null>(null);
 
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   const saveCurrentArticle = async (htmlContent: string): Promise<string> => {
+    setSaveStatus('saving');
+    setSaveError(null);
     try {
       // If the current stage is Todo, promote it to Draft upon saving.
       // If it is already Draft or Published, preserve that status.
       const newStage = currentArticleStage === 'Todo' ? 'Draft' : currentArticleStage;
       const currentUid = auth?.currentUser?.uid || undefined;
       
+      const allExisting = [...todoArticles, ...publishedArticles];
+      const matchedArticle = allExisting.find(a => a.id === currentArticleId);
+
+      // Robust title derivation: prioritize real titles over fallback 'Untitled Draft'
+      const resolvedTitle =
+        (title && title.trim() && title.trim() !== 'Untitled Draft') ? title.trim() :
+        (blueprint?.title && blueprint.title.trim() && blueprint.title.trim() !== 'Untitled Draft') ? blueprint.title.trim() :
+        (matchedArticle?.title && matchedArticle.title.trim() !== 'Untitled Draft') ? matchedArticle.title.trim() :
+        extractTitleFromContent(htmlContent) ||
+        (title || 'Untitled Draft');
+
+      // Preserve folder: never overwrite custom folder with 'uncategorized'
+      const folderToSave = currentArticleFolder && currentArticleFolder.toLowerCase() !== 'uncategorized'
+        ? currentArticleFolder
+        : (matchedArticle?.folder && matchedArticle.folder.toLowerCase() !== 'uncategorized' ? matchedArticle.folder : '');
+
       const savedId = await saveArticle({
         id: currentArticleId || undefined,
         userId: currentUid,
         ownerId: currentUid,
-        title: title || 'Untitled Draft',
+        title: resolvedTitle,
         content: htmlContent,
-        folder: 'uncategorized',
+        folder: folderToSave,
         stage: newStage,
         targetKeywords: targetKeywords ? [targetKeywords] : [],
         referenceUrl: referenceUrl,
@@ -258,8 +283,9 @@ export function EngineProvider({ children }: { children: React.ReactNode }) {
       // Update local state arrays for immediate UI feedback in dashboard
       const updatedArticle = {
         id: savedId,
-        title: title || 'Untitled Draft',
+        title: resolvedTitle,
         content: htmlContent,
+        folder: folderToSave,
         stage: newStage,
         analysisResults: analysisResults,
         contentScore: contentScore,
@@ -268,11 +294,24 @@ export function EngineProvider({ children }: { children: React.ReactNode }) {
 
       if (!currentArticleId) {
         setCurrentArticleId(savedId);
-        setTodoArticles(prev => [updatedArticle, ...prev]);
-        setSelectedTodoIdea(savedId);
+      }
+      setSelectedTodoIdea(savedId);
+
+      if (resolvedTitle && resolvedTitle !== 'Untitled Draft' && (!title || title === 'Untitled Draft')) {
+        setTitle(resolvedTitle);
+      }
+      if (folderToSave) {
+        setCurrentArticleFolder(folderToSave);
+      }
+
+      if (newStage === 'Published') {
+        setPublishedArticles(prev => [updatedArticle, ...prev.filter(a => a.id !== savedId)]);
+        setTodoArticles(prev => prev.filter(a => a.id !== savedId));
       } else {
-        setTodoArticles(prev => prev.map(a => a.id === savedId ? { ...a, ...updatedArticle } : a));
-        setSelectedTodoIdea(savedId);
+        setTodoArticles(prev => {
+          const exists = prev.some(a => a.id === savedId);
+          return exists ? prev.map(a => a.id === savedId ? { ...a, ...updatedArticle } : a) : [updatedArticle, ...prev];
+        });
       }
 
       try {
@@ -282,8 +321,11 @@ export function EngineProvider({ children }: { children: React.ReactNode }) {
       if (currentArticleStage !== newStage) {
         setCurrentArticleStage(newStage);
       }
+      setSaveStatus('saved');
       return savedId;
     } catch (e: any) {
+      setSaveStatus('error');
+      setSaveError(e?.message || 'Failed to save article.');
       console.error('Failed to save article', e);
       setGenError(`Failed to save article: ${e?.message || 'Unknown persistence error'}`);
       throw e;
@@ -388,6 +430,7 @@ export function EngineProvider({ children }: { children: React.ReactNode }) {
   const [publishedArticles, setPublishedArticles] = useState<Article[]>([]);
   const [externalLinks, setExternalLinks] = useState<ExternalLinkType[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
+  const [currentArticleFolder, setCurrentArticleFolder] = useState<string>('');
   const [selectedTodoIdea, setSelectedTodoIdea] = useState<string>('');
   const [planRole, setPlanRole] = useState<'primary' | 'support' | null>(null);
   const [activeKeyword, setActiveKeyword] = useState<string | null>(null);
@@ -464,6 +507,8 @@ export function EngineProvider({ children }: { children: React.ReactNode }) {
     publishedArticles, setPublishedArticles,
     externalLinks, setExternalLinks,
     folders, setFolders,
+    currentArticleFolder, setCurrentArticleFolder,
+    saveStatus, saveError,
     selectedTodoIdea, setSelectedTodoIdea,
     planRole, setPlanRole,
     activeKeyword, setActiveKeyword,

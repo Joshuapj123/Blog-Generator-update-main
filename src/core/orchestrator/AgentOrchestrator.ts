@@ -267,6 +267,7 @@ export class AgentOrchestrator {
   private internalLinks: string[] = [];
   private saasProfile?: any;
   private lastUnrepairableClaimIds: string[] = [];
+  private hadGenerationFallback: boolean = false;
   public budgetGuard: RuntimeBudgetGuard;
 
   constructor(private options: AgentOrchestratorOptions) {
@@ -1734,6 +1735,7 @@ WRITING RULES:
         // Check runtime budget before drafting
         if (!this.budgetGuard.hasBudgetForSection()) {
           console.warn(`[AgentOrchestrator] Low runtime budget (${this.budgetGuard.getRemainingMs()}ms remaining). Preserving finalization headroom by generating concise grounded draft for remaining sections.`);
+          this.hadGenerationFallback = true;
           while (queue.length > 0) {
             const remItem = queue.shift();
             if (!remItem) break;
@@ -1949,6 +1951,7 @@ WORD BUDGET:
         } catch (genErr: any) {
           if (this.budgetGuard.getRemainingMs() <= this.budgetGuard.getReservedFinalizeMs() || genErr?.message?.includes('timeout') || genErr?.message?.includes('deadline')) {
             console.warn(`[AgentOrchestrator] Section generation failed or timed out for "${section.heading}", using concise grounded fallback:`, genErr.message);
+            this.hadGenerationFallback = true;
             text = generateConciseSectionDraft(section, sectionMap, this.targetBrand, primaryKeyword);
           } else {
             (genErr as any).stage = AgentStage.GENERATE;
@@ -2035,7 +2038,13 @@ WORD BUDGET:
     (qualityReport.errors || []).forEach(err => {
       if (
         err.includes('Keyword Stuffing Alert') ||
-        err.includes('Brand Stuffing Alert')
+        err.includes('Brand Stuffing Alert') ||
+        err.includes('structurally similar') ||
+        err.includes('same opening words') ||
+        err.includes('identical sentence count and format structure') ||
+        err.includes('Boilerplate Alert') ||
+        err.includes('repeated template') ||
+        err.includes('Generic boilerplate')
       ) {
         criticalErrors.push(err);
       } else {
@@ -2045,6 +2054,10 @@ WORD BUDGET:
 
     if (qualityReport.warnings) {
       warnings.push(...qualityReport.warnings);
+    }
+
+    if (this.hadGenerationFallback) {
+      warnings.push('Generation Notice: Content generation utilized bounded fallback drafting due to runtime budget or provider constraints.');
     }
 
     // Evidence-Driven Content Intelligence Validation
@@ -2515,17 +2528,41 @@ export function generateConciseSectionDraft(
 ): string {
   const cleanHeading = section.heading.replace(/^#+\s*/, '').trim();
   const lowerHeading = cleanHeading.toLowerCase();
+  const intent = sectionMap?.intent || 'EXPLAIN';
+  const concept = section.core_concept || `practical implementation of ${lowerHeading}`;
+  const buyerQ = sectionMap?.buyerQuestion ? ` Practical implementation requires addressing: "${sectionMap.buyerQuestion.replace(/[?.]+$/, '')}?"` : '';
+  const gap = sectionMap?.competitorGap ? ` Teams prioritize concrete execution to address competitor gaps in ${sectionMap.competitorGap.toLowerCase().replace(/[.]+$/, '')}.` : '';
 
-  const businessFacts = sectionMap?.targetBusinessFacts && sectionMap.targetBusinessFacts.length > 0
-    ? sectionMap.targetBusinessFacts.slice(0, 2).join('. ') + '.'
-    : '';
+  let p1: string;
+  switch (intent) {
+    case 'COMPARE':
+      p1 = `Evaluating ${lowerHeading} requires analyzing structural tradeoffs, architecture differences, and measurable performance outcomes across alternative options.${buyerQ}`;
+      break;
+    case 'PROVE':
+      p1 = `Validating the impact of ${lowerHeading} depends on verifiable metrics, baseline benchmarks, and disciplined measurement across key conversion funnels.${buyerQ}`;
+      break;
+    case 'ANSWER':
+      p1 = `Key operational considerations for ${lowerHeading} focus on identifying user drop-off points and implementing proven mitigation patterns.${buyerQ}`;
+      break;
+    case 'RECOMMEND':
+      p1 = `Recommended next steps for ${lowerHeading} involve prioritizing high-leverage friction points and validating incremental enhancements through controlled tests.${buyerQ}`;
+      break;
+    case 'EXPLAIN':
+    default:
+      p1 = `Understanding ${lowerHeading} begins with examining user interaction patterns, interface bottlenecks, and specific drop-off triggers across critical paths.${buyerQ}`;
+      break;
+  }
 
-  const concept = section.core_concept || `practical execution of ${lowerHeading}`;
-
-  const p1 = `Executing ${lowerHeading} effectively requires structured workflows and clear operational standards. Teams establish direct processes to maintain clarity and cross-functional alignment.`;
-  const p2 = businessFacts
-    ? `Key focus areas include ${businessFacts}`
-    : `Teams address ${concept} to support operational consistency across standard workflows.`;
+  let p2: string;
+  if (sectionMap?.targetBusinessFacts && sectionMap.targetBusinessFacts.length > 0) {
+    const cleanFacts = sectionMap.targetBusinessFacts
+      .slice(0, 2)
+      .map(f => f.replace(/^Key focus areas include\s*/i, '').replace(/\s*provides verified capability:\s*/i, ' feature: ').trim())
+      .join('. ');
+    p2 = `Relevant operational context: ${cleanFacts}.${gap}`;
+  } else {
+    p2 = `Organizations address ${concept} by establishing clear quality standards and systematic iterative reviews.${gap}`;
+  }
 
   return `${p1}\n\n${p2}`;
 }

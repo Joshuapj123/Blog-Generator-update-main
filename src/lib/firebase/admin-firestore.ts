@@ -1,5 +1,5 @@
 import { getAdminFirestore } from './admin';
-import { Article, sanitizeForFirestore } from './firestore';
+import { Article, sanitizeForFirestore, isFallbackTitle, normalizeFolder } from './firestore';
 
 
 /**
@@ -59,10 +59,26 @@ export async function saveArticleAdmin(
           );
         }
 
+        // Protect meaningful title from being overwritten by fallback
+        if (isFallbackTitle(cleanData.title as string) && existingData?.title && !isFallbackTitle(existingData.title)) {
+          cleanData.title = existingData.title;
+        }
+
+        // Protect existing folder from being clobbered by default 'uncategorized'
+        const existingFolder = normalizeFolder(existingData?.folder);
+        const incomingFolder = normalizeFolder(cleanData.folder as string);
+        if (!incomingFolder && existingFolder) {
+          cleanData.folder = existingFolder;
+        }
+
+        // Preserve original createdAt
+        const preservedCreatedAt = existingData?.createdAt || cleanData.createdAt || now;
+
         // Ownership immutability: Ensure userId and ownerId remain cleanUid
         await docRef.set(
           {
             ...cleanData,
+            createdAt: preservedCreatedAt,
             userId: cleanUid,
             ownerId: cleanUid,
             updatedAt: now,

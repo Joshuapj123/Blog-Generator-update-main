@@ -148,7 +148,8 @@ export async function POST(req: Request) {
             maxHeadings,
             supportingTerms: bestOpportunity.supportingTerms || [],
             authenticatedUserId,
-            articleId: body?.articleId || undefined
+            articleId: body?.articleId || undefined,
+            folder: body?.folder || undefined
           };
 
           await GenerationPipelineAdapter.runPipeline(payload, sendChunk, req.signal, {

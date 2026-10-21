@@ -118,6 +118,125 @@ export const sanitizeForFirestore = (val: any, seen = new WeakSet()): any => {
   return out;
 };
 
+/**
+ * Normalizes folder name to ensure consistent selection in dropdowns.
+ * Returns empty string for uncategorized values.
+ */
+export const normalizeFolder = (folder?: string | null): string => {
+  if (!folder) return '';
+  const trimmed = folder.trim();
+  if (trimmed.toLowerCase() === 'uncategorized') return '';
+  return trimmed;
+};
+
+/**
+ * Checks whether a given title is missing, empty, or a generic placeholder ('Untitled Draft').
+ */
+export const isFallbackTitle = (title?: string | null): boolean => {
+  if (!title || typeof title !== 'string') return true;
+  const trimmed = title.trim();
+  return !trimmed || trimmed === 'Untitled Draft';
+};
+
+/**
+ * Extracts a readable heading/title from Markdown or HTML content if present.
+ */
+export const extractTitleFromContent = (content?: string | null): string | null => {
+  if (!content || typeof content !== 'string') return null;
+  // Markdown # Heading
+  const mdMatch = content.match(/^#\s+([^\n\r#]+)/m);
+  if (mdMatch && mdMatch[1]?.trim() && mdMatch[1].trim() !== 'Untitled Draft') {
+    return mdMatch[1].trim();
+  }
+  // HTML <h1>Heading</h1>
+  const htmlMatch = content.match(/<h1[^>]*>([^<]+)<\/h1>/i);
+  if (htmlMatch && htmlMatch[1]?.trim() && htmlMatch[1].trim() !== 'Untitled Draft') {
+    return htmlMatch[1].trim();
+  }
+  return null;
+};
+
+/**
+ * Safely extracts a display-friendly title from an article, recovering original
+ * titles from blueprint, topic, or content when article.title is missing or 'Untitled Draft'.
+ */
+export const getDisplayTitle = (article: Article): string => {
+  if (article.title && article.title.trim() && article.title.trim() !== 'Untitled Draft') {
+    return article.title.trim();
+  }
+  if (article.blueprint && typeof article.blueprint === 'object' && article.blueprint.title && article.blueprint.title.trim() !== 'Untitled Draft') {
+    return article.blueprint.title.trim();
+  }
+  if (article.topic && article.topic.trim() && article.topic.trim() !== 'Untitled Draft') {
+    return article.topic.trim();
+  }
+  const extracted = extractTitleFromContent(article.content);
+  if (extracted && extracted !== 'Untitled Draft') {
+    return extracted;
+  }
+  if (article.sourceKeyword && article.sourceKeyword.trim()) {
+    return article.sourceKeyword.trim();
+  }
+  return article.title || 'Untitled Draft';
+};
+
+/**
+ * Safely formats an article's creation or update date, supporting:
+ * - Firestore Timestamp instance or object with seconds
+ * - ISO string
+ * - JS Date instance
+ * - Millisecond timestamp number
+ * Returns a clean formatted string, or '—' if unavailable, never 'Invalid Date' or NaN.
+ */
+export const formatArticleDate = (article: { createdAt?: any; updatedAt?: any; persistedAt?: any }): string => {
+  const candidate = article.createdAt || article.updatedAt || article.persistedAt;
+  if (!candidate) return '—';
+
+  try {
+    let d: Date | null = null;
+    if (typeof candidate?.toDate === 'function') {
+      d = candidate.toDate();
+    } else if (candidate instanceof Date) {
+      d = candidate;
+    } else if (typeof candidate?.seconds === 'number') {
+      d = new Date(candidate.seconds * 1000);
+    } else if (typeof candidate === 'number') {
+      d = new Date(candidate);
+    } else if (typeof candidate === 'string') {
+      d = new Date(candidate);
+    }
+
+    if (d && !isNaN(d.getTime())) {
+      return d.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    }
+  } catch {}
+
+  return '—';
+};
+
+/**
+ * Extracts a numeric timestamp in milliseconds for consistent sorting.
+ */
+export const getArticleTimestampMs = (article: { createdAt?: any; updatedAt?: any; persistedAt?: any }): number => {
+  const candidate = article.createdAt || article.updatedAt || article.persistedAt;
+  if (!candidate) return 0;
+  try {
+    if (typeof candidate?.toDate === 'function') return candidate.toDate().getTime();
+    if (candidate instanceof Date) return candidate.getTime();
+    if (typeof candidate?.seconds === 'number') return candidate.seconds * 1000;
+    if (typeof candidate === 'number') return candidate;
+    if (typeof candidate === 'string') {
+      const ms = new Date(candidate).getTime();
+      return isNaN(ms) ? 0 : ms;
+    }
+  } catch {}
+  return 0;
+};
+
 export const saveArticle = async (article: Article, timeoutMs: number = 15000): Promise<string> => {
   const currentUid = auth?.currentUser?.uid || article.userId;
   if (!currentUid) {
@@ -147,10 +266,11 @@ export const saveArticle = async (article: Article, timeoutMs: number = 15000): 
 
     if (cleanData.id) {
       const docRef = doc(db, "articles", cleanData.id as string);
+      let existingData: any = null;
       try {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          const existingData = docSnap.data();
+          existingData = docSnap.data();
           const existingOwner = existingData?.userId || existingData?.ownerId;
           if (existingOwner && existingOwner !== currentUid) {
             throw new Error(`Forbidden: Caller does not have permission to modify article "${cleanData.id}" owned by "${existingOwner}".`);
@@ -160,15 +280,41 @@ export const saveArticle = async (article: Article, timeoutMs: number = 15000): 
         if (err?.message?.includes('Forbidden')) throw err;
         // If document does not exist yet or read is not allowed prior to creation, continue to setDoc
       }
+
+      // Title Preservation: Never overwrite a real existing title with 'Untitled Draft' or empty
+      if (existingData?.title && existingData.title !== 'Untitled Draft' && (!cleanData.title || cleanData.title === 'Untitled Draft')) {
+        cleanData.title = existingData.title;
+      } else if (!cleanData.title || cleanData.title === 'Untitled Draft') {
+        const fallback = getDisplayTitle(cleanData as Article);
+        if (fallback && fallback !== 'Untitled Draft') {
+          cleanData.title = fallback;
+        }
+      }
+
+      // Folder Preservation: Never reset customized folder to 'uncategorized'
+      if (existingData?.folder && normalizeFolder(existingData.folder) && !normalizeFolder(cleanData.folder)) {
+        cleanData.folder = existingData.folder;
+      }
+
+      // CreatedAt Preservation: Retain original createdAt
+      const resolvedCreatedAt = existingData?.createdAt || cleanData.createdAt || serverTimestamp();
+
       await setDoc(docRef, {
         ...cleanData,
         userId: currentUid,
         ownerId: currentUid,
-        createdAt: cleanData.createdAt || serverTimestamp(),
+        createdAt: resolvedCreatedAt,
         updatedAt: serverTimestamp()
       }, { merge: true });
       return cleanData.id as string;
     } else {
+      // For new articles, ensure title isn't unnecessarily 'Untitled Draft' if recoverable
+      if (!cleanData.title || cleanData.title === 'Untitled Draft') {
+        const fallback = getDisplayTitle(cleanData as Article);
+        if (fallback && fallback !== 'Untitled Draft') {
+          cleanData.title = fallback;
+        }
+      }
       const docRef = await addDoc(articlesCol, {
         ...cleanData,
         userId: currentUid,

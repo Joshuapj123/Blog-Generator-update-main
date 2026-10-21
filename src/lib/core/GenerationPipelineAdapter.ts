@@ -528,12 +528,12 @@ export class GenerationPipelineAdapter {
       for (const section of finalArticle.sections) {
         const query = section.heading;
         const videoId = await this.fetchYouTubeVideo(query, youtubeKey);
-        if (videoId) {
+        if (videoId && /^[a-zA-Z0-9_-]{11}$/.test(videoId.trim())) {
           section.rich_media_query = {
             type: 'youtube',
             suggested_search_query: query,
             alt_text: `YouTube video on ${query}`,
-            youtube_video_id: videoId
+            youtube_video_id: videoId.trim()
           };
         }
       }
@@ -601,7 +601,7 @@ export class GenerationPipelineAdapter {
       ownerId: payload.authenticatedUserId || undefined,
       title: finalArticle.title,
       content: htmlContent,
-      folder: 'uncategorized',
+      folder: payload.folder || 'uncategorized',
       stage: 'Draft',
       topic: payload.title,
       sourceKeyword: primaryKeyword,

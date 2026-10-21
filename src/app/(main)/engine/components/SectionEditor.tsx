@@ -40,6 +40,7 @@ export function SectionEditor() {
   const { handleUnifiedIntelligence } = useEngineHandlers();
 
   const finalAssemblyDoneRef = useRef<string | null>(null);
+  const lastSavedContentRef = useRef<string>('');
 
   // Modal States
   const [showYT, setShowYT] = useState(false);
@@ -330,6 +331,16 @@ export function SectionEditor() {
     };
   }, [editor, engine.editorRef]);
 
+  // Guard against re-assembly when loading an already persisted article into editor
+  useEffect(() => {
+    if (engine.currentArticleId && engine.tiptapContent && !engine.isRunning) {
+      if (!finalAssemblyDoneRef.current) {
+        finalAssemblyDoneRef.current = engine.currentArticleId;
+        lastSavedContentRef.current = engine.tiptapContent;
+      }
+    }
+  }, [engine.currentArticleId, engine.tiptapContent, engine.isRunning]);
+
   // Debounced Auto-Save on content change
   useEffect(() => {
     if (!engine.isGenerated || engine.isRunning || !engine.currentArticleId || !engine.tiptapContent) return;
@@ -338,7 +349,11 @@ export function SectionEditor() {
     const textLength = editor?.getText().trim().length || 0;
     if (textLength === 0) return;
 
+    // Avoid saving if content has not changed since last save
+    if (lastSavedContentRef.current === engine.tiptapContent) return;
+
     const handler = setTimeout(() => {
+      lastSavedContentRef.current = engine.tiptapContent;
       engine.saveCurrentArticle(engine.tiptapContent);
     }, 2000);
 
@@ -428,16 +443,14 @@ export function SectionEditor() {
               // We skip adding takeaway to editor body as requested, 
               // but it will be available in the engine.sections state for the QA panel.
             }
-            if (generatedSec.outbound_authority_link?.resolved_url) {
-              lines.push(`📎 [${generatedSec.outbound_authority_link.resolved_title || 'Source'}](${generatedSec.outbound_authority_link.resolved_url})\n`);
+            if (generatedSec.outbound_authority_link?.resolved_url && /^https?:\/\//i.test(generatedSec.outbound_authority_link.resolved_url.trim())) {
+              lines.push(`📎 [${generatedSec.outbound_authority_link.resolved_title || 'Source'}](${generatedSec.outbound_authority_link.resolved_url.trim()})\n`);
             }
-            if (generatedSec.rich_media_query?.youtube_video_id) {
+            const vidId = String(generatedSec.rich_media_query?.youtube_video_id || '').trim();
+            if (/^[a-zA-Z0-9_-]{11}$/.test(vidId)) {
               const vid = generatedSec.rich_media_query;
-              lines.push(`<div data-youtube-video src="https://www.youtube.com/watch?v=${vid.youtube_video_id}"></div>\n`);
-              lines.push(`🎬 **YouTube Reference:** [${vid.suggested_search_query || 'Watch Video'}](https://www.youtube.com/watch?v=${vid.youtube_video_id})\n`);
-            } else if (generatedSec.rich_media_query?.suggested_search_query) {
-              const query = generatedSec.rich_media_query.suggested_search_query;
-              lines.push(`🎬 **YouTube Search:** [${query}](https://www.youtube.com/results?search_query=${encodeURIComponent(query)})\n`);
+              lines.push(`<div data-youtube-video src="https://www.youtube.com/watch?v=${vidId}"></div>\n`);
+              lines.push(`🎬 **YouTube Reference:** [${vid?.suggested_search_query || 'Watch Video'}](https://www.youtube.com/watch?v=${vidId})\n`);
             }
           } else {
             lines.push('*Generating content...*');
@@ -518,6 +531,7 @@ export function SectionEditor() {
       
       const html = normalizeAiOutput(rawMarkdown);
       finalAssemblyDoneRef.current = engine.currentArticleId || 'default';
+      lastSavedContentRef.current = html;
       engine.setTiptapContent(html);
       
       // Auto-save the newly generated content to replace old or create new

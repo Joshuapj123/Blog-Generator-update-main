@@ -297,11 +297,13 @@ export class ContentEvidenceValidator {
           const sentencesB = secB.split(/[.!?]+/).map(s => s.trim().toLowerCase()).filter(s => s.length > 25);
           
           for (const sA of sentencesA) {
+            const wordsCount = sA.split(/\s+/).filter(Boolean).length;
+            if (wordsCount < 7) continue; // Don't flag short transition phrases
             for (const sB of sentencesB) {
               if (sA === sB) {
-                const msg = `Identical sentence repeated across sections: "${sA.substring(0, 60)}..."`;
+                const msg = `Boilerplate Alert: Identical sentence repeated across sections: "${sA.substring(0, 60)}..."`;
                 repetitionIssues.push(msg);
-                warnings.push(msg);
+                criticalErrors.push(msg);
                 break;
               }
             }
@@ -317,7 +319,7 @@ export class ContentEvidenceValidator {
           if (similarity > CONTENT_INTELLIGENCE_POLICY.CROSS_SECTION_SIMILARITY_MAX_PERCENT) {
             const msg = `Cross-section structural similarity of ${similarity.toFixed(1)}% exceeds maximum allowable threshold (${CONTENT_INTELLIGENCE_POLICY.CROSS_SECTION_SIMILARITY_MAX_PERCENT}%).`;
             repetitionIssues.push(msg);
-            warnings.push(msg);
+            criticalErrors.push(msg);
           }
         }
       }
@@ -746,6 +748,79 @@ export class ContentEvidenceValidator {
       criticalErrors.push(`Article Completeness Alert: Duplicate section heading detected: ${Array.from(dupHeadings).map(h => `"${h}"`).join(', ')}.`);
     }
 
+    // 2.1 Cross-section boilerplate and repeated sentence detection
+    const allSecBlocks = textWithoutCodeBlocks.split(/\n(?=#{2,3}\s+)/);
+    if (allSecBlocks.length > 1) {
+      const sentenceToSections = new Map<string, { count: number; raw: string; sections: string[] }>();
+      const sectionParagraphs: { heading: string; paras: string[] }[] = [];
+
+      for (const block of allSecBlocks) {
+        const headingMatch = block.match(/^#{2,3}\s+(.+)/);
+        const heading = headingMatch ? headingMatch[1].trim() : 'Intro';
+        const bodyOnly = block.replace(/^#{2,3}\s+.*$/m, '').trim();
+        const paras = bodyOnly.split(/\n\s*\n/).map(p => p.trim()).filter(p => p.length > 0 && !p.startsWith('#') && !p.startsWith('|'));
+        sectionParagraphs.push({ heading, paras });
+
+        for (const p of paras) {
+          const sentences = p.split(/(?<=[.!?])\s+/).map(s => s.trim()).filter(s => s.length >= 35);
+          for (const s of sentences) {
+            const cleanS = s.toLowerCase().replace(/[^\w\s]/g, '').trim();
+            const words = cleanS.split(/\s+/).filter(Boolean);
+            if (words.length >= 7) {
+              const normKey = words.join(' ');
+              const existing = sentenceToSections.get(normKey);
+              if (existing) {
+                existing.count++;
+                if (!existing.sections.includes(heading)) existing.sections.push(heading);
+              } else {
+                sentenceToSections.set(normKey, { count: 1, raw: s, sections: [heading] });
+              }
+            }
+          }
+        }
+      }
+
+      for (const entry of sentenceToSections.values()) {
+        if (entry.sections.length >= 2 && entry.count >= 2) {
+          criticalErrors.push(`Article Completeness Alert: Generic boilerplate sentence repeated across multiple sections: "${entry.raw.slice(0, 75)}...".`);
+          break;
+        }
+      }
+
+      for (let i = 0; i < sectionParagraphs.length; i++) {
+        for (let j = i + 1; j < sectionParagraphs.length; j++) {
+          const secA = sectionParagraphs[i];
+          const secB = sectionParagraphs[j];
+          for (const pA of secA.paras) {
+            const wordsA = pA.toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/).filter(Boolean);
+            if (wordsA.length < 15) continue;
+            for (const pB of secB.paras) {
+              const wordsB = pB.toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/).filter(Boolean);
+              if (wordsB.length < 15) continue;
+              const setA = new Set(wordsA);
+              const setB = new Set(wordsB);
+              let inter = 0;
+              for (const w of setA) { if (setB.has(w)) inter++; }
+              const union = setA.size + setB.size - inter;
+              const sim = union > 0 ? inter / union : 0;
+              if (sim >= 0.75) {
+                criticalErrors.push(`Article Completeness Alert: Highly repetitive or duplicate paragraph detected across sections "${secA.heading}" and "${secB.heading}" (${Math.round(sim * 100)}% similarity).`);
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // 2.2 Unverified Corporate Capability Claim Gate
+    const unverifiedCapMatch = bodyMarkdown.match(/\b([A-Za-z0-9_.-]+)\s+provides\s+verified\s+(?:capability|service offering):\s*([^.\n]+)/gi);
+    if (unverifiedCapMatch) {
+      for (const capStr of unverifiedCapMatch) {
+        criticalErrors.push(`Unverified Corporate Capability Alert: Unsupported assertion of verified capability: "${capStr.trim()}". Capability claims must have traceable external benchmark provenance.`);
+      }
+    }
+
     // 3. Listicle promise and stub item validation (applies when title promises N items)
     if (promisedCount !== null && promisedCount > 0) {
       const sectionBlocks = textWithoutCodeBlocks.split(/\n(?=#{2,3}\s+)/);
@@ -840,6 +915,78 @@ export class ContentEvidenceValidator {
     }
     if (dupHeadings.size > 0) {
       criticalErrors.push(`Article Completeness Alert: Duplicate section heading detected: ${Array.from(dupHeadings).map(h => `"${h}"`).join(', ')}.`);
+    }
+
+    // 2.1 Cross-section boilerplate and repeated sentence detection in HTML
+    const sectionHtmlPartsAll = html.split(/(?=<h[23][^>]*>)/i);
+    if (sectionHtmlPartsAll.length > 1) {
+      const sentenceToSections = new Map<string, { count: number; raw: string; sections: string[] }>();
+      const sectionParagraphs: { heading: string; paras: string[] }[] = [];
+
+      for (const part of sectionHtmlPartsAll) {
+        const hMatch = part.match(/<h[23][^>]*>(.*?)<\/h[23]>/i);
+        const heading = hMatch ? hMatch[1].replace(/<[^>]*>/g, '').trim() : 'Intro';
+        const pMatches = Array.from(part.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)).map(m => m[1].replace(/<[^>]*>/g, '').trim());
+        sectionParagraphs.push({ heading, paras: pMatches });
+
+        for (const p of pMatches) {
+          const sentences = p.split(/(?<=[.!?])\s+/).map(s => s.trim()).filter(s => s.length >= 35);
+          for (const s of sentences) {
+            const cleanS = s.toLowerCase().replace(/[^\w\s]/g, '').trim();
+            const words = cleanS.split(/\s+/).filter(Boolean);
+            if (words.length >= 7) {
+              const normKey = words.join(' ');
+              const existing = sentenceToSections.get(normKey);
+              if (existing) {
+                existing.count++;
+                if (!existing.sections.includes(heading)) existing.sections.push(heading);
+              } else {
+                sentenceToSections.set(normKey, { count: 1, raw: s, sections: [heading] });
+              }
+            }
+          }
+        }
+      }
+
+      for (const entry of sentenceToSections.values()) {
+        if (entry.sections.length >= 2 && entry.count >= 2) {
+          criticalErrors.push(`Article Completeness Alert: Generic boilerplate sentence repeated across multiple sections: "${entry.raw.slice(0, 75)}...".`);
+          break;
+        }
+      }
+
+      for (let i = 0; i < sectionParagraphs.length; i++) {
+        for (let j = i + 1; j < sectionParagraphs.length; j++) {
+          const secA = sectionParagraphs[i];
+          const secB = sectionParagraphs[j];
+          for (const pA of secA.paras) {
+            const wordsA = pA.toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/).filter(Boolean);
+            if (wordsA.length < 15) continue;
+            for (const pB of secB.paras) {
+              const wordsB = pB.toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/).filter(Boolean);
+              if (wordsB.length < 15) continue;
+              const setA = new Set(wordsA);
+              const setB = new Set(wordsB);
+              let inter = 0;
+              for (const w of setA) { if (setB.has(w)) inter++; }
+              const union = setA.size + setB.size - inter;
+              const sim = union > 0 ? inter / union : 0;
+              if (sim >= 0.75) {
+                criticalErrors.push(`Article Completeness Alert: Highly repetitive or duplicate paragraph detected across sections "${secA.heading}" and "${secB.heading}" (${Math.round(sim * 100)}% similarity).`);
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // 2.2 Unverified Corporate Capability Claim Gate in HTML
+    const unverifiedCapMatchHtml = html.match(/\b([A-Za-z0-9_.-]+)\s+provides\s+verified\s+(?:capability|service offering):\s*([^<.\n]+)/gi);
+    if (unverifiedCapMatchHtml) {
+      for (const capStr of unverifiedCapMatchHtml) {
+        criticalErrors.push(`Unverified Corporate Capability Alert: Unsupported assertion of verified capability: "${capStr.replace(/<[^>]*>/g, '').trim()}". Capability claims must have traceable external benchmark provenance.`);
+      }
     }
 
     // Listicle promise and stub item validation (applies when title promises N items)

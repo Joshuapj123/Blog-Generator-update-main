@@ -12,7 +12,7 @@ import { StepAuthor } from './components/WizardSteps/StepAuthor';
 import { StepFinalConfig } from './components/WizardSteps/StepFinalConfig';
 import { SectionEditor } from './components/SectionEditor';
 import { GoogleAdsModal } from './components/GoogleAdsModal';
-import { getArticles, getFolders, getExternalLinks } from '@/lib/firebase/firestore';
+import { getArticles, getFolders, getExternalLinks, getDisplayTitle } from '@/lib/firebase/firestore';
 import { useAuth } from '@/lib/firebase/auth-context';
 import { captureEvent, extractDomain } from '@/lib/analytics/posthog';
 import { Button } from '@/components/ui/button';
@@ -62,6 +62,7 @@ function EnginePageContent() {
         // Auto-populate from planning page redirect
         const allArticles = [...todoArticles, ...publishedArticles];
         if (todoId && allArticles.some(a => a.id === todoId)) {
+          setUseAutopilot(false);
           engine.setSelectedTodoIdea(todoId);
           try { localStorage.setItem('last_active_article_id', todoId); } catch(e) {}
         } else {
@@ -92,7 +93,9 @@ function EnginePageContent() {
     // Reset editor state before loading new article
     engine.setTiptapContent('');
     engine.setIsGenerated(false);
-    engine.setTitle(matched.title || '');
+    const resolvedTitle = getDisplayTitle(matched);
+    engine.setTitle(resolvedTitle !== 'Untitled Draft' ? resolvedTitle : (matched.title || ''));
+    engine.setCurrentArticleFolder(matched.folder || '');
 
     engine.setCurrentArticleStage(matched.stage);
     let parsedKeyword = matched.sourceKeyword || '';
@@ -102,7 +105,7 @@ function EnginePageContent() {
     const isGenerated = (matched.stage === 'Draft' || matched.stage === 'Published') && hasGeneratedContent;
 
     if (isGenerated) {
-        engine.setTitle(matched.title || '');
+        engine.setTitle(resolvedTitle !== 'Untitled Draft' ? resolvedTitle : (matched.title || ''));
         if (parsedKeyword) {
             const primaryKw = parsedKeyword.split(',')[0].trim();
             engine.setActiveKeyword(primaryKw);

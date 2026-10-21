@@ -3,7 +3,8 @@ import {
   getArticles, updateArticleStage, updateArticleFolder, Article, 
   getFolders, createFolder, Folder,
   getExternalLinks, saveExternalLink, deleteExternalLink as removeExternalLink, updateExternalLinkFolder, 
-  ExternalLink as ExternalLinkType, deleteArticle
+  ExternalLink as ExternalLinkType, deleteArticle,
+  getDisplayTitle, formatArticleDate, normalizeFolder, getArticleTimestampMs
 } from '@/lib/firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -283,26 +284,30 @@ export function ContentDashboard({ onEdit }: { onEdit?: (id: string) => void }) 
                       <tr>
                         <th className="px-4 py-4">Title</th>
                         <th className="px-4 py-4">Folder</th>
+                        <th className="px-4 py-4">Created</th>
                         <th className="px-4 py-4">Status</th>
                         <th className="px-4 py-4 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
-                      {articles.sort((a, b) => {
+                      {[...articles].sort((a, b) => {
                         const order = { 'Todo': 0, 'Draft': 1, 'Published': 2 };
-                        return order[a.stage] - order[b.stage];
-                      }).map(article => (
+                        const stageDiff = (order[a.stage] ?? 99) - (order[b.stage] ?? 99);
+                        if (stageDiff !== 0) return stageDiff;
+                        return getArticleTimestampMs(b) - getArticleTimestampMs(a);
+                      }).map(article => {
+                        const displayTitle = getDisplayTitle(article);
+                        return (
                         <tr key={article.id} className={`hover:bg-muted/30 transition-colors group ${article.stage === 'Todo' ? 'bg-indigo-50/30' : ''}`}>
                           <td className="px-4 py-4">
                               <div className="font-semibold text-foreground line-clamp-1 flex items-center gap-2">
                                 {article.stage === 'Todo' && <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />}
-                                {article.title}
+                                {displayTitle}
                               </div>
-                              <div className="text-[10px] text-muted-foreground font-mono mt-0.5 uppercase tracking-wider">{new Date(article.updatedAt?.seconds * 1000).toLocaleDateString()}</div>
                           </td>
                           <td className="px-4 py-4">
                               <select 
-                                  value={article.folder || ''}
+                                  value={normalizeFolder(article.folder)}
                                   onChange={(e) => updateFolder(article.id!, e.target.value)}
                                   className="px-2 py-1 items-center justify-center rounded-md bg-secondary text-[11px] font-medium text-secondary-foreground border-none outline-none appearance-none cursor-pointer pr-5 hover:bg-secondary/80 focus:ring-1 focus:ring-primary/30"
                                   style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundPosition: `right 4px center`, backgroundRepeat: `no-repeat`, backgroundSize: `10px 10px` }}
@@ -312,6 +317,11 @@ export function ContentDashboard({ onEdit }: { onEdit?: (id: string) => void }) 
                                       <option key={f.id} value={f.name}>{f.name}</option>
                                   ))}
                               </select>
+                          </td>
+                          <td className="px-4 py-4">
+                            <span className="text-[11px] text-muted-foreground font-mono">
+                              {formatArticleDate(article)}
+                            </span>
                           </td>
                           <td className="px-4 py-4">
                             <div className="relative w-fit">
@@ -338,8 +348,8 @@ export function ContentDashboard({ onEdit }: { onEdit?: (id: string) => void }) 
                           <td className="px-4 py-4 text-right">
                             <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                               {article.stage === 'Published' && (
-                                <Link 
-                                  href={`/blog/${article.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} 
+                                <Link
+                                  href={`/blog/${displayTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
                                   target="_blank"
                                   title="View Published Page"
                                 >
@@ -372,7 +382,8 @@ export function ContentDashboard({ onEdit }: { onEdit?: (id: string) => void }) 
                             </div>
                           </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

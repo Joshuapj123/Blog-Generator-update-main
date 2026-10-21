@@ -158,11 +158,11 @@ export function toMarkdown(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]):
         }
         // AI image/diagram generation removed per Prompt 5C
       } else {
-        if (media.youtube_video_id) {
-          lines.push(`🎬 **YouTube Reference:** [${media.suggested_search_query || 'Watch Video'}](https://www.youtube.com/watch?v=${media.youtube_video_id})\n`);
-        } else if (media.suggested_search_query) {
-          lines.push(`🎬 **YouTube Search:** ${media.suggested_search_query}\n`);
+        const vid = String(media.youtube_video_id || '').trim();
+        if (/^[a-zA-Z0-9_-]{11}$/.test(vid)) {
+          lines.push(`**Video Reference:** [${media.suggested_search_query || 'Watch Video'}](https://www.youtube.com/watch?v=${vid})\n`);
         }
+        // Missing, malformed, or placeholder references are safely omitted without corrupting the article
       }
     }
   }

@@ -21,6 +21,7 @@ import { useEngineHandlers } from '../../hooks/useEngineHandlers';
 import { AiKeywordResults } from '../KeywordResults/AiKeywordResults';
 import { GadsKeywordResults } from '../KeywordResults/GadsKeywordResults';
 import { SerperKeywordResults } from '../KeywordResults/SerperKeywordResults';
+import { getDisplayTitle } from '@/lib/firebase/firestore';
 
 export function StepTopicKeywords() {
   const engine = useEngine();
@@ -145,12 +146,31 @@ export function StepTopicKeywords() {
                   engine.setSelectedTodoIdea(val);
                   if (val) {
                     const mapped = engine.todoArticles.find(a => a.id === val);
-                    if (mapped && mapped.content) {
-                      const parsed = JSON.parse(mapped.content);
-                      if (parsed.topicIdea) {
-                        engine.setTitle(parsed.topicIdea.title);
-                        engine.setTargetKeywords(parsed.topicIdea.keywords);
-                        engine.setActiveKeyword(parsed.topicIdea.keywords.split(',')[0].trim());
+                    if (mapped) {
+                      engine.setCurrentArticleId(mapped.id || val);
+                      engine.setCurrentArticleFolder(mapped.folder || '');
+                      const resolvedTitle = getDisplayTitle(mapped);
+                      if (resolvedTitle && resolvedTitle !== 'Untitled Draft') {
+                        engine.setTitle(resolvedTitle);
+                      } else if (mapped.title) {
+                        engine.setTitle(mapped.title);
+                      }
+                      if (mapped.content) {
+                        try {
+                          const parsed = JSON.parse(mapped.content);
+                          if (parsed.topicIdea) {
+                            if (parsed.topicIdea.title) engine.setTitle(parsed.topicIdea.title);
+                            if (parsed.topicIdea.keywords) {
+                              engine.setTargetKeywords(parsed.topicIdea.keywords);
+                              engine.setActiveKeyword(parsed.topicIdea.keywords.split(',')[0].trim());
+                            }
+                          }
+                        } catch {}
+                      }
+                      if (mapped.sourceKeyword && !engine.activeKeyword) {
+                        const kw = mapped.sourceKeyword.split(',')[0].trim();
+                        engine.setActiveKeyword(kw);
+                        engine.setTargetKeywords(kw);
                       }
                       if (mapped.planRole) {
                         engine.setPlanRole(mapped.planRole);
@@ -167,6 +187,7 @@ export function StepTopicKeywords() {
                     engine.setActiveKeyword('');
                     engine.setTargetKeywords('');
                     engine.setCurrentArticleId(null);
+                    engine.setCurrentArticleFolder('');
                     engine.setPlanRole(null);
                     engine.setStrategyTargetKeywords([]);
                     engine.setReferenceUrl('');

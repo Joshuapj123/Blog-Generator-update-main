@@ -768,11 +768,26 @@ export class ArticleExportService {
       clean = clean.replace(match[0], `<p>${placeholder}</p>`);
     });
 
+    // Helper to preserve link URLs in PDF blocks: <a href="url">text</a> -> text (url)
+    const preserveAnchorUrls = (content: string): string => {
+      return content.replace(/<a\s+[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi, (_, href, linkText) => {
+        const cleanHref = href.trim();
+        const cleanText = linkText.replace(/<[^>]*>/g, '').trim();
+        if (!cleanHref || cleanHref === '#' || cleanHref.startsWith('javascript:')) {
+          return cleanText;
+        }
+        if (!cleanText || cleanText.toLowerCase() === cleanHref.toLowerCase()) {
+          return cleanHref;
+        }
+        return `${cleanText} (${cleanHref})`;
+      });
+    };
+
     // Extract lists
     clean = clean.replace(/<ul[^>]*>([\s\S]*?)<\/ul>/gi, (_, inner) => {
       const items: string[] = [];
       const liMatches = Array.from((inner as string).matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi));
-      liMatches.forEach(m => items.push(m[1].replace(/<[^>]*>/g, '').trim()));
+      liMatches.forEach(m => items.push(preserveAnchorUrls(m[1]).replace(/<[^>]*>/g, '').trim()));
       return `\n\n__LIST_BLOCK__:${JSON.stringify(items)}\n\n`;
     });
 
@@ -782,7 +797,7 @@ export class ArticleExportService {
     while ((match = tagRegex.exec(clean)) !== null) {
       const tag = match[1].toLowerCase();
       const rawContent = match[2];
-      const text = rawContent.replace(/<[^>]*>/g, '').trim();
+      const text = preserveAnchorUrls(rawContent).replace(/<[^>]*>/g, '').trim();
       if (!text) continue;
 
       if (text.startsWith('__TABLE_PLACEHOLDER_')) {
@@ -841,10 +856,28 @@ export class ArticleExportService {
       .replace(/–/g, ' - ')
       .replace(/…/g, '...')
       .replace(/•/g, '-')
+      // Map known emojis and symbol prefixes to clean textual labels
+      .replace(/🎬/g, '[Video]')
+      .replace(/📎/g, '[Source]')
+      .replace(/💡/g, '[Tip]')
+      .replace(/⚠️/g, '[Warning]')
+      .replace(/✅/g, '[Yes]')
+      .replace(/❌/g, '[No]')
+      .replace(/🔥/g, '[Highlight]')
+      .replace(/🚀/g, '[Fast]')
+      .replace(/📈/g, '[Growth]')
+      .replace(/📊/g, '[Data]')
       .replace(/\r\n/g, '\n')
       .replace(/\r/g, '\n')
       // Remove any remaining HTML tags
       .replace(/<[^>]*>/g, '')
+      // Strip any surrogate pairs / multi-byte emojis that standard WinAnsi Helvetica cannot render
+      .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '')
+      // Strip unprintable control chars except \n and \t
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+      // Replace remaining non-ASCII characters outside standard Latin-1 printable range
+      .replace(/[^\x20-\x7E\xA0-\xFF\n\t]/g, ' ')
+      .replace(/[ \t]+/g, ' ')
       .trim();
   }
 

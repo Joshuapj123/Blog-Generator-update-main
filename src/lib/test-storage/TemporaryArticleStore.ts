@@ -141,16 +141,15 @@ export class TemporaryArticleStore {
 
     const cleanUid = verifiedUid.trim();
 
-    // Assign deterministic test article ID if not already present or if not a test_article ID
-    const articleId = (article.id && article.id.startsWith('test_article_')) 
-      ? article.id 
-      : this.generateTestId();
+    // Assign deterministic test article ID if not already present
+    const articleId = article.id || this.generateTestId();
 
     // Check existing document ownership
     const existingSerialized = this.store.get(articleId);
+    let existingDoc: Article | null = null;
     if (existingSerialized) {
-      const existingDoc: Article = JSON.parse(existingSerialized);
-      const existingOwner = existingDoc.userId || existingDoc.ownerId;
+      existingDoc = JSON.parse(existingSerialized);
+      const existingOwner = existingDoc?.userId || existingDoc?.ownerId;
       if (existingOwner && existingOwner !== cleanUid) {
         throw new Error(
           `Forbidden: Caller "${cleanUid}" does not have permission to modify article "${articleId}" owned by "${existingOwner}".`
@@ -160,13 +159,25 @@ export class TemporaryArticleStore {
 
     const nowIso = new Date().toISOString();
 
+    // Title preservation: never overwrite an existing real title with 'Untitled Draft'
+    const resolvedTitle = (existingDoc?.title && existingDoc.title !== 'Untitled Draft' && (!article.title || article.title === 'Untitled Draft'))
+      ? existingDoc.title
+      : article.title;
+
+    // Folder preservation: never overwrite an existing customized folder with 'uncategorized'
+    const resolvedFolder = (existingDoc?.folder && existingDoc.folder.toLowerCase() !== 'uncategorized' && (!article.folder || article.folder.toLowerCase() === 'uncategorized'))
+      ? existingDoc.folder
+      : (article.folder || '');
+
     // Authoritative ownership binding — strictly overwrite any client-supplied userId / ownerId
     const secureArticle: Article = {
       ...article,
       id: articleId,
       userId: cleanUid,
       ownerId: cleanUid,
-      createdAt: article.createdAt || nowIso,
+      title: resolvedTitle,
+      folder: resolvedFolder,
+      createdAt: existingDoc?.createdAt || article.createdAt || nowIso,
       updatedAt: nowIso,
       diagnostics: {
         ...(article.diagnostics || {}),
