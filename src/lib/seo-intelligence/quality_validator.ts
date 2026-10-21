@@ -258,7 +258,7 @@ export function validateArticleQuality(
   // 4. Consecutive Paragraph Structures
   const hasConsecutiveStructures = consecutiveParagraphStructures(paragraphs);
   if (hasConsecutiveStructures) {
-    errors.push(`More than 2 consecutive paragraphs have identical sentence count and format structure.`);
+    warnings.push(`More than 2 consecutive paragraphs have identical sentence count and format structure.`);
   }
 
   // 5. Flesch Reading Ease

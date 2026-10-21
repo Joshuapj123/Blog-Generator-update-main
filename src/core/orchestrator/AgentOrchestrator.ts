@@ -1448,6 +1448,7 @@ Return only the schema-compliant structured object.`;
           finalValidationStatus = 'PASSED';
         }
         review.finalValidationStatus = finalValidationStatus;
+        review.passed = finalValidationStatus !== 'FAILED';
 
         const initialWordCount = contentBeforeReview?.wordCount || content?.wordCount || 0;
         const finalWordCount = content?.wordCount || 0;
@@ -2104,7 +2105,6 @@ WORD BUDGET:
         err.includes('Brand Stuffing Alert') ||
         err.includes('structurally similar') ||
         err.includes('same opening words') ||
-        err.includes('identical sentence count and format structure') ||
         err.includes('Boilerplate Alert') ||
         err.includes('repeated template') ||
         err.includes('Generic boilerplate')
