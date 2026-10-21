@@ -103,6 +103,7 @@ import {
 } from '../contracts/evidence';
 import { EvidenceExtractionService } from '@/lib/intelligence/EvidenceExtractionService';
 import { ContentGapService } from '@/lib/intelligence/ContentGapService';
+import { TopicRelevanceValidator } from '@/lib/intelligence/TopicRelevanceValidator';
 import { SectionEvidenceMapper } from '@/lib/intelligence/SectionEvidenceMapper';
 import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceValidator';
 import { ClaimExtractionService } from '@/lib/intelligence/ClaimExtractionService';
@@ -883,9 +884,14 @@ Persona Pain Points: ${(saasIntelligenceProfile.audience.painPoints || []).join(
 Jobs-To-Be-Done / Goals: ${(saasIntelligenceProfile.audience.jtbd || []).join(', ')}`
           : `Business Profile: ${input.saasProfile?.name || 'Target Business'} - ${input.saasProfile?.description || ''}`;
 
+        const isSeoKeyword = TopicRelevanceValidator.isSeoDomainTopic(discovery.targetKeyword);
         const geoContextText = geoIntelligence && geoIntelligence.geoOpportunities?.length > 0
-          ? `GEO AI-Visibility Requirements and Recommendations:
+          ? (isSeoKeyword
+            ? `GEO AI-Visibility Requirements and Recommendations:
 ${geoIntelligence.geoOpportunities.map((o: any) => `- Issue: ${o.issue}\n  Recommended Action: ${o.recommendedAction}`).join('\n')}`
+            : `=== INTERNAL PUBLISHING GUIDANCE (DO NOT USE AS READER-FACING OUTLINE HEADINGS) ===
+(Internal distribution notes only — DO NOT generate outline sections or headings on AI search crawling, Perplexity visibility, or search engine indexing):
+${geoIntelligence.geoOpportunities.map((o: any) => `- Internal note: ${o.recommendedAction}`).join('\n')}`)
           : '';
 
         const supportingTermsText = this.supportingTerms.length > 0
@@ -893,9 +899,12 @@ ${geoIntelligence.geoOpportunities.map((o: any) => `- Issue: ${o.issue}\n  Recom
           : '';
 
         const gapsContextText = this.gapMatrix && this.gapMatrix.gaps.length > 0
-          ? `=== IDENTIFIED CONTENT GAPS (MUST COVER IN OUTLINE) ===
-The following high-value topics are missing or under-covered by competitors. Your outline MUST include sections or table coverage for them:
-${this.gapMatrix.gaps.map(g => `- Topic: "${g.topic}" (Treatment: ${g.recommendedTreatment}, Buyer Question to answer: "${g.buyerQuestion}")`).join('\n')}`
+          ? `=== CANDIDATE CONTENT GAPS (EDITORIAL EVALUATION REQUIRED) ===
+The following candidate topics represent potential competitor content gaps. You have full editorial authority:
+- INCLUDE a candidate gap ONLY IF it directly advances the reader's core search intent for "${discovery.targetKeyword}".
+- REJECT or ADAPT any gap that introduces unrelated business models, agency staffing, internal SEO/GEO mechanics, or off-topic domains.
+- DO NOT generate sections on developer retention, staffing models, or AI search engine crawling unless specifically demanded by the target keyword "${discovery.targetKeyword}".
+${this.gapMatrix.gaps.map(g => `- Candidate Topic: "${g.topic}" (Suggested Treatment: ${g.recommendedTreatment}, Potential Buyer Question: "${g.buyerQuestion}")`).join('\n')}`
           : '';
 
         const evidenceContextText = this.evidenceSet && this.evidenceSet.items.length > 0
@@ -999,10 +1008,24 @@ ${input.maxHeadings ? `Generate at most ${input.maxHeadings} headings in the out
           }
           const parseResult = ContentBriefSchema.safeParse(normalized);
           if (parseResult.success) {
-            plan = parseResult.data;
-            initialParseSuccess = true;
-            planRecovery.initialStatus = initialCallError ? 'NORMALIZED_VALID' : (normalizationApplied ? 'NORMALIZED_VALID' : 'VALID');
-            planRecovery.finalStatus = 'SUCCESS';
+            const relevanceCheck = TopicRelevanceValidator.validateOutline(
+              parseResult.data.outline,
+              discovery.targetKeyword,
+              this.supportingTerms
+            );
+            if (relevanceCheck.isValid) {
+              plan = parseResult.data;
+              initialParseSuccess = true;
+              planRecovery.initialStatus = initialCallError ? 'NORMALIZED_VALID' : (normalizationApplied ? 'NORMALIZED_VALID' : 'VALID');
+              planRecovery.finalStatus = 'SUCCESS';
+            } else {
+              planRecovery.initialStatus = 'SCHEMA_VIOLATION';
+              initialParseSuccess = false;
+              initialValidationIssues = relevanceCheck.driftedHeadings.map(
+                d => `Outline topic drift detected in heading "${d.heading}" (${d.driftVector}): ${d.reason}`
+              );
+              planRecovery.validationFailurePaths = ['outline.topic_relevance'];
+            }
           } else {
             planRecovery.initialStatus = 'SCHEMA_VIOLATION';
             const { paths, issues } = extractSanitizedValidationIssues(parseResult.error);
@@ -1022,10 +1045,11 @@ ${input.maxHeadings ? `Generate at most ${input.maxHeadings} headings in the out
           const correctionPrompt = `${prompt}
 
 === CORRECTION REQUIRED ===
-The previous structured ContentBrief did not satisfy the required schema. Correct the following fields:
+The previous structured ContentBrief did not satisfy the required schema or topical relevance constraints. Correct the following issues:
 ${initialValidationIssues.map(i => `- ${i}`).join('\n')}
 
 CRITICAL CONTRACTS:
+- TOPICAL RELEVANCE: All outline sections MUST focus strictly on "${discovery.targetKeyword}". Discard any off-topic sections (e.g. developer retention, staffing, internal AI search crawler optimization) that do not serve the reader's primary objective.
 - intent.intentType MUST be exactly one of: Informational, Transactional, Commercial, Navigational, Comparison
 - intent.contentType MUST be exactly one of: Listicle, How-To, Guide, Review, Comparison, Other
 - outline[].level MUST be exactly H2 or H3
@@ -1062,9 +1086,30 @@ Return only the schema-compliant structured object.`;
             }
             const retryParseResult = ContentBriefSchema.safeParse(retryNorm);
             if (retryParseResult.success) {
-              plan = retryParseResult.data;
-              planRecovery.retrySucceeded = true;
-              planRecovery.finalStatus = 'RECOVERED';
+              const retryRelevance = TopicRelevanceValidator.validateOutline(
+                retryParseResult.data.outline,
+                discovery.targetKeyword,
+                this.supportingTerms
+              );
+              if (retryRelevance.isValid) {
+                plan = retryParseResult.data;
+                planRecovery.retrySucceeded = true;
+                planRecovery.finalStatus = 'RECOVERED';
+              } else {
+                planRecovery.retrySucceeded = false;
+                planRecovery.topicDriftDetected = true;
+                if (!planRecovery.validationFailurePaths.includes('outline.topic_relevance')) {
+                  planRecovery.validationFailurePaths.push('outline.topic_relevance');
+                }
+                // If massive drift (> 50% of headings), reject retry and force Phase 5 deterministic fallback
+                if (retryRelevance.driftedHeadings.length > retryParseResult.data.outline.length / 2) {
+                  plan = undefined;
+                } else {
+                  // Bounded drift: keep outline for sanitization but retrySucceeded remains false
+                  plan = retryParseResult.data;
+                  planRecovery.finalStatus = 'RECOVERED';
+                }
+              }
             } else {
               planRecovery.retrySucceeded = false;
               const { paths } = extractSanitizedValidationIssues(retryParseResult.error);
@@ -1098,6 +1143,24 @@ Return only the schema-compliant structured object.`;
           } catch (fbErr: any) {
             planRecovery.finalStatus = 'FAILED';
             throw new Error('Deterministic fallback plan creation failed: ' + (fbErr?.message || fbErr), { cause: fbErr });
+          }
+        }
+
+        // TOPIC RELEVANCE SANITIZATION GUARANTEE
+        // Ensure any remaining drifted headings from retry or fallback are sanitized deterministically
+        if (plan) {
+          const sanitizeReport = TopicRelevanceValidator.sanitizeOutlineWithReport(
+            plan,
+            discovery.targetKeyword,
+            this.supportingTerms
+          );
+          plan = sanitizeReport.brief;
+          if (sanitizeReport.sanitizationApplied) {
+            planRecovery.sanitizationApplied = true;
+            planRecovery.sanitizedHeadingsCount = (planRecovery.sanitizedHeadingsCount || 0) + sanitizeReport.sanitizedHeadingsCount;
+            if (planRecovery.retryAttempted) {
+              planRecovery.retrySucceeded = false;
+            }
           }
         }
 

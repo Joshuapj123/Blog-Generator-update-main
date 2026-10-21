@@ -7,6 +7,7 @@ import {
   CONTENT_INTELLIGENCE_POLICY
 } from '@/core/contracts/evidence';
 import { SaaSProfile } from '@/core/contracts/schemas';
+import { TopicRelevanceValidator } from './TopicRelevanceValidator';
 
 export interface BuildGapMatrixInput {
   evidenceSet: EvidenceSet;
@@ -83,13 +84,7 @@ export class ContentGapService {
 
         let buyerQuestion = `How does ${cleanFeature} address operational bottlenecks and workflows?`;
         if (missingFromCompetitors) {
-          if (allCompetitorText.includes('wordpress') || allCompetitorText.includes('outsourcing') || allCompetitorText.includes('hourly') || allCompetitorText.includes('contractors')) {
-            buyerQuestion = `How does ${cleanFeature} solve vendor evaluation and developer retention issues caused by traditional agency outsourcing?`;
-          } else if (allCompetitorText.includes('chatgpt') || allCompetitorText.includes('wrapper') || allCompetitorText.includes('prompt') || allCompetitorText.includes('compliance overhead')) {
-            buyerQuestion = `How does ${cleanFeature} mitigate enterprise AI security, prompt injection, and data leakage risks?`;
-          } else {
-            buyerQuestion = `Why is ${cleanFeature} a critical evaluation criterion that competing vendors fail to provide?`;
-          }
+          buyerQuestion = `Why is ${cleanFeature} a critical capability or evaluation criterion for ${input.targetKeyword}?`;
         }
 
         gaps.push({
@@ -110,43 +105,48 @@ export class ContentGapService {
     }
 
     // 2. Structured Comparison Table Gap
-    const anyCompetitorHasTables = competitors.some(c => c.hasTables);
-    if (!anyCompetitorHasTables) {
-      const bizEvIds = evidenceSet.items
-        .filter(i => i.evidenceType === 'BUSINESS_FACT' || i.evidenceType === 'FEATURE' || i.sourceType === 'TARGET_SITE')
-        .map(i => i.id);
+    // Only claim competitors lack tables when competitors were actually crawled and analyzed
+    if (competitors.length > 0) {
+      const anyCompetitorHasTables = competitors.some(c => c.hasTables);
+      if (!anyCompetitorHasTables) {
+        const bizEvIds = evidenceSet.items
+          .filter(i => i.evidenceType === 'BUSINESS_FACT' || i.evidenceType === 'FEATURE' || i.sourceType === 'TARGET_SITE')
+          .map(i => i.id);
 
-      const isAiFocus = allCompetitorText.includes('chatgpt') || allCompetitorText.includes('wrapper') || allCompetitorText.includes('ai');
-      gaps.push({
-        id: 'gap_table_1',
-        topic: isAiFocus ? 'Enterprise AI Security & Compliance Matrix' : 'Delivery Model & Developer Retention Matrix',
-        importance: 'HIGH',
-        competitorCoverage: 10,
-        targetSiteCoverage: 90,
-        buyerQuestion: isAiFocus 
-          ? 'How do private AI models with SOC-2 compliance compare against third-party API wrappers?'
-          : 'How do dedicated engineering teams compare against traditional agency retainers?',
-        missingFromCompetitors: true,
-        businessOpportunity: 'Competitors present only narrative claims; a structured comparison matrix provides technical clarity.',
-        evidenceIds: bizEvIds.slice(0, 3),
-        recommendedTreatment: 'TABLE',
-      });
+        const cleanKeyword = input.targetKeyword.trim();
+        const capitalizedKeyword = cleanKeyword.charAt(0).toUpperCase() + cleanKeyword.slice(1);
+        gaps.push({
+          id: 'gap_table_1',
+          topic: `${capitalizedKeyword} Evaluation & Comparison Matrix`,
+          importance: 'HIGH',
+          competitorCoverage: 10,
+          targetSiteCoverage: 90,
+          buyerQuestion: `How do core approaches and capabilities for ${cleanKeyword} compare across practical implementation criteria?`,
+          missingFromCompetitors: true,
+          businessOpportunity: 'Competitors present only narrative claims; a structured comparison matrix provides technical clarity.',
+          evidenceIds: bizEvIds.slice(0, 3),
+          recommendedTreatment: 'TABLE',
+        });
+      }
     }
 
     // 3. Buyer Questions / GEO AI Opportunities Gaps
-    if (input.geoIntelligence && Array.isArray(input.geoIntelligence.geoOpportunities)) {
+    // Internal publishing recommendations must NOT become reader-facing content gaps
+    // unless the article topic is genuinely about SEO, AI search, or search engine visibility.
+    const isSeoOrAiTopic = TopicRelevanceValidator.isSeoDomainTopic(input.targetKeyword);
+    if (isSeoOrAiTopic && input.geoIntelligence && Array.isArray(input.geoIntelligence.geoOpportunities)) {
       input.geoIntelligence.geoOpportunities.slice(0, 3).forEach((opp: any, idx: number) => {
         const topic = opp.issue ? `AI Visibility & Evaluation: ${opp.issue}` : `Buyer Decision Factor ${idx + 1}`;
         gaps.push({
           id: `gap_geo_${idx + 1}`,
           topic,
-          importance: 'HIGH',
+          importance: 'MEDIUM',
           competitorCoverage: 20,
           targetSiteCoverage: 80,
-          buyerQuestion: opp.recommendedAction || `What critical criteria must buyers review when selecting ${input.targetKeyword}?`,
-          missingFromCompetitors: true,
+          buyerQuestion: opp.recommendedAction || `What critical criteria must buyers review when evaluating ${input.targetKeyword}?`,
+          missingFromCompetitors: competitors.length > 0,
           businessOpportunity: opp.recommendedAction || 'Directly answer high-intent buyer decision queries.',
-          evidenceIds: evidenceSet.items.slice(0, 2).map(i => i.id),
+          evidenceIds: (evidenceSet?.items || []).slice(0, 2).map(i => i.id),
           recommendedTreatment: 'SECTION',
         });
       });
@@ -154,16 +154,18 @@ export class ContentGapService {
 
     // 4. Default Practical Practitioner Workflow Gap if empty
     if (gaps.length === 0) {
+      const cleanKeyword = input.targetKeyword.trim();
+      const capitalizedKeyword = cleanKeyword.charAt(0).toUpperCase() + cleanKeyword.slice(1);
       gaps.push({
         id: 'gap_default_1',
-        topic: `End-to-End ${input.targetKeyword} Implementation Lifecycle`,
+        topic: `End-to-End ${capitalizedKeyword} Implementation Lifecycle`,
         importance: 'HIGH',
-        competitorCoverage: 30,
+        competitorCoverage: competitors.length > 0 ? 30 : 0,
         targetSiteCoverage: 85,
-        buyerQuestion: `What are the practical steps, timelines, and architectural decisions required for ${input.targetKeyword}?`,
-        missingFromCompetitors: true,
+        buyerQuestion: `What are the practical steps, timelines, and architectural decisions required for ${cleanKeyword}?`,
+        missingFromCompetitors: competitors.length > 0,
         businessOpportunity: 'Provide concrete practitioner execution guidance rather than generic theory.',
-        evidenceIds: evidenceSet.items.slice(0, 3).map(i => i.id),
+        evidenceIds: (evidenceSet?.items || []).slice(0, 3).map(i => i.id),
         recommendedTreatment: 'SECTION',
       });
     }

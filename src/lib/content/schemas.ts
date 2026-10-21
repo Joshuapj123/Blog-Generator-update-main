@@ -23,6 +23,9 @@ export interface PlanRecoveryDiagnostics {
   retrySucceeded: boolean;
   fallbackUsed: boolean;
   finalStatus: 'SUCCESS' | 'RECOVERED' | 'FALLBACK' | 'FAILED';
+  sanitizationApplied?: boolean;
+  sanitizedHeadingsCount?: number;
+  topicDriftDetected?: boolean;
 }
 
 const VALID_INTENT_TYPES: Record<string, 'Informational' | 'Transactional' | 'Commercial' | 'Navigational' | 'Comparison'> = {

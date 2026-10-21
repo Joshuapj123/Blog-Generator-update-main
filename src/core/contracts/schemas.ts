@@ -43,6 +43,8 @@ export const OutlineNodeSchema = z.object({
   core_concept: z.string().optional(),
 });
 
+export type OutlineNode = z.infer<typeof OutlineNodeSchema>;
+
 export const ContentBriefSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   targetKeywords: z.array(z.string()).min(1, 'At least one target keyword is required'),
