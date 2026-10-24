@@ -61,15 +61,15 @@ const RAW_FACET_TERMS = [
   'tracking', 'usability', 'navigation', 'interaction', 'interactions'
 ];
 
-const UNIVERSAL_FACET_STEMS = new Set(RAW_FACET_TERMS.map(s => stemmer(s)));
+export const UNIVERSAL_FACET_STEMS = new Set(RAW_FACET_TERMS.map(s => stemmer(s)));
 
 // Generic metric stems that do not by themselves establish domain topicality
-const GENERIC_METRIC_STEMS = new Set([
+export const GENERIC_METRIC_STEMS = new Set([
   'rate', 'rates', 'cost', 'costs', 'measure', 'measures', 'score', 'scores', 'level', 'levels', 'count', 'number', 'index', 'ratio', 'percent'
 ].map(s => stemmer(s)));
 
 // Generic platform/technology modifier stems that do not establish domain topicality in isolation
-const GENERIC_MODIFIER_STEMS = new Set([
+export const GENERIC_MODIFIER_STEMS = new Set([
   'mobile', 'online', 'digital', 'web', 'app', 'apps', 'system', 'systems', 'software', 'platform', 'platforms', 'tool', 'tools', 'solution', 'solutions', 'tech', 'technology'
 ].map(s => stemmer(s)));
 

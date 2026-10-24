@@ -179,6 +179,8 @@ export interface SectionEvidenceMap {
   targetBusinessFacts: string[];
   claimConstraints: string[];
   prohibitedClaims: string[];
+  hasSubstantiveEvidence?: boolean;
+  unassignedReason?: string;
 }
 
 export interface ResearchIntelligenceDiagnostics {

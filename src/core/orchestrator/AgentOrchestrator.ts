@@ -1203,7 +1203,8 @@ Return only the schema-compliant structured object.`;
           plan.outline,
           this.evidenceSet || { items: [], extractedAt: new Date().toISOString(), summary: { totalCount: 0, highConfidenceCount: 0, businessFactCount: 0, competitorObservationCount: 0, serpObservationCount: 0, inferenceCount: 0 } },
           this.gapMatrix,
-          input.saasProfile
+          input.saasProfile,
+          plan.targetKeywords?.[0] || discovery.targetKeyword
         );
 
         // Telemetry diagnostics recording
@@ -1964,6 +1965,62 @@ CRITICAL EVIDENCE ACCURACY RULES:
    - Answer: "What concrete steps should a practitioner or team actually execute in practice?"`;
         }
 
+        // Workstream A: Compact Approved Outline Context
+        const outlineOverview = brief.outline.map((s, idx) => {
+          const marker = idx === i ? '--> [CURRENT SECTION]' : '   ';
+          return `${marker} ${idx + 1}. [${s.level}] ${s.heading}${s.core_concept ? ` — ${s.core_concept}` : ''}`;
+        }).join('\n');
+
+        const compactOutlineContext = `
+
+=== COMPLETE APPROVED ARTICLE OUTLINE ===
+Article Title: "${brief.title}"
+Target Keyword: "${primaryKeyword}"
+Outline Structure:
+${outlineOverview}
+${i > 0 ? `Preceding Section in Outline: "${brief.outline[i - 1].heading}"\n` : ''}${i < brief.outline.length - 1 ? `Following Section in Outline: "${brief.outline[i + 1].heading}"\n` : ''}========================================`;
+
+        // Workstream A: Concise Preceding Sections Summary (Zero Hallucination / Scoped Context)
+        let previousSectionsContext = '';
+        if (isFirstSection) {
+          previousSectionsContext = `
+
+=== SECTION GENERATION CONTEXT ===
+Initial opening section of the article. Establish the core foundation, practical stakes, and context. Subsequent sections will build upon this foundation without repeating it.
+==================================`;
+        } else {
+          const priorSummaries: string[] = [];
+          for (let j = 0; j < i; j++) {
+            const priorText = sectionTexts[j];
+            if (priorText && priorText.trim()) {
+              const sum = summarizeDraftedSection(brief.outline[j].heading, priorText);
+              if (sum) {
+                priorSummaries.push(`- "${brief.outline[j].heading}": ${sum}`);
+              }
+            }
+          }
+
+          if (priorSummaries.length > 0) {
+            previousSectionsContext = `
+
+=== PREVIOUSLY DRAFTED SECTIONS CONTEXT ===
+The following preceding sections have already been drafted for this article.
+${priorSummaries.join('\n')}
+
+NON-REPETITION & TRANSITION RULES:
+- DO NOT re-introduce, define, or repeat the foundational explanations, statistics, or recommendations established in the preceding sections listed above.
+- Create a natural logical transition connecting "${brief.outline[i - 1].heading}" to this section without generic filler.
+- Focus strictly on the unique tactical guidance and distinct scope of "${section.heading}".
+==========================================`;
+          } else {
+            previousSectionsContext = `
+
+=== SECTION GENERATION CONTEXT ===
+Focus on the distinct scope and tactical depth of "${section.heading}" as defined in the outline. Do NOT speculate about or invent preceding section contents.
+==================================`;
+          }
+        }
+
         const prompt = `Write a clear, practical, and highly readable section for the article "${brief.title}".
 Section Heading: "${section.heading}" (Level: ${section.level})
 Section Position: ${i + 1} of ${brief.outline.length}
@@ -1971,7 +2028,7 @@ Canonical Primary Keyword: "${primaryKeyword}"
 Assigned Section Keywords: ${section.assignedKeywords?.length ? section.assignedKeywords.join(', ') : 'None specifically assigned (focus on section topic and supporting terms)'}
 ${this.supportingTerms.length > 0 ? `Available Supporting Terms (use naturally where relevant): ${this.supportingTerms.join(', ')}\n` : ''}Assigned Entities: ${section.assignedEntities?.join(', ') || ''}
 Core Concept: ${section.core_concept || ''}
-${this.internalLinks.length > 0 ? `Relevant Internal Links (integrate 1-2 naturally if relevant as markdown links [anchor text](url)): \n${this.internalLinks.slice(0, 5).join('\n')}\n` : ''}${assetInstructions}${intelligenceContext}${sectionEvidenceContext}
+${this.internalLinks.length > 0 ? `Relevant Internal Links (integrate 1-2 naturally if relevant as markdown links [anchor text](url)): \n${this.internalLinks.slice(0, 5).join('\n')}\n` : ''}${compactOutlineContext}${previousSectionsContext}${assetInstructions}${intelligenceContext}${sectionEvidenceContext}
 
 === 18 EDITORIAL WRITING & READABILITY CONTRACTS ===
 1. CANONICAL PRIMARY KEYWORD CONTRACT:
@@ -2019,11 +2076,14 @@ ${((assetType === 'COMPARISON' && (section.heading.toLowerCase().includes('compa
 
 === EDITORIAL QUALITY & STRUCTURE DIRECTIVES ===
 - Every outline section must have a distinct information goal. Answer the reader's main question early.
+- Avoid repeating explanations, definitions, or examples already covered in preceding sections or outlined in other sections.
+- Ensure transitions between sections are logical and purposeful without using formulaic bridge phrases or filler.
 - Prefer specific mechanisms, examples, concrete implementation steps, limitations, and operational decisions when supported by evidence.
 - Remove or avoid paragraphs that merely repeat an earlier benefit or rehash generic advantages.
 - Write natural prose. Do NOT use a mechanical paragraph rotation (such as artificial short-medium-long cycles).
 - Never add filler, arbitrary fragments, or unnecessary lists to pass a rhythm check.
 - Require broad factual claims to have supporting evidence or appropriately qualified wording.
+- If no empirical research evidence is specifically assigned to this section, provide objective educational best practices without fabricating statistics, citations, or external studies.
 - A list, table, or checklist must follow its introduction immediately in the logical document structure. Never promise a list, example, or resource that is absent.
 - Include only approved media that adds value not already supplied by the surrounding explanation. Never fill sections with generic media placeholders or YouTube references.
 - Return only the raw section markdown text. Never output meta-claims that validation passed.
@@ -2612,6 +2672,52 @@ export function deduplicateSectionHeadings(markdown: string): { deduplicatedMark
     deduplicatedMarkdown: reconstructed.trimEnd() + '\n',
     deduplicatedCount
   };
+}
+
+/**
+ * Extracts a concise 1-2 sentence synopsis (<= 35 words) of a previously drafted section
+ * to provide non-duplication context for subsequent section writers.
+ */
+export function summarizeDraftedSection(heading: string, markdownText: string): string {
+  if (!markdownText || !markdownText.trim()) return '';
+  const lines = markdownText
+    .split('\n')
+    .map(l => l.trim())
+    .filter(l => (
+      l.length > 0 &&
+      !l.startsWith('#') &&
+      !l.startsWith('|') &&
+      !l.startsWith('```') &&
+      !l.startsWith('---') &&
+      !l.startsWith('===')
+    ));
+
+  if (lines.length === 0) return '';
+
+  const substantivePara = lines.find(l => l.length >= 25 && !l.startsWith('-') && !l.startsWith('*') && !/^\d+\./.test(l)) || lines[0];
+
+  const cleanPara = substantivePara
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/[*_`]/g, '')
+    .trim();
+
+  const sentenceMatches = cleanPara.match(/[^.!?]+[.!?]+/g);
+  let summary = '';
+  if (sentenceMatches && sentenceMatches.length > 0) {
+    summary = sentenceMatches[0].trim();
+    if (sentenceMatches.length > 1 && summary.split(/\s+/).length < 15) {
+      summary += ' ' + sentenceMatches[1].trim();
+    }
+  } else {
+    summary = cleanPara;
+  }
+
+  const words = summary.split(/\s+/).filter(Boolean);
+  if (words.length > 35) {
+    summary = words.slice(0, 35).join(' ') + '...';
+  }
+
+  return summary;
 }
 
 export function generateConciseSectionDraft(
