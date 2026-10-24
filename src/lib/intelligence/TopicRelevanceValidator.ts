@@ -34,24 +34,43 @@ const STOPWORDS = new Set([
   'of', 'off', 'on', 'once', 'only', 'or', 'other', 'our', 'ours', 'ourselves', 'out', 'over', 'own',
   'same', 'she', 'should', 'so', 'some', 'such',
   'than', 'that', 'the', 'their', 'theirs', 'them', 'themselves', 'then', 'there', 'these', 'they', 'this', 'those', 'through', 'to', 'too',
-  'under', 'until', 'up', 'very',
+  'under', 'until', 'up', 'us', 'very',
   'was', 'we', 'were', 'what', 'when', 'where', 'which', 'while', 'who', 'whom', 'why', 'with', 'would',
   'you', 'your', 'yours', 'yourself', 'yourselves'
 ]);
 
 // Universal article architecture concepts that are always legitimate in any topic
-const UNIVERSAL_FACET_STEMS = new Set([
-  'overview', 'introduct', 'understand', 'defin', 'foundat', 'principl',
-  'evalu', 'diagnos', 'metric', 'measur', 'assess', 'signal',
-  'framework', 'workflow', 'implement', 'strateg', 'step', 'process', 'approach', 'guid',
-  'best', 'practic', 'pitfal', 'mistak', 'barrier', 'bottleneck', 'challeng',
-  'conclus', 'takeaway', 'futur', 'roadmap', 'next', 'action',
-  'matrix', 'breakdown', 'criteria', 'checklist', 'compar', 'vs', 'versus'
-].map(s => stemmer(s)));
+const RAW_FACET_TERMS = [
+  'overview', 'introduction', 'introductory', 'understanding', 'definition', 'definitions',
+  'foundation', 'foundations', 'principle', 'principles', 'fundamentals',
+  'evaluation', 'diagnostics', 'diagnostic', 'metric', 'metrics', 'measurement', 'measurements',
+  'assessment', 'signal', 'signals', 'audit', 'audits', 'auditing',
+  'framework', 'frameworks', 'workflow', 'workflows', 'implementation', 'strategy', 'strategies', 'strategic',
+  'step', 'steps', 'process', 'processes', 'approach', 'approaches', 'guide', 'guidelines',
+  'best', 'practice', 'practices', 'pitfall', 'pitfalls', 'mistake', 'mistakes',
+  'barrier', 'barriers', 'bottleneck', 'bottlenecks', 'challenge', 'challenges',
+  'friction', 'frictionless', 'optimization', 'optimizing',
+  'conclusion', 'conclusions', 'takeaway', 'takeaways', 'future', 'roadmap',
+  'next', 'action', 'actions', 'actionable', 'thought', 'thoughts', 'summary', 'summaries', 'executive',
+  'matrix', 'breakdown', 'criteria', 'criterion', 'checklist', 'comparison', 'vs', 'versus',
+  'faq', 'faqs', 'frequently', 'asked', 'questions', 'methodology', 'case', 'study', 'studies',
+  'key', 'keys', 'roundup', 'glossary',
+  'common', 'avoid', 'avoiding', 'practical', 'practitioner', 'tactical', 'tip', 'tips',
+  'operational', 'analytical',
+  'validation', 'validating', 'testing', 'experimentation', 'formula', 'formulas', 'calculation', 'calculations',
+  'tracking', 'usability', 'navigation', 'interaction', 'interactions'
+];
+
+const UNIVERSAL_FACET_STEMS = new Set(RAW_FACET_TERMS.map(s => stemmer(s)));
 
 // Generic metric stems that do not by themselves establish domain topicality
 const GENERIC_METRIC_STEMS = new Set([
-  'rate', 'cost', 'measur', 'score', 'level', 'count', 'number', 'index'
+  'rate', 'rates', 'cost', 'costs', 'measure', 'measures', 'score', 'scores', 'level', 'levels', 'count', 'number', 'index', 'ratio', 'percent'
+].map(s => stemmer(s)));
+
+// Generic platform/technology modifier stems that do not establish domain topicality in isolation
+const GENERIC_MODIFIER_STEMS = new Set([
+  'mobile', 'online', 'digital', 'web', 'app', 'apps', 'system', 'systems', 'software', 'platform', 'platforms', 'tool', 'tools', 'solution', 'solutions', 'tech', 'technology'
 ].map(s => stemmer(s)));
 
 export class TopicRelevanceValidator {
@@ -61,9 +80,9 @@ export class TopicRelevanceValidator {
   public static tokenizeAndStem(text: string): Set<string> {
     const tokens = text
       .toLowerCase()
-      .replace(/[^\w\s-]/g, ' ')
+      .replace(/[^\w\s]/g, ' ')
       .split(/\s+/)
-      .filter(t => t.length > 2 && !STOPWORDS.has(t));
+      .filter(t => t.length > 1 && !STOPWORDS.has(t));
     return new Set(tokens.map(t => stemmer(t)));
   }
 
@@ -77,7 +96,7 @@ export class TopicRelevanceValidator {
     // 1. Explicit, unambiguous SEO / search terminology
     const explicitSeo = /\b(seo|search engine|ai search|generative engine(?: optimization)?|geo|serp|backlinks?|sitemaps?|rich snippets?)\b/i;
     // 2. Context-specific search compound phrases for terms that are generic in isolation
-    const searchCompound = /\b(search visibility|ai visibility|brand visibility in (?:ai|search)|schema markup|schema\.org|structured data for search|serp rankings?|search rankings?|google rankings?|organic rankings?|search indexing|crawler indexing|search engine recognition)\b/i;
+    const searchCompound = /\b(search visibility|ai visibility|brand visibility in (?:ai|search)|schema markup|schema\.org|structured data for (?:search|ai)|serp rankings?|search rankings?|google rankings?|organic rankings?|search indexing|crawler indexing|search engine recognition)\b/i;
 
     return explicitSeo.test(kw) || searchCompound.test(kw);
   }
@@ -86,7 +105,18 @@ export class TopicRelevanceValidator {
    * Checks whether the primary keyword is specifically within the HR / Staffing / Recruiting domain.
    */
   public static isStaffingDomainTopic(targetKeyword: string): boolean {
-    return /\b(staffing|recruiting|hiring|developer retention|employee retention|agency retainer|outsourcing|talent acquisition|workforce|contractor)\b/i.test(targetKeyword);
+    return /\b(staffing|recruiting|hiring|developer retention|talent retention|employee retention|agency retainers?|outsourcing|talent acquisition|workforce|contractors?)\b/i.test(targetKeyword);
+  }
+
+  /**
+   * Evaluates a candidate gap topic for topical drift before inclusion in outline generation.
+   */
+  public static evaluateCandidateGap(
+    gapTopic: string,
+    targetKeyword: string,
+    supportingTerms: string[] = []
+  ): DriftRejection | null {
+    return this.evaluateHeading(gapTopic, targetKeyword, supportingTerms);
   }
 
   /**
@@ -104,7 +134,7 @@ export class TopicRelevanceValidator {
     const combined = `${headingLower} ${conceptLower}`;
 
     // 1. Vector A: Staffing / Developer Retention / HR Drift
-    const isStaffingDrift = /\b(developer retention|employee retention|agency retainer|traditional agency retainers?|dedicated engineering teams? vs|staffing models?|developer burnout|hourly contractors?|recruiting engineers?)\b/i.test(combined);
+    const isStaffingDrift = /\b(developer retention|talent retention|employee retention|engineer retention|staff retention|turnover rates?|employee turnover|developer turnover|agency retainers?|traditional agency retainers?|dedicated engineering teams? vs|dedicated engineering teams?|staffing models?|staffing services?|staffing agenc(?:y|ies)|technical staffing|developer burnout|hourly contractors?|recruiting (?:engineers?|developers?)|engineering (?:recruitment|staffing|hiring)|developer recruitment|recruitment services?|hiring developers?)\b/i.test(combined);
     if (isStaffingDrift && !this.isStaffingDomainTopic(targetKeyword)) {
       return {
         heading: cleanHeading,
@@ -114,7 +144,7 @@ export class TopicRelevanceValidator {
     }
 
     // 2. Vector B: Meta-SEO / AI Search Engine Indexing (for non-SEO articles)
-    const isMetaSeoDrift = /\b(brand visibility in ai|ai search recognition|enhancing brand visibility and ai|getting ai models to cite|ai search visibility|technical schema markup|schema structures? for search|search engine crawler recognition|rich snippet indexing)\b/i.test(combined);
+    const isMetaSeoDrift = /\b(brand visibility in ai|ai search (?:recognition|visibility|optimization|indexing)|enhancing brand visibility and ai|getting ai models to cite|citations in ai (?:responses|models|search)|technical schema markup|schema structures? (?:for search)?|structured data for (?:search|ai)|search engine crawler recognition|rich snippet indexing|perplexity (?:indexing|visibility)|search crawler recognition)\b/i.test(combined);
     if (isMetaSeoDrift && !this.isSeoDomainTopic(targetKeyword)) {
       return {
         heading: cleanHeading,
@@ -144,54 +174,91 @@ export class TopicRelevanceValidator {
       };
     }
 
-    // 5. Vector E: Semantic Domain Disconnect
+    // 5. Vector E: Semantic Domain Disconnect & Superficial Token Overlap
     const headingStems = this.tokenizeAndStem(cleanHeading);
+    const conceptStems = coreConcept ? this.tokenizeAndStem(coreConcept) : new Set<string>();
+    const allNodeStems = new Set([...headingStems, ...conceptStems]);
     const keywordStems = this.tokenizeAndStem(targetKeyword);
     const supportingStems = new Set<string>();
     supportingTerms.forEach(term => {
       this.tokenizeAndStem(term).forEach(s => supportingStems.add(s));
     });
 
-    // Check overlap with keyword stems (distinguish substantive vs generic metric stems)
-    let hasNonGenericKeywordOverlap = false;
-    let hasGenericOnlyKeywordOverlap = false;
-    for (const stem of headingStems) {
-      if (keywordStems.has(stem)) {
-        if (GENERIC_METRIC_STEMS.has(stem)) {
-          hasGenericOnlyKeywordOverlap = true;
-        } else {
-          hasNonGenericKeywordOverlap = true;
-          break;
-        }
+    // Extract core keyword stems (excluding generic metrics, generic modifiers, and universal facets)
+    const coreKeywordStems = new Set<string>();
+    for (const s of keywordStems) {
+      if (!GENERIC_METRIC_STEMS.has(s) && !GENERIC_MODIFIER_STEMS.has(s) && !UNIVERSAL_FACET_STEMS.has(s)) {
+        coreKeywordStems.add(s);
       }
     }
 
-    // Check overlap with supporting terms
+    // If target keyword consists entirely of generic or facet words, fallback to non-metric keyword stems
+    const effectiveCoreStems = coreKeywordStems.size > 0
+      ? coreKeywordStems
+      : new Set(Array.from(keywordStems).filter(s => !GENERIC_METRIC_STEMS.has(s)));
+
+    let hasCoreKeywordOverlap = false;
+    for (const stem of allNodeStems) {
+      if (effectiveCoreStems.has(stem)) {
+        hasCoreKeywordOverlap = true;
+        break;
+      }
+    }
+
+    // Extract substantive supporting stems (excluding generic metrics and modifiers)
+    const effectiveSupportingStems = new Set<string>();
+    for (const s of supportingStems) {
+      if (!GENERIC_METRIC_STEMS.has(s) && !GENERIC_MODIFIER_STEMS.has(s)) {
+        effectiveSupportingStems.add(s);
+      }
+    }
+
+    // Check overlap with substantive supporting terms
     let hasSupportingOverlap = false;
-    for (const stem of headingStems) {
-      if (supportingStems.has(stem)) {
+    for (const stem of allNodeStems) {
+      if (effectiveSupportingStems.has(stem)) {
         hasSupportingOverlap = true;
         break;
       }
     }
 
-    // Check overlap with universal lifecycle stems
+    // Check overlap with generic platform modifier that appears in the keyword
+    let hasGenericModifierOverlap = false;
+    for (const stem of allNodeStems) {
+      if (GENERIC_MODIFIER_STEMS.has(stem) && keywordStems.has(stem)) {
+        hasGenericModifierOverlap = true;
+        break;
+      }
+    }
+
+    // Check overlap with universal lifecycle / architectural facets
     let hasUniversalFacetOverlap = false;
-    for (const stem of headingStems) {
+    for (const stem of allNodeStems) {
       if (UNIVERSAL_FACET_STEMS.has(stem)) {
         hasUniversalFacetOverlap = true;
         break;
       }
     }
 
-    // Generic metric stem alone (e.g. "rate") is insufficient without supporting or universal context
-    const hasKeywordOverlap = hasNonGenericKeywordOverlap || (hasGenericOnlyKeywordOverlap && (hasSupportingOverlap || hasUniversalFacetOverlap));
+    // Check if heading is a pure universal structural/architectural section
+    let isPureStructuralHeading = headingStems.size > 0;
+    for (const stem of headingStems) {
+      if (!UNIVERSAL_FACET_STEMS.has(stem)) {
+        isPureStructuralHeading = false;
+        break;
+      }
+    }
 
-    // If a heading has zero overlap with keyword, supporting terms, AND universal facets, it is unrelated
-    if (!hasKeywordOverlap && !hasSupportingOverlap && !hasUniversalFacetOverlap) {
+    const hasSubstantiveTopicOverlap =
+      hasCoreKeywordOverlap ||
+      hasSupportingOverlap ||
+      isPureStructuralHeading ||
+      (hasGenericModifierOverlap && hasUniversalFacetOverlap);
+
+    if (!hasSubstantiveTopicOverlap) {
       return {
         heading: cleanHeading,
-        reason: `Section heading shares zero conceptual overlap with primary keyword "${targetKeyword}" or assigned supporting concepts.`,
+        reason: `Section heading lacks substantive topical connection to "${targetKeyword}" or supporting terms (superficial token overlap only).`,
         driftVector: 'UNRELATED'
       };
     }

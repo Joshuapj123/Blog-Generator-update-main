@@ -14,7 +14,12 @@ export function calculateMedian(arr: number[]): number {
     : sorted[mid];
 }
 
-export function analyzeContentGaps(saasProfile: any, competitors: any[]): string[] {
+export function analyzeContentGaps(
+  saasProfile: any,
+  competitors: any[],
+  targetKeyword?: string,
+  supportingTerms?: string[]
+): string[] {
   if (!competitors || competitors.length === 0) {
     return [];
   }
@@ -41,6 +46,14 @@ export function analyzeContentGaps(saasProfile: any, competitors: any[]): string
       const cleanFeature = feature.split(/[(\[]/)[0].trim();
       const normFeature = normalize(cleanFeature);
       
+      // If target keyword is provided, evaluate candidate gap for topical drift
+      if (targetKeyword) {
+        const drift = TopicRelevanceValidator.evaluateCandidateGap(cleanFeature, targetKeyword, supportingTerms);
+        if (drift) {
+          continue; // Prune off-topic feature gap
+        }
+      }
+
       // Full match check
       if (normFeature.length > 3 && allHeadingsText.includes(normFeature)) {
         continue;
@@ -655,8 +668,8 @@ export class AgentOrchestrator {
         const medianWordCount = calculateMedian(wordCounts) || 2000;
         const medianH2Count = calculateMedian(h2Counts) || 6;
 
-        // Deterministic content gap analysis
-        const contentGaps = analyzeContentGaps(input.saasProfile, fullCompetitors);
+        // Deterministic content gap analysis with relevance filter
+        const contentGaps = analyzeContentGaps(input.saasProfile, fullCompetitors, discovery.targetKeyword, this.supportingTerms);
 
         // Expose telemetry fields for verification
         console.log(`[Telemetry] competitorsDiscovered: ${saasIntelligenceProfile?.market?.competitors?.length || 0}`);
@@ -850,6 +863,7 @@ export class AgentOrchestrator {
           saasProfile: input.saasProfile,
           competitors: fullCompetitors.length > 0 ? fullCompetitors : (analysis?.competitors || []),
           targetKeyword: discovery.targetKeyword,
+          supportingTerms: this.supportingTerms,
           geoIntelligence,
         });
       }
@@ -898,13 +912,14 @@ ${geoIntelligence.geoOpportunities.map((o: any) => `- Internal note: ${o.recomme
           ? `Recommended Supporting Search Terms to cover naturally: ${this.supportingTerms.join(', ')}`
           : '';
 
-        const gapsContextText = this.gapMatrix && this.gapMatrix.gaps.length > 0
+        const approvedGaps = (this.gapMatrix?.gaps || []).filter(g => g.isApprovedForOutline !== false);
+        const gapsContextText = approvedGaps.length > 0
           ? `=== CANDIDATE CONTENT GAPS (EDITORIAL EVALUATION REQUIRED) ===
 The following candidate topics represent potential competitor content gaps. You have full editorial authority:
 - INCLUDE a candidate gap ONLY IF it directly advances the reader's core search intent for "${discovery.targetKeyword}".
 - REJECT or ADAPT any gap that introduces unrelated business models, agency staffing, internal SEO/GEO mechanics, or off-topic domains.
 - DO NOT generate sections on developer retention, staffing models, or AI search engine crawling unless specifically demanded by the target keyword "${discovery.targetKeyword}".
-${this.gapMatrix.gaps.map(g => `- Candidate Topic: "${g.topic}" (Suggested Treatment: ${g.recommendedTreatment}, Potential Buyer Question: "${g.buyerQuestion}")`).join('\n')}`
+${approvedGaps.map(g => `- Candidate Topic: "${g.topic}" (Suggested Treatment: ${g.recommendedTreatment}, Potential Buyer Question: "${g.buyerQuestion}")`).join('\n')}`
           : '';
 
         const evidenceContextText = this.evidenceSet && this.evidenceSet.items.length > 0

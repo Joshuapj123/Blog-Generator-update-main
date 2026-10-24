@@ -20,15 +20,18 @@ export interface BuildGapMatrixInput {
     hasTables?: boolean;
   }>;
   targetKeyword: string;
+  supportingTerms?: string[];
   geoIntelligence?: any;
 }
 
 export class ContentGapService {
   /**
-   * Builds a deterministic ContentGapMatrix grounded in research evidence.
+   * Builds a deterministic ContentGapMatrix grounded in research evidence,
+   * evaluating candidate gaps for topical relevance before approval.
    */
   public static buildGapMatrix(input: BuildGapMatrixInput): ContentGapMatrix {
     const gaps: ContentGap[] = [];
+    const rejectedGaps: ContentGap[] = [];
     const competitors = input.competitors || [];
     const saasProfile = input.saasProfile;
     const evidenceSet = input.evidenceSet;
@@ -66,9 +69,18 @@ export class ContentGapService {
         const targetSiteCoverage = 100; // Directly verified on target business profile
         const missingFromCompetitors = competitorCoverage < CONTENT_INTELLIGENCE_POLICY.COMPETITOR_GAP_COVERAGE_THRESHOLD;
 
-        // Find relevant evidence items
+        // Find relevant evidence items (bidirectional and entity-token matching to preserve provenance)
+        const featureTokens = normFeature.split(/\s+/).filter(t => t.length > 3);
         const matchingEvIds = evidenceSet.items
-          .filter(i => i.claim.toLowerCase().includes(normFeature) || i.entities?.some(e => e.toLowerCase().includes(normFeature)))
+          .filter(i => {
+            const claimLower = i.claim.toLowerCase();
+            if (claimLower.includes(normFeature) || normFeature.includes(claimLower)) return true;
+            if (i.entities?.some(e => {
+              const entLower = e.toLowerCase();
+              return normFeature.includes(entLower) || entLower.includes(normFeature);
+            })) return true;
+            return featureTokens.length > 0 && featureTokens.some(t => claimLower.includes(t) || i.entities?.some(e => e.toLowerCase().includes(t)));
+          })
           .map(i => i.id);
 
         let importance: GapImportance = 'MEDIUM';
@@ -87,6 +99,27 @@ export class ContentGapService {
           buyerQuestion = `Why is ${cleanFeature} a critical capability or evaluation criterion for ${input.targetKeyword}?`;
         }
 
+        // Evaluate candidate gap relevance before approval
+        const drift = TopicRelevanceValidator.evaluateCandidateGap(cleanFeature, input.targetKeyword, input.supportingTerms);
+        if (drift) {
+          rejectedGaps.push({
+            id: `gap_feat_${idx + 1}`,
+            topic: cleanFeature,
+            importance: 'LOW',
+            competitorCoverage,
+            targetSiteCoverage,
+            buyerQuestion,
+            missingFromCompetitors: false,
+            businessOpportunity: `Excluded from outline: ${drift.reason}`,
+            evidenceIds: matchingEvIds,
+            recommendedTreatment: 'OMIT',
+            isApprovedForOutline: false,
+            rejectionReason: drift.reason,
+            driftVector: drift.driftVector,
+          });
+          return;
+        }
+
         gaps.push({
           id: `gap_feat_${idx + 1}`,
           topic: cleanFeature,
@@ -100,6 +133,7 @@ export class ContentGapService {
             : `Differentiate implementation quality for ${cleanFeature}.`,
           evidenceIds: matchingEvIds,
           recommendedTreatment: treatment,
+          isApprovedForOutline: true,
         });
       });
     }
@@ -115,18 +149,40 @@ export class ContentGapService {
 
         const cleanKeyword = input.targetKeyword.trim();
         const capitalizedKeyword = cleanKeyword.charAt(0).toUpperCase() + cleanKeyword.slice(1);
-        gaps.push({
-          id: 'gap_table_1',
-          topic: `${capitalizedKeyword} Evaluation & Comparison Matrix`,
-          importance: 'HIGH',
-          competitorCoverage: 10,
-          targetSiteCoverage: 90,
-          buyerQuestion: `How do core approaches and capabilities for ${cleanKeyword} compare across practical implementation criteria?`,
-          missingFromCompetitors: true,
-          businessOpportunity: 'Competitors present only narrative claims; a structured comparison matrix provides technical clarity.',
-          evidenceIds: bizEvIds.slice(0, 3),
-          recommendedTreatment: 'TABLE',
-        });
+        const tableTopic = `${capitalizedKeyword} Evaluation & Comparison Matrix`;
+        const drift = TopicRelevanceValidator.evaluateCandidateGap(tableTopic, input.targetKeyword, input.supportingTerms);
+
+        if (drift) {
+          rejectedGaps.push({
+            id: 'gap_table_1',
+            topic: tableTopic,
+            importance: 'LOW',
+            competitorCoverage: 10,
+            targetSiteCoverage: 90,
+            buyerQuestion: `How do core approaches and capabilities for ${cleanKeyword} compare across practical implementation criteria?`,
+            missingFromCompetitors: true,
+            businessOpportunity: `Excluded: ${drift.reason}`,
+            evidenceIds: bizEvIds.slice(0, 3),
+            recommendedTreatment: 'OMIT',
+            isApprovedForOutline: false,
+            rejectionReason: drift.reason,
+            driftVector: drift.driftVector,
+          });
+        } else {
+          gaps.push({
+            id: 'gap_table_1',
+            topic: tableTopic,
+            importance: 'HIGH',
+            competitorCoverage: 10,
+            targetSiteCoverage: 90,
+            buyerQuestion: `How do core approaches and capabilities for ${cleanKeyword} compare across practical implementation criteria?`,
+            missingFromCompetitors: true,
+            businessOpportunity: 'Competitors present only narrative claims; a structured comparison matrix provides technical clarity.',
+            evidenceIds: bizEvIds.slice(0, 3),
+            recommendedTreatment: 'TABLE',
+            isApprovedForOutline: true,
+          });
+        }
       }
     }
 
@@ -137,22 +193,43 @@ export class ContentGapService {
     if (isSeoOrAiTopic && input.geoIntelligence && Array.isArray(input.geoIntelligence.geoOpportunities)) {
       input.geoIntelligence.geoOpportunities.slice(0, 3).forEach((opp: any, idx: number) => {
         const topic = opp.issue ? `AI Visibility & Evaluation: ${opp.issue}` : `Buyer Decision Factor ${idx + 1}`;
-        gaps.push({
-          id: `gap_geo_${idx + 1}`,
-          topic,
-          importance: 'MEDIUM',
-          competitorCoverage: 20,
-          targetSiteCoverage: 80,
-          buyerQuestion: opp.recommendedAction || `What critical criteria must buyers review when evaluating ${input.targetKeyword}?`,
-          missingFromCompetitors: competitors.length > 0,
-          businessOpportunity: opp.recommendedAction || 'Directly answer high-intent buyer decision queries.',
-          evidenceIds: (evidenceSet?.items || []).slice(0, 2).map(i => i.id),
-          recommendedTreatment: 'SECTION',
-        });
+        const drift = TopicRelevanceValidator.evaluateCandidateGap(topic, input.targetKeyword, input.supportingTerms);
+
+        if (drift) {
+          rejectedGaps.push({
+            id: `gap_geo_${idx + 1}`,
+            topic,
+            importance: 'LOW',
+            competitorCoverage: 20,
+            targetSiteCoverage: 80,
+            buyerQuestion: opp.recommendedAction || `What critical criteria must buyers review when evaluating ${input.targetKeyword}?`,
+            missingFromCompetitors: competitors.length > 0,
+            businessOpportunity: `Excluded: ${drift.reason}`,
+            evidenceIds: (evidenceSet?.items || []).slice(0, 2).map(i => i.id),
+            recommendedTreatment: 'OMIT',
+            isApprovedForOutline: false,
+            rejectionReason: drift.reason,
+            driftVector: drift.driftVector,
+          });
+        } else {
+          gaps.push({
+            id: `gap_geo_${idx + 1}`,
+            topic,
+            importance: 'MEDIUM',
+            competitorCoverage: 20,
+            targetSiteCoverage: 80,
+            buyerQuestion: opp.recommendedAction || `What critical criteria must buyers review when evaluating ${input.targetKeyword}?`,
+            missingFromCompetitors: competitors.length > 0,
+            businessOpportunity: opp.recommendedAction || 'Directly answer high-intent buyer decision queries.',
+            evidenceIds: (evidenceSet?.items || []).slice(0, 2).map(i => i.id),
+            recommendedTreatment: 'SECTION',
+            isApprovedForOutline: true,
+          });
+        }
       });
     }
 
-    // 4. Default Practical Practitioner Workflow Gap if empty
+    // 4. Default Practical Practitioner Workflow Gap if empty (prevents outline starvation)
     if (gaps.length === 0) {
       const cleanKeyword = input.targetKeyword.trim();
       const capitalizedKeyword = cleanKeyword.charAt(0).toUpperCase() + cleanKeyword.slice(1);
@@ -167,6 +244,7 @@ export class ContentGapService {
         businessOpportunity: 'Provide concrete practitioner execution guidance rather than generic theory.',
         evidenceIds: (evidenceSet?.items || []).slice(0, 3).map(i => i.id),
         recommendedTreatment: 'SECTION',
+        isApprovedForOutline: true,
       });
     }
 
@@ -176,11 +254,13 @@ export class ContentGapService {
 
     return {
       gaps,
+      rejectedGaps,
       analyzedAt: new Date().toISOString(),
       summary: {
         totalGaps,
         highPriorityGaps,
         missingFromCompetitorsCount,
+        rejectedGapsCount: rejectedGaps.length,
       }
     };
   }

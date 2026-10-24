@@ -21,7 +21,7 @@ export class SectionEvidenceMapper {
   ): SectionEvidenceMap[] {
     const brandName = saasProfile?.name || 'Target Business';
     const allEvidence = evidenceSet?.items || [];
-    const allGaps = gapMatrix?.gaps || [];
+    const allGaps = (gapMatrix?.gaps || []).filter(g => g.isApprovedForOutline !== false);
 
     // Extract all verified business facts across canonical types
     const verifiedBizFacts = allEvidence

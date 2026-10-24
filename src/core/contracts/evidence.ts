@@ -144,15 +144,20 @@ export interface ContentGap {
   businessOpportunity?: string;
   evidenceIds: string[];
   recommendedTreatment: GapTreatment;
+  isApprovedForOutline?: boolean;
+  rejectionReason?: string;
+  driftVector?: string;
 }
 
 export interface ContentGapMatrix {
   gaps: ContentGap[];
+  rejectedGaps?: ContentGap[];
   analyzedAt: string;
   summary: {
     totalGaps: number;
     highPriorityGaps: number;
     missingFromCompetitorsCount: number;
+    rejectedGapsCount?: number;
   };
 }
 
