@@ -78,14 +78,34 @@ export function checkParagraphSimilarity(paragraphs: string[]): Array<{ p1Index:
 }
 
 export function consecutiveParagraphStarts(paragraphs: string[]): boolean {
-  if (paragraphs.length < 4) return false;
-  for (let i = 0; i <= paragraphs.length - 4; i++) {
-    const starts = paragraphs.slice(i, i + 4).map(p => {
-      const words = p.trim().toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/).filter(Boolean);
-      return words.slice(0, 2).join(' '); // first two words
-    });
-    if (starts[0] && starts.every(s => s === starts[0])) {
-      return true;
+  const groups: string[][] = [];
+  let currentGroup: string[] = [];
+
+  for (const p of paragraphs) {
+    const trimmed = p.trim();
+    if (trimmed === '__SECTION_BOUNDARY__' || /^#{1,2}\s+/.test(trimmed)) {
+      if (currentGroup.length > 0) {
+        groups.push(currentGroup);
+        currentGroup = [];
+      }
+    } else if (trimmed.length > 0) {
+      currentGroup.push(trimmed);
+    }
+  }
+  if (currentGroup.length > 0) {
+    groups.push(currentGroup);
+  }
+
+  for (const group of groups) {
+    if (group.length < 4) continue;
+    for (let i = 0; i <= group.length - 4; i++) {
+      const starts = group.slice(i, i + 4).map(p => {
+        const words = p.trim().toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/).filter(Boolean);
+        return words.slice(0, 2).join(' '); // first two words
+      });
+      if (starts[0] && starts.every(s => s === starts[0])) {
+        return true;
+      }
     }
   }
   return false;
@@ -107,16 +127,15 @@ export function splitSentencesRobust(text: string): string[] {
 export function computeParagraphSignature(paragraph: string): {
   sentenceCount: number;
   sentenceLengthSignature: string;
-  hasFormatting: boolean;
 } {
   const sentences = splitSentencesRobust(paragraph);
   const sentenceCount = sentences.length;
   const sentenceLengthSignature = sentences.map(s => {
-    const wc = countWords(s);
+    const cleanSentence = s.replace(/[*_`#]/g, '').trim();
+    const wc = countWords(cleanSentence);
     return wc < 15 ? 'S' : wc <= 28 ? 'M' : 'L';
   }).join('-');
-  const hasFormatting = paragraph.includes('**') || paragraph.includes('__') || paragraph.includes('*');
-  return { sentenceCount, sentenceLengthSignature, hasFormatting };
+  return { sentenceCount, sentenceLengthSignature };
 }
 
 export function extractEligibleProseParagraphs(text: string, options?: { respectSectionBoundaries?: boolean }): string[] {
@@ -124,19 +143,28 @@ export function extractEligibleProseParagraphs(text: string, options?: { respect
   const normalized = text.replace(/^(#{1,6}\s+[^\n]+)/gm, '\n\n$1\n\n');
   const rawBlocks = normalized.split(/\n\s*\n/);
   const eligible: string[] = [];
+  const shouldRespectBoundaries = options?.respectSectionBoundaries !== false;
 
   for (const raw of rawBlocks) {
     const trimmed = raw.trim();
     if (!trimmed) continue;
 
-    if (options?.respectSectionBoundaries && /^##\s+/.test(trimmed)) {
-      eligible.push('__SECTION_BOUNDARY__');
+    // Major Section Headings (# or ##): establish distinct semantic section boundaries
+    if (/^#{1,2}\s+/.test(trimmed)) {
+      if (shouldRespectBoundaries) {
+        eligible.push('__SECTION_BOUNDARY__');
+      }
       continue;
     }
 
-    if (/^#{1,6}\s+/.test(trimmed)) continue;
+    // Minor Subheadings (### through ######): intra-section subheads do not reset section boundary
+    if (/^#{3,6}\s+/.test(trimmed)) continue;
+
+    // Structured data: tables and lists are excluded from prose paragraphs and do not break rhythm
     if (trimmed.startsWith('|')) continue;
     if (/^[-*]\s+/.test(trimmed) || /^\d+\.\s+/.test(trimmed)) continue;
+
+    // Decorative & Media blocks: images, raw HTML, horizontal rules, code fences, blockquotes
     if (trimmed.startsWith('![')) continue;
     if (trimmed.startsWith('<')) continue;
     if (/^[-*]{3,}$/.test(trimmed)) continue;
@@ -155,22 +183,44 @@ export function consecutiveParagraphStructures(
 ): boolean {
   if (paragraphs.length < 3) return false;
 
-  const eligible = paragraphs.filter(p => p !== '__SECTION_BOUNDARY__');
-  if (eligible.length < 3) return false;
+  // Group into contiguous blocks of prose paragraphs, respecting major headings and section boundaries
+  const groups: string[][] = [];
+  let currentGroup: string[] = [];
 
-  const signatures = eligible.map(p => computeParagraphSignature(p));
+  for (const p of paragraphs) {
+    const trimmed = p.trim();
+    if (trimmed === '__SECTION_BOUNDARY__' || /^#{1,2}\s+/.test(trimmed)) {
+      if (currentGroup.length > 0) {
+        groups.push(currentGroup);
+        currentGroup = [];
+      }
+    } else if (trimmed.length > 0) {
+      currentGroup.push(trimmed);
+    }
+  }
+  if (currentGroup.length > 0) {
+    groups.push(currentGroup);
+  }
 
-  for (let i = 0; i <= signatures.length - 3; i++) {
-    const sameSentenceCount =
-      signatures[i].sentenceCount === signatures[i + 1].sentenceCount &&
-      signatures[i + 1].sentenceCount === signatures[i + 2].sentenceCount;
+  for (const group of groups) {
+    if (group.length < 3) continue;
 
-    const sameStructure =
-      signatures[i].sentenceLengthSignature === signatures[i + 1].sentenceLengthSignature ||
-      signatures[i].hasFormatting === signatures[i + 1].hasFormatting;
+    const signatures = group.map(p => computeParagraphSignature(p));
 
-    if (sameSentenceCount && sameStructure) {
-      return true;
+    for (let i = 0; i <= signatures.length - 3; i++) {
+      const sameSentenceCount =
+        signatures[i].sentenceCount === signatures[i + 1].sentenceCount &&
+        signatures[i + 1].sentenceCount === signatures[i + 2].sentenceCount;
+
+      const sameLengthSignature =
+        signatures[i].sentenceLengthSignature === signatures[i + 1].sentenceLengthSignature &&
+        signatures[i + 1].sentenceLengthSignature === signatures[i + 2].sentenceLengthSignature;
+
+      // Exact structural rhythm match: sentence count and sentence length sequence match across 3 consecutive paragraphs.
+      // Formatting differences alone do not suppress a genuine repetition match.
+      if (sameSentenceCount && sameLengthSignature) {
+        return true;
+      }
     }
   }
   return false;
@@ -281,6 +331,7 @@ export function validateArticleQuality(
   // Parse eligible prose paragraphs and sentences
   // Exclude empty paragraphs, headings, tables, raw HTML blocks, list items, and image lines from paragraph prose evaluation
   const paragraphs = extractEligibleProseParagraphs(text);
+  const proseParagraphsOnly = paragraphs.filter(p => p !== '__SECTION_BOUNDARY__');
 
   const normalizedText = normalizeTextForReadability(text);
   const sentences = splitSentencesRobust(normalizedText);
@@ -324,7 +375,7 @@ export function validateArticleQuality(
   }
 
   // 6. Average Paragraph Length
-  const paragraphWordCounts = paragraphs.map(p => countWords(cleanParagraph(p))).filter(c => c > 0);
+  const paragraphWordCounts = proseParagraphsOnly.map(p => countWords(cleanParagraph(p))).filter(c => c > 0);
   const avgParagraphLength = paragraphWordCounts.length > 0
     ? paragraphWordCounts.reduce((a, b) => a + b, 0) / paragraphWordCounts.length
     : 0;
@@ -334,7 +385,7 @@ export function validateArticleQuality(
   }
 
   // 6.1. Individual Paragraph Length (limit of 150 error, >80 warning)
-  paragraphs.forEach((rawP, idx) => {
+  proseParagraphsOnly.forEach((rawP, idx) => {
     const p = cleanParagraph(rawP);
     if (!p) return;
     const wCount = countWords(p);
@@ -355,7 +406,7 @@ export function validateArticleQuality(
   });
 
   // 7. Paragraph Similarities (>75% Jaccard similarity)
-  const paragraphSimilarities = checkParagraphSimilarity(paragraphs);
+  const paragraphSimilarities = checkParagraphSimilarity(proseParagraphsOnly);
   if (paragraphSimilarities.length > 0) {
     paragraphSimilarities.forEach(sim => {
       errors.push(`Paragraph ${sim.p1Index + 1} and Paragraph ${sim.p2Index + 1} are ${Math.round(sim.similarity * 100)}% structurally similar (exceeds limit of 75%).`);

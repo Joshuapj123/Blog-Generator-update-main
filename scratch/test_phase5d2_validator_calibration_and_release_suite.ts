@@ -1,4 +1,6 @@
+import * as path from 'path';
 import * as zlib from 'zlib';
+import { spawnSync } from 'child_process';
 import {
   validateArticleQuality,
   consecutiveParagraphStructures,
@@ -15,7 +17,7 @@ import { GenerationPipelineAdapter } from '../src/lib/core/GenerationPipelineAda
 import { SaaSProfile } from '../src/core/contracts/schemas';
 
 // ============================================================================
-// ACUTE PHASE 5D.2 ADDENDUM: VALIDATOR CONTRACT & ACCEPTANCE REGRESSION SUITE
+// ACUTE PHASE 5D.2 / 5D.3: VALIDATOR CONTRACT & ACCEPTANCE REGRESSION SUITE
 // ============================================================================
 
 interface AssertionResult {
@@ -31,6 +33,19 @@ function recordTest(id: string, name: string, passed: boolean, details?: string)
   const status = passed ? 'PASS' : 'FAIL';
   testResults.push({ id, name, status, details });
   console.log(`  [${status}] ${id} - ${name}${details ? ` (${details})` : ''}`);
+}
+
+// Controlled fixture runner mode for verifying subprocess exit code behavior
+if (process.env.CONTROLLED_RUNNER_FIXTURE === 'fail') {
+  recordTest('TC-CONTROLLED-FAIL', 'Injected failure for real process-exit verification', false, 'Expected controlled failure');
+  const failedCount = testResults.filter(r => r.status === 'FAIL').length;
+  process.exit(failedCount === 0 ? 0 : 1);
+}
+
+if (process.env.CONTROLLED_RUNNER_FIXTURE === 'pass') {
+  recordTest('TC-CONTROLLED-PASS', 'Injected passing assertion for real process-exit verification', true, 'Expected controlled pass');
+  const failedCount = testResults.filter(r => r.status === 'FAIL').length;
+  process.exit(failedCount === 0 ? 0 : 1);
 }
 
 async function runCalibrationSuite() {
@@ -60,19 +75,64 @@ async function runCalibrationSuite() {
   // ---------------------------------------------------------------------------
   console.log('--- TEST GROUP 1: Paragraph Structure Repetition & Robust Sentence Splitting ---');
   {
-    // Three consecutive 2-sentence paragraphs with identical format
-    const paragraphsWithRepetitiveStructure = [
+    // A. Equal sentence counts and equal length signatures: 3 consecutive paragraphs trigger repetition
+    const paragraphsEqualSignature = [
       'Mobile conversion rates measure the percentage of visitors completing a goal. Understanding this requires analyzing where drop-offs happen.',
       'Website managers evaluate navigation and form friction across screens. Identifying these friction points guides effective interface fixes.',
       'Technical leaders review viewport constraints before making layout updates. Clear evaluation criteria ensure that engineering effort produces results.'
     ];
 
-    const hasRepetition = consecutiveParagraphStructures(paragraphsWithRepetitiveStructure);
+    const isRepetitive = consecutiveParagraphStructures(paragraphsEqualSignature);
     recordTest(
-      'TC-1.1',
-      'Req 1: consecutiveParagraphStructures correctly detects 3 uniform prose paragraphs',
-      hasRepetition === true,
-      `hasConsecutiveStructures: ${hasRepetition}`
+      'TC-1.1a',
+      'Req 1: Equal sentence counts and equal length signatures trigger rhythm repetition check',
+      isRepetitive === true,
+      `hasConsecutiveStructures: ${isRepetitive}`
+    );
+
+    // B. Equal sentence counts but DIFFERENT length signatures: S-S vs M-M vs L-L
+    const paragraphsDiffSignature = [
+      'Quick test works. Fast forms win.',
+      'Mobile usability researchers recommend evaluating navigation layouts across multiple screen sizes to discover high friction drop-off points. Targeted improvements at these specific locations consistently yield measurable gains in overall store checkout conversion rates.',
+      'When digital commerce teams thoroughly examine holistic customer journeys across diverse device categories, technical limitations, and responsive layout constraints, engineering leadership can prioritize interface investments that resolve the most damaging usability bottlenecks. Establishing transparent evaluation benchmarks and rigorous statistical instrumentation guarantees that product iterations deliver predictable commercial impact without degrading performance across legacy mobile browsers.'
+    ];
+
+    const isDifferentSignaturesFlagged = consecutiveParagraphStructures(paragraphsDiffSignature);
+    recordTest(
+      'TC-1.1b',
+      'Req 2: Equal sentence counts but different length signatures do NOT trigger exact-signature rule',
+      isDifferentSignaturesFlagged === false,
+      `hasConsecutiveStructures: ${isDifferentSignaturesFlagged}`
+    );
+
+    // C. Formatting differences alone do NOT suppress a genuine repetition match
+    const paragraphsDiffFormatting = [
+      'Mobile **usability researchers** recommend evaluating navigation layouts across multiple screen sizes to discover high friction drop-off points. Targeted **UX improvements** at these specific locations consistently yield measurable gains in overall store checkout conversion rates.',
+      'Website analytics specialists observe user interactions across checkout funnels to isolate moments of sudden abandonment during transactions. Implementing *streamlined form fields* at these friction points consistently elevates completion percentages across mobile devices.',
+      'Product development managers analyze customer journey data across responsive interfaces to pinpoint critical usability barriers affecting customer acquisition. Designing simplified navigation menus at these key touchpoints substantially decreases bounce rates on handheld screens.'
+    ];
+
+    const isDiffFormattingFlagged = consecutiveParagraphStructures(paragraphsDiffFormatting);
+    recordTest(
+      'TC-1.1c',
+      'Req 3: Formatting differences alone do NOT suppress a genuine repetition match',
+      isDiffFormattingFlagged === true,
+      `hasConsecutiveStructures: ${isDiffFormattingFlagged}`
+    );
+
+    // D. Different sentence counts do NOT match the same signature
+    const paragraphsDiffSentenceCounts = [
+      'Mobile conversion rates measure the percentage of visitors completing an intended goal.', // 1 sentence
+      'Website managers evaluate navigation and form friction across screens. Identifying these friction points guides effective interface fixes.', // 2 sentences
+      'Technical leaders review viewport constraints before making layout updates. Clear evaluation criteria ensure that engineering effort produces results. Testing on real devices prevents unexpected layout regressions.' // 3 sentences
+    ];
+
+    const isDiffSentenceCountsFlagged = consecutiveParagraphStructures(paragraphsDiffSentenceCounts);
+    recordTest(
+      'TC-1.1d',
+      'Req 4: Different sentence counts do not match the same structural signature',
+      isDiffSentenceCountsFlagged === false,
+      `hasConsecutiveStructures: ${isDiffSentenceCountsFlagged}`
     );
 
     // Full article markdown containing uniform paragraphs with high readability (FRE >= 55)
@@ -116,24 +176,103 @@ Mitran Design helps teams fix checkout steps and forms. Fast tests help teams le
       `metrics.hasConsecutiveStructures: ${qualityReport.metrics.hasConsecutiveStructures}`
     );
 
-    // Verify headings cannot be inserted to evade paragraph repetition detection
-    const articleWithInterveningHeadings = `# Mobile Usability Guide
+    // E. Headings boundary policy:
+    // E.1. Major section headings (##) separate semantic sections
+    const articleWithMajorHeadings = `# Mobile Usability Guide
 
-Mobile conversion rates track the users who buy. You can see where users stop and leave.
+## Section 1: Baseline Metrics
+Mobile analytics specialists observe user interactions across checkout funnels to isolate moments of sudden abandonment during transactions. Implementing streamlined form fields at these friction points consistently elevates completion percentages across mobile devices.
 
-### Subheading To Evade Check
-Web teams see where users drop off. Small changes to forms make users stay.
+## Section 2: Form Optimization
+Website analytics specialists observe user interactions across checkout funnels to isolate moments of sudden abandonment during transactions. Implementing streamlined form fields at these friction points consistently elevates completion percentages across mobile devices.
 
-### Another Subheading
-Good teams test each page on real phones. Clean tests show what helps users buy.`;
+## Section 3: Engineering Roadmap
+Product development managers analyze customer journey data across responsive interfaces to pinpoint critical usability barriers affecting customer acquisition. Designing simplified navigation menus at these key touchpoints substantially decreases bounce rates on handheld screens.`;
 
-    const extractedProse = extractEligibleProseParagraphs(articleWithInterveningHeadings);
-    const repetitionDetectedDespiteHeadings = consecutiveParagraphStructures(extractedProse);
+    const proseWithMajorHeadings = extractEligibleProseParagraphs(articleWithMajorHeadings);
+    const repetitionAcrossMajorHeadings = consecutiveParagraphStructures(proseWithMajorHeadings);
     recordTest(
-      'TC-1.4',
-      'Req 3: Headings cannot be inserted to evade repeated-paragraph detection',
-      repetitionDetectedDespiteHeadings === true && extractedProse.length === 3,
-      `extractedCount: ${extractedProse.length}, repetitionDetected: ${repetitionDetectedDespiteHeadings}`
+      'TC-1.4a',
+      'Req 5a: Major section headings (##) separate semantic sections and prevent cross-section comparison',
+      repetitionAcrossMajorHeadings === false,
+      `repetitionAcrossMajorHeadings: ${repetitionAcrossMajorHeadings}`
+    );
+
+    // E.2. Minor subheadings (###) between paragraphs inside a section cannot trivially evade the guard
+    const articleWithMinorSubheadings = `# Mobile Usability Guide
+
+## Comprehensive Optimization
+
+Mobile analytics specialists observe user interactions across checkout funnels to isolate moments of sudden abandonment during transactions. Implementing streamlined form fields at these friction points consistently elevates completion percentages across mobile devices.
+
+### Micro Step One
+Website analytics specialists observe user interactions across checkout funnels to isolate moments of sudden abandonment during transactions. Implementing streamlined form fields at these friction points consistently elevates completion percentages across mobile devices.
+
+### Micro Step Two
+Product development managers analyze customer journey data across responsive interfaces to pinpoint critical usability barriers affecting customer acquisition. Designing simplified navigation menus at these key touchpoints substantially decreases bounce rates on handheld screens.`;
+
+    const proseWithMinorSubheadings = extractEligibleProseParagraphs(articleWithMinorSubheadings);
+    const repetitionUnderMinorSubheadings = consecutiveParagraphStructures(proseWithMinorSubheadings);
+    recordTest(
+      'TC-1.4b',
+      'Req 5b: Minor subheadings (###) inside a section cannot trivially evade repetition detection',
+      repetitionUnderMinorSubheadings === true,
+      `repetitionUnderMinorSubheadings: ${repetitionUnderMinorSubheadings}`
+    );
+
+    // F. Decorative and media blocks (images, horizontal rules, quotes) cannot trivially evade the guard
+    const articleWithMediaBlocks = `# Mobile Usability Guide
+
+## Optimization Workflow
+
+Mobile analytics specialists observe user interactions across checkout funnels to isolate moments of sudden abandonment during transactions. Implementing streamlined form fields at these friction points consistently elevates completion percentages across mobile devices.
+
+![Conversion Chart](https://example.com/chart.png)
+
+Website analytics specialists observe user interactions across checkout funnels to isolate moments of sudden abandonment during transactions. Implementing streamlined form fields at these friction points consistently elevates completion percentages across mobile devices.
+
+---
+
+> Pro tip: Always evaluate user drop-offs before changing interface code.
+
+Product development managers analyze customer journey data across responsive interfaces to pinpoint critical usability barriers affecting customer acquisition. Designing simplified navigation menus at these key touchpoints substantially decreases bounce rates on handheld screens.`;
+
+    const proseWithMedia = extractEligibleProseParagraphs(articleWithMediaBlocks);
+    const repetitionAcrossMedia = consecutiveParagraphStructures(proseWithMedia);
+    recordTest(
+      'TC-1.4c',
+      'Req 6a: Media and decorative blocks (images, rules, quotes) cannot trivially evade the guard',
+      repetitionAcrossMedia === true,
+      `repetitionAcrossMedia: ${repetitionAcrossMedia}`
+    );
+
+    // G. Structured blocks (tables, lists) are excluded from prose paragraphs and do not break rhythm check
+    const articleWithStructuredBlocks = `# Mobile Usability Guide
+
+## Optimization Workflow
+
+Mobile analytics specialists observe user interactions across checkout funnels to isolate moments of sudden abandonment during transactions. Implementing streamlined form fields at these friction points consistently elevates completion percentages across mobile devices.
+
+- Navigation clarity
+- Form field speed
+- Guest checkout access
+
+Website analytics specialists observe user interactions across checkout funnels to isolate moments of sudden abandonment during transactions. Implementing streamlined form fields at these friction points consistently elevates completion percentages across mobile devices.
+
+| Stage | Conversion Impact |
+| --- | --- |
+| Cart | High |
+| Form | Critical |
+
+Product development managers analyze customer journey data across responsive interfaces to pinpoint critical usability barriers affecting customer acquisition. Designing simplified navigation menus at these key touchpoints substantially decreases bounce rates on handheld screens.`;
+
+    const proseWithStructured = extractEligibleProseParagraphs(articleWithStructuredBlocks);
+    const repetitionAcrossStructured = consecutiveParagraphStructures(proseWithStructured);
+    recordTest(
+      'TC-1.4d',
+      'Req 6b: Tables and lists are excluded from prose paragraphs and do not break rhythm check',
+      repetitionAcrossStructured === true,
+      `repetitionAcrossStructured: ${repetitionAcrossStructured}`
     );
 
     // Verify robust sentence splitting with decimals, URLs, and abbreviations
@@ -141,7 +280,7 @@ Good teams test each page on real phones. Clean tests show what helps users buy.
     const parsedSentences = splitSentencesRobust(complexSentenceText);
     recordTest(
       'TC-1.5',
-      'Req 4: URLs, abbreviations and decimal numbers do not cause sentence-count false positives',
+      'Req 7: URLs, abbreviations and decimal numbers do not cause sentence-count false positives',
       parsedSentences.length === 2,
       `Expected 2 sentences, got ${parsedSentences.length}: [${parsedSentences.map(s => `"${s.slice(0, 30)}..."`).join(', ')}]`
     );
@@ -532,20 +671,39 @@ A rigorous optimization framework starts long before any code changes. Next, tea
       `Block sequence: [${blockTypes.join(' -> ')}]`
     );
 
-    // Verify exit code behavior on failed assertion
-    let simulatedFailureHandled = false;
-    try {
-      const dummyFailedAssertion = false;
-      if (!dummyFailedAssertion) {
-        simulatedFailureHandled = true;
+    // Verify exit code behavior by invoking the actual test runner file in controlled subprocesses
+    const runnerPath = path.resolve(__dirname, 'test_phase5d2_validator_calibration_and_release_suite.ts');
+    const isWin = process.platform === 'win32';
+    const execFile = isWin ? (process.env.ComSpec || 'cmd.exe') : 'npx';
+    const baseArgs = isWin ? ['/c', 'npx', 'tsx', runnerPath] : ['tsx', runnerPath];
+
+    const childFailure = spawnSync(
+      execFile,
+      baseArgs,
+      {
+        env: { ...process.env, CONTROLLED_RUNNER_FIXTURE: 'fail' },
+        timeout: 15000,
+        encoding: 'utf8'
       }
-    } catch {}
+    );
+
+    const childSuccess = spawnSync(
+      execFile,
+      baseArgs,
+      {
+        env: { ...process.env, CONTROLLED_RUNNER_FIXTURE: 'pass' },
+        timeout: 15000,
+        encoding: 'utf8'
+      }
+    );
+
+    const realExitVerified = childFailure.status === 1 && childSuccess.status === 0;
 
     recordTest(
       'TC-7.4',
-      'Req 15: Failed assertion triggers non-zero process exit condition',
-      simulatedFailureHandled === true,
-      'Verified process.exit(1) on failure'
+      'Req 15: Failed assertion triggers non-zero process exit condition (verified by executing real runner subprocess)',
+      realExitVerified === true,
+      `childFailure exit code: ${childFailure.status}, childSuccess exit code: ${childSuccess.status}`
     );
   }
 
