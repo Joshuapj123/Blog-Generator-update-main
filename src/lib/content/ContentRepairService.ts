@@ -406,4 +406,67 @@ ${hasTitleIssue ? 'OPTIMIZED TITLE: [Your optimized title here]\n\n' : ''}REPAIR
       unrepairableClaimIds,
     };
   }
+
+  /**
+   * Surgically repairs localized prompt leakage, unfinished placeholder instructions,
+   * and raw scaffolding while strictly preserving valid neighboring paragraphs and headings.
+   */
+  public static repairEditorialContamination(
+    markdown: string
+  ): {
+    repairedMarkdown: string;
+    repairedCount: number;
+    remainingIssues: string[];
+  } {
+    if (!markdown || !markdown.trim()) {
+      return { repairedMarkdown: markdown, repairedCount: 0, remainingIssues: [] };
+    }
+
+    let repaired = markdown;
+    let count = 0;
+
+    // 1. Surgically remove localized placeholder directives: [insert keyword here], [insert link here], etc.
+    const placeholderRegexes = [
+      /\[(?:insert|add|tbd|placeholder|todo)[^\]]*\]/gi,
+      /\binsert\s+(?:keyword|link|anchor\s+text|image|statistic|source|citation)\s+here\b/gi,
+      /<PLACEHOLDER>|__PLACEHOLDER__|__KEYWORD__/gi,
+      /\{\{[a-zA-Z0-9_.-]+\}\}/g,
+      /\$\{[a-zA-Z0-9_.-]+\}/g,
+    ];
+
+    for (const regex of placeholderRegexes) {
+      if (regex.test(repaired)) {
+        repaired = repaired.replace(regex, '');
+        count++;
+      }
+    }
+
+    // 2. Surgically strip prompt instruction directives and meta prefixes
+    const promptLeakRegexes = [
+      /(?:\[|\b)(?:prompt\s+instruction|system\s+instruction|system\s+prompt|instruction\s+to\s+writer|note\s+to\s+writer|drafting\s+notes?)\s*:[^\]\n]*\]?/gi,
+      /(?:^|\n)\s*(?:here\s+is\s+(?:the\s+)?(?:repaired|generated|drafted|requested)\s+(?:article|section|content|body))\s*:\s*/gi,
+      /(?:^|\n)\s*(?:buyer\s+question|buyer\s+intent\s+question|target\s+buyer\s+query|candidate\s+gap)\s*:\s*/gi,
+    ];
+
+    for (const regex of promptLeakRegexes) {
+      if (regex.test(repaired)) {
+        repaired = repaired.replace(regex, '');
+        count++;
+      }
+    }
+
+    // Clean up any double spaces while preserving paragraph breaks
+    repaired = repaired
+      .split('\n')
+      .map(line => line.replace(/[ \t]{2,}/g, ' ').trim())
+      .join('\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+
+    return {
+      repairedMarkdown: repaired,
+      repairedCount: count,
+      remainingIssues: []
+    };
+  }
 }

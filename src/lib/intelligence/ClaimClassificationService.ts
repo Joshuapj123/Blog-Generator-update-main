@@ -16,7 +16,7 @@ export class ClaimClassificationService {
   ];
 
   private static RECOMMENDATION_PATTERNS = [
-    /\b(?:should|recommend|recommended|consider|advisable|best practice|we suggest|it is crucial to|must ensure)\b/i,
+    /\b(?:should|recommend|recommended|recommends|consider|advisable|best practice|we suggest|suggested|it is crucial to|must ensure|teams should|organizations should|it is essential to|prioritize|opt for)\b/i,
   ];
 
   private static MARKETING_PATTERNS = [
@@ -202,7 +202,23 @@ export class ClaimClassificationService {
       }
     }
 
-    // 7. General factual assertion without matching evidence -> UNSUPPORTED
+    // 7. Check for Partial Topical Overlap Requiring Editorial Review (Phase 6D)
+    if (evidenceSet?.items && evidenceSet.items.length > 0) {
+      for (const item of evidenceSet.items) {
+        const overlap = this.calculateTokenOverlap(trimmed, item.claim);
+        if (overlap >= 0.20 && overlap < 0.40) {
+          return {
+            statement: trimmed,
+            classification: 'REQUIRES_REVIEW',
+            confidence: 'MEDIUM',
+            supportingEvidenceId: item.id,
+            reason: `Topical overlap detected with evidence (${item.id}), but deterministic check cannot establish full corroboration. Manual editorial review required.`,
+          };
+        }
+      }
+    }
+
+    // 8. General factual assertion without matching evidence -> UNSUPPORTED
     return {
       statement: trimmed,
       classification: 'UNSUPPORTED',

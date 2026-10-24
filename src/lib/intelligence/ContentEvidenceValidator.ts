@@ -14,6 +14,7 @@ import { ContentBrief } from '@/core/contracts/schemas';
 import { KeywordAuditService } from '../seo-intelligence/KeywordAuditService';
 import { ClaimExtractionService } from './ClaimExtractionService';
 import { ClaimGroundingEngine, GroundingResult } from './ClaimGroundingEngine';
+import { EditorialIntegrityValidator } from './EditorialIntegrityValidator';
 
 export interface EvidenceValidationResult {
   passed: boolean;
@@ -429,6 +430,27 @@ export class ContentEvidenceValidator {
       warnings.push(...completenessResults.warnings);
     }
 
+    // 7.1 Phase 6D: Deep Editorial Integrity & Evidence Citation Consistency
+    const editorialIntegrity = EditorialIntegrityValidator.validateEditorialIntegrity(
+      bodyMarkdown,
+      {
+        evidenceSet,
+        sectionEvidenceMaps,
+        targetBrand
+      }
+    );
+    if (!editorialIntegrity.passed) {
+      for (const err of editorialIntegrity.criticalErrors) {
+        if (!criticalErrors.includes(err)) {
+          criticalErrors.push(err);
+          accuracyIssues.push(err);
+        }
+      }
+    }
+    if (editorialIntegrity.warnings.length > 0) {
+      warnings.push(...editorialIntegrity.warnings);
+    }
+
     // 8. Compute Diagnostics and Structured Decision Artifacts
     const publicationGateDecision: 'READY' | 'REJECTED' = criticalErrors.length === 0 ? 'READY' : 'REJECTED';
     const isRepairAttempted = Boolean(options?.repairAttempted);
@@ -448,6 +470,10 @@ export class ContentEvidenceValidator {
       UNSUPPORTED_QUANTITATIVE_CLAIM: 0,
       REPAIR_UNAVAILABLE: 0,
       REPAIR_REVALIDATION_FAILED: 0,
+      FABRICATED_EVIDENCE_ID: 0,
+      FABRICATED_ATTRIBUTION: 0,
+      UNVERIFIED_ATTRIBUTION: 0,
+      PROMPT_LEAKAGE: 0,
     };
 
     for (const c of groundingResult.claims) {
@@ -896,6 +922,16 @@ export class ContentEvidenceValidator {
     if (placeholderMatches.length > 0) {
       const uniquePlaceholders = Array.from(new Set(placeholderMatches));
       criticalErrors.push(`Article Completeness Alert: Incomplete placeholder text detected in HTML: ${uniquePlaceholders.slice(0, 3).map(p => `"${p}"`).join(', ')}.`);
+    }
+
+    // 1.1 Editorial Integrity & Prompt Leakage Check in HTML (Phase 6D)
+    const integrityReport = EditorialIntegrityValidator.validateEditorialIntegrity(html, { targetBrand });
+    if (!integrityReport.passed) {
+      for (const err of integrityReport.criticalErrors) {
+        if (!criticalErrors.includes(err)) {
+          criticalErrors.push(err);
+        }
+      }
     }
 
     // 2. Headings and item sections

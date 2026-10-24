@@ -114,6 +114,19 @@ export class ClaimGroundingEngine {
     return this.UNIT_DIMENSIONS.some(dim => dim.has(l1) && dim.has(l2));
   }
 
+  public static areUnitsEquivalent(u1?: string, u2?: string): boolean {
+    if (!u1 && !u2) return true;
+    if (!u1 || !u2) return false;
+    const l1 = u1.toLowerCase().trim();
+    const l2 = u2.toLowerCase().trim();
+    if (l1 === l2) return true;
+    if ((l1 === 'ms' && l2 === 'milliseconds') || (l1 === 'milliseconds' && l2 === 'ms')) return true;
+    if ((l1 === '%' && l2 === 'percent') || (l1 === 'percent' && l2 === '%')) return true;
+    if ((l1 === 'x' && (l2 === 'times' || l2 === 'fold')) || ((l1 === 'times' || l1 === 'fold') && l2 === 'x')) return true;
+    if ((l1 === '$' && l2 === 'usd') || (l1 === 'usd' && l2 === '$')) return true;
+    return false;
+  }
+
   private static LOCATION_TOKENS = new Set([
     'brasov', 'romania', 'europe', 'european', 'london', 'uk', 'us', 'usa',
     'america', 'american', 'global', 'worldwide', 'international', 'offshore',
@@ -594,6 +607,10 @@ export class ClaimGroundingEngine {
     const contradictedClaims = groundedClaims.filter(c => c.supportStatus === 'CONTRADICTED').length;
     const overstatedClaims = groundedClaims.filter(c => c.supportStatus === 'OVERSTATED').length;
     const unverifiableClaims = groundedClaims.filter(c => c.supportStatus === 'UNVERIFIABLE').length;
+    const requiresReviewClaims = groundedClaims.filter(c => c.supportStatus === 'REQUIRES_REVIEW').length;
+    const fabricatedEvidenceIdCount = groundedClaims.filter(c => c.failureCategory === 'FABRICATED_EVIDENCE_ID').length;
+    const fabricatedAttributionCount = groundedClaims.filter(c => c.failureCategory === 'FABRICATED_ATTRIBUTION' || c.failureCategory === 'UNVERIFIED_ATTRIBUTION').length;
+    const unverifiedAttributionCount = groundedClaims.filter(c => c.failureCategory === 'UNVERIFIED_ATTRIBUTION').length;
 
     const totalGrounded = supportedClaims + partiallySupportedClaims;
     const groundingRate = totalExtractedClaims > 0
@@ -623,12 +640,16 @@ export class ClaimGroundingEngine {
       contradictedClaims,
       overstatedClaims,
       unverifiableClaims,
+      requiresReviewClaims,
       groundingRate,
       criticalGroundingRate,
       contradictionCount,
       entityLeakageCount,
       unattributedStatCount,
       sectionGroundedRatio,
+      fabricatedEvidenceIdCount,
+      fabricatedAttributionCount,
+      unverifiedAttributionCount,
     };
 
     return { claims: groundedClaims, diagnostics };
@@ -644,7 +665,20 @@ export class ClaimGroundingEngine {
     targetBrand?: string,
     knownCompetitors: string[] = []
   ): CanonicalClaim {
-    // 1. Attribution check (Phase 5)
+    // 0. Fabricated / Invalid Evidence ID check (Phase 6D)
+    if (claim.groundedEvidenceIds && claim.groundedEvidenceIds.length > 0) {
+      const nonExistentIds = claim.groundedEvidenceIds.filter(id => !allEvidence.some(ev => ev.id === id));
+      if (nonExistentIds.length > 0) {
+        return {
+          ...claim,
+          supportStatus: 'UNSUPPORTED',
+          rejectionReason: `Fabricated or invalid evidence ID referenced: "${nonExistentIds.join(', ')}" does not exist in verified evidence set.`,
+          failureCategory: 'FABRICATED_EVIDENCE_ID',
+        };
+      }
+    }
+
+    // 1. Attribution check (Phase 5 & Phase 6D)
     if (claim.attributionSource) {
       const sourceMatch = allEvidence.find(ev => {
         const title = (ev.sourceTitle || '').toLowerCase();
@@ -659,8 +693,8 @@ export class ClaimGroundingEngine {
         return {
           ...claim,
           supportStatus: 'UNVERIFIABLE',
-          rejectionReason: `Unattributed external statistic: source "${claim.attributionSource}" not found in verified research evidence.`,
-          failureCategory: 'UNSUPPORTED_QUANTITATIVE_CLAIM',
+          rejectionReason: `Unverified cited source: "${claim.attributionSource}" not found in verified research evidence.`,
+          failureCategory: 'UNVERIFIED_ATTRIBUTION',
         };
       }
     }
@@ -842,6 +876,20 @@ export class ClaimGroundingEngine {
     // C. Numeric Contradiction & Unit Mismatches
     if (claim.quantitativeValue && claim.quantitativeValue.normalizedNumber !== undefined) {
       const evQuants = ClaimExtractionService.parseQuantitativeValues(ev.claim);
+      const claimNum = claim.quantitativeValue.normalizedNumber;
+      const claimUnit = claim.quantitativeValue.unit;
+      const tolerance = claim.quantitativeValue.tolerance ?? 0.05;
+
+      // If the evidence item contains this exact metric within tolerance, it does NOT contradict
+      const hasExactMetricSupport = evQuants.some(eq =>
+        eq.normalizedNumber !== undefined &&
+        ClaimGroundingEngine.areUnitsEquivalent(claimUnit, eq.unit) &&
+        Math.abs(claimNum - eq.normalizedNumber) / (eq.normalizedNumber || 1) <= tolerance
+      );
+      if (hasExactMetricSupport) {
+        return null; // Evidence supports this metric; not a contradiction
+      }
+
       for (const eq of evQuants) {
         if (eq.normalizedNumber === undefined) continue;
 
@@ -849,7 +897,7 @@ export class ClaimGroundingEngine {
         if (
           claim.quantitativeValue.unit &&
           eq.unit &&
-          claim.quantitativeValue.unit !== eq.unit &&
+          !ClaimGroundingEngine.areUnitsEquivalent(claim.quantitativeValue.unit, eq.unit) &&
           this.areUnitsInSameDimension(claim.quantitativeValue.unit, eq.unit)
         ) {
           const overlap = this.getDistinctiveTokens(evClaimLower).filter(t => sentenceLower.includes(t));
@@ -865,12 +913,8 @@ export class ClaimGroundingEngine {
           }
         }
 
-        // Numeric disparity on same unit
-        if (
-          (!claim.quantitativeValue.unit && !eq.unit) ||
-          (claim.quantitativeValue.unit && eq.unit && claim.quantitativeValue.unit === eq.unit)
-        ) {
-          const claimNum = claim.quantitativeValue.normalizedNumber;
+        // Numeric disparity on equivalent unit
+        if (ClaimGroundingEngine.areUnitsEquivalent(claim.quantitativeValue.unit, eq.unit)) {
           const evNum = eq.normalizedNumber;
 
           // Disparity > 50%
@@ -890,7 +934,9 @@ export class ClaimGroundingEngine {
             const evPropTokens = new Set(this.getPropositionalTokens(evClaimLower, targetBrand, knownCompetitors));
             const hasTopicOverlap = claimPropTokens.some(t => evPropTokens.has(t));
             if (hasTopicOverlap) {
-              return `Numeric contradiction: article asserts ${claimNum} ${claim.quantitativeValue.unit || ''} but evidence (${ev.id}) states ${evNum} ${eq.unit || ''}.`;
+              const claimStr = claim.quantitativeValue.unit === '%' ? `${claimNum}%` : `${claimNum} ${claim.quantitativeValue.unit || ''}`.trim();
+              const evStr = eq.unit === '%' ? `${evNum}%` : `${evNum} ${eq.unit || ''}`.trim();
+              return `Numeric contradiction: article asserts ${claimStr} but evidence (${ev.id}) states ${evStr}.`;
             }
           }
         }
@@ -973,10 +1019,8 @@ export class ClaimGroundingEngine {
       // Check if evidence mentions this metric
       const evQuants = ClaimExtractionService.parseQuantitativeValues(ev.claim);
       for (const eq of evQuants) {
-        // Unit match check: units must strictly match
-        if (claimUnit && eq.unit && claimUnit !== eq.unit) continue;
-        if (claimUnit && !eq.unit) continue;
-        if (!claimUnit && eq.unit) continue;
+        // Unit match check: units must be equivalent
+        if (!ClaimGroundingEngine.areUnitsEquivalent(claimUnit, eq.unit)) continue;
 
         // Range support: e.g. evidence is between 100 and 150
         if (eq.operator === 'RANGE' && eq.rangeMin !== undefined && eq.rangeMax !== undefined) {
@@ -1033,15 +1077,18 @@ export class ClaimGroundingEngine {
               supportStatus: 'SUPPORTED',
               groundedEvidenceIds: [ev.id],
             };
-          } else if (claimNum > evNum * 1.1) {
-            // Overstated
-            return {
-              ...claim,
-              supportStatus: 'OVERSTATED',
-              contradictionEvidenceId: ev.id,
-              rejectionReason: `Overstated metric: claim asserts ${claimNum}${claimUnit || ''} but evidence (${ev.id}) only supports ${evNum}${eq.unit || ''}.`,
-              failureCategory: 'PROPOSITION_MISMATCH',
-            };
+          } else if (claimNum > evNum * 1.1 || (evNum > 0 && claimNum < evNum * 0.9)) {
+            const propCheck = this.validatePropositionalSupport(claim, ev, candidates, targetBrand, knownCompetitors);
+            if (propCheck.valid) {
+              const status: ClaimSupportStatus = claimNum > evNum * 1.1 ? 'OVERSTATED' : 'CONTRADICTED';
+              return {
+                ...claim,
+                supportStatus: status,
+                contradictionEvidenceId: ev.id,
+                rejectionReason: `Conflicting metric: claim asserts ${claimNum}${claimUnit || ''} but evidence (${ev.id}) specifies ${evNum}${eq.unit || ''}.`,
+                failureCategory: 'PROPOSITION_MISMATCH',
+              };
+            }
           }
         }
       }
@@ -1378,6 +1425,18 @@ export class ClaimGroundingEngine {
         supportStatus: 'UNSUPPORTED',
         rejectionReason: 'Comparative differential outcome is not supported by evidence.',
         failureCategory: 'PROPOSITION_MISMATCH',
+      };
+    }
+
+    // Phase 6D: If claim has topical overlap with evidence but lacks conclusive empirical corroboration
+    if (claim.materiality !== 'CRITICAL' && sortedCandidates.some(ev => {
+      const evTokens = this.getPropositionalTokens(ev.claim.toLowerCase(), targetBrand, knownCompetitors);
+      return claimTokens.some(t => evTokens.includes(t));
+    })) {
+      return {
+        ...claim,
+        supportStatus: 'REQUIRES_REVIEW',
+        rejectionReason: 'Topical overlap exists, but deterministic checks cannot establish conclusive verification; requires manual editorial review.',
       };
     }
 

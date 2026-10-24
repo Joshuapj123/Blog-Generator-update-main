@@ -2434,6 +2434,13 @@ ${hasTitleIssue ? 'OPTIMIZED TITLE: [Your optimized short title here]\n\n' : ''}
 
     repairedBody = ClaimExtractionService.normalizeMarkdownLinks(repairedBody);
 
+    // Post-repair surgical removal of any prompt leaks or placeholder tokens (Phase 6D)
+    const editorialRepair = ContentRepairService.repairEditorialContamination(repairedBody);
+    if (editorialRepair.repairedCount > 0) {
+      console.log(`[AgentOrchestrator] Surgically removed ${editorialRepair.repairedCount} editorial leakage/placeholder artifact(s).`);
+      repairedBody = editorialRepair.repairedMarkdown;
+    }
+
     // Post-repair surgical claim qualification:
     // Extract remaining claims and check for ungrounded critical claims
     if (this.evidenceSet) {

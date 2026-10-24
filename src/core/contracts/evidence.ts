@@ -91,7 +91,8 @@ export type ClaimClassification =
   | 'INFERENCE'
   | 'RECOMMENDATION'
   | 'MARKETING_CLAIM'
-  | 'UNSUPPORTED';
+  | 'UNSUPPORTED'
+  | 'REQUIRES_REVIEW';
 
 export interface EvidenceItem {
   id: string;
@@ -219,7 +220,8 @@ export type ClaimSupportStatus =
   | 'UNSUPPORTED'
   | 'CONTRADICTED'
   | 'OVERSTATED'
-  | 'UNVERIFIABLE';
+  | 'UNVERIFIABLE'
+  | 'REQUIRES_REVIEW';
 
 export type GroundingFailureCategory =
   | 'TARGET_EVIDENCE_MISSING'
@@ -231,7 +233,11 @@ export type GroundingFailureCategory =
   | 'STALE_EVIDENCE'
   | 'UNSUPPORTED_QUANTITATIVE_CLAIM'
   | 'REPAIR_UNAVAILABLE'
-  | 'REPAIR_REVALIDATION_FAILED';
+  | 'REPAIR_REVALIDATION_FAILED'
+  | 'FABRICATED_EVIDENCE_ID'
+  | 'FABRICATED_ATTRIBUTION'
+  | 'UNVERIFIED_ATTRIBUTION'
+  | 'PROMPT_LEAKAGE';
 
 export interface GroundingDecisionDiagnostic {
   correlationId: string;
@@ -298,10 +304,15 @@ export interface ClaimGroundingDiagnostics {
   contradictedClaims: number;
   overstatedClaims: number;
   unverifiableClaims: number;
+  requiresReviewClaims?: number;
   groundingRate: number; // 0 to 100%
   criticalGroundingRate: number; // 0 to 100%
   contradictionCount: number;
   entityLeakageCount: number;
   unattributedStatCount: number;
   sectionGroundedRatio: number; // claims grounded in section-assigned evidence vs global
+  promptLeakageCount?: number;
+  fabricatedEvidenceIdCount?: number;
+  fabricatedAttributionCount?: number;
+  unverifiedAttributionCount?: number;
 }

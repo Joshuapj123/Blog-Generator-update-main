@@ -1076,14 +1076,14 @@ export class ClaimExtractionService {
     if (!numMatch) return undefined;
 
     let base = parseFloat(numMatch[1]);
-    if (clean.includes('billion') || clean.includes(' b')) {
+    if (clean.includes('billion') || /\b\d+(?:\.\d+)?\s*b\b/.test(clean)) {
       base *= 1_000_000_000;
-    } else if (clean.includes('million') || clean.includes(' m') || clean.endsWith('m') || clean.includes('m ')) {
-      // Check if it's 'ms' (milliseconds)
-      if (!clean.includes('ms')) {
+    } else if (clean.includes('million') || /\b\d+(?:\.\d+)?\s*m\b/.test(clean)) {
+      // Check if it's milliseconds, ms, or meters
+      if (!clean.includes('ms') && !clean.includes('millisecond') && !clean.includes('meter')) {
         base *= 1_000_000;
       }
-    } else if (clean.includes('k') || clean.includes('thousand')) {
+    } else if (clean.includes('thousand') || /\b\d+(?:\.\d+)?\s*k\b/.test(clean)) {
       base *= 1_000;
     }
 

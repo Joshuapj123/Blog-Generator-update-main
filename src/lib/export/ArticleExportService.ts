@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceValidator';
+import { EditorialIntegrityValidator } from '@/lib/intelligence/EditorialIntegrityValidator';
 import { DiagramAssetService } from '@/lib/content/DiagramAssetService';
 import { slugify, triggerDownload } from '@/lib/article-utils';
 
@@ -122,6 +123,24 @@ export class ArticleExportService {
       errors.push(...htmlValidation.criticalErrors);
     }
     warnings.push(...htmlValidation.warnings);
+
+    // Validate raw markdown/content for editorial integrity & prompt leakage (Phase 6D)
+    const rawContent = input.bodyMarkdown || (typeof input.content === 'string' ? input.content : '');
+    if (rawContent && rawContent.trim().length > 0) {
+      const integrity = EditorialIntegrityValidator.validateEditorialIntegrity(rawContent, {
+        targetBrand: input.targetBrand || input.saasProfile?.name
+      });
+      if (!integrity.passed) {
+        for (const err of integrity.criticalErrors) {
+          if (!errors.includes(err)) {
+            errors.push(err);
+          }
+        }
+      }
+      if (integrity.warnings.length > 0) {
+        warnings.push(...integrity.warnings);
+      }
+    }
 
     return {
       canExport: errors.length === 0,
