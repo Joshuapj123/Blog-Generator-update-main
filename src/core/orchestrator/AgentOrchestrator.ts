@@ -108,6 +108,7 @@ import {
   ScrapeResult 
 } from '../contracts/providers';
 import { validateArticleQuality } from '@/lib/seo-intelligence/quality_validator';
+import { ParagraphSignatureValidator } from '@/lib/intelligence/ParagraphSignatureValidator';
 import { AssetStrategyService } from '@/lib/content/AssetStrategyService';
 import {
   EvidenceSet,
@@ -2232,6 +2233,18 @@ WORD BUDGET:
 
     if (qualityReport.warnings) {
       warnings.push(...qualityReport.warnings);
+    }
+
+    // Phase R3: Canonical Paragraph Signature Hard Rejection Gate
+    try {
+      const signatureReport = ParagraphSignatureValidator.validate(content.bodyMarkdown);
+      if (!signatureReport.valid) {
+        for (const err of signatureReport.criticalErrors) {
+          criticalErrors.push(err);
+        }
+      }
+    } catch (sigErr: any) {
+      criticalErrors.push(`Canonical Paragraph Signature Validation Exception: ${sigErr?.message || sigErr}`);
     }
 
     if (this.hadGenerationFallback) {

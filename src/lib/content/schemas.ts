@@ -21,6 +21,13 @@ import {
   verifyProseStructuralVariation,
   PROSE_SIGNATURE_TEMPLATES
 } from './ContentBlockPlanner';
+import {
+  ParagraphSignatureValidator,
+  ParagraphSignatureValidationResult,
+  ParagraphSignatureViolation,
+  EligibleProseParagraph,
+  LengthBand
+} from '@/lib/intelligence/ParagraphSignatureValidator';
 import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceValidator';
 
 export type {
@@ -28,7 +35,11 @@ export type {
   ContentBlockRole,
   ContentBlockMode,
   SentenceCountRange,
-  ContentBlockPlan
+  ContentBlockPlan,
+  ParagraphSignatureValidationResult,
+  ParagraphSignatureViolation,
+  EligibleProseParagraph,
+  LengthBand
 };
 export {
   ContentBriefSchema,
@@ -42,7 +53,8 @@ export {
   planBlockVarietyForArticle,
   validateOutlineBlockPlanUniqueness,
   verifyProseStructuralVariation,
-  PROSE_SIGNATURE_TEMPLATES
+  PROSE_SIGNATURE_TEMPLATES,
+  ParagraphSignatureValidator
 };
 
 export interface PlanRecoveryDiagnostics {
