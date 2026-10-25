@@ -455,6 +455,34 @@ ${hasTitleIssue ? 'OPTIMIZED TITLE: [Your optimized title here]\n\n' : ''}REPAIR
       }
     }
 
+    // 3. Surgically remove prohibited image markup and image placeholders (Phase 6E text-first)
+    const imageRegexes = [
+      /!\[[^\]]*\]\([^\)]*\)/g,
+      /<img\b[^>]*>/gi,
+      /\[(?:insert|add|placeholder)\s+(?:image|figure|photo)[^\]]*\]/gi,
+      /\binsert\s+(?:image|figure|diagram|photo)\s+here\b/gi,
+    ];
+
+    for (const regex of imageRegexes) {
+      if (regex.test(repaired)) {
+        repaired = repaired.replace(regex, '');
+        count++;
+      }
+    }
+
+    // 4. Surgically strip generic corporate filler sentences
+    const fillerRegexes = [
+      /(?:^|\n|\.\s+)In today'?s (?:fast-paced|rapidly evolving|digital) (?:world|landscape|environment)[^\.\n]*\./gi,
+      /(?:^|\n|\.\s+)In the modern era of technology[^\.\n]*\./gi,
+    ];
+
+    for (const regex of fillerRegexes) {
+      if (regex.test(repaired)) {
+        repaired = repaired.replace(regex, '');
+        count++;
+      }
+    }
+
     // Clean up any double spaces while preserving paragraph breaks
     repaired = repaired
       .split('\n')

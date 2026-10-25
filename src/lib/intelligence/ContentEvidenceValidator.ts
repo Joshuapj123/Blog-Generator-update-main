@@ -430,13 +430,16 @@ export class ContentEvidenceValidator {
       warnings.push(...completenessResults.warnings);
     }
 
-    // 7.1 Phase 6D: Deep Editorial Integrity & Evidence Citation Consistency
+    // 7.1 Phase 6D & 6E: Deep Editorial Integrity & Evidence Citation Consistency
+    const targetKw = (brief.targetKeywords && brief.targetKeywords[0]) || '';
     const editorialIntegrity = EditorialIntegrityValidator.validateEditorialIntegrity(
       bodyMarkdown,
       {
         evidenceSet,
         sectionEvidenceMaps,
-        targetBrand
+        targetBrand,
+        targetKeyword: targetKw,
+        primaryKeyword: targetKw
       }
     );
     if (!editorialIntegrity.passed) {

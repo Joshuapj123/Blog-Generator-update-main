@@ -6,9 +6,25 @@ import {
   ClaimSupportStatus,
   GroundingFailureCategory
 } from '@/core/contracts/evidence';
+import { TopicRelevanceValidator } from './TopicRelevanceValidator';
 
 export interface EditorialIntegrityIssue {
-  type: 'PROMPT_LEAK' | 'PLACEHOLDER' | 'INTERNAL_SCAFFOLDING' | 'FABRICATED_EVIDENCE_ID' | 'FABRICATED_ATTRIBUTION' | 'UNVERIFIED_ATTRIBUTION' | 'UNSUPPORTED_NUMERICAL' | 'REPEATED_BOILERPLATE';
+  type:
+    | 'PROMPT_LEAK'
+    | 'PLACEHOLDER'
+    | 'INTERNAL_SCAFFOLDING'
+    | 'FABRICATED_EVIDENCE_ID'
+    | 'FABRICATED_ATTRIBUTION'
+    | 'UNVERIFIED_ATTRIBUTION'
+    | 'UNSUPPORTED_NUMERICAL'
+    | 'REPEATED_BOILERPLATE'
+    | 'TOPIC_DRIFT'
+    | 'HOLLOW_SECTION'
+    | 'UNFULFILLED_HEADING_PROMISE'
+    | 'GENERIC_FILLER'
+    | 'DUPLICATE_HEADING'
+    | 'ADJACENT_SECTION_REPETITION'
+    | 'IMAGE_PLACEHOLDER';
   severity: 'CRITICAL' | 'WARNING';
   message: string;
   matchedSnippet: string;
@@ -30,6 +46,13 @@ export interface EditorialIntegrityReport {
     unverifiedAttributionCount?: number;
     unsupportedNumericalCount: number;
     requiresReviewCount: number;
+    topicDriftCount?: number;
+    hollowSectionCount?: number;
+    unfulfilledPromiseCount?: number;
+    fillerCount?: number;
+    duplicateHeadingCount?: number;
+    adjacentRepetitionCount?: number;
+    imagePlaceholderCount?: number;
   };
 }
 
@@ -102,6 +125,38 @@ export class EditorialIntegrityValidator {
   ];
 
   /**
+   * Image prohibition patterns (Phase 6E text-first integrity).
+   */
+  private static IMAGE_PATTERNS: Array<{ regex: RegExp; description: string }> = [
+    {
+      regex: /!\[[^\]]*\]\([^\)]+\)/,
+      description: 'Markdown image markup'
+    },
+    {
+      regex: /\[(?:insert|add|placeholder)\s+(?:image|figure|photo)[^\]]*\]/i,
+      description: 'Image placeholder directive'
+    },
+    {
+      regex: /\binsert\s+(?:image|figure|diagram|photo)\s+here\b/i,
+      description: 'Inline image placeholder'
+    }
+  ];
+
+  /**
+   * Generic corporate filler patterns that add zero substantive value.
+   */
+  private static GENERIC_FILLER_PATTERNS: Array<{ regex: RegExp; description: string }> = [
+    {
+      regex: /\b(?:in today'?s (?:fast-paced|rapidly evolving|digital) (?:world|landscape|environment)|stay(?:ing)? ahead of the curve|it is crucial to (?:understand|remember) that (?:success|growth) requires|leverage modern best practices to drive meaningful (?:outcomes|results))\b/i,
+      description: 'Hollow corporate introductory fluff'
+    },
+    {
+      regex: /\b(?:in the modern era of technology|navigating the complexities of the digital age|embarking on a journey of continuous improvement)\b/i,
+      description: 'Generic fluff opening'
+    }
+  ];
+
+  /**
    * Internal pipeline metadata and GEO distribution scaffolding presented as reader prose.
    * False-positive protection: Legitimate educational discussion of SEO, AI search, or keyword research
    * is strictly allowed and preserved.
@@ -150,7 +205,8 @@ export class EditorialIntegrityValidator {
 
   /**
    * Evaluates comprehensive editorial integrity across prompt leakage, placeholders,
-   * internal scaffolding, evidence citation consistency, and factual grounding.
+   * internal scaffolding, evidence citation consistency, topic drift, hollow sections,
+   * heading promises, and text-first invariants.
    */
   public static validateEditorialIntegrity(
     markdown: string,
@@ -158,6 +214,8 @@ export class EditorialIntegrityValidator {
       evidenceSet?: EvidenceSet;
       sectionEvidenceMaps?: SectionEvidenceMap[];
       targetBrand?: string;
+      targetKeyword?: string;
+      primaryKeyword?: string;
     }
   ): EditorialIntegrityReport {
     const criticalErrors: string[] = [];
@@ -172,6 +230,13 @@ export class EditorialIntegrityValidator {
     let unverifiedAttributionCount = 0;
     let unsupportedNumericalCount = 0;
     let requiresReviewCount = 0;
+    let topicDriftCount = 0;
+    let hollowSectionCount = 0;
+    let unfulfilledPromiseCount = 0;
+    let fillerCount = 0;
+    let duplicateHeadingCount = 0;
+    let adjacentRepetitionCount = 0;
+    let imagePlaceholderCount = 0;
 
     if (!markdown || !markdown.trim()) {
       return {
@@ -188,7 +253,14 @@ export class EditorialIntegrityValidator {
           fabricatedAttributionCount: 0,
           unverifiedAttributionCount: 0,
           unsupportedNumericalCount: 0,
-          requiresReviewCount: 0
+          requiresReviewCount: 0,
+          topicDriftCount: 0,
+          hollowSectionCount: 0,
+          unfulfilledPromiseCount: 0,
+          fillerCount: 0,
+          duplicateHeadingCount: 0,
+          adjacentRepetitionCount: 0,
+          imagePlaceholderCount: 0
         }
       };
     }
@@ -246,7 +318,24 @@ export class EditorialIntegrityValidator {
       }
     }
 
-    // 4. Detect Fabricated Evidence IDs
+    // 4. Detect Image Markup or Image Placeholders (Phase 6E text-first integrity)
+    for (const imgPat of this.IMAGE_PATTERNS) {
+      const match = textWithoutCode.match(imgPat.regex);
+      if (match) {
+        imagePlaceholderCount++;
+        const msg = `Image Prohibition Alert: Detected ${imgPat.description} ("${match[0]}"). Text-first generation strictly prohibits images or image placeholders.`;
+        criticalErrors.push(msg);
+        issues.push({
+          type: 'IMAGE_PLACEHOLDER',
+          severity: 'CRITICAL',
+          message: msg,
+          matchedSnippet: match[0],
+          context: imgPat.description
+        });
+      }
+    }
+
+    // 5. Detect Fabricated Evidence IDs
     const allEvidence = options?.evidenceSet?.items || [];
     const validEvidenceIds = new Set(allEvidence.map(e => e.id));
 
@@ -269,10 +358,9 @@ export class EditorialIntegrityValidator {
       }
     }
 
-    // Check explicit evidence ID references in markdown body (e.g. [ev-123], (ev-123), <!-- ev-123 -->)
+    // Check explicit evidence ID references in markdown body
     const evIdMatches = textWithoutCode.match(/\bev[-_][a-zA-Z0-9_-]{3,}\b/g) || [];
     for (const rawId of Array.from(new Set(evIdMatches))) {
-      // If it looks like an evidence ID pattern used by the system
       if (/^ev[-_][a-zA-Z0-9_-]+$/i.test(rawId)) {
         if (!validEvidenceIds.has(rawId)) {
           fabricatedEvidenceIdCount++;
@@ -288,8 +376,7 @@ export class EditorialIntegrityValidator {
       }
     }
 
-    // 5. Detect Fabricated External Source Attribution
-    // Patterns for named studies, surveys, and cited source publications
+    // 6. Detect Unverified External Source Attribution
     const attributionRegexes = [
       /\b(?:according to|as reported by|published by|cited by|study by|survey by|research from)\s+\[?([A-Z][A-Za-z0-9&.-]+(?:\s+[A-Z][A-Za-z0-9&.-]+)?)\]?/gi,
       /\[([A-Z][A-Za-z0-9&.-]+(?:\s+[A-Z][A-Za-z0-9&.-]+)?)\s+(?:study|survey|research|benchmark|report)\]\((https?:\/\/[^\)]+)\)/gi,
@@ -301,6 +388,7 @@ export class EditorialIntegrityValidator {
       while ((match = regex.exec(textWithoutCode)) !== null) {
         const sourceName = match[1]?.trim();
         const sourceUrl = match[2]?.trim();
+
         if (!sourceName || this.NON_ATTRIBUTION_SOURCES.has(sourceName.toLowerCase())) continue;
 
         if (allEvidence.length > 0) {
@@ -334,32 +422,232 @@ export class EditorialIntegrityValidator {
       }
     }
 
-    // 6. Cross-Section Repeated Sentences (Boilerplate)
-    const sections = textWithoutCode.split(/\n(?=#{2,3}\s+)/);
-    if (sections.length > 1) {
-      const seenSentences = new Map<string, string>();
-      for (const sec of sections) {
-        const headingMatch = sec.match(/^#{2,3}\s+([^\n]+)/);
-        const heading = headingMatch ? headingMatch[1].trim() : 'Section';
-        const cleanSec = sec.replace(/^#{2,3}\s+[^\n]+/m, '').trim();
-        const sentences = cleanSec.split(/[.!?]+/).map(s => s.trim().toLowerCase()).filter(s => s.length > 30);
+    // 7. Duplicate Headings Check
+    const headingMatches = Array.from(textWithoutCode.matchAll(/^#{2,3}\s+([^\n]+)/gm)).map(m => m[1].trim());
+    const seenHeadingMap = new Set<string>();
+    for (const h of headingMatches) {
+      const normHeading = h.toLowerCase().replace(/^[0-9.\s]+/, '').trim();
+      if (seenHeadingMap.has(normHeading)) {
+        duplicateHeadingCount++;
+        const msg = `Duplicate Heading Alert: Section heading "${h}" is repeated in the article. Each section heading must be distinct.`;
+        criticalErrors.push(msg);
+        issues.push({
+          type: 'DUPLICATE_HEADING',
+          severity: 'CRITICAL',
+          message: msg,
+          matchedSnippet: h
+        });
+      } else {
+        seenHeadingMap.add(normHeading);
+      }
+    }
 
-        for (const s of sentences) {
-          const wordsCount = s.split(/\s+/).filter(Boolean).length;
-          if (wordsCount < 8) continue; // Skip short transitions
-          if (seenSentences.has(s)) {
-            const priorHeading = seenSentences.get(s)!;
-            const msg = `Boilerplate Alert: Verbatim sentence repeated across "${priorHeading}" and "${heading}": "${s.substring(0, 60)}..."`;
+    // 8. Section Breakdown & Text-First Deep Quality Checks
+    const rawSections = textWithoutCode.split(/\n(?=#{2,3}\s+)/);
+    const sectionsData: Array<{ heading: string; body: string; sentences: string[] }> = [];
+
+    const effectiveKw = (options?.targetKeyword || options?.primaryKeyword || '').trim();
+
+    for (const rawSec of rawSections) {
+      const headingMatch = rawSec.match(/^#{2,3}\s+([^\n]+)/);
+      if (!headingMatch) continue;
+      const heading = headingMatch[1].trim();
+      const body = rawSec.replace(/^#{2,3}\s+[^\n]+/m, '').trim();
+      const cleanBody = body.replace(/```[\s\S]*?```/g, '').replace(/[*_#`]/g, '').trim();
+      const words = cleanBody.split(/\s+/).filter(Boolean);
+      const sentences = cleanBody.split(/[.!?]+/).map(s => s.trim()).filter(s => s.length > 5);
+
+      sectionsData.push({ heading, body, sentences });
+
+      // 8.1 Hollow Section Check (fewer than 10 words)
+      if (words.length < 10) {
+        hollowSectionCount++;
+        const msg = `Hollow Section Alert: Section "${heading}" contains only ${words.length} word(s). Each section must deliver substantive analysis.`;
+        criticalErrors.push(msg);
+        issues.push({
+          type: 'HOLLOW_SECTION',
+          severity: 'CRITICAL',
+          message: msg,
+          matchedSnippet: heading
+        });
+      }
+
+      // 8.2 Unfulfilled Heading Promises
+      // Tactical steps / checklist promises
+      if (/\b(?:checklist|step-by-step|actionable steps?|implementation guide|execution workflow|how to (?:implement|optimize|configure|build))\b/i.test(heading)) {
+        const hasList = /^\s*[-*]\s+/m.test(body) || /^\s*\d+\.\s+/m.test(body);
+        const hasStepKeyword = /\b(?:step\s+\d+|phase\s+\d+|first,|second,|third,)\b/i.test(body);
+        if (!hasList && !hasStepKeyword) {
+          unfulfilledPromiseCount++;
+          const msg = `Unfulfilled Promise Alert: Heading "${heading}" promises tactical steps or an implementation checklist, but the section contains no actionable steps or structured list.`;
+          criticalErrors.push(msg);
+          issues.push({
+            type: 'UNFULFILLED_HEADING_PROMISE',
+            severity: 'CRITICAL',
+            message: msg,
+            matchedSnippet: heading
+          });
+        }
+      }
+
+      // Benchmark metrics / quantitative data promises
+      if (/\b(?:benchmark metrics?|latency thresholds?|performance specifications?|key metrics?|quantitative benchmarks?)\b/i.test(heading)) {
+        const hasDigits = /\d+/.test(body);
+        if (!hasDigits) {
+          unfulfilledPromiseCount++;
+          const msg = `Unfulfilled Promise Alert: Heading "${heading}" promises quantitative benchmarks or metrics, but the section contains no measurements or numerical data.`;
+          criticalErrors.push(msg);
+          issues.push({
+            type: 'UNFULFILLED_HEADING_PROMISE',
+            severity: 'CRITICAL',
+            message: msg,
+            matchedSnippet: heading
+          });
+        }
+      }
+
+      // Comparison matrix / structured table promises
+      if (/\b(?:comparison matrix|feature matrix|evaluation matrix|criteria matrix)\b/i.test(heading)) {
+        const hasTable = /\|.*\|/.test(body);
+        if (!hasTable) {
+          unfulfilledPromiseCount++;
+          const msg = `Unfulfilled Promise Alert: Heading "${heading}" promises a comparison matrix, but the section contains no comparison table.`;
+          criticalErrors.push(msg);
+          issues.push({
+            type: 'UNFULFILLED_HEADING_PROMISE',
+            severity: 'CRITICAL',
+            message: msg,
+            matchedSnippet: heading
+          });
+        }
+      }
+
+      // 8.3 Topic Drift in Section Prose
+      if (effectiveKw) {
+        // Staffing drift on non-staffing topic
+        if (!TopicRelevanceValidator.isStaffingDomainTopic(effectiveKw)) {
+          if (/\b(developer retention|talent retention|employee retention|engineer retention|agency retainers?|staffing models?|developer burnout|hourly contractors?|recruiting developers?|hiring developers?)\b/i.test(body)) {
+            topicDriftCount++;
+            const msg = `Topic Drift Alert: Section "${heading}" discusses staffing models or developer retention, which is off-topic for "${effectiveKw}".`;
             criticalErrors.push(msg);
             issues.push({
-              type: 'REPEATED_BOILERPLATE',
+              type: 'TOPIC_DRIFT',
               severity: 'CRITICAL',
               message: msg,
-              matchedSnippet: s.substring(0, 60),
-              context: `${priorHeading} -> ${heading}`
+              matchedSnippet: heading,
+              context: 'STAFFING_HR'
             });
+          }
+        }
+
+        // Meta-SEO / crawler schema drift on non-SEO topic
+        if (!TopicRelevanceValidator.isSeoDomainTopic(effectiveKw)) {
+          if (/\b(technical schema markup|schema structures? for search|search engine crawler recognition|rich snippet indexing|perplexity (?:indexing|visibility)|search crawler recognition)\b/i.test(body)) {
+            topicDriftCount++;
+            const msg = `Topic Drift Alert: Section "${heading}" discusses search engine crawler indexing or schema markup, which is off-topic for non-SEO topic "${effectiveKw}".`;
+            criticalErrors.push(msg);
+            issues.push({
+              type: 'TOPIC_DRIFT',
+              severity: 'CRITICAL',
+              message: msg,
+              matchedSnippet: heading,
+              context: 'META_SEO'
+            });
+          }
+        }
+
+        // Hardware repair drift on non-hardware topic
+        if (!/\b(hardware|repair|soldering|device repair)\b/i.test(effectiveKw)) {
+          if (/\b(hardware repair|screen (?:repair|replacement)|battery (?:repair|replacement)|device repair|soldering|phone repairs?)\b/i.test(body)) {
+            topicDriftCount++;
+            const msg = `Topic Drift Alert: Section "${heading}" discusses physical hardware repair, which is off-topic for "${effectiveKw}".`;
+            criticalErrors.push(msg);
+            issues.push({
+              type: 'TOPIC_DRIFT',
+              severity: 'CRITICAL',
+              message: msg,
+              matchedSnippet: heading,
+              context: 'UNRELATED'
+            });
+          }
+        }
+      }
+
+      // 8.4 Generic Filler Paragraphs
+      const paragraphs = body.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
+      for (const p of paragraphs) {
+        for (const fillerPat of this.GENERIC_FILLER_PATTERNS) {
+          const m = p.match(fillerPat.regex);
+          if (m) {
+            fillerCount++;
+            const msg = `Generic Filler Alert: Paragraph in section "${heading}" contains hollow corporate filler ("${m[0]}"). Replace with concrete domain insights.`;
+            criticalErrors.push(msg);
+            issues.push({
+              type: 'GENERIC_FILLER',
+              severity: 'CRITICAL',
+              message: msg,
+              matchedSnippet: m[0],
+              context: heading
+            });
+            break;
+          }
+        }
+      }
+    }
+
+    // 9. Adjacent Section Repetition
+    for (let i = 0; i < sectionsData.length - 1; i++) {
+      const secA = sectionsData[i];
+      const secB = sectionsData[i + 1];
+      if (secA.sentences.length > 0 && secB.sentences.length > 0) {
+        const firstB = secB.sentences[0].toLowerCase().trim();
+        if (firstB.length > 30) {
+          for (const sA of secA.sentences) {
+            const lowA = sA.toLowerCase().trim();
+            if (lowA.length > 30) {
+              const sim = this.calculateJaccardSimilarity(firstB, lowA);
+              if (sim > 0.65 || (lowA.length > 40 && (firstB.includes(lowA) || lowA.includes(firstB)))) {
+                adjacentRepetitionCount++;
+                const msg = `Adjacent Section Repetition Alert: Section "${secB.heading}" repeats introductory explanation from preceding section "${secA.heading}".`;
+                criticalErrors.push(msg);
+                issues.push({
+                  type: 'ADJACENT_SECTION_REPETITION',
+                  severity: 'CRITICAL',
+                  message: msg,
+                  matchedSnippet: firstB.substring(0, 60),
+                  context: `${secA.heading} -> ${secB.heading}`
+                });
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // 10. Cross-Section Repeated Sentences (Boilerplate)
+    if (sectionsData.length > 1) {
+      const seenSentences = new Map<string, string>();
+      for (const sec of sectionsData) {
+        for (const s of sec.sentences) {
+          const wordsCount = s.split(/\s+/).filter(Boolean).length;
+          if (wordsCount < 8) continue; // Skip short transitions
+          const sLower = s.toLowerCase();
+          if (seenSentences.has(sLower)) {
+            const priorHeading = seenSentences.get(sLower)!;
+            if (priorHeading !== sec.heading) {
+              const msg = `Boilerplate Alert: Verbatim sentence repeated across "${priorHeading}" and "${sec.heading}": "${s.substring(0, 60)}..."`;
+              criticalErrors.push(msg);
+              issues.push({
+                type: 'REPEATED_BOILERPLATE',
+                severity: 'CRITICAL',
+                message: msg,
+                matchedSnippet: s.substring(0, 60),
+                context: `${priorHeading} -> ${sec.heading}`
+              });
+            }
           } else {
-            seenSentences.set(s, heading);
+            seenSentences.set(sLower, sec.heading);
           }
         }
       }
@@ -382,9 +670,31 @@ export class EditorialIntegrityValidator {
         fabricatedAttributionCount,
         unverifiedAttributionCount,
         unsupportedNumericalCount,
-        requiresReviewCount
+        requiresReviewCount,
+        topicDriftCount,
+        hollowSectionCount,
+        unfulfilledPromiseCount,
+        fillerCount,
+        duplicateHeadingCount,
+        adjacentRepetitionCount,
+        imagePlaceholderCount
       }
     };
+  }
+
+  /**
+   * Computes Jaccard word similarity between two texts.
+   */
+  public static calculateJaccardSimilarity(text1: string, text2: string): number {
+    const getTokens = (t: string) => new Set(t.toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/).filter(w => w.length > 2));
+    const s1 = getTokens(text1);
+    const s2 = getTokens(text2);
+    if (s1.size === 0 || s2.size === 0) return 0;
+    let intersect = 0;
+    for (const token of s1) {
+      if (s2.has(token)) intersect++;
+    }
+    return intersect / (s1.size + s2.size - intersect);
   }
 
   /**
