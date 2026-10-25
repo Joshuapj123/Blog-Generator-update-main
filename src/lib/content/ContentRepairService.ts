@@ -435,8 +435,10 @@ ${hasTitleIssue ? 'OPTIMIZED TITLE: [Your optimized title here]\n\n' : ''}REPAIR
     ];
 
     for (const regex of placeholderRegexes) {
-      if (regex.test(repaired)) {
-        repaired = repaired.replace(regex, '');
+      regex.lastIndex = 0;
+      const prev = repaired;
+      repaired = repaired.replace(regex, '');
+      if (repaired !== prev) {
         count++;
       }
     }
@@ -449,8 +451,10 @@ ${hasTitleIssue ? 'OPTIMIZED TITLE: [Your optimized title here]\n\n' : ''}REPAIR
     ];
 
     for (const regex of promptLeakRegexes) {
-      if (regex.test(repaired)) {
-        repaired = repaired.replace(regex, '');
+      regex.lastIndex = 0;
+      const prev = repaired;
+      repaired = repaired.replace(regex, '');
+      if (repaired !== prev) {
         count++;
       }
     }
@@ -464,21 +468,25 @@ ${hasTitleIssue ? 'OPTIMIZED TITLE: [Your optimized title here]\n\n' : ''}REPAIR
     ];
 
     for (const regex of imageRegexes) {
-      if (regex.test(repaired)) {
-        repaired = repaired.replace(regex, '');
+      regex.lastIndex = 0;
+      const prev = repaired;
+      repaired = repaired.replace(regex, '');
+      if (repaired !== prev) {
         count++;
       }
     }
 
     // 4. Surgically strip generic corporate filler sentences
     const fillerRegexes = [
-      /(?:^|\n|\.\s+)In today'?s (?:fast-paced|rapidly evolving|digital) (?:world|landscape|environment)[^\.\n]*\./gi,
-      /(?:^|\n|\.\s+)In the modern era of technology[^\.\n]*\./gi,
+      /(?:^|\n|\.\s*)In today'?s (?:fast-paced|rapidly evolving|digital|\s)+(?:world|landscape|environment)[^\.\n]*\./gi,
+      /(?:^|\n|\.\s*)In the modern era of technology[^\.\n]*\./gi,
     ];
 
     for (const regex of fillerRegexes) {
-      if (regex.test(repaired)) {
-        repaired = repaired.replace(regex, '');
+      regex.lastIndex = 0;
+      const prev = repaired;
+      repaired = repaired.replace(regex, '');
+      if (repaired !== prev) {
         count++;
       }
     }

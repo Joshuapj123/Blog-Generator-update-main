@@ -13,6 +13,8 @@ export interface ExportArticleInput {
   sections?: any[];
   targetBrand?: string;
   saasProfile?: any;
+  evidenceSet?: any;
+  sectionEvidenceMaps?: any[];
   metadata?: {
     intent?: string;
     targetKeywords?: string[];
@@ -128,7 +130,10 @@ export class ArticleExportService {
     const rawContent = input.bodyMarkdown || (typeof input.content === 'string' ? input.content : '');
     if (rawContent && rawContent.trim().length > 0) {
       const integrity = EditorialIntegrityValidator.validateEditorialIntegrity(rawContent, {
-        targetBrand: input.targetBrand || input.saasProfile?.name
+        targetBrand: input.targetBrand || input.saasProfile?.name,
+        targetKeyword: input.metadata?.targetKeywords?.[0],
+        evidenceSet: input.evidenceSet,
+        sectionEvidenceMaps: input.sectionEvidenceMaps
       });
       if (!integrity.passed) {
         for (const err of integrity.criticalErrors) {

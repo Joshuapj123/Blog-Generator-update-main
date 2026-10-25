@@ -342,7 +342,8 @@ export class EditorialIntegrityValidator {
     // Check evidence IDs in assigned section maps
     if (options?.sectionEvidenceMaps && options.sectionEvidenceMaps.length > 0) {
       for (const map of options.sectionEvidenceMaps) {
-        for (const evId of map.evidenceIds) {
+        const evList = map.evidenceIds || (map as any).primaryEvidenceIds || [];
+        for (const evId of evList) {
           if (!validEvidenceIds.has(evId)) {
             fabricatedEvidenceIdCount++;
             const msg = `Fabricated Evidence ID Alert: Section "${map.heading}" references non-existent evidence ID "${evId}".`;
@@ -393,10 +394,10 @@ export class EditorialIntegrityValidator {
 
         if (allEvidence.length > 0) {
           const sourceMatch = allEvidence.find(ev => {
-            const title = (ev.sourceTitle || '').toLowerCase();
+            const title = (ev.sourceTitle || (ev as any).title || '').toLowerCase();
             const url = (ev.sourceUrl || '').toLowerCase();
-            const claimText = ev.claim.toLowerCase();
-            const entities = (ev.entities || []).map(e => e.toLowerCase());
+            const claimText = (ev.claim || (ev as any).extractedText || '').toLowerCase();
+            const entities = ((ev.entities || (ev as any).keyEntities) || []).map((e: string) => e.toLowerCase());
             const srcLower = sourceName.toLowerCase();
             const urlLower = sourceUrl ? sourceUrl.toLowerCase() : '';
 
@@ -522,11 +523,13 @@ export class EditorialIntegrityValidator {
         }
       }
 
-      // 8.3 Topic Drift in Section Prose
+      // 8.3 Topic Drift in Section Heading and Prose
       if (effectiveKw) {
+        const sectionFullText = heading + '\n' + body;
+
         // Staffing drift on non-staffing topic
         if (!TopicRelevanceValidator.isStaffingDomainTopic(effectiveKw)) {
-          if (/\b(developer retention|talent retention|employee retention|engineer retention|agency retainers?|staffing models?|developer burnout|hourly contractors?|recruiting developers?|hiring developers?)\b/i.test(body)) {
+          if (/\b(developer retention|talent retention|employee retention|engineer retention|agency retainers?|staffing models?|developer burnout|hourly contractors?|recruiting developers?|hiring developers?)\b/i.test(sectionFullText)) {
             topicDriftCount++;
             const msg = `Topic Drift Alert: Section "${heading}" discusses staffing models or developer retention, which is off-topic for "${effectiveKw}".`;
             criticalErrors.push(msg);
@@ -542,7 +545,7 @@ export class EditorialIntegrityValidator {
 
         // Meta-SEO / crawler schema drift on non-SEO topic
         if (!TopicRelevanceValidator.isSeoDomainTopic(effectiveKw)) {
-          if (/\b(technical schema markup|schema structures? for search|search engine crawler recognition|rich snippet indexing|perplexity (?:indexing|visibility)|search crawler recognition)\b/i.test(body)) {
+          if (/\b(technical schema markup|schema structures? for search|search engine crawler recognition|rich snippet indexing|perplexity (?:indexing|visibility)|search crawler recognition)\b/i.test(sectionFullText)) {
             topicDriftCount++;
             const msg = `Topic Drift Alert: Section "${heading}" discusses search engine crawler indexing or schema markup, which is off-topic for non-SEO topic "${effectiveKw}".`;
             criticalErrors.push(msg);
@@ -558,7 +561,7 @@ export class EditorialIntegrityValidator {
 
         // Hardware repair drift on non-hardware topic
         if (!/\b(hardware|repair|soldering|device repair)\b/i.test(effectiveKw)) {
-          if (/\b(hardware repair|screen (?:repair|replacement)|battery (?:repair|replacement)|device repair|soldering|phone repairs?)\b/i.test(body)) {
+          if (/\b(hardware repair|screen (?:repair|replacement)|battery (?:repair|replacement)|device repair|soldering|phone repairs?)\b/i.test(sectionFullText)) {
             topicDriftCount++;
             const msg = `Topic Drift Alert: Section "${heading}" discusses physical hardware repair, which is off-topic for "${effectiveKw}".`;
             criticalErrors.push(msg);
