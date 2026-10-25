@@ -3,6 +3,7 @@ import {
   ContentBrief,
   ContentBriefSchema,
   OutlineNodeSchema,
+  OutlineNode,
   SearchIntentSchema,
   SaaSProfile,
   ContentBlockRoleSchema,
@@ -12,7 +13,9 @@ import {
   SentenceCountRangeSchema,
   SentenceCountRange,
   ContentBlockPlanSchema,
-  ContentBlockPlan
+  ContentBlockPlan,
+  ContentAsset,
+  ContentAssetSchema
 } from '@/core/contracts/schemas';
 import {
   planBlockVarietyForOutlineNode,
@@ -28,10 +31,24 @@ import {
   EligibleProseParagraph,
   LengthBand
 } from '@/lib/intelligence/ParagraphSignatureValidator';
+import {
+  TargetedRepairEngine,
+  RepairFailureCategory,
+  RepairFailureCode,
+  REPAIR_FAILURE_CODES,
+  BlockRepairTarget,
+  BlockMappingResult,
+  BoundedRepairAttempt,
+  BoundedRepairSummary,
+  BoundedRepairContext,
+  DEFAULT_MAX_REPAIR_ATTEMPTS
+} from './TargetedRepairEngine';
 import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceValidator';
 
 export type {
   ContentBrief,
+  ContentAsset,
+  OutlineNode,
   ContentBlockRole,
   ContentBlockMode,
   SentenceCountRange,
@@ -39,10 +56,18 @@ export type {
   ParagraphSignatureValidationResult,
   ParagraphSignatureViolation,
   EligibleProseParagraph,
-  LengthBand
+  LengthBand,
+  RepairFailureCategory,
+  RepairFailureCode,
+  BlockRepairTarget,
+  BlockMappingResult,
+  BoundedRepairAttempt,
+  BoundedRepairSummary,
+  BoundedRepairContext
 };
 export {
   ContentBriefSchema,
+  ContentAssetSchema,
   OutlineNodeSchema,
   SearchIntentSchema,
   ContentBlockRoleSchema,
@@ -54,7 +79,10 @@ export {
   validateOutlineBlockPlanUniqueness,
   verifyProseStructuralVariation,
   PROSE_SIGNATURE_TEMPLATES,
-  ParagraphSignatureValidator
+  ParagraphSignatureValidator,
+  TargetedRepairEngine,
+  REPAIR_FAILURE_CODES,
+  DEFAULT_MAX_REPAIR_ATTEMPTS
 };
 
 export interface PlanRecoveryDiagnostics {

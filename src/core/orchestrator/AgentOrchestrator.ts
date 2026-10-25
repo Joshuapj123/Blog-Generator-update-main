@@ -98,6 +98,8 @@ import {
   validateContentBriefStrict,
   enforceOutlineSectionBudget,
   planBlockVarietyForArticle,
+  TargetedRepairEngine,
+  BoundedRepairSummary
 } from '@/lib/content/schemas';
 import { RuntimeBudgetGuard, RuntimeBudgetDiagnostics } from './RuntimeBudgetGuard';
 import { 
@@ -237,8 +239,10 @@ export interface ReviewResult {
   issues: string[];
   warnings: string[];
   criticalErrors?: string[];
-  finalValidationStatus?: 'PASSED' | 'PASSED_WITH_WARNINGS' | 'FAILED';
+  finalValidationStatus?: 'PASSED' | 'PASSED_WITH_WARNINGS' | 'FAILED' | 'REVIEW_REQUIRED';
   repairable: boolean;
+  repairDetails?: BoundedRepairSummary;
+  signatureReport?: any;
 }
 
 export interface OrchestrationError {
@@ -254,7 +258,7 @@ export interface OrchestrationError {
 export interface OrchestrationResult {
   success: boolean;
   runId: string;
-  status: "completed" | "failed" | "partial";
+  status: "completed" | "failed" | "partial" | "review_required";
   stages: StageExecution[];
   discovery?: DiscoveryResult;
   research?: { searchResults: SearchResult[]; scrapeResults: ScrapeResult[] };
@@ -269,6 +273,7 @@ export interface OrchestrationResult {
   gapMatrix?: ContentGapMatrix;
   sectionEvidenceMaps?: SectionEvidenceMap[];
   researchIntelligence?: ResearchIntelligenceDiagnostics;
+  repairResult?: BoundedRepairSummary;
 }
 
 export class AgentOrchestrator {
@@ -1397,9 +1402,45 @@ Return only the schema-compliant structured object.`;
           return [...critical, ...repairableWarnings];
         };
 
-        let repairableIssues = getRepairableIssues(review);
+        // Phase R4: Targeted Bounded Structural Repair
+        if (!review.passed && review.signatureReport && !review.signatureReport.valid && review.signatureReport.violations.length > 0) {
+          console.log(`[AgentOrchestrator] Structural paragraph repetition detected (${review.signatureReport.violations.length} violation(s)). Invoking TargetedRepairEngine...`);
+          const boundedRepairResult = await TargetedRepairEngine.executeBoundedRepair(
+            content.bodyMarkdown,
+            {
+              brief: plan,
+              targetBrand: this.targetBrand,
+              evidenceSet: this.evidenceSet,
+              sectionEvidenceMaps: this.sectionEvidenceMaps,
+              saasProfile: this.saasProfile,
+              gapMatrix: this.gapMatrix,
+              maxAttempts: Math.min(maxRetries, 2),
+              runId: this.telemetry.runId
+            },
+            this.options.llm
+          );
 
-        while (!review.passed && repairableIssues.length > 0 && retries < maxRetries) {
+          review.repairDetails = boundedRepairResult;
+          retries += boundedRepairResult.attemptsUsed;
+
+          if (boundedRepairResult.status === 'repaired' && boundedRepairResult.repairedMarkdown) {
+            content.bodyMarkdown = boundedRepairResult.repairedMarkdown;
+            content.wordCount = boundedRepairResult.repairedMarkdown.split(/\s+/).filter(Boolean).length;
+            review = await this.runReview(content, plan, {
+              repairAttempted: true,
+              attemptIndex: retries,
+              unrepairableClaimIds: this.lastUnrepairableClaimIds
+            });
+            review.repairDetails = boundedRepairResult;
+          } else if (boundedRepairResult.status === 'review_required') {
+            review.passed = false;
+            review.finalValidationStatus = 'REVIEW_REQUIRED';
+          }
+        }
+
+        let repairableIssues = review.finalValidationStatus === 'REVIEW_REQUIRED' ? [] : getRepairableIssues(review);
+
+        while (!review.passed && review.finalValidationStatus !== 'REVIEW_REQUIRED' && repairableIssues.length > 0 && retries < maxRetries) {
           if (!this.budgetGuard.hasBudgetForRepair()) {
             console.warn(`[AgentOrchestrator] Runtime budget insufficient for repair attempt (${this.budgetGuard.getRemainingMs()}ms remaining, reservedFinalize=${this.budgetGuard.getReservedFinalizeMs()}ms). Skipping further repairs to preserve finalization headroom.`);
             break;
@@ -1462,8 +1503,10 @@ Return only the schema-compliant structured object.`;
         }
 
         // Determine final validation state:
-        let finalValidationStatus: 'PASSED' | 'PASSED_WITH_WARNINGS' | 'FAILED';
-        if (review.criticalErrors && review.criticalErrors.length > 0) {
+        let finalValidationStatus: 'PASSED' | 'PASSED_WITH_WARNINGS' | 'FAILED' | 'REVIEW_REQUIRED';
+        if (review.finalValidationStatus === 'REVIEW_REQUIRED') {
+          finalValidationStatus = 'REVIEW_REQUIRED';
+        } else if (review.criticalErrors && review.criticalErrors.length > 0) {
           finalValidationStatus = 'FAILED';
         } else if (review.warnings && review.warnings.length > 0) {
           finalValidationStatus = 'PASSED_WITH_WARNINGS';
@@ -1471,7 +1514,7 @@ Return only the schema-compliant structured object.`;
           finalValidationStatus = 'PASSED';
         }
         review.finalValidationStatus = finalValidationStatus;
-        review.passed = finalValidationStatus !== 'FAILED';
+        review.passed = finalValidationStatus !== 'FAILED' && finalValidationStatus !== 'REVIEW_REQUIRED';
 
         const initialWordCount = contentBeforeReview?.wordCount || content?.wordCount || 0;
         const finalWordCount = content?.wordCount || 0;
@@ -1585,7 +1628,7 @@ geminiModel: "${this.telemetry.geminiModel || 'gemini-3.5-flash-lite'}"
           const finalValStatus = review?.finalValidationStatus || (review?.passed ? 'PASSED' : 'FAILED');
           content.assetType = strategy?.assetType || 'ARTICLE';
           content.targetKeyword = input.targetKeyword;
-          content.validationStatus = finalValStatus === 'FAILED' ? 'REJECTED' : 'READY';
+          content.validationStatus = (finalValStatus === 'FAILED' || finalValStatus === 'REVIEW_REQUIRED') ? 'REJECTED' : 'READY';
           content.qualityScore = finalValStatus === 'PASSED' ? 95 : (finalValStatus === 'PASSED_WITH_WARNINGS' ? 88 : 65);
           content.targetBrand = this.targetBrand || input.saasProfile?.name || input.saasProfile?.website || '';
           content.validationFingerprint = ContentEvidenceValidator.computeValidationFingerprint(
@@ -1649,11 +1692,15 @@ geminiModel: "${this.telemetry.geminiModel || 'gemini-3.5-flash-lite'}"
         : false;
       this.telemetry.runtimeBudget = this.budgetGuard.getDiagnostics();
 
+      const orchestrationStatus = review.finalValidationStatus === 'REVIEW_REQUIRED'
+        ? "review_required"
+        : (review.passed ? "completed" : "partial");
+
       console.log('[agent] run completed successfully');
       return {
         success: review.passed,
         runId: this.telemetry.runId,
-        status: review.passed ? "completed" : "partial",
+        status: orchestrationStatus,
         stages: this.stagesList,
         discovery,
         research,
@@ -1668,6 +1715,7 @@ geminiModel: "${this.telemetry.geminiModel || 'gemini-3.5-flash-lite'}"
         gapMatrix: this.gapMatrix,
         sectionEvidenceMaps: this.sectionEvidenceMaps,
         researchIntelligence: this.telemetry.researchIntelligence,
+        repairResult: review.repairDetails
       };
 
     } catch (err: any) {
@@ -2236,8 +2284,9 @@ WORD BUDGET:
     }
 
     // Phase R3: Canonical Paragraph Signature Hard Rejection Gate
+    let signatureReport: any;
     try {
-      const signatureReport = ParagraphSignatureValidator.validate(content.bodyMarkdown);
+      signatureReport = ParagraphSignatureValidator.validate(content.bodyMarkdown);
       if (!signatureReport.valid) {
         for (const err of signatureReport.criticalErrors) {
           criticalErrors.push(err);
@@ -2385,6 +2434,7 @@ WORD BUDGET:
       criticalErrors,
       warnings,
       repairable: criticalErrors.length > 0 || warnings.length > 0,
+      signatureReport
     };
   }
 

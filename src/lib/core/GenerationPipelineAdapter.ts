@@ -379,8 +379,11 @@ export class GenerationPipelineAdapter {
     const isCriticalFailure =
       !result ||
       result.status === 'failed' ||
+      result.status === 'review_required' ||
       result.review?.finalValidationStatus === 'FAILED' ||
+      result.review?.finalValidationStatus === 'REVIEW_REQUIRED' ||
       result.content?.validationStatus === 'REJECTED' ||
+      result.content?.validationStatus === 'REVIEW_REQUIRED' ||
       (result.review?.criticalErrors && result.review.criticalErrors.length > 0) ||
       !result.content?.bodyMarkdown ||
       (result.status === 'partial' && result.review?.finalValidationStatus !== 'PASSED_WITH_WARNINGS');
