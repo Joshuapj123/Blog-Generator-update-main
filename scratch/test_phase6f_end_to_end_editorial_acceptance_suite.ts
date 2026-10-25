@@ -402,6 +402,16 @@ According to our verified audit, enterprise conversion jumps by 400% immediately
     sectionEvidenceMaps: [fabricatedSectionMap]
   });
   recordTest('SC9.4', 'Export service blocks unrepairable fabricated attribution', !exportCheck.canExport);
+
+  // SC9.5: Direct array evidenceSet correctly enforces attribution validation
+  const directArrayReport = EditorialIntegrityValidator.validateEditorialIntegrity(
+    '## Unverified Citation\n\nAccording to Phantom Research Group, adoption is high.',
+    {
+      evidenceSet: [baseEvidenceSet.items[0]] as any,
+      targetKeyword: 'mobile conversion rates'
+    }
+  );
+  recordTest('SC9.5', 'Direct array evidenceSet correctly catches unverified source citation', !directArrayReport.passed && directArrayReport.issues.some(i => i.type === 'UNVERIFIED_ATTRIBUTION'));
 }
 
 // ---------------------------------------------------------------------------

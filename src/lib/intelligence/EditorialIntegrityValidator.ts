@@ -336,7 +336,7 @@ export class EditorialIntegrityValidator {
     }
 
     // 5. Detect Fabricated Evidence IDs
-    const allEvidence = options?.evidenceSet?.items || [];
+    const allEvidence = Array.isArray(options?.evidenceSet) ? options.evidenceSet : (options?.evidenceSet?.items || []);
     const validEvidenceIds = new Set(allEvidence.map(e => e.id));
 
     // Check evidence IDs in assigned section maps
