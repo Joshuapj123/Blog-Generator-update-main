@@ -5,14 +5,44 @@ import {
   OutlineNodeSchema,
   SearchIntentSchema,
   SaaSProfile,
+  ContentBlockRoleSchema,
+  ContentBlockRole,
+  ContentBlockModeSchema,
+  ContentBlockMode,
+  SentenceCountRangeSchema,
+  SentenceCountRange,
+  ContentBlockPlanSchema,
+  ContentBlockPlan
 } from '@/core/contracts/schemas';
+import {
+  planBlockVarietyForOutlineNode,
+  planBlockVarietyForArticle,
+  validateOutlineBlockPlanUniqueness,
+  verifyProseStructuralVariation,
+  PROSE_SIGNATURE_TEMPLATES
+} from './ContentBlockPlanner';
 import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceValidator';
 
-export type { ContentBrief };
+export type {
+  ContentBrief,
+  ContentBlockRole,
+  ContentBlockMode,
+  SentenceCountRange,
+  ContentBlockPlan
+};
 export {
   ContentBriefSchema,
   OutlineNodeSchema,
   SearchIntentSchema,
+  ContentBlockRoleSchema,
+  ContentBlockModeSchema,
+  SentenceCountRangeSchema,
+  ContentBlockPlanSchema,
+  planBlockVarietyForOutlineNode,
+  planBlockVarietyForArticle,
+  validateOutlineBlockPlanUniqueness,
+  verifyProseStructuralVariation,
+  PROSE_SIGNATURE_TEMPLATES
 };
 
 export interface PlanRecoveryDiagnostics {
@@ -351,6 +381,9 @@ export function createDeterministicFallbackBrief(context: DeterministicFallbackC
     ctaStrategy: 'Contextual product call-to-action.',
   };
 
+  // Plan block variety across the fallback outline nodes
+  fallbackBrief.outline = planBlockVarietyForArticle(fallbackBrief.outline);
+
   // Enforce strict invariant: must pass ContentBriefSchema.parse
   return ContentBriefSchema.parse(fallbackBrief);
 }
@@ -359,7 +392,14 @@ export function createDeterministicFallbackBrief(context: DeterministicFallbackC
  * Strict validation invariant enforcement.
  */
 export function validateContentBriefStrict(data: any): ContentBrief {
-  return ContentBriefSchema.parse(data);
+  const parsed = ContentBriefSchema.parse(data);
+  if (Array.isArray(parsed.outline)) {
+    const uniqueness = validateOutlineBlockPlanUniqueness(parsed.outline);
+    if (!uniqueness.isValid) {
+      throw new Error(`Duplicate content block IDs detected: ${uniqueness.duplicateIds.join(', ')}`);
+    }
+  }
+  return parsed;
 }
 
 export interface OutlineBudgetResult {
@@ -505,14 +545,20 @@ export function enforceOutlineSectionBudget(
     }
   }
 
+  // If block plans are present, re-plan to maintain contiguous unique block IDs and structural variation
+  const hasBlockPlans = retainedSections.some((s: any) => Array.isArray(s.blockPlans) && s.blockPlans.length > 0);
+  const finalOutline = hasBlockPlans
+    ? planBlockVarietyForArticle(retainedSections, { forceReplan: true })
+    : retainedSections;
+
   // Create deep clone of brief and assign enforced outline
   const modifiedBrief = {
     ...brief,
-    outline: retainedSections,
+    outline: finalOutline,
   };
 
   // Revalidate against ContentBriefSchema to guarantee strict compliance
-  const validatedBrief = ContentBriefSchema.parse(modifiedBrief);
+  const validatedBrief = validateContentBriefStrict(modifiedBrief);
 
   return {
     brief: validatedBrief,

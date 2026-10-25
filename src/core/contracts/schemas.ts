@@ -34,6 +34,50 @@ export const SearchIntentSchema = z.object({
 export type SearchIntent = z.infer<typeof SearchIntentSchema>;
 
 // 3. ContentBrief Schema
+// Content Block Planning Contracts (Phase R2)
+export const ContentBlockRoleSchema = z.enum([
+  'HOOK',
+  'EXPLAIN',
+  'EVIDENCE',
+  'TACTICAL',
+  'SUMMARY'
+]);
+export type ContentBlockRole = z.infer<typeof ContentBlockRoleSchema>;
+
+export const ContentBlockModeSchema = z.enum([
+  'PROSE',
+  'LIST',
+  'TABLE'
+]);
+export type ContentBlockMode = z.infer<typeof ContentBlockModeSchema>;
+
+export const SentenceCountRangeSchema = z.object({
+  min: z.number().int().min(1, 'min sentence count must be at least 1'),
+  max: z.number().int().min(1, 'max sentence count must be at least 1'),
+}).refine(data => data.min <= data.max, {
+  message: 'min sentence count must be less than or equal to max sentence count'
+});
+export type SentenceCountRange = z.infer<typeof SentenceCountRangeSchema>;
+
+export const ContentBlockPlanSchema = z.object({
+  blockId: z.string().min(1, 'blockId is required'),
+  role: ContentBlockRoleSchema,
+  mode: ContentBlockModeSchema,
+  sentenceCountRange: SentenceCountRangeSchema.optional(),
+  targetSignature: z.string().optional(),
+  parentHeading: z.string().optional(),
+  protectedRequirements: z.array(z.string()).optional().default([]),
+}).refine(data => {
+  // Invariant: PROSE mode blocks must require sentenceCountRange
+  if (data.mode === 'PROSE' && !data.sentenceCountRange) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'PROSE blocks require a valid sentenceCountRange constraint'
+});
+export type ContentBlockPlan = z.infer<typeof ContentBlockPlanSchema>;
+
 export const OutlineNodeSchema = z.object({
   heading: z.string().min(1, 'Heading is required'),
   level: z.enum(['H2', 'H3']).default('H2'),
@@ -41,6 +85,7 @@ export const OutlineNodeSchema = z.object({
   assignedKeywords: z.array(z.string()).optional().default([]),
   assignedEntities: z.array(z.string()).optional().default([]),
   core_concept: z.string().optional(),
+  blockPlans: z.array(ContentBlockPlanSchema).optional(),
 });
 
 export type OutlineNode = z.infer<typeof OutlineNodeSchema>;

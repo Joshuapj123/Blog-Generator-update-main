@@ -97,6 +97,7 @@ import {
   createDeterministicFallbackBrief,
   validateContentBriefStrict,
   enforceOutlineSectionBudget,
+  planBlockVarietyForArticle,
 } from '@/lib/content/schemas';
 import { RuntimeBudgetGuard, RuntimeBudgetDiagnostics } from './RuntimeBudgetGuard';
 import { 
@@ -1179,7 +1180,12 @@ Return only the schema-compliant structured object.`;
           }
         }
 
-        // PHASE 6: STRICT VALIDATION INVARIANT — MUST PASS ContentBriefSchema.parse
+        // PHASE R2: EXPLICIT CONTENT BLOCK VARIETY PLANNING CONTRACT
+        if (plan && Array.isArray(plan.outline)) {
+          plan.outline = planBlockVarietyForArticle(plan.outline);
+        }
+
+        // PHASE 6 & R2: STRICT VALIDATION INVARIANT — MUST PASS ContentBriefSchema.parse
         plan = validateContentBriefStrict(plan);
 
         // ENFORCE HARD SECTION BUDGET (Prompt 5.2)
@@ -2021,6 +2027,29 @@ Focus on the distinct scope and tactical depth of "${section.heading}" as define
           }
         }
 
+        let blockPlansContext = '';
+        if (Array.isArray(section.blockPlans) && section.blockPlans.length > 0) {
+          const blocksDesc = section.blockPlans.map((bp: any, bpIdx: number) => {
+            const rangeStr = bp.sentenceCountRange
+              ? (bp.sentenceCountRange.min === bp.sentenceCountRange.max
+                ? ` (target: ${bp.sentenceCountRange.min} sentences)`
+                : ` (target: ${bp.sentenceCountRange.min}–${bp.sentenceCountRange.max} sentences)`)
+              : '';
+            const sigStr = bp.targetSignature ? ` [Signature: ${bp.targetSignature}]` : '';
+            const reqStr = bp.protectedRequirements && bp.protectedRequirements.length > 0 ? ` Directives: ${bp.protectedRequirements.join('; ')}` : '';
+            return `  - Block ${bpIdx + 1} [ID: ${bp.blockId}]: Role ${bp.role}, Mode ${bp.mode}${rangeStr}${sigStr}.${reqStr}`;
+          }).join('\n');
+
+          blockPlansContext = `
+
+=== PLANNED CONTENT BLOCKS & STRUCTURAL VARIETY CONTRACT ===
+Draft this section following these planned editorial blocks to ensure structural rhythm and varied content presentation:
+${blocksDesc}
+- Maintain natural rhythm without mechanical boilerplate.
+- For LIST or TABLE modes, present clean Markdown formatting directly following introducing text.
+============================================================`;
+        }
+
         const prompt = `Write a clear, practical, and highly readable section for the article "${brief.title}".
 Section Heading: "${section.heading}" (Level: ${section.level})
 Section Position: ${i + 1} of ${brief.outline.length}
@@ -2028,7 +2057,7 @@ Canonical Primary Keyword: "${primaryKeyword}"
 Assigned Section Keywords: ${section.assignedKeywords?.length ? section.assignedKeywords.join(', ') : 'None specifically assigned (focus on section topic and supporting terms)'}
 ${this.supportingTerms.length > 0 ? `Available Supporting Terms (use naturally where relevant): ${this.supportingTerms.join(', ')}\n` : ''}Assigned Entities: ${section.assignedEntities?.join(', ') || ''}
 Core Concept: ${section.core_concept || ''}
-${this.internalLinks.length > 0 ? `Relevant Internal Links (integrate 1-2 naturally if relevant as markdown links [anchor text](url)): \n${this.internalLinks.slice(0, 5).join('\n')}\n` : ''}${compactOutlineContext}${previousSectionsContext}${assetInstructions}${intelligenceContext}${sectionEvidenceContext}
+${this.internalLinks.length > 0 ? `Relevant Internal Links (integrate 1-2 naturally if relevant as markdown links [anchor text](url)): \n${this.internalLinks.slice(0, 5).join('\n')}\n` : ''}${compactOutlineContext}${previousSectionsContext}${assetInstructions}${intelligenceContext}${sectionEvidenceContext}${blockPlansContext}
 
 === 18 EDITORIAL WRITING & READABILITY CONTRACTS ===
 1. CANONICAL PRIMARY KEYWORD CONTRACT:
