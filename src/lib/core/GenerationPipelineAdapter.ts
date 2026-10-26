@@ -591,7 +591,7 @@ export class GenerationPipelineAdapter {
     };
 
     const resolvedValidationStatus = result.content?.validationStatus ||
-      (result.review?.finalValidationStatus === 'FAILED' ? 'REJECTED' : 'READY');
+      (result.review?.finalValidationStatus === 'REVIEW_REQUIRED' ? 'REVIEW_REQUIRED' : (result.review?.finalValidationStatus === 'FAILED' ? 'REJECTED' : 'READY'));
 
     finalArticle.validationStatus = resolvedValidationStatus;
     finalArticle.validationFingerprint = result.content?.validationFingerprint;

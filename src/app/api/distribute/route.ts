@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { DistributionRequestSchema, ContentAsset } from '@/core/contracts/schemas';
+import { ArtifactLifecycleBoundary } from '@/lib/content/ArtifactLifecycleBoundary';
 import { DistributionService } from '@/lib/distribution/DistributionService';
 import { WebhookDistributionProvider } from '@/lib/distribution/WebhookDistributionProvider';
 import { getArticleById } from '@/lib/firebase/firestore';
@@ -30,10 +31,7 @@ export async function POST(req: Request) {
     }
 
     // 3. Map stored Article model to ContentAsset structure
-    const rawValStatus = (article as any).validationStatus ||
-      ((article as any).evidenceMetadata?.validationStatus === 'PASSED' ? 'READY' :
-      ((article as any).evidenceMetadata?.validationStatus === 'FAILED' ? 'REJECTED' :
-      undefined));
+    const rawValStatus = (article as any).validationStatus;
 
     const contentAsset: ContentAsset = {
       title: article.title,
@@ -63,6 +61,16 @@ export async function POST(req: Request) {
       tone: 'professional',
       customInsights: 'none'
     };
+
+    // 4.5. Fail-Closed Artifact Lifecycle Boundary Gate
+    const boundaryCheck = ArtifactLifecycleBoundary.verifyPublishableArtifact(contentAsset, { saasProfile });
+    if (!boundaryCheck.isEligible) {
+      return NextResponse.json({
+        error: `Distribution Blocked: ${boundaryCheck.reason}`,
+        code: boundaryCheck.code,
+        status: boundaryCheck.status
+      }, { status: 422 });
+    }
 
     // 5. Initialize providers and distribution service
     const webhookProvider = new WebhookDistributionProvider();

@@ -126,6 +126,8 @@ export async function POST(req: Request) {
         blueprint: article.blueprint,
         sections: article.blueprint?.sections,
         targetBrand: article.referenceUrl,
+        validationStatus: article.validationStatus,
+        validationFingerprint: article.validationFingerprint || (article as any).blueprint?.validationFingerprint,
         metadata: {
           intent: article.blueprint?.intent,
           targetKeywords: article.targetKeywords,
@@ -150,6 +152,8 @@ export async function POST(req: Request) {
         sections: body.sections,
         targetBrand: body.targetBrand,
         saasProfile: body.saasProfile,
+        validationStatus: body.validationStatus,
+        validationFingerprint: body.validationFingerprint,
         metadata: body.metadata
       };
     }

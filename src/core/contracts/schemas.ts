@@ -129,6 +129,15 @@ export const ReferenceSchema = z.object({
   authorityScore: z.number().min(0).max(100).optional(),
 });
 
+export const ArtifactValidationStatusSchema = z.enum([
+  'DRAFT',
+  'READY',
+  'REVIEW_REQUIRED',
+  'REJECTED'
+]);
+
+export type ArtifactValidationStatus = z.infer<typeof ArtifactValidationStatusSchema>;
+
 export const ContentAssetSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   bodyMarkdown: z.string().min(1, 'Markdown body is required'),

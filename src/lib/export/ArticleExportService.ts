@@ -1,6 +1,7 @@
 import { jsPDF } from 'jspdf';
 import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceValidator';
 import { EditorialIntegrityValidator } from '@/lib/intelligence/EditorialIntegrityValidator';
+import { ArtifactLifecycleBoundary } from '@/lib/content/ArtifactLifecycleBoundary';
 import { DiagramAssetService } from '@/lib/content/DiagramAssetService';
 import { slugify, triggerDownload } from '@/lib/article-utils';
 
@@ -15,6 +16,8 @@ export interface ExportArticleInput {
   saasProfile?: any;
   evidenceSet?: any;
   sectionEvidenceMaps?: any[];
+  validationStatus?: string;
+  validationFingerprint?: string;
   metadata?: {
     intent?: string;
     targetKeywords?: string[];
@@ -111,6 +114,38 @@ export class ArticleExportService {
         resolvedHtml: '',
         resolvedTitle
       };
+    }
+
+    // Phase R5: Typed Artifact Boundary check for export
+    if (input.validationStatus) {
+      if (input.validationStatus === 'REJECTED') {
+        errors.push('Article Export Blocked: ContentAsset has been REJECTED by editorial quality validation.');
+      } else if (input.validationStatus === 'REVIEW_REQUIRED') {
+        errors.push('Article Export Blocked: ContentAsset requires human editorial review before export (status: "REVIEW_REQUIRED").');
+      } else if (input.validationStatus !== 'READY') {
+        errors.push(`Article Export Blocked: ContentAsset has unapproved status "${input.validationStatus}". Only 'READY' assets can be exported.`);
+      }
+    }
+
+    if (input.validationFingerprint) {
+      if (input.validationFingerprint.startsWith('vfp-') && !input.validationFingerprint.startsWith('vfp-sha256-v1:')) {
+        errors.push('Article Export Blocked: Legacy validation fingerprint detected. ContentAsset must be revalidated under the R5 integrity contract before export.');
+      } else {
+        const rawBody = (input.bodyMarkdown || (typeof input.content === 'string' ? input.content : '')).trim();
+        if (rawBody && !rawBody.startsWith('<')) {
+          const currentFp = ArtifactLifecycleBoundary.computeFingerprint({
+            title: resolvedTitle,
+            bodyMarkdown: rawBody,
+            targetBrand: input.targetBrand || input.saasProfile?.name,
+            slug: input.slug,
+            metaDescription: (input as any).metaDescription || input.metadata?.intent,
+            targetKeyword: (input as any).targetKeyword || input.metadata?.targetKeywords?.[0]
+          });
+          if (input.validationFingerprint !== currentFp) {
+            errors.push('Article Export Blocked: Content has been modified since validation (fingerprint mismatch). Stale validation result cannot authorize export.');
+          }
+        }
+      }
     }
 
     // Validate using ContentEvidenceValidator's HTML completeness gate

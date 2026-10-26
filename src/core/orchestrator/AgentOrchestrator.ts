@@ -126,6 +126,7 @@ import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceVali
 import { ClaimExtractionService } from '@/lib/intelligence/ClaimExtractionService';
 import { ClaimGroundingEngine } from '@/lib/intelligence/ClaimGroundingEngine';
 import { ContentRepairService } from '@/lib/content/ContentRepairService';
+import { ArtifactLifecycleBoundary } from '@/lib/content/ArtifactLifecycleBoundary';
 import { PipelineTelemetryService } from '@/lib/observability/PipelineTelemetryService';
 
 export enum AgentStage {
@@ -1628,15 +1629,36 @@ geminiModel: "${this.telemetry.geminiModel || 'gemini-3.5-flash-lite'}"
           const finalValStatus = review?.finalValidationStatus || (review?.passed ? 'PASSED' : 'FAILED');
           content.assetType = strategy?.assetType || 'ARTICLE';
           content.targetKeyword = input.targetKeyword;
-          content.validationStatus = (finalValStatus === 'FAILED' || finalValStatus === 'REVIEW_REQUIRED') ? 'REJECTED' : 'READY';
-          content.qualityScore = finalValStatus === 'PASSED' ? 95 : (finalValStatus === 'PASSED_WITH_WARNINGS' ? 88 : 65);
           content.targetBrand = this.targetBrand || input.saasProfile?.name || input.saasProfile?.website || '';
-          content.validationFingerprint = ContentEvidenceValidator.computeValidationFingerprint(
-            content.bodyMarkdown || '',
-            content.targetBrand
-          );
-          content.contentVersion = 1;
-          content.validatedAt = new Date().toISOString();
+
+          if (finalValStatus === 'PASSED' || finalValStatus === 'PASSED_WITH_WARNINGS') {
+            content.validationStatus = 'READY';
+            content.qualityScore = finalValStatus === 'PASSED' ? 95 : 88;
+            content.validationFingerprint = ArtifactLifecycleBoundary.computeFingerprint(content);
+            content.contentVersion = 1;
+            content.validatedAt = new Date().toISOString();
+
+            // Post-flight verification: fail closed if boundary check fails
+            const boundaryCheck = ArtifactLifecycleBoundary.verifyPublishableArtifact(content, {
+              saasProfile: input.saasProfile
+            });
+            if (!boundaryCheck.isEligible) {
+              console.warn(`[AgentOrchestrator] Post-review artifact failed boundary gate: ${boundaryCheck.reason}`);
+              content.validationStatus = 'REVIEW_REQUIRED';
+              content.validationFingerprint = undefined;
+              content.validatedAt = undefined;
+            }
+          } else if (finalValStatus === 'REVIEW_REQUIRED') {
+            content.validationStatus = 'REVIEW_REQUIRED';
+            content.qualityScore = 65;
+            content.validationFingerprint = undefined;
+            content.validatedAt = undefined;
+          } else {
+            content.validationStatus = 'REJECTED';
+            content.qualityScore = 50;
+            content.validationFingerprint = undefined;
+            content.validatedAt = undefined;
+          }
 
           // Populate real GEO data model fields
           content.geoStatus = geoIntelligence?.geoStatus || "provider_unavailable";
@@ -2242,7 +2264,7 @@ WORD BUDGET:
       metaTitle: `${brief.title} | SEO Growth`,
       metaDescription: `Discover key insights and best practices about ${primaryKeyword || 'SaaS growth'}.`,
       outline: brief.outline,
-      validationStatus: 'READY'
+      validationStatus: 'DRAFT'
     };
   }
 

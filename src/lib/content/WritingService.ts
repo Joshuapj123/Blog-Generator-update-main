@@ -71,7 +71,7 @@ Additional Constraints:
       metaTitle: `${brief.title} | SEO Growth`,
       metaDescription: `Discover key insights and best practices about ${brief.targetKeywords?.[0] || 'SaaS growth'}.`,
       outline: brief.outline,
-      validationStatus: 'READY'
+      validationStatus: 'DRAFT'
     };
   }
 }

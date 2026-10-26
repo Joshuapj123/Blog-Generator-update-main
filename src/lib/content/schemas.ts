@@ -43,6 +43,15 @@ import {
   BoundedRepairContext,
   DEFAULT_MAX_REPAIR_ATTEMPTS
 } from './TargetedRepairEngine';
+import {
+  ArtifactLifecycleBoundary,
+  ArtifactLifecycleState,
+  ArtifactLifecycleStateSchema,
+  ValidatedPublishableAsset,
+  ArtifactBoundaryEnvelope,
+  ArtifactBoundaryVerificationResult,
+  BoundaryVerificationOptions
+} from './ArtifactLifecycleBoundary';
 import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceValidator';
 
 export type {
@@ -63,7 +72,12 @@ export type {
   BlockMappingResult,
   BoundedRepairAttempt,
   BoundedRepairSummary,
-  BoundedRepairContext
+  BoundedRepairContext,
+  ArtifactLifecycleState,
+  ValidatedPublishableAsset,
+  ArtifactBoundaryEnvelope,
+  ArtifactBoundaryVerificationResult,
+  BoundaryVerificationOptions
 };
 export {
   ContentBriefSchema,
@@ -82,7 +96,9 @@ export {
   ParagraphSignatureValidator,
   TargetedRepairEngine,
   REPAIR_FAILURE_CODES,
-  DEFAULT_MAX_REPAIR_ATTEMPTS
+  DEFAULT_MAX_REPAIR_ATTEMPTS,
+  ArtifactLifecycleBoundary,
+  ArtifactLifecycleStateSchema
 };
 
 export interface PlanRecoveryDiagnostics {
