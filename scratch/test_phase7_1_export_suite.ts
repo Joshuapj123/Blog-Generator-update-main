@@ -1,6 +1,9 @@
 import { ArticleExportService, ExportArticleInput } from '../src/lib/export/ArticleExportService';
 import { POST as exportRouteHandler } from '../src/app/api/export/route';
 import { setAdminAuthForTesting, setAdminFirestoreForTesting } from '../src/lib/firebase/admin';
+import { ArtifactLifecycleBoundary } from '../src/lib/content/ArtifactLifecycleBoundary';
+import { ApprovalKeyManager } from '../src/lib/approval/ApprovalKeyManager';
+import { serializeCanonicalApprovalPayload } from '../src/lib/approval/ApprovalPayloadSerializer';
 
 async function runTestSuite() {
   console.log('================================================================');
@@ -255,14 +258,103 @@ async function runTestSuite() {
   // --- Test 10: Unauthenticated users cannot export private articles, and one user cannot export another user's article ---
   console.log('\nTest 10: Unauthenticated users cannot export private articles, and one user cannot export another user\'s article...');
 
-  // Set test auth & test firestore
+  // Set test auth & test firestore with legitimate approval workflow
+  ApprovalKeyManager.setTestKeyring({
+    'k2': {
+      secret: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+      encoding: 'hex',
+      status: 'active'
+    }
+  }, 'k2');
+  const aliceContent = `
+    <p>Private architectural designs for internal engineering eyes only. In this architectural specification, we evaluate system boundaries, isolation layers, and data sovereignty across distributed nodes to guarantee operational integrity.</p>
+    <h2>Architecture Details</h2>
+    <p>Here are the full architectural specifications spanning multiple backend services and deployment environments. Our distributed consensus ensures predictable replication across multiple cloud regions with zero uncommitted transactions.</p>
+    <h2>Operational Safeguards</h2>
+    <p>Each deployment step validates integrity digests before allowing traffic ingress. Automated observability systems immediately detect anomalous latency and roll back updates safely.</p>
+  `.trim();
+
+  const aliceTitle = 'Alice Private Document on Architecture';
+  const aliceBrand = 'AliceArchitecture';
+  const aliceSlug = 'alice-private-document-on-architecture';
+  const aliceMetaDesc = 'Private architectural designs for internal engineering eyes only.';
+  const aliceKeyword = 'architecture';
+  const alicePolicy = 'pol_v1';
+
+  const aliceFingerprint = ArtifactLifecycleBoundary.computeFingerprint({
+    title: aliceTitle,
+    bodyMarkdown: aliceContent,
+    targetBrand: aliceBrand,
+    slug: aliceSlug,
+    metaDescription: aliceMetaDesc,
+    targetKeyword: aliceKeyword,
+    policyVersion: alicePolicy
+  });
+
+  const activeKeyId = ApprovalKeyManager.getActiveKeyId();
+  const aliceApprovalId = 'apr_art_alice_doc_rev1';
+  const aliceApprovalTimestamp = new Date().toISOString();
+
+  const alicePayloadBytes = serializeCanonicalApprovalPayload({
+    keyId: activeKeyId,
+    tenantId: 'user_alice_123',
+    articleId: 'art_alice_doc',
+    contentVersion: 1,
+    artifactFingerprint: aliceFingerprint,
+    policyVersion: alicePolicy,
+    decision: 'APPROVED',
+    approverId: 'alice_123',
+    approvalTimestamp: aliceApprovalTimestamp
+  });
+
+  const aliceSigResult = ApprovalKeyManager.signPayload(alicePayloadBytes);
+
+  const mockApprovals: Record<string, any> = {
+    [aliceApprovalId]: {
+      approvalId: aliceApprovalId,
+      schemaVersion: 'apr-v1',
+      keyId: aliceSigResult.keyId,
+      tenantId: 'user_alice_123',
+      ownerId: 'alice_123',
+      articleId: 'art_alice_doc',
+      contentVersion: 1,
+      artifactFingerprint: aliceFingerprint,
+      policyVersion: alicePolicy,
+      decision: 'APPROVED',
+      approverId: 'alice_123',
+      approvalTimestamp: aliceApprovalTimestamp,
+      hmacSignature: aliceSigResult.signature,
+      revision: 1
+    }
+  };
+
   const mockArticles: Record<string, any> = {
     'art_alice_doc': {
       id: 'art_alice_doc',
       userId: 'alice_123',
       ownerId: 'alice_123',
-      title: 'Alice Private Document on Architecture',
-      content: '<p>Private architectural designs for internal engineering eyes only.</p><h2>Architecture Details</h2><p>Here are the full architectural specifications spanning multiple backend services and deployment environments.</p>'
+      title: aliceTitle,
+      content: aliceContent,
+      validationStatus: 'READY',
+      validationFingerprint: aliceFingerprint,
+      activeApprovalId: aliceApprovalId,
+      approvalRevisionCount: 1,
+      targetBrand: aliceBrand,
+      slug: aliceSlug,
+      metaDescription: aliceMetaDesc,
+      sourceKeyword: aliceKeyword,
+      contentVersion: 1,
+      policyVersion: alicePolicy
+    },
+    'art_unapproved_doc': {
+      id: 'art_unapproved_doc',
+      userId: 'alice_123',
+      ownerId: 'alice_123',
+      title: 'Alice Unapproved Draft',
+      content: aliceContent,
+      validationStatus: 'DRAFT',
+      validationFingerprint: undefined,
+      activeApprovalId: null
     },
     'art_bob_doc': {
       id: 'art_bob_doc',
@@ -284,11 +376,20 @@ async function runTestSuite() {
   setAdminFirestoreForTesting({
     collection: (coll: string) => ({
       doc: (docId: string) => ({
-        get: async () => ({
-          exists: Boolean(mockArticles[docId]),
-          id: docId,
-          data: () => mockArticles[docId]
-        })
+        get: async () => {
+          if (coll === 'approvals') {
+            return {
+              exists: Boolean(mockApprovals[docId]),
+              id: docId,
+              data: () => mockApprovals[docId]
+            };
+          }
+          return {
+            exists: Boolean(mockArticles[docId]),
+            id: docId,
+            data: () => mockArticles[docId]
+          };
+        }
       })
     })
   });
@@ -320,14 +421,77 @@ async function runTestSuite() {
   const resForbidden = await exportRouteHandler(reqForbidden);
   assert(resForbidden.status === 403, 'Cross-user export blocked with 403 Forbidden');
 
-  // 10D: Alice exports Alice's article -> 200 OK
+  // 10D: Approved and unchanged article: official export succeeds -> 200 OK
   const reqAllowed = new Request('https://example.com/api/export', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer alice_valid_token' },
     body: JSON.stringify({ articleId: 'art_alice_doc', format: 'html' })
   });
   const resAllowed = await exportRouteHandler(reqAllowed);
-  assert(resAllowed.status === 200, 'Owner can export own article with 200 OK');
+  assert(resAllowed.status === 200, 'Owner can export own approved article with 200 OK');
+  assert(
+    resAllowed.headers.get('X-ACUTE-Artifact-Classification') === 'OFFICIAL_RELEASE',
+    'Official export classification header is OFFICIAL_RELEASE'
+  );
+  const allowedHtml = await resAllowed.text();
+  assert(!allowedHtml.includes('UNAPPROVED DRAFT'), 'Official export contains zero draft watermarks');
+
+  // 10E: No active approval: official export is rejected -> 422
+  const reqUnapproved = new Request('https://example.com/api/export', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer alice_valid_token' },
+    body: JSON.stringify({ articleId: 'art_unapproved_doc', format: 'html' })
+  });
+  const resUnapproved = await exportRouteHandler(reqUnapproved);
+  assert(resUnapproved.status === 422, 'Unapproved article official export is rejected with 422');
+
+  // 10F: Content mutated after approval: official export is rejected -> 422
+  const originalAliceContent = mockArticles['art_alice_doc'].content;
+  mockArticles['art_alice_doc'].content += '<p>Unauthorized tampering after approval signature.</p>';
+  const reqMutated = new Request('https://example.com/api/export', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer alice_valid_token' },
+    body: JSON.stringify({ articleId: 'art_alice_doc', format: 'html' })
+  });
+  const resMutated = await exportRouteHandler(reqMutated);
+  assert(resMutated.status === 422, 'Content mutated after approval is rejected with 422');
+  mockArticles['art_alice_doc'].content = originalAliceContent; // restore content
+
+  // 10G: Draft preview: output is clearly classified as an unapproved draft -> 200 OK
+  const reqDraftPreview = new Request('https://example.com/api/export', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer alice_valid_token' },
+    body: JSON.stringify({ articleId: 'art_unapproved_doc', format: 'html', allowDraftPreview: true })
+  });
+  const resDraftPreview = await exportRouteHandler(reqDraftPreview);
+  assert(resDraftPreview.status === 200, 'Draft preview returns 200 OK');
+  assert(
+    resDraftPreview.headers.get('X-ACUTE-Artifact-Classification') === 'UNAPPROVED_DRAFT',
+    'Draft preview classification header is UNAPPROVED_DRAFT'
+  );
+
+  // 10H: HTML and PDF output bytes contain the expected draft warning where applicable
+  const draftHtml = await resDraftPreview.text();
+  assert(
+    draftHtml.includes('<meta name="acute-classification" content="UNAPPROVED_DRAFT" />'),
+    'Draft HTML includes classification meta tag'
+  );
+  assert(draftHtml.includes('UNAPPROVED DRAFT'), 'Draft HTML includes visible draft warning banner');
+
+  const reqDraftPdf = new Request('https://example.com/api/export', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer alice_valid_token' },
+    body: JSON.stringify({ articleId: 'art_unapproved_doc', format: 'pdf', allowDraftPreview: true })
+  });
+  const resDraftPdf = await exportRouteHandler(reqDraftPdf);
+  assert(resDraftPdf.status === 200, 'Draft PDF returns 200 OK');
+  assert(
+    resDraftPdf.headers.get('X-ACUTE-Artifact-Classification') === 'UNAPPROVED_DRAFT',
+    'Draft PDF classification header is UNAPPROVED_DRAFT'
+  );
+  const draftPdfBytes = await resDraftPdf.arrayBuffer();
+  const pdfText = Buffer.from(draftPdfBytes).toString('latin1');
+  assert(pdfText.includes('UNAPPROVED DRAFT'), 'Draft PDF buffer bytes contain UNAPPROVED DRAFT warning');
 
   // --- Test 11: Export failures produce a visible error rather than an empty file or false success ---
   console.log('\nTest 11: Export failures produce a visible error rather than an empty file or false success...');

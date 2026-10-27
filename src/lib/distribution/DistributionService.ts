@@ -49,7 +49,7 @@ export class DistributionService {
     saasProfile: SaaSProfile,
     asset: ContentAsset,
     request: DistributionRequest,
-    options?: { dryRun?: boolean }
+    options?: { dryRun?: boolean; providerIdempotencyKeys?: Record<string, string>; generation?: number; attemptId?: string }
   ): Promise<DistributionResult[]> {
     // Phase R5: Fail-closed boundary gate: Only assets explicitly and freshly validated as 'READY' are eligible.
     // Missing, undefined, null, unknown, malformed, 'REJECTED', 'REVIEW_REQUIRED', or stale status strictly blocks distribution.
@@ -99,7 +99,7 @@ export class DistributionService {
     const plan = DistributionPlanner.planDistribution(saasProfile, asset, request.channels);
 
     for (const channel of plan.eligibleChannels) {
-      const jobId = `${request.idempotencyKey}_${channel}`;
+      const jobId = options?.providerIdempotencyKeys?.[channel] || `${request.idempotencyKey}_${channel}`;
       
       let currentStatus = 'PENDING';
       

@@ -18,6 +18,9 @@ export interface ExportArticleInput {
   sectionEvidenceMaps?: any[];
   validationStatus?: string;
   validationFingerprint?: string;
+  metaDescription?: string;
+  targetKeyword?: string;
+  isDraftPreview?: boolean;
   metadata?: {
     intent?: string;
     targetKeywords?: string[];
@@ -196,7 +199,7 @@ export class ArticleExportService {
    */
   public static generateStandaloneHtml(
     input: ExportArticleInput,
-    options?: { skipValidation?: boolean }
+    options?: { skipValidation?: boolean; watermarkDraft?: boolean }
   ): string {
     if (!options?.skipValidation) {
       const validation = this.validateBeforeExport(input);
@@ -227,12 +230,22 @@ export class ArticleExportService {
       ? `<span class="badge slug-badge">/${this.escapeHtml(slug)}</span>`
       : '';
 
+    const draftMetaTag = options?.watermarkDraft
+      ? '  <meta name="acute-classification" content="UNAPPROVED_DRAFT" />\n'
+      : '';
+    const draftBanner = options?.watermarkDraft
+      ? '<div class="acute-draft-watermark" style="background:#fef2f2;border:2px dashed #ef4444;color:#991b1b;padding:12px;text-align:center;font-weight:bold;margin-bottom:20px;border-radius:6px;">⚠️ UNAPPROVED DRAFT — NOT FOR PUBLICATION OR DISTRIBUTION</div>'
+      : '';
+    const footerText = options?.watermarkDraft
+      ? '<footer class="article-footer" style="color:#ef4444;font-weight:bold;">⚠️ DRAFT PREVIEW ONLY &bull; NOT VALIDATED FOR PUBLICATION</footer>'
+      : '<footer class="article-footer">Published via ACUTE Content Intelligence Platform &bull; Validated Factual Integrity</footer>';
+
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${this.escapeHtml(title)}</title>
+${draftMetaTag}  <title>${this.escapeHtml(title)}</title>
   <meta name="generator" content="ACUTE Content Engine" />
   <meta name="date" content="${this.escapeHtml(date)}" />
   <style>
@@ -395,14 +408,12 @@ export class ArticleExportService {
   <article class="article-container">
     <header class="article-header">
       ${metaBadge || slugBadge ? `<div class="badges">${metaBadge}${slugBadge}</div>` : ''}
-      ${headerBlock}
+      ${draftBanner ? `${draftBanner}\n` : ''}${headerBlock}
     </header>
     <div class="article-body">
       ${sanitizedBody}
     </div>
-    <footer class="article-footer">
-      Published via ACUTE Content Intelligence Platform &bull; Validated Factual Integrity
-    </footer>
+    ${footerText}
   </article>
 </body>
 </html>`;
@@ -413,7 +424,7 @@ export class ArticleExportService {
    */
   public static generatePdfBuffer(
     input: ExportArticleInput,
-    options?: { skipValidation?: boolean }
+    options?: { skipValidation?: boolean; watermarkDraft?: boolean }
   ): Uint8Array {
     if (!options?.skipValidation) {
       const validation = this.validateBeforeExport(input);
@@ -607,8 +618,14 @@ export class ArticleExportService {
       doc.setPage(i);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
-      doc.setTextColor(148, 163, 184); // slate-400
-      doc.text('ACUTE Content Engine  •  Verified Publication Export', margin, pageHeight - 20);
+      if (options?.watermarkDraft) {
+        doc.setTextColor(220, 38, 38); // red-600
+        doc.text('[UNAPPROVED DRAFT] - NOT FOR PUBLICATION', margin, 20);
+        doc.text('ACUTE Content Engine  •  Unapproved Draft Document', margin, pageHeight - 20);
+      } else {
+        doc.setTextColor(148, 163, 184); // slate-400
+        doc.text('ACUTE Content Engine  •  Verified Publication Export', margin, pageHeight - 20);
+      }
       doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin - 45, pageHeight - 20);
     }
 

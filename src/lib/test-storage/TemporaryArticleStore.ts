@@ -84,6 +84,8 @@ export function sanitizeForTestStorage(val: any, seen = new WeakSet()): any {
 export class TemporaryArticleStore {
   // Store articles as JSON strings to guarantee zero reference sharing between save and retrieval
   private static store: Map<string, string> = new Map();
+  private static approvalStore: Map<string, string> = new Map();
+  private static distributionJobStore: Map<string, string> = new Map();
   private static idCounter: number = 0;
   private static simulateFailure: boolean = false;
   private static failureMessage: string = 'Temporary test storage simulated write failure';
@@ -93,6 +95,8 @@ export class TemporaryArticleStore {
    */
   public static clear(): void {
     this.store.clear();
+    this.approvalStore.clear();
+    this.distributionJobStore.clear();
     this.idCounter = 0;
     this.simulateFailure = false;
     this.failureMessage = 'Temporary test storage simulated write failure';
@@ -197,6 +201,16 @@ export class TemporaryArticleStore {
   }
 
   /**
+   * Retrieves an article by ID without owner filtering (for raw existence/ownership audits).
+   */
+  public static async getArticleRaw(id: string): Promise<Article | null> {
+    if (!id) return null;
+    const serialized = this.store.get(id);
+    if (!serialized) return null;
+    return JSON.parse(serialized);
+  }
+
+  /**
    * Retrieves an article by ID, strictly enforcing verified UID ownership.
    * Returns null if not found or if the document belongs to a different UID.
    */
@@ -257,6 +271,112 @@ export class TemporaryArticleStore {
    */
   public static count(): number {
     return this.store.size;
+  }
+
+  /**
+   * Creates an approval record in the temporary store with fail-closed collision semantics.
+   * Rejects duplicate approvalId writes simulating Firestore transaction.create() ALREADY_EXISTS.
+   */
+  public static async createApproval(approval: any): Promise<void> {
+    if (this.simulateFailure) {
+      throw new Error(this.failureMessage);
+    }
+    if (this.approvalStore.has(approval.approvalId)) {
+      const err: any = new Error(`Document already exists: ${approval.approvalId}`);
+      err.code = 6;
+      throw err;
+    }
+    const serialized = JSON.stringify(approval);
+    this.approvalStore.set(approval.approvalId, serialized);
+  }
+
+  /**
+   * Saves an approval record in the temporary store.
+   * Delegates to createApproval to enforce append-only immutability.
+   */
+  public static async saveApproval(approval: any): Promise<void> {
+    return this.createApproval(approval);
+  }
+
+  /**
+   * Directly mutates an existing approval record for tamper testing only.
+   */
+  public static async tamperApprovalForTesting(approval: any): Promise<void> {
+    const serialized = JSON.stringify(approval);
+    this.approvalStore.set(approval.approvalId, serialized);
+  }
+
+  /**
+   * Retrieves an approval record by its ID.
+   */
+  public static async getApprovalById(approvalId: string): Promise<any | null> {
+    const raw = this.approvalStore.get(approvalId);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  }
+
+  /**
+   * Updates an article document's active approval pointer and revision count atomically in memory.
+   */
+  public static async updateArticleApprovalPointer(
+    articleId: string,
+    activeApprovalId: string,
+    revisionCount: number
+  ): Promise<void> {
+    const raw = this.store.get(articleId);
+    if (!raw) {
+      throw new Error(`Article not found: ${articleId}`);
+    }
+    const doc: Article = JSON.parse(raw);
+    doc.activeApprovalId = activeApprovalId;
+    doc.approvalRevisionCount = revisionCount;
+    doc.updatedAt = new Date().toISOString();
+    this.store.set(articleId, JSON.stringify(doc));
+  }
+
+  /**
+   * Updates an article document directly with partial updates in memory.
+   */
+  public static async updateArticlePartial(
+    articleId: string,
+    updates: Partial<Article>
+  ): Promise<Article> {
+    const raw = this.store.get(articleId);
+    if (!raw) {
+      throw new Error(`Article not found: ${articleId}`);
+    }
+    const doc: Article = JSON.parse(raw);
+    Object.assign(doc, updates, { updatedAt: new Date().toISOString() });
+    this.store.set(articleId, JSON.stringify(doc));
+    return doc;
+  }
+
+  /**
+   * Saves a distribution job record in memory.
+   */
+  public static async saveDistributionJob(job: any): Promise<string> {
+    const id = job.id || job.jobId || `job_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    this.distributionJobStore.set(id, JSON.stringify({ id, ...job }));
+    return id;
+  }
+
+  /**
+   * Retrieves a distribution job by its ID.
+   */
+  public static async getDistributionJobById(id: string): Promise<any | null> {
+    const raw = this.distributionJobStore.get(id);
+    return raw ? JSON.parse(raw) : null;
+  }
+
+  /**
+   * Retrieves a distribution job by its idempotency key.
+   */
+  public static async getDistributionJobByIdempotencyKey(key: string): Promise<any | null> {
+    for (const raw of this.distributionJobStore.values()) {
+      const parsed = JSON.parse(raw);
+      if (parsed.idempotencyKey === key) return parsed;
+    }
+    return null;
   }
 }
 

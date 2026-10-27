@@ -51,9 +51,23 @@ export interface Article {
   validationFingerprint?: string;
   contentVersion?: number | string;
   validatedAt?: string;
+  activeApprovalId?: string | null;
+  approvalRevisionCount?: number;
   runId?: string;
   persistedAt?: string;
   persistenceStatus?: 'SAVED' | 'SAVE_FAILED';
+  targetBrand?: string;
+  dispatchGeneration?: number;
+  dispatchOperationId?: string;
+  dispatchAttemptId?: string;
+  dispatchClientOperationKey?: string;
+  dispatchState?: string;
+  dispatchLeaseExpiresAt?: number;
+  dispatchApprovalRevision?: number;
+  dispatchContentVersion?: number;
+  dispatchProviderIdempotencyKeys?: Record<string, string>;
+  dispatchResults?: any;
+  dispatchClaimedAt?: string;
 }
 
 export interface ExternalLink {

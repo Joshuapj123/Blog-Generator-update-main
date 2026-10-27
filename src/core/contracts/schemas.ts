@@ -481,4 +481,15 @@ export const AuthorityOpportunitySchema = z.object({
 
 export type AuthorityOpportunity = z.infer<typeof AuthorityOpportunitySchema>;
 
-
+// 10. Approval Provenance Contracts (Phase R6)
+export {
+  ApprovalDecisionSchema,
+  ApprovalRecordSchema,
+  ApprovalRequestSchema
+} from '@/lib/approval/types';
+export type {
+  ApprovalDecision,
+  ApprovalRecord,
+  ApprovalRequest,
+  ApprovalResult
+} from '@/lib/approval/types';

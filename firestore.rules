@@ -85,6 +85,16 @@ service cloud.firestore {
       allow read, write: if isAuthenticated();
     }
 
+    // ── Approvals Collection ──────────────────────────────────────────────────
+    // Immutable server-managed approval records: read-only for resource owner; writes strictly server-side
+    match /approvals/{approvalId} {
+      allow read: if isAuthenticated() && (
+        resource.data.approverId == request.auth.uid ||
+        resource.data.ownerId == request.auth.uid
+      );
+      allow write: false;
+    }
+
     // ── Default Deny ─────────────────────────────────────────────────────────
     match /{document=**} {
       allow read, write: false;

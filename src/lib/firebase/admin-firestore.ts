@@ -169,3 +169,40 @@ export async function deleteArticleAdmin(id: string, verifiedUid?: string): Prom
   }
   await docRef.delete();
 }
+
+/**
+ * Admin helper to persist an immutable approval record to Firestore.
+ */
+export async function saveApprovalAdmin(approval: any): Promise<void> {
+  const db = await getAdminFirestore();
+  const docRef = db.collection('approvals').doc(approval.approvalId);
+  await docRef.set(approval);
+}
+
+/**
+ * Admin helper to retrieve an approval record by its ID.
+ */
+export async function getApprovalByIdAdmin(approvalId: string): Promise<any | null> {
+  const db = await getAdminFirestore();
+  const docSnap = await db.collection('approvals').doc(approvalId).get();
+  if (!docSnap.exists) return null;
+  return docSnap.data();
+}
+
+/**
+ * Admin helper to update an article document's active approval pointer and revision count.
+ */
+export async function updateArticleApprovalPointerAdmin(
+  articleId: string,
+  activeApprovalId: string,
+  revisionCount: number
+): Promise<void> {
+  const { FieldValue } = await import('firebase-admin/firestore');
+  const db = await getAdminFirestore();
+  const docRef = db.collection('articles').doc(articleId);
+  await docRef.update({
+    activeApprovalId,
+    approvalRevisionCount: revisionCount,
+    updatedAt: FieldValue.serverTimestamp()
+  });
+}

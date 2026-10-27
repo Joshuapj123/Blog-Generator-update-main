@@ -1,54 +1,81 @@
 import { NextResponse } from 'next/server';
-import { DistributionRequestSchema, ContentAsset } from '@/core/contracts/schemas';
-import { ArtifactLifecycleBoundary } from '@/lib/content/ArtifactLifecycleBoundary';
-import { DistributionService } from '@/lib/distribution/DistributionService';
+import { DistributionRequestSchema } from '@/core/contracts/schemas';
+import { getAdminAuth } from '@/lib/firebase/admin';
+import { ApprovalAuthorityService } from '@/lib/approval/ApprovalAuthorityService';
+import { DistributionService, DistributionRepository } from '@/lib/distribution/DistributionService';
 import { WebhookDistributionProvider } from '@/lib/distribution/WebhookDistributionProvider';
-import { getArticleById } from '@/lib/firebase/firestore';
+import { TemporaryArticleStore, isTemporaryStorageActive } from '@/lib/test-storage/TemporaryArticleStore';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
-    const payload = await req.json();
+    // 1. Authenticate Request via Firebase Bearer JWT
+    const authHeader = req.headers.get('Authorization') || req.headers.get('authorization');
+    if (!authHeader) {
+      return NextResponse.json(
+        { error: 'Unauthorized: Missing Authorization header', code: 'ERR_UNAUTHORIZED' },
+        { status: 401 }
+      );
+    }
 
-    // 1. Zod request validation
+    const bearerMatch = authHeader.match(/^Bearer\s+(.+)$/i);
+    if (!bearerMatch || !bearerMatch[1].trim()) {
+      return NextResponse.json(
+        { error: 'Unauthorized: Invalid Authorization format', code: 'ERR_UNAUTHORIZED' },
+        { status: 401 }
+      );
+    }
+
+    const idToken = bearerMatch[1].trim();
+    let authenticatedUserId: string;
+
+    try {
+      const adminAuth = await getAdminAuth();
+      const decodedToken = await adminAuth.verifyIdToken(idToken);
+      if (!decodedToken || !decodedToken.uid) {
+        return NextResponse.json(
+          { error: 'Unauthorized: Invalid user credentials', code: 'ERR_UNAUTHORIZED' },
+          { status: 401 }
+        );
+      }
+      authenticatedUserId = decodedToken.uid;
+    } catch (authErr: any) {
+      return NextResponse.json(
+        {
+          error: 'Unauthorized: Token verification failed',
+          code: 'ERR_UNAUTHORIZED',
+          message: authErr?.message || 'Authentication error'
+        },
+        { status: 401 }
+      );
+    }
+
+    // 2. Parse request payload
+    let payload: any;
+    try {
+      payload = await req.json();
+    } catch {
+      return NextResponse.json(
+        { error: 'Bad Request: Invalid JSON body', code: 'ERR_INVALID_JSON' },
+        { status: 400 }
+      );
+    }
+
+    // 3. Zod request validation
     const requestVal = DistributionRequestSchema.safeParse(payload.request);
     if (!requestVal.success) {
-      return NextResponse.json({ 
-        error: 'Invalid distribution request schema parameters.',
-        details: requestVal.error.issues
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: 'Invalid distribution request schema parameters.',
+          code: 'ERR_INVALID_SCHEMA',
+          details: requestVal.error.issues
+        },
+        { status: 400 }
+      );
     }
 
     const distRequest = requestVal.data;
-
-    // 2. Fetch the ContentAsset (Article)
-    const article = await getArticleById(distRequest.contentAssetId);
-    if (!article) {
-      return NextResponse.json({ 
-        error: `ContentAsset (Article) not found with ID: ${distRequest.contentAssetId}`
-      }, { status: 404 });
-    }
-
-    // 3. Map stored Article model to ContentAsset structure
-    const rawValStatus = (article as any).validationStatus;
-
-    const contentAsset: ContentAsset = {
-      title: article.title,
-      bodyMarkdown: article.content || '',
-      wordCount: (article.content || '').split(/\s+/).filter(Boolean).length,
-      seoScore: (article as any).seoScore || 80,
-      references: (article as any).references || [],
-      slug: (article as any).slug || article.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      assetType: (article as any).assetType || 'ARTICLE',
-      targetKeyword: article.sourceKeyword || '',
-      metaTitle: (article as any).metaTitle || article.title,
-      metaDescription: (article as any).metaDescription || '',
-      validationStatus: rawValStatus,
-      targetBrand: article.referenceUrl || (article as any).targetBrand || (article as any).blueprint?.targetBrand,
-      validationFingerprint: (article as any).validationFingerprint || (article as any).blueprint?.validationFingerprint,
-      contentVersion: (article as any).contentVersion || (article as any).blueprint?.contentVersion
-    };
 
     // 4. Default SaaS profile fallback
     const saasProfile = payload.saasProfile || {
@@ -62,31 +89,103 @@ export async function POST(req: Request) {
       customInsights: 'none'
     };
 
-    // 4.5. Fail-Closed Artifact Lifecycle Boundary Gate
-    const boundaryCheck = ArtifactLifecycleBoundary.verifyPublishableArtifact(contentAsset, { saasProfile });
-    if (!boundaryCheck.isEligible) {
-      return NextResponse.json({
-        error: `Distribution Blocked: ${boundaryCheck.reason}`,
-        code: boundaryCheck.code,
-        status: boundaryCheck.status
-      }, { status: 422 });
+    // 5. Claim Dispatch Operation: Authoritative Release Gate + Lease Locking + Fencing Generation
+    const claimResult = await ApprovalAuthorityService.claimDispatchOperation({
+      articleId: distRequest.contentAssetId,
+      callerUid: authenticatedUserId,
+      clientOperationKey: distRequest.idempotencyKey,
+      channels: distRequest.channels,
+      requiredDecision: 'APPROVED'
+    });
+
+    if (!claimResult.success) {
+      return NextResponse.json(
+        {
+          error: claimResult.error,
+          code: claimResult.code
+        },
+        { status: claimResult.httpStatus || 422 }
+      );
     }
 
-    // 5. Initialize providers and distribution service
+    if (claimResult.status === 'DEDUPLICATED') {
+      return NextResponse.json({
+        results: claimResult.results,
+        deduplicated: true
+      }, { status: 200 });
+    }
+
+    const { generation, attemptId, providerIdempotencyKeys, contentAsset } = claimResult;
+
+    // 6. Transition state to DISPATCHING under fencing generation
+    await ApprovalAuthorityService.recordDispatchState({
+      articleId: distRequest.contentAssetId,
+      generation,
+      attemptId,
+      state: 'DISPATCHING'
+    });
+
+    // 7. Initialize providers and distribution service
+    const isTestMode = isTemporaryStorageActive();
+    const repo: DistributionRepository | undefined = isTestMode
+      ? {
+          saveJob: TemporaryArticleStore.saveDistributionJob.bind(TemporaryArticleStore),
+          getJobByIdempotencyKey: TemporaryArticleStore.getDistributionJobByIdempotencyKey.bind(TemporaryArticleStore),
+          getJobById: TemporaryArticleStore.getDistributionJobById.bind(TemporaryArticleStore)
+        }
+      : undefined;
+
     const webhookProvider = new WebhookDistributionProvider();
-    const service = new DistributionService([webhookProvider]);
+    const service = new DistributionService([webhookProvider], repo);
 
-    // 6. Execute distribution request
-    const results = await service.distributeAsset(
-      saasProfile,
-      contentAsset,
-      distRequest,
-      { dryRun: payload.dryRun }
-    );
+    // 8. Execute distribution request outside of any database transaction
+    let results: any;
+    try {
+      results = await service.distributeAsset(
+        saasProfile,
+        contentAsset,
+        distRequest,
+        {
+          dryRun: payload.dryRun,
+          providerIdempotencyKeys,
+          generation,
+          attemptId
+        } as any
+      );
+    } catch (dispatchErr: any) {
+      console.error('[Distribution API] Provider dispatch failure:', dispatchErr.message);
+      await ApprovalAuthorityService.recordDispatchResult({
+        articleId: distRequest.contentAssetId,
+        generation,
+        attemptId,
+        error: dispatchErr.message,
+        status: 'FAILED',
+        expectedApprovalId: claimResult.approvalRecord.approvalId
+      });
+      return NextResponse.json(
+        { error: dispatchErr.message, code: 'ERR_DISTRIBUTION_FAILED' },
+        { status: 500 }
+      );
+    }
 
-    return NextResponse.json({ results });
+    // 9. Finalize dispatch results, verify against in-flight revocations, and clear lease
+    const recordResult = await ApprovalAuthorityService.recordDispatchResult({
+      articleId: distRequest.contentAssetId,
+      generation,
+      attemptId,
+      results,
+      expectedApprovalId: claimResult.approvalRecord.approvalId
+    });
+
+    return NextResponse.json({
+      results,
+      dispatchStatus: recordResult.finalStatus
+    }, { status: 200 });
   } catch (err: any) {
     console.error('[Distribution API] Execution Error:', err.message);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json(
+      { error: err.message, code: 'ERR_INTERNAL_SERVER_ERROR' },
+      { status: 500 }
+    );
   }
 }
