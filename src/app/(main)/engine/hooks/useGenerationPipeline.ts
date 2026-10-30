@@ -10,8 +10,235 @@ import { calculateFleschReadingEase } from '@/lib/seo-intelligence/quality_valid
 import { captureEvent, sanitizeErrorMessage } from '@/lib/analytics/posthog';
 import { auth } from '@/lib/firebase/config';
 
+export interface ConsumePipelineStreamOptions {
+  engine: any;
+  controller: AbortController;
+  activeRequestIdRef: { current: number };
+  currentRequestId: number;
+  activeWatchdogRef: { current: ReturnType<typeof setTimeout> | null };
+  activeReaderRef: { current: ReadableStreamDefaultReader | null };
+  watchdogInactivityMs?: number;
+  stageName?: string;
+  onChunk: (parsed: any) => void;
+  recordFailure?: (errorObj: any, stage?: string) => void;
+}
+
+export async function consumePipelineStream(
+  res: Response,
+  options: ConsumePipelineStreamOptions
+): Promise<void> {
+  const {
+    engine,
+    controller,
+    activeRequestIdRef,
+    currentRequestId,
+    activeWatchdogRef,
+    activeReaderRef,
+    watchdogInactivityMs = 60000,
+    stageName = 'pipeline',
+    onChunk,
+    recordFailure,
+  } = options;
+
+  let watchdogTimedOut = false;
+  let abortHandler: (() => void) | null = null;
+
+  const clearWatchdog = () => {
+    if (activeWatchdogRef.current) {
+      clearTimeout(activeWatchdogRef.current);
+      activeWatchdogRef.current = null;
+    }
+  };
+
+  const onWatchdogTimeout = () => {
+    if (currentRequestId !== activeRequestIdRef.current) return;
+    watchdogTimedOut = true;
+    console.warn(`[useGenerationPipeline] Watchdog timeout triggered: No activity for ${Math.round(watchdogInactivityMs / 1000)} seconds.`);
+    controller.abort();
+    if (activeReaderRef.current) {
+      activeReaderRef.current.cancel().catch(() => {});
+    }
+    const timeoutErr = new Error(`Generation timed out: No progress received from server for ${Math.round(watchdogInactivityMs / 1000)} seconds. Please check your connection and retry.`);
+    (timeoutErr as any).name = 'TimeoutError';
+    recordFailure?.(timeoutErr, stageName);
+    engine.setGenError(timeoutErr.message);
+    engine.setGenStatus('Failed');
+    engine.setIsRunning(false);
+  };
+
+  const resetWatchdog = () => {
+    clearWatchdog();
+    activeWatchdogRef.current = setTimeout(onWatchdogTimeout, watchdogInactivityMs);
+  };
+
+  let terminalEventReceived = false;
+
+  try {
+    if (currentRequestId !== activeRequestIdRef.current) return;
+
+    if (!res.body) throw new Error('No readable stream.');
+    if (!res.ok) {
+      const errorJson = await res.json().catch(() => ({}));
+      const serverMsg = errorJson?.error || errorJson?.message;
+      if (res.status === 401) {
+        throw new Error(serverMsg || 'Authentication required or session expired. Please sign in again.');
+      } else if (res.status === 403) {
+        throw new Error(serverMsg || 'Access denied. You do not have permission to generate this content.');
+      } else if (res.status === 429) {
+        throw new Error(serverMsg || 'Rate limit exceeded. Please wait a moment and try again.');
+      } else if (res.status === 504) {
+        throw new Error('Server timeout: Generation request took too long. Please retry.');
+      } else {
+        throw new Error(serverMsg || `Server error ${res.status}`);
+      }
+    }
+
+    const reader = res.body.getReader();
+    activeReaderRef.current = reader;
+    const decoder = new TextDecoder();
+    let done = false;
+    let buffer = '';
+
+    abortHandler = () => {
+      if (activeReaderRef.current) {
+        activeReaderRef.current.cancel().catch(() => {});
+      }
+      clearWatchdog();
+    };
+
+    if (controller.signal.aborted) {
+      abortHandler();
+    } else {
+      controller.signal.addEventListener('abort', abortHandler, { once: true });
+    }
+
+    const parseFrame = (frame: string) => {
+      const lines = frame.split(/\r?\n/);
+      let dataStr = '';
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+        if (!line || line.startsWith(':')) {
+          // SSE comment / heartbeat
+          continue;
+        }
+        if (line.startsWith('data: ')) {
+          dataStr += (dataStr ? '\n' : '') + line.substring(6);
+        } else if (line === 'data:') {
+          dataStr += (dataStr ? '\n' : '');
+        }
+      }
+
+      if (!dataStr) return;
+
+      let parsed: any;
+      try {
+        parsed = JSON.parse(dataStr);
+      } catch (parseErr) {
+        console.warn('[useGenerationPipeline] Parse error for chunk:', parseErr);
+        return;
+      }
+      if (parsed.type === 'complete' || parsed.type === 'error') {
+        terminalEventReceived = true;
+      }
+      onChunk(parsed);
+    };
+
+    const boundaryRegex = /\r?\n\r?\n/;
+
+    resetWatchdog();
+
+    while (!done) {
+      if (controller.signal.aborted && !watchdogTimedOut) {
+        engine.setGenStatus('Cancelled');
+        return;
+      }
+
+      const { value, done: rd } = await reader.read();
+      done = rd;
+      if (currentRequestId !== activeRequestIdRef.current) {
+        reader.cancel().catch(() => {});
+        return;
+      }
+
+      if (value) {
+        resetWatchdog();
+        buffer += decoder.decode(value, { stream: !done });
+        let boundaryMatch: RegExpExecArray | null;
+        while ((boundaryMatch = boundaryRegex.exec(buffer)) !== null) {
+          const frame = buffer.slice(0, boundaryMatch.index);
+          buffer = buffer.slice(boundaryMatch.index + boundaryMatch[0].length);
+          parseFrame(frame);
+        }
+      }
+    }
+
+    // Parse any remaining leftovers in the buffer at end-of-stream
+    if (currentRequestId === activeRequestIdRef.current) {
+      let boundaryMatch: RegExpExecArray | null;
+      while ((boundaryMatch = boundaryRegex.exec(buffer)) !== null) {
+        const frame = buffer.slice(0, boundaryMatch.index);
+        buffer = buffer.slice(boundaryMatch.index + boundaryMatch[0].length);
+        parseFrame(frame);
+      }
+      if (buffer.trim()) {
+        parseFrame(buffer);
+        buffer = '';
+      }
+    }
+
+    if (!terminalEventReceived && currentRequestId === activeRequestIdRef.current) {
+      if (controller.signal.aborted && !watchdogTimedOut) {
+        engine.setGenStatus('Cancelled');
+        return;
+      }
+      if (!watchdogTimedOut) {
+        throw new Error('Generation stream closed unexpectedly by server before completion. Please retry.');
+      }
+    }
+  } catch (err: any) {
+    if (currentRequestId !== activeRequestIdRef.current) return;
+    if (watchdogTimedOut) return;
+    if (err.name === 'AbortError' || controller.signal.aborted) {
+      engine.setGenStatus('Cancelled');
+    } else {
+      recordFailure?.(err, stageName);
+      engine.setGenError(err.message || 'Generation failed.');
+      engine.setGenStatus('Failed');
+    }
+  } finally {
+    if (abortHandler) {
+      controller.signal.removeEventListener('abort', abortHandler);
+    }
+    if (currentRequestId === activeRequestIdRef.current) {
+      clearWatchdog();
+      activeReaderRef.current = null;
+      engine.setIsRunning(false);
+    }
+  }
+}
+
 export function useGenerationPipeline() {
   const engine = useEngine();
+  const activeRequestIdRef = useRef<number>(0);
+  const activeWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const activeReaderRef = useRef<ReadableStreamDefaultReader | null>(null);
+
+  const clearWatchdog = () => {
+    if (activeWatchdogRef.current) {
+      clearTimeout(activeWatchdogRef.current);
+      activeWatchdogRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      clearWatchdog();
+      if (activeReaderRef.current) {
+        activeReaderRef.current.cancel().catch(() => {});
+        activeReaderRef.current = null;
+      }
+    };
+  }, []);
 
   const runPostGenerationAnalysis = async (finalSections: any[], blueprint: any) => {
     engine.setIsDetectingWeakCopy(true);
@@ -134,7 +361,20 @@ export function useGenerationPipeline() {
   };
 
   const startPipeline = async (force = false) => {
+    if (engine.isRunning) {
+      console.warn('[useGenerationPipeline] Generation is already running. Duplicate request blocked.');
+      return;
+    }
     if (!engine.title) return;
+
+    engine.abortGeneration();
+    clearWatchdog();
+    if (activeReaderRef.current) {
+      activeReaderRef.current.cancel().catch(() => {});
+      activeReaderRef.current = null;
+    }
+
+    const currentRequestId = ++activeRequestIdRef.current;
 
     engine.setIsRunning(true);
     engine.setIsGenerated(false);
@@ -313,54 +553,33 @@ export function useGenerationPipeline() {
         }
       };
 
-      while (!done) {
-        const { value, done: rd } = await reader.read();
-        done = rd;
-        if (value) {
-          buffer += decoder.decode(value, { stream: !done });
-          const parts = buffer.split('\n\n');
-          buffer = parts.pop() || '';
-          
-          for (const part of parts) {
-            const trimmed = part.trim();
-            if (!trimmed) continue;
-            if (trimmed.startsWith('data: ')) {
-              let parsed: any;
-              try {
-                parsed = JSON.parse(trimmed.substring(6));
-              } catch (parseErr) {
-                console.warn('[useGenerationPipeline] Parse error for chunk:', parseErr);
-                continue;
-              }
-              handleManualChunkParsed(parsed);
-            }
-          }
-        }
-      }
-
-      // Parse any remaining leftovers in the buffer
-      if (buffer.trim()) {
-        const trimmed = buffer.trim();
-        if (trimmed.startsWith('data: ')) {
-          let parsed: any;
-          try {
-            parsed = JSON.parse(trimmed.substring(6));
-          } catch (parseErr) {
-            console.warn('[useGenerationPipeline] Parse error for leftover buffer:', parseErr);
-          }
-          if (parsed) {
-            handleManualChunkParsed(parsed);
-          }
-        }
-      }
+      await consumePipelineStream(res, {
+        engine,
+        controller,
+        activeRequestIdRef,
+        currentRequestId,
+        activeWatchdogRef,
+        activeReaderRef,
+        watchdogInactivityMs: 60000,
+        stageName: 'pipeline',
+        onChunk: handleManualChunkParsed,
+        recordFailure: (err) => recordFailure(err, 'pipeline'),
+      });
     } catch (err: any) {
-      if (err.name !== 'AbortError') {
-        recordFailure(err);
+      if (currentRequestId !== activeRequestIdRef.current) return;
+      if (err.name === 'AbortError' || controller.signal.aborted) {
+        engine.setGenStatus('Cancelled');
+      } else {
+        recordFailure(err, 'pipeline');
         engine.setGenError(err.message || 'Generation failed.');
         engine.setGenStatus('Failed');
       }
     } finally {
-      engine.setIsRunning(false);
+      if (currentRequestId === activeRequestIdRef.current) {
+        clearWatchdog();
+        activeReaderRef.current = null;
+        engine.setIsRunning(false);
+      }
     }
   };
 
@@ -369,6 +588,16 @@ export function useGenerationPipeline() {
       console.warn('[useGenerationPipeline] Autopilot generation is already running. Duplicate request blocked.');
       return;
     }
+
+    engine.abortGeneration();
+    clearWatchdog();
+    if (activeReaderRef.current) {
+      activeReaderRef.current.cancel().catch(() => {});
+      activeReaderRef.current = null;
+    }
+
+    const currentRequestId = ++activeRequestIdRef.current;
+
     engine.setIsRunning(true);
     engine.setGenStatus('Analyzing website URL and verifying safety...');
     engine.setGenProgress(5);
@@ -548,48 +777,21 @@ export function useGenerationPipeline() {
         }
       };
 
-      while (!done) {
-        const { value, done: rd } = await reader.read();
-        done = rd;
-        if (value) {
-          buffer += decoder.decode(value, { stream: !done });
-          const parts = buffer.split('\n\n');
-          buffer = parts.pop() || '';
-          
-          for (const part of parts) {
-            const trimmed = part.trim();
-            if (!trimmed) continue;
-            if (trimmed.startsWith('data: ')) {
-              let parsed: any;
-              try {
-                parsed = JSON.parse(trimmed.substring(6));
-              } catch (parseErr) {
-                console.warn('[useGenerationPipeline] Parse error for chunk:', parseErr);
-                continue;
-              }
-              handleChunkParsed(parsed);
-            }
-          }
-        }
-      }
-
-      // Check any leftover buffer
-      if (buffer.trim()) {
-        const trimmed = buffer.trim();
-        if (trimmed.startsWith('data: ')) {
-          let parsed: any;
-          try {
-            parsed = JSON.parse(trimmed.substring(6));
-          } catch (parseErr) {
-            console.warn('[useGenerationPipeline] Parse error for leftover chunk:', parseErr);
-          }
-          if (parsed) {
-            handleChunkParsed(parsed);
-          }
-        }
-      }
+      await consumePipelineStream(res, {
+        engine,
+        controller,
+        activeRequestIdRef,
+        currentRequestId,
+        activeWatchdogRef,
+        activeReaderRef,
+        watchdogInactivityMs: 60000,
+        stageName: currentStage,
+        onChunk: handleChunkParsed,
+        recordFailure: (err, stg) => recordFailure(err, stg || currentStage),
+      });
     } catch (err: any) {
-      if (err.name === 'AbortError') {
+      if (currentRequestId !== activeRequestIdRef.current) return;
+      if (err.name === 'AbortError' || controller.signal.aborted) {
         engine.setGenStatus('Cancelled');
       } else {
         recordFailure(err, currentStage);
@@ -597,11 +799,20 @@ export function useGenerationPipeline() {
         engine.setGenStatus('Failed');
       }
     } finally {
-      engine.setIsRunning(false);
+      if (currentRequestId === activeRequestIdRef.current) {
+        clearWatchdog();
+        activeReaderRef.current = null;
+        engine.setIsRunning(false);
+      }
     }
   };
 
   const cancelPipeline = () => {
+    clearWatchdog();
+    if (activeReaderRef.current) {
+      activeReaderRef.current.cancel().catch(() => {});
+      activeReaderRef.current = null;
+    }
     engine.abortGeneration();
     engine.setIsRunning(false);
     engine.setGenStatus('Cancelled');

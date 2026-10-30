@@ -178,12 +178,29 @@ export class WebsiteIntelligenceService {
     return cleanedText;
   }
 
-  async extractBusinessProfile(url: string, runId?: string): Promise<{ profile: SaaSProfile; candidateKeywords: string[] }> {
+  async extractBusinessProfile(
+    url: string,
+    runId?: string,
+    options?: {
+      onProgress?: (message: string, progress?: number) => void;
+      signal?: AbortSignal;
+    }
+  ): Promise<{ profile: SaaSProfile; candidateKeywords: string[] }> {
+    if (options?.signal?.aborted) {
+      throw new Error('Generation aborted by user.');
+    }
+    options?.onProgress?.('Verifying website safety and resolving address...', 6);
+
     // 1. Verify URL safety
     const safety = await verifyUrlSafety(url);
     if (!safety.safe || !safety.url) {
       throw new Error(safety.error || 'URL safety verification failed.');
     }
+
+    if (options?.signal?.aborted) {
+      throw new Error('Generation aborted by user.');
+    }
+    options?.onProgress?.('Fetching website content...', 8);
 
     // 2. Fetch/Scrape homepage text content using dedicated safe crawler
     let textContent = '';
@@ -324,6 +341,11 @@ export class WebsiteIntelligenceService {
     }
 
     // 3. Structured SaaSProfile extraction
+    if (options?.signal?.aborted) {
+      throw new Error('Generation aborted by user.');
+    }
+    options?.onProgress?.(`Analyzed homepage copy (${cleanedText.length} chars). Extracting business profile with AI...`, 10);
+
     const detected = detectBusinessTypeFromTextAndUrl(cleanedText, url);
     const profilePrompt = `You are an elite business analyst. Analyze the following website homepage content to extract details for this business:
 URL: ${url}
@@ -370,6 +392,11 @@ CRITICAL ARCHETYPE & OFFERING ACCURACY:
     }
 
     // 4. Generate candidate seed keywords spanning distinct business pillars
+    if (options?.signal?.aborted) {
+      throw new Error('Generation aborted by user.');
+    }
+    options?.onProgress?.(`Identified business: ${profile.name} (${profile.businessType || 'SaaS'}). Formulating strategic keyword pillars...`, 13);
+
     const keywordSchema = z.object({
       keywords: z.array(z.string().min(1)).min(4).max(6).describe('List of 4-6 high-intent target SEO search terms covering distinct business pillars.')
     });
@@ -464,6 +491,11 @@ MANDATORY REBALANCING RULES:
     if (wasAdjusted && finalAnalysis.dominantStem) {
       console.log(`[website-intelligence] Enforced keyword diversification: pruned excess secondary cluster "${finalAnalysis.dominantStem}". Final count: ${finalKeywords.length}`);
     }
+
+    if (options?.signal?.aborted) {
+      throw new Error('Generation aborted by user.');
+    }
+    options?.onProgress?.(`Identified ${finalKeywords.length} search opportunity pillars. Finalizing profile...`, 15);
 
     return {
       profile: {

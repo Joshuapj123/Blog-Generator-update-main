@@ -28,6 +28,7 @@ export class SearchOpportunityService {
       runId?: string;
       saasProfile?: any;
       onProgress?: (completed: number, total: number, keyword: string) => void;
+      signal?: AbortSignal;
     }
   ): Promise<z.infer<typeof SearchOpportunitySchema>[]> {
     console.log(`[SearchOpportunityService] Starting opportunities analysis for category: ${category}`);
@@ -265,6 +266,9 @@ Tasks:
     const concurrencyLimit = Math.min(6, queue.length);
     const workers = Array.from({ length: concurrencyLimit }, async () => {
       while (queue.length > 0) {
+        if (options?.signal?.aborted) {
+          throw new Error('Generation aborted by user.');
+        }
         const item = queue.shift();
         if (!item) break;
         const opp = await evaluateKeyword(item.kw);

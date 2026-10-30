@@ -73,7 +73,12 @@ export async function POST(req: Request) {
           sendChunk({ type: 'status', message: 'Analyzing website URL and verifying safety...', progress: 5 });
           
           const intelService = new WebsiteIntelligenceService();
-          const { profile, candidateKeywords } = await intelService.extractBusinessProfile(url, runId);
+          const { profile, candidateKeywords } = await intelService.extractBusinessProfile(url, runId, {
+            onProgress: (message, progress) => {
+              sendChunk({ type: 'status', message, progress });
+            },
+            signal: req.signal
+          });
 
           // Understanding business profile
           sendChunk({ 
@@ -98,6 +103,7 @@ export async function POST(req: Request) {
             competitorDomains,
             {
               saasProfile: profile,
+              signal: req.signal,
               onProgress: (completed, total, keyword) => {
                 sendChunk({
                   type: 'status',
@@ -157,6 +163,10 @@ export async function POST(req: Request) {
             requestStartTs
           });
         } catch (err: any) {
+          if (req.signal.aborted || err.name === 'AbortError' || err.message?.includes('aborted')) {
+            console.log('[API Route] Autopilot generation cancelled by client.');
+            return;
+          }
           console.error('[API Route] URL Autopilot failed:', err.message);
           const sanitizedMsg = sanitizeOperationalText(err.message || 'Autopilot generation failed.');
           const failureCat = classifyPipelineFailure('CRAWL', err);
