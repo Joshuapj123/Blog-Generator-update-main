@@ -493,3 +493,44 @@ export type {
   ApprovalRequest,
   ApprovalResult
 } from '@/lib/approval/types';
+
+// 11. Durable Staged Generation Contracts (Phase R7.6)
+export const AnalysisSessionStatusSchema = z.enum([
+  'INITIALIZING',
+  'ANALYZING',
+  'COMPLETED',
+  'FAILED'
+]);
+export type AnalysisSessionStatus = z.infer<typeof AnalysisSessionStatusSchema>;
+
+export const GenerationSessionStatusSchema = z.enum([
+  'IDLE',
+  'GENERATING',
+  'COMPLETED',
+  'FAILED'
+]);
+export type GenerationSessionStatus = z.infer<typeof GenerationSessionStatusSchema>;
+
+export const AnalysisSessionSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  ownerId: z.string(),
+  targetUrl: z.string(),
+  normalizedUrl: z.string(),
+  status: AnalysisSessionStatusSchema.default('INITIALIZING'),
+  generationStatus: GenerationSessionStatusSchema.default('IDLE'),
+  profile: SaaSProfileSchema.optional(),
+  candidateKeywords: z.array(z.string()).default([]),
+  opportunities: z.array(SearchOpportunitySchema).default([]),
+  selectedOpportunity: SearchOpportunitySchema.optional(),
+  articleId: z.string().optional(),
+  generatedArticleId: z.string().optional(),
+  folder: z.string().optional(),
+  failureReason: z.string().optional(),
+  errorDetails: z.any().optional(),
+  generationLeaseExpiresAt: z.number().optional(),
+  generationLeaseToken: z.string().optional(),
+  createdAt: z.any(),
+  updatedAt: z.any(),
+});
+export type AnalysisSession = z.infer<typeof AnalysisSessionSchema>;

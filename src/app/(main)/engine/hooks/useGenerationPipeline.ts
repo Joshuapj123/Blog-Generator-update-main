@@ -19,6 +19,8 @@ export interface ConsumePipelineStreamOptions {
   activeReaderRef: { current: ReadableStreamDefaultReader | null };
   watchdogInactivityMs?: number;
   stageName?: string;
+  terminalEventTypes?: string[];
+  preserveRunningState?: boolean;
   onChunk: (parsed: any) => void;
   recordFailure?: (errorObj: any, stage?: string) => void;
 }
@@ -36,6 +38,8 @@ export async function consumePipelineStream(
     activeReaderRef,
     watchdogInactivityMs = 60000,
     stageName = 'pipeline',
+    terminalEventTypes = ['complete', 'error'],
+    preserveRunningState = false,
     onChunk,
     recordFailure,
   } = options;
@@ -84,6 +88,8 @@ export async function consumePipelineStream(
         throw new Error(serverMsg || 'Authentication required or session expired. Please sign in again.');
       } else if (res.status === 403) {
         throw new Error(serverMsg || 'Access denied. You do not have permission to generate this content.');
+      } else if (res.status === 409) {
+        throw new Error(serverMsg || 'A generation is already in progress for this session. Please wait for it to complete.');
       } else if (res.status === 429) {
         throw new Error(serverMsg || 'Rate limit exceeded. Please wait a moment and try again.');
       } else if (res.status === 504) {
@@ -137,7 +143,7 @@ export async function consumePipelineStream(
         console.warn('[useGenerationPipeline] Parse error for chunk:', parseErr);
         return;
       }
-      if (parsed.type === 'complete' || parsed.type === 'error') {
+      if (terminalEventTypes.includes(parsed.type)) {
         terminalEventReceived = true;
       }
       onChunk(parsed);
@@ -212,7 +218,9 @@ export async function consumePipelineStream(
     if (currentRequestId === activeRequestIdRef.current) {
       clearWatchdog();
       activeReaderRef.current = null;
-      engine.setIsRunning(false);
+      if (!preserveRunningState) {
+        engine.setIsRunning(false);
+      }
     }
   }
 }
@@ -640,41 +648,18 @@ export function useGenerationPipeline() {
         throw new Error('Authentication required. Please sign in to generate content.');
       }
 
-      const res = await fetch('/api/generate-from-url', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          url,
-          articleId: engine.currentArticleId || undefined,
-          folder: engine.currentArticleFolder || undefined,
-        }),
-        signal: controller.signal,
-      });
+      // --- STAGE 1: Website Analysis & Opportunity Extraction ---
+      let stage1SessionId: string | null = null;
+      let isMonolithicComplete = false;
 
-      if (!res.body) throw new Error('No readable stream.');
-      if (res.status === 401) {
-        const errorJson = await res.json().catch(() => ({}));
-        throw new Error(errorJson?.error || 'Authentication required or session expired. Please sign in again.');
-      }
-      if (!res.ok) throw new Error(`Server error ${res.status}`);
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let done = false;
-      let buffer = '';
-
-      const handleChunkParsed = (parsed: any) => {
+      const handleStage1ChunkParsed = (parsed: any) => {
         if (parsed.type === 'status') {
           engine.setGenStatus(parsed.message);
           if (parsed.progress) engine.setGenProgress(parsed.progress);
 
-          // 2. Detect opportunity selection to fire website_analysis_completed
+          // Detect opportunity selection to fire website_analysis_completed
           if (!hasFiredAnalysisCompleted && parsed.message?.includes('Selected best content opportunity keyword:')) {
             hasFiredAnalysisCompleted = true;
-            currentStage = 'content_generation';
             const kwMatch = parsed.message.match(/Selected best content opportunity keyword:\s*"([^"]+)"/i);
             const scoreMatch = parsed.message.match(/\(Score:\s*([\d.]+)\)/i);
             const selectedKeyword = kwMatch ? kwMatch[1] : '';
@@ -691,23 +676,33 @@ export function useGenerationPipeline() {
               analysis_duration_ms: analysisDuration,
             });
           }
+        } else if (parsed.type === 'analysis_complete') {
+          stage1SessionId = parsed.sessionId || null;
+          engine.setGenStatus(parsed.message || 'Analysis complete. Starting article generation...');
+          if (parsed.progress) engine.setGenProgress(parsed.progress);
 
-          // 3. Detect content generation start if status indicates adapter run
-          if (!hasFiredGenStarted && parsed.message?.includes('Initializing pipeline')) {
-            hasFiredGenStarted = true;
-            currentStage = 'content_generation';
-            captureEvent('content_generation_started', {
+          if (!hasFiredAnalysisCompleted && parsed.selectedOpportunity) {
+            hasFiredAnalysisCompleted = true;
+            const opp = parsed.selectedOpportunity;
+            const oppScore = opp.score || 0;
+            const tier = oppScore >= 70 ? 'High' : oppScore >= 40 ? 'Medium' : 'Low';
+
+            captureEvent('website_analysis_completed', {
               run_id: runId,
-              content_type: 'Guide',
+              selected_keyword: opp.keyword || '',
+              opportunity_score: oppScore,
+              relevance_tier: tier,
+              candidates_count: parsed.opportunities?.length || 5,
+              analysis_duration_ms: Date.now() - analysisStartTime,
             });
           }
         } else if (parsed.type === 'outline') {
+          // Monolithic fallback support
           currentStage = 'outline';
           engine.setBlueprint(parsed.data);
           if (parsed.data?.title) {
             engine.setTitle(parsed.data.title);
           }
-
           if (!hasFiredGenStarted) {
             hasFiredGenStarted = true;
             captureEvent('content_generation_started', {
@@ -716,6 +711,7 @@ export function useGenerationPipeline() {
             });
           }
         } else if (parsed.type === 'section') {
+          // Monolithic fallback support
           currentStage = 'sections';
           engine.setSections((prev: any) => {
             const next = [...prev];
@@ -723,6 +719,8 @@ export function useGenerationPipeline() {
             return next;
           });
         } else if (parsed.type === 'complete') {
+          // Monolithic fallback support
+          isMonolithicComplete = true;
           currentStage = 'complete';
           engine.setBlueprint((prev: any) => ({ ...prev, ...parsed.data }));
           if (parsed.data?.title) {
@@ -746,11 +744,10 @@ export function useGenerationPipeline() {
           engine.setIsGenerated(true);
           engine.setActiveQaTab('score');
 
-          // 4. Fire content_generation_completed
           if (!hasFiredGenCompleted) {
             hasFiredGenCompleted = true;
             const sections = parsed.data?.sections || [];
-            const textContent = sections.map((s: any) => 
+            const textContent = sections.map((s: any) =>
               `${s.heading || ''}\n${s.what_it_is || ''}\n${s.why_it_works || ''}\n${s.experience_or_data_point || ''}`
             ).join('\n\n');
             const wordCount = textContent.trim().split(/\s+/).filter(Boolean).length;
@@ -777,6 +774,20 @@ export function useGenerationPipeline() {
         }
       };
 
+      const res = await fetch('/api/generate-from-url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          url,
+          articleId: engine.currentArticleId || undefined,
+          folder: engine.currentArticleFolder || undefined,
+        }),
+        signal: controller.signal,
+      });
+
       await consumePipelineStream(res, {
         engine,
         controller,
@@ -785,10 +796,140 @@ export function useGenerationPipeline() {
         activeWatchdogRef,
         activeReaderRef,
         watchdogInactivityMs: 60000,
-        stageName: currentStage,
-        onChunk: handleChunkParsed,
-        recordFailure: (err, stg) => recordFailure(err, stg || currentStage),
+        stageName: 'website_analysis',
+        terminalEventTypes: ['analysis_complete', 'complete', 'error'],
+        preserveRunningState: true,
+        onChunk: handleStage1ChunkParsed,
+        recordFailure: (err, stg) => recordFailure(err, stg || 'website_analysis'),
       });
+
+      if (currentRequestId !== activeRequestIdRef.current || controller.signal.aborted) {
+        return;
+      }
+
+      // --- STAGE 2: Article Generation ---
+      if (stage1SessionId && !isMonolithicComplete) {
+        currentStage = 'content_generation';
+        engine.setGenStatus('Initializing content generation pipeline...');
+        engine.setGenProgress(40);
+
+        const handleStage2ChunkParsed = (parsed: any) => {
+          if (parsed.type === 'status') {
+            engine.setGenStatus(parsed.message);
+            if (parsed.progress) engine.setGenProgress(parsed.progress);
+
+            if (!hasFiredGenStarted && parsed.message?.includes('Initializing pipeline')) {
+              hasFiredGenStarted = true;
+              captureEvent('content_generation_started', {
+                run_id: runId,
+                content_type: 'Guide',
+              });
+            }
+          } else if (parsed.type === 'outline') {
+            currentStage = 'outline';
+            engine.setBlueprint(parsed.data);
+            if (parsed.data?.title) {
+              engine.setTitle(parsed.data.title);
+            }
+
+            if (!hasFiredGenStarted) {
+              hasFiredGenStarted = true;
+              captureEvent('content_generation_started', {
+                run_id: runId,
+                content_type: parsed.data?.contentType || 'Guide',
+              });
+            }
+          } else if (parsed.type === 'section') {
+            currentStage = 'sections';
+            engine.setSections((prev: any) => {
+              const next = [...prev];
+              next[parsed.index] = parsed.data;
+              return next;
+            });
+          } else if (parsed.type === 'complete') {
+            currentStage = 'complete';
+            engine.setBlueprint((prev: any) => ({ ...prev, ...parsed.data }));
+            if (parsed.data?.title) {
+              engine.setTitle(parsed.data.title);
+            }
+            if (parsed.data.sections) {
+              engine.setSections(parsed.data.sections);
+            }
+            if (parsed.data.persistence?.status === 'SAVED' && parsed.data.persistence?.articleId) {
+              engine.setCurrentArticleId(parsed.data.persistence.articleId);
+              engine.setCurrentArticleStage('Draft');
+            }
+            engine.setGenProgress(100);
+            engine.setGenStatus(
+              parsed.data.persistence?.status === 'SAVED'
+                ? 'Generation complete — Saved to My Content'
+                : parsed.data.persistence?.status === 'SAVE_FAILED'
+                ? 'Generation complete (Save to My Content failed)'
+                : 'Generation complete'
+            );
+            engine.setIsGenerated(true);
+            engine.setActiveQaTab('score');
+
+            // Fire content_generation_completed
+            if (!hasFiredGenCompleted) {
+              hasFiredGenCompleted = true;
+              const sections = parsed.data?.sections || [];
+              const textContent = sections.map((s: any) =>
+                `${s.heading || ''}\n${s.what_it_is || ''}\n${s.why_it_works || ''}\n${s.experience_or_data_point || ''}`
+              ).join('\n\n');
+              const wordCount = textContent.trim().split(/\s+/).filter(Boolean).length;
+              let flesch = 0;
+              try {
+                flesch = calculateFleschReadingEase(textContent);
+              } catch {}
+
+              captureEvent('content_generation_completed', {
+                run_id: runId,
+                word_count: wordCount,
+                section_count: sections.length,
+                flesch_reading_ease: flesch,
+                total_duration_ms: Date.now() - runStartTime,
+              });
+            }
+
+            if (parsed.data.sections) {
+              runPostGenerationAnalysis(parsed.data.sections, parsed.data);
+            }
+          } else if (parsed.type === 'error') {
+            recordFailure(parsed, currentStage);
+            throw new Error(parsed.reason || parsed.message || 'Generation failed.');
+          }
+        };
+
+        const stage2Res = await fetch('/api/generate-blocks', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            sessionId: stage1SessionId,
+            articleId: engine.currentArticleId || undefined,
+            folder: engine.currentArticleFolder || undefined,
+          }),
+          signal: controller.signal,
+        });
+
+        await consumePipelineStream(stage2Res, {
+          engine,
+          controller,
+          activeRequestIdRef,
+          currentRequestId,
+          activeWatchdogRef,
+          activeReaderRef,
+          watchdogInactivityMs: 60000,
+          stageName: 'content_generation',
+          terminalEventTypes: ['complete', 'error'],
+          preserveRunningState: false,
+          onChunk: handleStage2ChunkParsed,
+          recordFailure: (err, stg) => recordFailure(err, stg || 'content_generation'),
+        });
+      }
     } catch (err: any) {
       if (currentRequestId !== activeRequestIdRef.current) return;
       if (err.name === 'AbortError' || controller.signal.aborted) {

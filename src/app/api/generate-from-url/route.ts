@@ -9,6 +9,15 @@ import { getAdminAuth } from '@/lib/firebase/admin';
 import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceValidator';
 import { PipelineTelemetryService } from '@/lib/observability/PipelineTelemetryService';
 import { classifyPipelineFailure, sanitizeOperationalText } from '@/core/contracts/observability';
+import { AnalysisSession } from '@/core/contracts/schemas';
+import {
+  resolveAndSaveAnalysisSession,
+  resolveAndGetAnalysisSession
+} from '@/lib/test-storage/TemporaryArticleStore';
+import {
+  saveAnalysisSessionAdmin,
+  getAnalysisSessionAdmin
+} from '@/lib/firebase/admin-firestore';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -120,13 +129,12 @@ export async function POST(req: Request) {
           }
 
           // Content strategy formulation
-          sendChunk({ 
-            type: 'status', 
-            message: `Selected best content opportunity keyword: "${bestOpportunity.keyword}" (Score: ${bestOpportunity.opportunityScore}). Triggering generation...`, 
-            progress: 35 
+          sendChunk({
+            type: 'status',
+            message: `Selected best content opportunity keyword: "${bestOpportunity.keyword}" (Score: ${bestOpportunity.opportunityScore}). Analysis complete.`,
+            progress: 35
           });
 
-          // Hand off to existing GenerationPipelineAdapter.runPipeline
           const promisedCount = ContentEvidenceValidator.extractPromisedListicleCount(bestOpportunity.keyword);
           const maxHeadings = promisedCount ? Math.max(promisedCount + 2, 7) : 7;
 
@@ -141,27 +149,67 @@ export async function POST(req: Request) {
             primaryCompetitors: discoveredComps
           };
 
-          const payload = {
-            runId,
-            title: bestOpportunity.keyword,
-            targetKeywords: bestOpportunity.keyword,
-            contentType: bestOpportunity.contentType || 'Guide',
-            targetAudience: profile.targetAudience,
-            saasProfile: profileWithComps,
-            customInsights: `SaaS Profile: ${profile.name} - ${profile.description}. key features: ${profile.keyFeatures?.join(', ')}.`,
-            campaignMode: 'standard',
-            externalLinks: [],
-            maxHeadings,
-            supportingTerms: bestOpportunity.supportingTerms || [],
-            authenticatedUserId,
+          // Persist durable Stage 1 Analysis Session
+          const session: AnalysisSession = {
+            id: `ses_${runId}`,
+            userId: authenticatedUserId,
+            ownerId: authenticatedUserId,
+            targetUrl: rawUrl,
+            normalizedUrl: url,
+            status: 'COMPLETED',
+            generationStatus: 'IDLE',
+            profile: profileWithComps,
+            candidateKeywords,
+            opportunities,
+            selectedOpportunity: bestOpportunity,
             articleId: body?.articleId || undefined,
-            folder: body?.folder || undefined
+            folder: body?.folder || undefined,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
           };
 
-          await GenerationPipelineAdapter.runPipeline(payload, sendChunk, req.signal, {
-            overrideMaxReviewRetries: 1,
-            requestStartTs
+          await resolveAndSaveAnalysisSession(
+            session,
+            authenticatedUserId,
+            saveAnalysisSessionAdmin
+          );
+
+          // Emit terminal event for Stage 1 (Durable Analysis complete)
+          sendChunk({
+            type: 'analysis_complete',
+            sessionId: session.id,
+            profile: profileWithComps,
+            candidateKeywords,
+            opportunities,
+            selectedOpportunity: bestOpportunity,
+            status: 'COMPLETED',
+            progress: 35
           });
+
+          // If caller explicitly requested monolithic mode (e.g. legacy test), proceed directly
+          if (body?.mode === 'monolithic') {
+            const payload = {
+              runId,
+              title: bestOpportunity.keyword,
+              targetKeywords: bestOpportunity.keyword,
+              contentType: bestOpportunity.contentType || 'Guide',
+              targetAudience: profile.targetAudience,
+              saasProfile: profileWithComps,
+              customInsights: `SaaS Profile: ${profile.name} - ${profile.description}. key features: ${profile.keyFeatures?.join(', ')}.`,
+              campaignMode: 'standard',
+              externalLinks: [],
+              maxHeadings,
+              supportingTerms: bestOpportunity.supportingTerms || [],
+              authenticatedUserId,
+              articleId: body?.articleId || undefined,
+              folder: body?.folder || undefined
+            };
+
+            await GenerationPipelineAdapter.runPipeline(payload, sendChunk, req.signal, {
+              overrideMaxReviewRetries: 1,
+              requestStartTs
+            });
+          }
         } catch (err: any) {
           if (req.signal.aborted || err.name === 'AbortError' || err.message?.includes('aborted')) {
             console.log('[API Route] Autopilot generation cancelled by client.');
@@ -170,6 +218,26 @@ export async function POST(req: Request) {
           console.error('[API Route] URL Autopilot failed:', err.message);
           const sanitizedMsg = sanitizeOperationalText(err.message || 'Autopilot generation failed.');
           const failureCat = classifyPipelineFailure('CRAWL', err);
+
+          try {
+            const failedSession: AnalysisSession = {
+              id: `ses_${runId}`,
+              userId: authenticatedUserId,
+              ownerId: authenticatedUserId,
+              targetUrl: rawUrl,
+              normalizedUrl: url,
+              status: 'FAILED',
+              generationStatus: 'FAILED',
+              failureReason: sanitizedMsg,
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+              candidateKeywords: [],
+              opportunities: [],
+            };
+            await resolveAndSaveAnalysisSession(failedSession, authenticatedUserId, saveAnalysisSessionAdmin);
+          } catch (persErr) {
+            console.warn('[API Route] Failed to persist failed session:', persErr);
+          }
           PipelineTelemetryService.getInstance().recordEvent({
             runId,
             stage: 'CRAWL',
