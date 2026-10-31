@@ -50,26 +50,139 @@ export function resolvePersistenceBackend(): 'FIREBASE_ADMIN' | 'TEMP_TEST_STORA
  * - Detects circular references
  * - Does not depend on any Firebase client/admin runtime libraries
  */
-export function sanitizeForTestStorage(val: any, seen = new WeakSet()): any {
+/**
+ * Detects actual runtime system objects that cannot be serialized to document storage
+ * (e.g. AbortSignal, AbortController, Request, Response, Streams).
+ * Strictly distinguishes runtime system instances from ordinary application objects
+ * that may legitimately carry properties like "headers", "signal", "aborted", or "pipe".
+ */
+export function isRuntimeSystemObject(val: any): boolean {
+  if (!val || typeof val !== 'object') return false;
+
+  // 1. Direct class checks when available in the environment
+  if (typeof AbortSignal !== 'undefined' && val instanceof AbortSignal) return true;
+  if (typeof AbortController !== 'undefined' && val instanceof AbortController) return true;
+  if (typeof Request !== 'undefined' && val instanceof Request) return true;
+  if (typeof Response !== 'undefined' && val instanceof Response) return true;
+  if (typeof ReadableStream !== 'undefined' && val instanceof ReadableStream) return true;
+
+  // 2. Cross-realm / polyfill Symbol.toStringTag checks
+  const tag = Object.prototype.toString.call(val);
+  if (
+    tag === '[object AbortSignal]' ||
+    tag === '[object AbortController]' ||
+    tag === '[object Request]' ||
+    tag === '[object Response]' ||
+    tag === '[object ReadableStream]' ||
+    tag === '[object WritableStream]' ||
+    tag === '[object TransformStream]'
+  ) {
+    return true;
+  }
+
+  // 3. Node.js Stream checks (Stream inherits from EventEmitter)
+  if (
+    typeof val.pipe === 'function' &&
+    typeof val.on === 'function' &&
+    typeof val.emit === 'function' &&
+    (typeof val._read === 'function' || typeof val._write === 'function' || typeof val.destroy === 'function')
+  ) {
+    return true;
+  }
+
+  // 4. Robust duck-typing for custom AbortController/Signal polyfills
+  if (
+    (typeof val.aborted === 'boolean' && typeof val.addEventListener === 'function' && typeof val.removeEventListener === 'function') ||
+    (typeof val.abort === 'function' && val.signal && typeof val.signal.aborted === 'boolean')
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+
+/**
+ * Pure deep-cloning and sanitization function:
+ * - Removes undefined values
+ * - Maps undefined array items to null
+ * - Detects circular references on the active recursion path
+ * - Preserves JavaScript Date instances without mutation
+ * - Preserves Firestore sentinels without Firebase library dependencies
+ * - Rejects runtime system objects (AbortSignal, Streams, etc.)
+ * - Prevents call-stack exhaustion on pathological nesting (>50 levels) with RangeError
+ */
+export function sanitizeForTestStorage(
+  val: any,
+  seen = new WeakSet(),
+  path = '',
+  depth = 0
+): any {
+  if (depth > 50) {
+    throw new RangeError(`Maximum nesting depth exceeded during test storage sanitization at path "${path || 'root'}"`);
+  }
+
   if (val === undefined) return null;
   if (val === null || typeof val !== 'object') return val;
 
   if (val instanceof Date) return new Date(val.getTime());
 
+  // Preserve Firestore-native sentinels when passed through test storage
+  if (
+    (typeof val?.toMillis === 'function' && typeof val?.toDate === 'function') ||
+    (val?._methodName && typeof val?._methodName === 'string') ||
+    (val?.methodName && typeof val?.methodName === 'string') ||
+    (val?.type === 'document' && typeof val?.path === 'string') ||
+    (typeof val?.latitude === 'number' && typeof val?.longitude === 'number' && typeof val?.isEqual === 'function')
+  ) {
+    return val;
+  }
+
+  // Handle Error instances safely without arbitrary graph recursion
+  if (val instanceof Error) {
+    const errObj: { name: string; message: string; code?: string | number } = {
+      name: val.name || 'Error',
+      message: val.message || String(val),
+    };
+    if (typeof (val as any).code === 'string' || typeof (val as any).code === 'number') {
+      errObj.code = (val as any).code;
+    }
+    return errObj;
+  }
+
+  // Reject runtime system objects that cannot be serialized to storage
+  if (isRuntimeSystemObject(val)) {
+    throw new TypeError(
+      `Cannot persist runtime system object of type "${val.constructor?.name || typeof val}" at path "${path || 'root'}" to test storage`
+    );
+  }
+
   if (seen.has(val)) {
-    throw new TypeError('Circular reference detected during test storage sanitization');
+    throw new TypeError(`Circular reference detected during test storage sanitization at path "${path || 'root'}"`);
   }
   seen.add(val);
 
   try {
     if (Array.isArray(val)) {
-      return val.map(item => sanitizeForTestStorage(item, seen));
+      return val.map((item, index) =>
+        sanitizeForTestStorage(
+          item,
+          seen,
+          path ? `${path}[${index}]` : `[${index}]`,
+          depth + 1
+        )
+      );
     }
 
     const out: Record<string, any> = {};
     for (const [k, v] of Object.entries(val)) {
       if (v !== undefined) {
-        out[k] = sanitizeForTestStorage(v, seen);
+        out[k] = sanitizeForTestStorage(
+          v,
+          seen,
+          path ? `${path}.${k}` : k,
+          depth + 1
+        );
       }
     }
     return out;

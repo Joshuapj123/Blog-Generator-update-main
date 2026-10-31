@@ -93,13 +93,84 @@ export interface Folder {
  * - Preserves primitives: false, 0, "", null, numbers, strings, booleans
  * - Guards against circular references by throwing a TypeError
  */
-export const sanitizeForFirestore = (val: any, seen = new WeakSet()): any => {
+/**
+ * Detects actual runtime system objects that cannot be serialized to document storage
+ * (e.g. AbortSignal, AbortController, Request, Response, Streams).
+ * Strictly distinguishes runtime system instances from ordinary application objects
+ * that may legitimately carry properties like "headers", "signal", "aborted", or "pipe".
+ */
+export function isRuntimeSystemObject(val: any): boolean {
+  if (!val || typeof val !== 'object') return false;
+
+  // 1. Direct class checks when available in the environment
+  if (typeof AbortSignal !== 'undefined' && val instanceof AbortSignal) return true;
+  if (typeof AbortController !== 'undefined' && val instanceof AbortController) return true;
+  if (typeof Request !== 'undefined' && val instanceof Request) return true;
+  if (typeof Response !== 'undefined' && val instanceof Response) return true;
+  if (typeof ReadableStream !== 'undefined' && val instanceof ReadableStream) return true;
+
+  // 2. Cross-realm / polyfill Symbol.toStringTag checks
+  const tag = Object.prototype.toString.call(val);
+  if (
+    tag === '[object AbortSignal]' ||
+    tag === '[object AbortController]' ||
+    tag === '[object Request]' ||
+    tag === '[object Response]' ||
+    tag === '[object ReadableStream]' ||
+    tag === '[object WritableStream]' ||
+    tag === '[object TransformStream]'
+  ) {
+    return true;
+  }
+
+  // 3. Node.js Stream checks (Stream inherits from EventEmitter)
+  if (
+    typeof val.pipe === 'function' &&
+    typeof val.on === 'function' &&
+    typeof val.emit === 'function' &&
+    (typeof val._read === 'function' || typeof val._write === 'function' || typeof val.destroy === 'function')
+  ) {
+    return true;
+  }
+
+  // 4. Robust duck-typing for custom AbortController/Signal polyfills
+  if (
+    (typeof val.aborted === 'boolean' && typeof val.addEventListener === 'function' && typeof val.removeEventListener === 'function') ||
+    (typeof val.abort === 'function' && val.signal && typeof val.signal.aborted === 'boolean')
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Pure deep-cloning and sanitization function:
+ * - Recursively eliminates `undefined` fields from objects (deletes keys)
+ * - Maps `undefined` array elements to `null` (since Firestore does not support undefined anywhere in data)
+ * - Preserves JavaScript Date instances without mutation
+ * - Preserves Firestore-native types: Timestamp, FieldValue, DocumentReference, GeoPoint
+ * - Preserves primitives: false, 0, "", null, numbers, strings, booleans
+ * - Guards against circular references on the active recursion path by throwing a TypeError
+ * - Prevents call-stack exhaustion on pathological nesting (>50 levels) with RangeError
+ */
+export const sanitizeForFirestore = (
+  val: any,
+  seen = new WeakSet(),
+  path = '',
+  depth = 0
+): any => {
+  if (depth > 50) {
+    throw new RangeError(`Maximum nesting depth exceeded during Firestore sanitization at path "${path || 'root'}"`);
+  }
+
   if (val === undefined) return null;
   if (val === null || typeof val !== 'object') return val;
 
-  // Preserve explicit Firestore-supported native types
+  if (val instanceof Date) return new Date(val.getTime());
+
+  // Preserve explicit Firestore-supported native types and sentinels
   if (
-    val instanceof Date ||
     val instanceof Timestamp ||
     val instanceof FieldValue ||
     val instanceof DocumentReference ||
@@ -113,23 +184,61 @@ export const sanitizeForFirestore = (val: any, seen = new WeakSet()): any => {
     return val;
   }
 
-  // Circular reference defense
+  // Handle Error instances safely without arbitrary graph recursion
+  if (val instanceof Error) {
+    const errObj: { name: string; message: string; code?: string | number } = {
+      name: val.name || 'Error',
+      message: val.message || String(val),
+    };
+    if (typeof (val as any).code === 'string' || typeof (val as any).code === 'number') {
+      errObj.code = (val as any).code;
+    }
+    return errObj;
+  }
+
+  // Reject runtime system objects that cannot be serialized to Firestore
+  if (isRuntimeSystemObject(val)) {
+    throw new TypeError(
+      `Cannot persist runtime system object of type "${val.constructor?.name || typeof val}" at path "${path || 'root'}" to Firestore`
+    );
+  }
+
+  // Circular reference defense on active recursion path (ancestor chain)
   if (seen.has(val)) {
-    throw new TypeError('Circular reference detected during Firestore sanitization');
+    throw new TypeError(
+      `Circular reference detected during Firestore sanitization at path "${path || 'root'}"`
+    );
   }
   seen.add(val);
 
-  if (Array.isArray(val)) {
-    return val.map(item => sanitizeForFirestore(item, seen));
-  }
-
-  const out: Record<string, any> = {};
-  for (const [k, v] of Object.entries(val)) {
-    if (v !== undefined) {
-      out[k] = sanitizeForFirestore(v, seen);
+  try {
+    if (Array.isArray(val)) {
+      return val.map((item, index) =>
+        sanitizeForFirestore(
+          item,
+          seen,
+          path ? `${path}[${index}]` : `[${index}]`,
+          depth + 1
+        )
+      );
     }
+
+    const out: Record<string, any> = {};
+    for (const [k, v] of Object.entries(val)) {
+      if (v !== undefined) {
+        out[k] = sanitizeForFirestore(
+          v,
+          seen,
+          path ? `${path}.${k}` : k,
+          depth + 1
+        );
+      }
+    }
+    return out;
+  } finally {
+    // Unwind: remove from active recursion stack so shared references in sibling branches can be cloned safely!
+    seen.delete(val);
   }
-  return out;
 };
 
 /**
