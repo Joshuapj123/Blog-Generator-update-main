@@ -123,6 +123,7 @@ import { ContentGapService } from '@/lib/intelligence/ContentGapService';
 import { TopicRelevanceValidator } from '@/lib/intelligence/TopicRelevanceValidator';
 import { SectionEvidenceMapper } from '@/lib/intelligence/SectionEvidenceMapper';
 import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceValidator';
+import { DeliverableContractValidator } from '@/lib/intelligence/DeliverableContractValidator';
 import { ClaimExtractionService } from '@/lib/intelligence/ClaimExtractionService';
 import { ClaimGroundingEngine } from '@/lib/intelligence/ClaimGroundingEngine';
 import { ContentRepairService } from '@/lib/content/ContentRepairService';
@@ -1390,6 +1391,11 @@ Return only the schema-compliant structured object.`;
         let retries = 0;
         const maxRetries = this.options.maxReviewRetries ?? 2;
         const contentBeforeReview = { ...content };
+        let bestDraft = { ...content };
+        let bestReview = review;
+        let bestCriticalCount = (review.criticalErrors || []).length;
+        let bestWarningCount = (review.warnings || []).length;
+        let bestPassed = review.passed;
         const reviewHistory: string[] = [];
 
         const isMetadataWarning = (issue: string) => {
@@ -1433,6 +1439,13 @@ Return only the schema-compliant structured object.`;
               unrepairableClaimIds: this.lastUnrepairableClaimIds
             });
             review.repairDetails = boundedRepairResult;
+            if (review.passed || (review.criticalErrors || []).length < bestCriticalCount) {
+              bestDraft = { ...content };
+              bestReview = review;
+              bestCriticalCount = (review.criticalErrors || []).length;
+              bestWarningCount = (review.warnings || []).length;
+              bestPassed = review.passed;
+            }
           } else if (boundedRepairResult.status === 'review_required') {
             review.passed = false;
             review.finalValidationStatus = 'REVIEW_REQUIRED';
@@ -1487,6 +1500,36 @@ Return only the schema-compliant structured object.`;
             unrepairableClaimIds: this.lastUnrepairableClaimIds
           });
 
+          const currentCriticalCount = (review.criticalErrors || []).length;
+          const currentWarningCount = (review.warnings || []).length;
+
+          const candidateWordCount = (content.bodyMarkdown || '').split(/\s+/).filter(Boolean).length;
+          const bestWordCount = (bestDraft.bodyMarkdown || '').split(/\s+/).filter(Boolean).length;
+          const candidateH2Count = ((content.bodyMarkdown || '').match(/^##\s+.+$/gm) || []).length;
+          const bestH2Count = ((bestDraft.bodyMarkdown || '').match(/^##\s+.+$/gm) || []).length;
+
+          // Substance preservation: a candidate cannot win if it severely hollowed out content (>25% word loss)
+          // or stripped planned outline headings compared to bestDraft
+          const hasSignificantContentLoss = (bestWordCount > 200 && candidateWordCount < bestWordCount * 0.75) || (bestH2Count > 0 && candidateH2Count < bestH2Count);
+
+          // Monotonic Quality Decision Rule
+          const isCandidateBetter =
+            !hasSignificantContentLoss &&
+            ((review.passed && !bestPassed) ||
+             (currentCriticalCount < bestCriticalCount) ||
+             (currentCriticalCount === bestCriticalCount && currentWarningCount < bestWarningCount && candidateWordCount >= bestWordCount * 0.9));
+
+          if (isCandidateBetter) {
+            console.log(`[AgentOrchestrator] Repair attempt ${retries} improved content (${currentCriticalCount} critical error(s) vs previous best: ${bestCriticalCount}). Adopting improved draft.`);
+            bestDraft = { ...content };
+            bestReview = review;
+            bestCriticalCount = currentCriticalCount;
+            bestWarningCount = currentWarningCount;
+            bestPassed = review.passed;
+          } else {
+            console.warn(`[AgentOrchestrator] Repair attempt ${retries} failed to improve content (${currentCriticalCount} critical error(s) vs best: ${bestCriticalCount}). Preserving best candidate draft.`);
+          }
+
           PipelineTelemetryService.getInstance().recordEvent({
             runId: this.telemetry.runId,
             stage: 'REVIEW',
@@ -1501,6 +1544,13 @@ Return only the schema-compliant structured object.`;
           });
 
           repairableIssues = getRepairableIssues(review);
+        }
+
+        // Monotonic Quality Guard: If the final repair attempt was worse than an earlier draft, restore bestDraft
+        if (content.bodyMarkdown !== bestDraft.bodyMarkdown) {
+          console.log(`[AgentOrchestrator] Restoring best candidate draft from repair history (critical errors: ${bestCriticalCount}).`);
+          content = { ...bestDraft };
+          review = bestReview;
         }
 
         // Determine final validation state:
@@ -2143,6 +2193,62 @@ ${blocksDesc}
 ============================================================`;
         }
 
+        const deliverableType = DeliverableContractValidator.detectDeliverableType(section.heading);
+        let deliverableGuidance = '';
+        if (deliverableType === 'AUDIT') {
+          deliverableGuidance = `
+
+=== SUBSTANTIVE DELIVERABLE CONTRACT (AUDIT) ===
+This section heading promises an AUDIT deliverable. You MUST fulfill all 5 requirements:
+1. Concrete Evaluation Criteria: Standards or heuristics applied (e.g. cognitive load, navigation clarity, form usability, error prevention).
+2. Specific Observations: Concrete interface elements evaluated (e.g. navigation menus, form fields, checkout steps, buttons, modals).
+3. Identified Friction Problems: Concrete friction points and failure modes (e.g. drop-off bottlenecks, confusing labels, high cognitive load).
+4. Impact & Consequence Analysis: Measurable or observable impact on users (e.g. increased abandonment, user hesitation, drop-off).
+5. Prioritized Corrective Actions: Clear, actionable fixes and remediation recommendations.
+STRICT BAN: DO NOT provide abstract filler like "structured review" or "transform opinions into a plan" without delivering these 5 concrete elements.
+================================================`;
+        } else if (deliverableType === 'COMPARISON') {
+          deliverableGuidance = `
+
+=== SUBSTANTIVE DELIVERABLE CONTRACT (COMPARISON) ===
+This section heading promises a COMPARISON deliverable. You MUST fulfill all 4 requirements:
+1. Explicit Alternatives: Clearly name and compare distinct options or approaches.
+2. Concrete Comparison Dimensions: Evaluate across dimensions such as cost, speed, depth, control, or complexity.
+3. Meaningful Trade-offs: Contrast genuine pros, cons, and compromises between options.
+4. Justified Decision Rule / Conclusion: Provide a clear decision framework specifying when to choose each alternative.
+====================================================`;
+        } else if (deliverableType === 'CHECKLIST') {
+          deliverableGuidance = `
+
+=== SUBSTANTIVE DELIVERABLE CONTRACT (CHECKLIST) ===
+This section heading promises a CHECKLIST deliverable. You MUST fulfill all 3 requirements:
+1. Structured List: Provide at least 3 distinct checklist items.
+2. Observable Verification Verbs: Each item MUST specify a concrete action (e.g., "Verify", "Ensure", "Check", "Confirm", "Validate", "Test", "Inspect").
+3. Actionable Implementation Criteria: Avoid vague advice like "be thorough". State the exact pass/fail condition to verify.
+===================================================`;
+        } else if (deliverableType === 'STRATEGY') {
+          deliverableGuidance = `
+
+=== SUBSTANTIVE DELIVERABLE CONTRACT (STRATEGY) ===
+This section heading promises a STRATEGY deliverable. You MUST fulfill all 4 requirements:
+1. Defined Objective: Clear operational target or purpose.
+2. Actionable Initiatives: Specific tactical initiatives or interventions.
+3. Phased Sequencing / Roadmap: Clear timeline or phased milestones (e.g., Phase 1, Phase 2, initial steps).
+4. Measurable Success Criteria: Concrete metrics or KPIs to track progress.
+STRICT PROHIBITION: Zero ungrounded commercial guarantees (e.g., no "guaranteed 40% conversion lift" or "guaranteed ROI").
+==================================================`;
+        } else if (deliverableType === 'CASE_STUDY') {
+          deliverableGuidance = `
+
+=== SUBSTANTIVE DELIVERABLE CONTRACT (CASE STUDY) ===
+This section heading promises a CASE STUDY / WORKED EXAMPLE. You MUST fulfill all 4 requirements:
+1. Identifiable Context: Clear operational context, baseline situation, or environment.
+2. Evidence or Explicit Assumptions: Grounded in evidence or explicitly labeled as an illustrative scenario (e.g., "For example, in a hypothetical store audit...").
+3. Specific Actions Taken: Concrete interventions or steps executed.
+4. Verified or Target Outcomes: Concrete results, measured changes, or expected outcomes.
+====================================================`;
+        }
+
         const prompt = `Write a clear, practical, and highly readable section for the article "${brief.title}".
 Section Heading: "${section.heading}" (Level: ${section.level})
 Section Position: ${i + 1} of ${brief.outline.length}
@@ -2150,7 +2256,7 @@ Canonical Primary Keyword: "${primaryKeyword}"
 Assigned Section Keywords: ${section.assignedKeywords?.length ? section.assignedKeywords.join(', ') : 'None specifically assigned (focus on section topic and supporting terms)'}
 ${this.supportingTerms.length > 0 ? `Available Supporting Terms (use naturally where relevant): ${this.supportingTerms.join(', ')}\n` : ''}Assigned Entities: ${section.assignedEntities?.join(', ') || ''}
 Core Concept: ${section.core_concept || ''}
-${this.internalLinks.length > 0 ? `Relevant Internal Links (integrate 1-2 naturally if relevant as markdown links [anchor text](url)): \n${this.internalLinks.slice(0, 5).join('\n')}\n` : ''}${compactOutlineContext}${previousSectionsContext}${assetInstructions}${intelligenceContext}${sectionEvidenceContext}${blockPlansContext}
+${this.internalLinks.length > 0 ? `Relevant Internal Links (integrate 1-2 naturally if relevant as markdown links [anchor text](url)): \n${this.internalLinks.slice(0, 5).join('\n')}\n` : ''}${compactOutlineContext}${previousSectionsContext}${assetInstructions}${intelligenceContext}${sectionEvidenceContext}${blockPlansContext}${deliverableGuidance}
 
 === 18 EDITORIAL WRITING & READABILITY CONTRACTS ===
 1. CANONICAL PRIMARY KEYWORD CONTRACT:
@@ -2199,6 +2305,8 @@ ${((assetType === 'COMPARISON' && (section.heading.toLowerCase().includes('compa
 === EDITORIAL QUALITY & STRUCTURE DIRECTIVES ===
 - Every outline section must have a distinct information goal. Answer the reader's main question early.
 - Avoid repeating explanations, definitions, or examples already covered in preceding sections or outlined in other sections.
+- NON-REPETITION: Do not recycle recommendations, opening framings, or concluding summaries from other sections. Each section must provide unique, actionable implementation guidance.
+- EVIDENCE GROUNDING ON STATISTICS: Never invent percentages, multipliers, or numerical metrics. If an empirical statistic is not provided in research evidence, explain the qualitative mechanism or explicitly qualify it as an illustrative example (e.g. "For example, in a hypothetical store..."). Absolute commercial guarantees (e.g. "guaranteed 40% conversion lift") are strictly prohibited.
 - Ensure transitions between sections are logical and purposeful without using formulaic bridge phrases or filler.
 - Prefer specific mechanisms, examples, concrete implementation steps, limitations, and operational decisions when supported by evidence.
 - Remove or avoid paragraphs that merely repeat an earlier benefit or rehash generic advantages.
@@ -2543,6 +2651,14 @@ ${verifiedContextPrompt}
    - When a list, table, or checklist is introduced, its corresponding items must follow immediately in the document structure. Never promise a checklist or resource that is absent.
    - Do NOT use mechanical paragraph rotation, filler sentences, or arbitrary fragments to manipulate rhythm.
    - Output only the requested repaired body without meta-commentary or validation claims.
+9. SUBSTANTIVE DELIVERABLES & ANTI-LOOPING CONTRACT (CRITICAL):
+   - Every section heading that promises an AUDIT must deliver concrete evaluation criteria, interface observations, identified friction points, impact analysis, and prioritized corrective actions.
+   - Every section heading that promises a COMPARISON must deliver explicit alternatives, comparison dimensions, meaningful trade-offs, and a justified conclusion.
+   - Every section heading that promises a CHECKLIST must deliver a structured list where items specify observable pass/fail checks and implementation guidance (no empty/obvious advice).
+   - Every section heading that promises a STRATEGY must deliver defined objectives, proposed actions, sequencing roadmap, and measurable success criteria without ungrounded absolute commercial guarantees.
+   - Every section heading that promises a CASE STUDY must deliver identifiable context, clearly labelled illustrative assumptions or verified evidence, specific actions taken, and verified outcomes.
+   - Eliminate recycled recommendations, repeated introductory openings, and duplicate concluding summaries across sections.
+   - If ungrounded statistics or metrics are mentioned, either ground them in research evidence or qualify them explicitly as illustrative examples (e.g. "For example, ...").
 
 ${hasTitleIssue ? `OPTIMIZED TITLE REQUIREMENT: Output an optimized short title (5-12 words, under 70 characters) containing the exact canonical primary keyword "${primaryKeyword}".` : ''}
 

@@ -8,6 +8,7 @@ import {
 } from '@/core/contracts/evidence';
 import { BusinessScale, SaaSProfile } from '@/core/contracts/schemas';
 import { TopicRelevanceValidator } from './TopicRelevanceValidator';
+import { DeliverableContractValidator } from './DeliverableContractValidator';
 
 export interface EditorialIntegrityIssue {
   type:
@@ -18,6 +19,7 @@ export interface EditorialIntegrityIssue {
     | 'FABRICATED_ATTRIBUTION'
     | 'UNVERIFIED_ATTRIBUTION'
     | 'UNSUPPORTED_NUMERICAL'
+    | 'UNSUPPORTED_GUARANTEE'
     | 'REPEATED_BOILERPLATE'
     | 'TOPIC_DRIFT'
     | 'HOLLOW_SECTION'
@@ -47,6 +49,7 @@ export interface EditorialIntegrityReport {
     fabricatedAttributionCount: number;
     unverifiedAttributionCount?: number;
     unsupportedNumericalCount: number;
+    unsupportedGuaranteeCount?: number;
     requiresReviewCount: number;
     topicDriftCount?: number;
     hollowSectionCount?: number;
@@ -56,6 +59,8 @@ export interface EditorialIntegrityReport {
     adjacentRepetitionCount?: number;
     imagePlaceholderCount?: number;
     positioningScaleMismatchCount?: number;
+    deliverableContractViolationCount?: number;
+    recycledRecommendationCount?: number;
   };
 }
 
@@ -234,6 +239,7 @@ export class EditorialIntegrityValidator {
     let fabricatedAttributionCount = 0;
     let unverifiedAttributionCount = 0;
     let unsupportedNumericalCount = 0;
+    let unsupportedGuaranteeCount = 0;
     let requiresReviewCount = 0;
     let topicDriftCount = 0;
     let hollowSectionCount = 0;
@@ -243,6 +249,8 @@ export class EditorialIntegrityValidator {
     let adjacentRepetitionCount = 0;
     let imagePlaceholderCount = 0;
     let positioningScaleMismatchCount = 0;
+    let deliverableContractViolationCount = 0;
+    let recycledRecommendationCount = 0;
 
     if (!markdown || !markdown.trim()) {
       return {
@@ -259,6 +267,7 @@ export class EditorialIntegrityValidator {
           fabricatedAttributionCount: 0,
           unverifiedAttributionCount: 0,
           unsupportedNumericalCount: 0,
+          unsupportedGuaranteeCount: 0,
           requiresReviewCount: 0,
           topicDriftCount: 0,
           hollowSectionCount: 0,
@@ -267,7 +276,9 @@ export class EditorialIntegrityValidator {
           duplicateHeadingCount: 0,
           adjacentRepetitionCount: 0,
           imagePlaceholderCount: 0,
-          positioningScaleMismatchCount: 0
+          positioningScaleMismatchCount: 0,
+          deliverableContractViolationCount: 0,
+          recycledRecommendationCount: 0
         }
       };
     }
@@ -530,6 +541,33 @@ export class EditorialIntegrityValidator {
         }
       }
 
+      // 8.2b Substantive Deliverable Contracts (Phase 6C.4)
+      const deliverableCheck = DeliverableContractValidator.validateSectionDeliverable(heading, body, {
+        evidenceSet: options?.evidenceSet
+      });
+      if (!deliverableCheck.passed) {
+        for (const issue of deliverableCheck.issues) {
+          if (issue.type === 'UNFULFILLED_HEADING_PROMISE') {
+            unfulfilledPromiseCount++;
+            deliverableContractViolationCount++;
+          } else if (issue.type === 'UNSUPPORTED_NUMERICAL') {
+            unsupportedNumericalCount++;
+          } else if (issue.type === 'UNSUPPORTED_GUARANTEE') {
+            unsupportedGuaranteeCount++;
+          }
+          criticalErrors.push(issue.message);
+          issues.push(issue);
+        }
+      }
+
+      // 8.2c Evidence Grounding on Numerical Statistics (Phase 6C.4)
+      const numericalIssues = DeliverableContractValidator.validateNumericalGrounding(heading, body, options?.evidenceSet);
+      for (const numIssue of numericalIssues) {
+        unsupportedNumericalCount++;
+        criticalErrors.push(numIssue.message);
+        issues.push(numIssue);
+      }
+
       // 8.3 Topic Drift in Section Heading and Prose
       if (effectiveKw) {
         const sectionFullText = heading + '\n' + body;
@@ -663,6 +701,18 @@ export class EditorialIntegrityValidator {
       }
     }
 
+    // 10b Anti-Repetition & Anti-Looping Across Sections (Phase 6C.4)
+    const repetitionIssues = DeliverableContractValidator.validateAntiRepetition(sectionsData);
+    for (const repIssue of repetitionIssues) {
+      if (repIssue.message.includes('Recycled Recommendation')) {
+        recycledRecommendationCount++;
+      } else {
+        adjacentRepetitionCount++;
+      }
+      criticalErrors.push(repIssue.message);
+      issues.push(repIssue);
+    }
+
     // 11. Positioning Scale Grounding Validation (Phase 6C.3)
     const effectiveScale = options?.businessScale || options?.saasProfile?.businessScale || 'UNKNOWN';
 
@@ -744,6 +794,7 @@ export class EditorialIntegrityValidator {
         fabricatedAttributionCount,
         unverifiedAttributionCount,
         unsupportedNumericalCount,
+        unsupportedGuaranteeCount,
         requiresReviewCount,
         topicDriftCount,
         hollowSectionCount,
@@ -752,7 +803,9 @@ export class EditorialIntegrityValidator {
         duplicateHeadingCount,
         adjacentRepetitionCount,
         imagePlaceholderCount,
-        positioningScaleMismatchCount
+        positioningScaleMismatchCount,
+        deliverableContractViolationCount,
+        recycledRecommendationCount
       }
     };
   }

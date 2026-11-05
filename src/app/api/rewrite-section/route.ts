@@ -66,7 +66,8 @@ Instruction: ${modeInstruction}
 Rules:
 - Return ONLY the body content in Markdown (no heading line)
 - Use bold, bullets, or short paragraphs as appropriate for scannability
-- Include a specific statistic, data point, or expert insight (E-E-A-T)
+- Ground all claims in verifiable facts or expert insights. Never fabricate ungrounded statistics or commercial guarantees. If illustrating a metric, explicitly qualify it as an example (e.g., 'for example, a hypothetical 10% lift')
+- Substantive Deliverables: If the heading promises an audit, comparison, checklist, strategy, or case study, you must fulfill that promise with concrete criteria, observations, actions, or metrics
 - Keep writing professional, authoritative, and engaging${scaleRule}`;
     } else if (selectedText) {
       prompt = `You are an expert content editor. Rewrite the selected portion of the following blog section.

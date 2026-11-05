@@ -165,11 +165,11 @@ export class ArticleExportService {
     warnings.push(...htmlValidation.warnings);
 
     // Validate raw markdown/content for editorial integrity & prompt leakage (Phase 6D)
-    const rawContent = input.bodyMarkdown || (typeof input.content === 'string' ? input.content : '');
-    if (rawContent && rawContent.trim().length > 0) {
+    const rawContent = (input.bodyMarkdown || (typeof input.content === 'string' ? input.content : '') || resolvedHtml).trim();
+    if (rawContent && rawContent.length > 0) {
       const integrity = EditorialIntegrityValidator.validateEditorialIntegrity(rawContent, {
         targetBrand: input.targetBrand || input.saasProfile?.name,
-        targetKeyword: input.metadata?.targetKeywords?.[0],
+        targetKeyword: input.targetKeyword || input.metadata?.targetKeywords?.[0],
         evidenceSet: input.evidenceSet,
         sectionEvidenceMaps: input.sectionEvidenceMaps,
         businessScale: input.saasProfile?.businessScale,

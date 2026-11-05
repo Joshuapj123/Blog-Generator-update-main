@@ -5,7 +5,7 @@ import { CanonicalClaim } from '@/core/contracts/evidence';
 export interface TargetedRepairRequest {
   title: string;
   bodyMarkdown: string;
-  targetDimension: 'readability' | 'semantic' | 'entity' | 'structure' | 'gap' | 'keyword_density' | 'all';
+  targetDimension: 'readability' | 'semantic' | 'entity' | 'structure' | 'gap' | 'keyword_density' | 'deliverable' | 'all';
   currentScore?: number;
   targetThreshold?: number;
   findings: string[];
@@ -151,6 +151,25 @@ SPECIFIC KEYWORD DENSITY ACTIONS REQUIRED:
 - Preserve all facts, statistics, entities, quotes, tables, and internal links intact.
 - Do NOT delete entire sections or paragraphs; prune or substitute keywords in-place.
 - Make the smallest surgical change necessary to normalize keyword frequency.`;
+    } else if (targetDimension === 'deliverable' || findings.some(f => f.toLowerCase().includes('deliverable') || f.toLowerCase().includes('checklist') || f.toLowerCase().includes('audit') || f.toLowerCase().includes('comparison') || f.toLowerCase().includes('strategy') || f.toLowerCase().includes('recycled recommendation') || f.toLowerCase().includes('unsupported statistic'))) {
+      dimensionInstructions = `=== TARGETED DELIVERABLE CONTRACT & ANTI-LOOPING REPAIR ===
+Your sole objective is to satisfy SUBSTANTIVE DELIVERABLE CONTRACTS and eliminate REPETITION:
+Reported issues:
+${findings.map(f => `• ${f}`).join('\n')}
+
+DELIVERABLE SPECIFICATIONS:
+- AUDIT: Must provide evaluation criteria, specific interface elements observed (navigation, forms, checkout, buttons), identified friction points, impact analysis, and prioritized corrective actions.
+- COMPARISON: Must provide explicit named alternatives, concrete comparison dimensions, meaningful trade-offs, and a justified conclusion/decision framework.
+- CHECKLIST: Must provide at least 3 structured checklist items with observable pass/fail verification verbs (verify, ensure, check, confirm, validate, test, inspect) and concrete guidance.
+- STRATEGY: Must provide defined objective, proposed actions, sequencing roadmap, and measurable success criteria. Zero ungrounded commercial guarantees.
+- CASE STUDY: Must provide identifiable context, clearly labelled illustrative assumptions or evidence, specific actions taken, and verified outcomes.
+- ANTI-LOOPING: Remove recycled recommendations or repetitive introductions/conclusions across sections.
+- NUMERICAL GROUNDING: If statistics are unsupported by research, qualify them as illustrative examples (e.g., 'for example, a hypothetical 10% lift') or replace with qualitative analysis.`;
+
+      strictPreservationRules = `=== PRESERVATION CONSTRAINTS ===
+- Keep ALL existing ## (H2) and ### (H3) section headings EXACTLY as they are.
+- Preserve verified facts, brand profile data, and existing tables.
+- Do NOT introduce ungrounded commercial guarantees.`;
     } else {
       // General targeted repair fallback
       dimensionInstructions = `=== TARGETED QUALITY REPAIR: ${targetDimension.toUpperCase()} ===
