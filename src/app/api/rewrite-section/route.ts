@@ -14,7 +14,15 @@ export async function POST(req: Request) {
       articleTitle = '',
       allHeadings = [] as string[],
       selectedText = '',
+      businessScale = 'UNKNOWN',
+      targetBrand = '',
     } = await req.json();
+
+    const scaleRule = businessScale === 'SOLO_PRACTITIONER'
+      ? `\n- BRAND SCALE GROUNDING: The business is an independent solo practitioner. Do NOT refer to it as "the agency", "the team", "our consultants", or multi-person departments. Use solo/practitioner phrasing ("the designer", "the consultant", "the specialist", "I").`
+      : businessScale === 'UNKNOWN'
+      ? `\n- BRAND SCALE GROUNDING: Business scale is unverified. Use neutral brand phrasing; do not invent agency or enterprise scale, departments, or headcount.`
+      : '';
 
     const model = google(process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite');
 
@@ -59,7 +67,7 @@ Rules:
 - Return ONLY the body content in Markdown (no heading line)
 - Use bold, bullets, or short paragraphs as appropriate for scannability
 - Include a specific statistic, data point, or expert insight (E-E-A-T)
-- Keep writing professional, authoritative, and engaging`;
+- Keep writing professional, authoritative, and engaging${scaleRule}`;
     } else if (selectedText) {
       prompt = `You are an expert content editor. Rewrite the selected portion of the following blog section.
 
@@ -77,7 +85,7 @@ Instruction: ${modeInstruction}
 Rules:
 - Keep Markdown formatting (bold, bullets, links if present) within the selected text.
 - Do NOT rewrite or include the full context, ONLY return the rewritten selected text.
-- Return ONLY the rewritten selection in Markdown, nothing else.`;
+- Return ONLY the rewritten selection in Markdown, nothing else.${scaleRule}`;
     } else {
       prompt = `You are an expert content editor. Rewrite the following blog section.
 
@@ -93,7 +101,7 @@ Rules:
 - Keep Markdown formatting (bold, bullets, links if present)
 - Do NOT repeat or include the heading
 - Return ONLY the rewritten body in Markdown, nothing else
-- Preserve any YouTube embed links or internal hyperlinks`;
+- Preserve any internal hyperlinks${scaleRule}`;
     }
 
     const result = await generateText({ model, prompt });

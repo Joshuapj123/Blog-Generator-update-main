@@ -6,6 +6,7 @@ import {
   ClaimSupportStatus,
   GroundingFailureCategory
 } from '@/core/contracts/evidence';
+import { BusinessScale, SaaSProfile } from '@/core/contracts/schemas';
 import { TopicRelevanceValidator } from './TopicRelevanceValidator';
 
 export interface EditorialIntegrityIssue {
@@ -24,7 +25,8 @@ export interface EditorialIntegrityIssue {
     | 'GENERIC_FILLER'
     | 'DUPLICATE_HEADING'
     | 'ADJACENT_SECTION_REPETITION'
-    | 'IMAGE_PLACEHOLDER';
+    | 'IMAGE_PLACEHOLDER'
+    | 'POSITIONING_SCALE_MISMATCH';
   severity: 'CRITICAL' | 'WARNING';
   message: string;
   matchedSnippet: string;
@@ -53,6 +55,7 @@ export interface EditorialIntegrityReport {
     duplicateHeadingCount?: number;
     adjacentRepetitionCount?: number;
     imagePlaceholderCount?: number;
+    positioningScaleMismatchCount?: number;
   };
 }
 
@@ -216,6 +219,8 @@ export class EditorialIntegrityValidator {
       targetBrand?: string;
       targetKeyword?: string;
       primaryKeyword?: string;
+      businessScale?: BusinessScale;
+      saasProfile?: SaaSProfile;
     }
   ): EditorialIntegrityReport {
     const criticalErrors: string[] = [];
@@ -237,6 +242,7 @@ export class EditorialIntegrityValidator {
     let duplicateHeadingCount = 0;
     let adjacentRepetitionCount = 0;
     let imagePlaceholderCount = 0;
+    let positioningScaleMismatchCount = 0;
 
     if (!markdown || !markdown.trim()) {
       return {
@@ -260,7 +266,8 @@ export class EditorialIntegrityValidator {
           fillerCount: 0,
           duplicateHeadingCount: 0,
           adjacentRepetitionCount: 0,
-          imagePlaceholderCount: 0
+          imagePlaceholderCount: 0,
+          positioningScaleMismatchCount: 0
         }
       };
     }
@@ -656,6 +663,70 @@ export class EditorialIntegrityValidator {
       }
     }
 
+    // 11. Positioning Scale Grounding Validation (Phase 6C.3)
+    const effectiveScale = options?.businessScale || options?.saasProfile?.businessScale || 'UNKNOWN';
+
+    if (effectiveScale === 'SOLO_PRACTITIONER') {
+      // Forbidden: claims attributing an agency, multi-person consulting team, or corporate departments to the business
+      const soloHallucinationPatterns = [
+        {
+          regex: /\b(?:our\s+agency(?:'s)?|at\s+our\s+agency|as\s+a\s+full-service\s+agency|an\s+agency\s+with\s+a\s+team)\b/i,
+          description: 'Agency structure attributed to a solo practitioner'
+        },
+        {
+          regex: /\b(?:(?:our|the)\s+team\s+of\s+(?:consultants|designers|experts|specialists|auditors|strategists)|our\s+multidisciplinary\s+team|our\s+staff\s+of\s+\d+|our\s+consulting\s+firm)\b/i,
+          description: 'Multi-person consulting team attributed to a solo practitioner'
+        },
+        {
+          regex: /\b(?:our\s+dedicated\s+departments?|our\s+in-house\s+team\s+of\s+(?:designers|consultants|specialists)|our\s+nationwide\s+organization)\b/i,
+          description: 'Departments or enterprise organization attributed to a solo practitioner'
+        }
+      ];
+
+      for (const pat of soloHallucinationPatterns) {
+        const match = textWithoutCode.match(pat.regex);
+        if (match) {
+          positioningScaleMismatchCount++;
+          const msg = `Positioning Scale Mismatch Alert: Detected ${pat.description} ("${match[0]}"). The business scale grounding contract forbids inventing agency, firm, or multi-person team structures for a solo practitioner.`;
+          criticalErrors.push(msg);
+          issues.push({
+            type: 'POSITIONING_SCALE_MISMATCH',
+            severity: 'CRITICAL',
+            message: msg,
+            matchedSnippet: match[0],
+            context: pat.description
+          });
+        }
+      }
+    } else if (effectiveScale === 'UNKNOWN') {
+      const unknownScaleExaggerationPatterns = [
+        {
+          regex: /\b(?:our\s+multinational\s+corporation|our\s+worldwide\s+(?:network\s+of\s+)?offices|our\s+enterprise\s+division\s+of\s+\d{3,})\b/i,
+          description: 'Enterprise scale invented for unverified business'
+        },
+        {
+          regex: /\b(?:our\s+agency\s+with\s+dedicated\s+departments|our\s+nationwide\s+organization)\b/i,
+          description: 'Agency department structure invented for unverified business'
+        }
+      ];
+
+      for (const pat of unknownScaleExaggerationPatterns) {
+        const match = textWithoutCode.match(pat.regex);
+        if (match) {
+          positioningScaleMismatchCount++;
+          const msg = `Positioning Scale Mismatch Alert: Detected ${pat.description} ("${match[0]}"). The business scale grounding contract forbids inventing enterprise or agency scale when business scale is UNKNOWN.`;
+          criticalErrors.push(msg);
+          issues.push({
+            type: 'POSITIONING_SCALE_MISMATCH',
+            severity: 'CRITICAL',
+            message: msg,
+            matchedSnippet: match[0],
+            context: pat.description
+          });
+        }
+      }
+    }
+
     const passed = criticalErrors.length === 0;
     const canExport = passed;
 
@@ -680,7 +751,8 @@ export class EditorialIntegrityValidator {
         fillerCount,
         duplicateHeadingCount,
         adjacentRepetitionCount,
-        imagePlaceholderCount
+        imagePlaceholderCount,
+        positioningScaleMismatchCount
       }
     };
   }

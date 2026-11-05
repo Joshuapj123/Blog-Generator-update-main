@@ -803,15 +803,21 @@ export class GenerationPipelineAdapter {
       section_outlines: sections.map(s => ({ heading: s.heading, level: s.level })),
       sections,
       cta: {
-        heading: (saasProfile?.businessType === 'Agency/Portfolio' || saasProfile?.businessType === 'Agency/Consultancy')
-          ? `Partner with ${saasProfile?.name || 'Our Team'}`
-          : `Ready to evaluate ${title}?`,
-        description: (saasProfile?.businessType === 'Agency/Portfolio' || saasProfile?.businessType === 'Agency/Consultancy') && saasProfile?.verifiedOfferings?.length
-          ? `Schedule an expert consultation covering ${saasProfile.verifiedOfferings.slice(0, 2).join(' and ')}.`
-          : (ctaStrategy || `Explore detailed implementation strategies and tailored workflows for your team.`),
-        button_text: (saasProfile?.businessType === 'Agency/Portfolio' || saasProfile?.businessType === 'Agency/Consultancy')
-          ? 'Contact Us'
-          : 'Get Started'
+        heading: (saasProfile?.businessScale === 'SOLO_PRACTITIONER')
+          ? `Work with ${saasProfile?.name || 'an Expert'}`
+          : (saasProfile?.businessType === 'Agency/Portfolio' || saasProfile?.businessType === 'Agency/Consultancy')
+            ? `Partner with ${saasProfile?.name || 'Our Team'}`
+            : `Ready to evaluate ${title}?`,
+        description: (saasProfile?.businessScale === 'SOLO_PRACTITIONER' && saasProfile?.verifiedOfferings?.length)
+          ? `Schedule a 1-on-1 consultation covering ${saasProfile.verifiedOfferings.slice(0, 2).join(' and ')}.`
+          : (saasProfile?.businessType === 'Agency/Portfolio' || saasProfile?.businessType === 'Agency/Consultancy') && saasProfile?.verifiedOfferings?.length
+            ? `Schedule an expert consultation covering ${saasProfile.verifiedOfferings.slice(0, 2).join(' and ')}.`
+            : (ctaStrategy || `Explore detailed implementation strategies and tailored workflows for your team.`),
+        button_text: (saasProfile?.businessScale === 'SOLO_PRACTITIONER')
+          ? 'Get in Touch'
+          : (saasProfile?.businessType === 'Agency/Portfolio' || saasProfile?.businessType === 'Agency/Consultancy')
+            ? 'Contact Us'
+            : 'Get Started'
       }
     };
   }

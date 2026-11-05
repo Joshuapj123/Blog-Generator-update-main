@@ -171,7 +171,9 @@ export class ArticleExportService {
         targetBrand: input.targetBrand || input.saasProfile?.name,
         targetKeyword: input.metadata?.targetKeywords?.[0],
         evidenceSet: input.evidenceSet,
-        sectionEvidenceMaps: input.sectionEvidenceMaps
+        sectionEvidenceMaps: input.sectionEvidenceMaps,
+        businessScale: input.saasProfile?.businessScale,
+        saasProfile: input.saasProfile
       });
       if (!integrity.passed) {
         for (const err of integrity.criticalErrors) {

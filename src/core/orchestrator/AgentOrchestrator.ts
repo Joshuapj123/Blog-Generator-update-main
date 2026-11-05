@@ -1989,6 +1989,7 @@ CRITICAL EVIDENCE ACCURACY RULES:
         const bType = (this.saasProfile?.businessType || '').toLowerCase();
         const category = ((this.saasProfile as any)?.category || '').toLowerCase();
         const desc = (this.saasProfile?.description || '').toLowerCase();
+        const scale = this.saasProfile?.businessScale || 'UNKNOWN';
 
         const isAgencyOrConsultancy = bType.includes('agency') || bType.includes('services') || bType.includes('portfolio') || category.includes('consultan') || category.includes('agency');
         const isLegal = bType.includes('legal') || category.includes('legal') || desc.includes('law firm') || desc.includes('attorney') || desc.includes('legal');
@@ -1998,27 +1999,48 @@ CRITICAL EVIDENCE ACCURACY RULES:
         const isSaaS = bType === 'saas' || category.includes('saas') || category.includes('software');
 
         let terminologyGuidance = '';
-        if (isAgencyOrConsultancy) {
-          terminologyGuidance = `- Use natural phrasing suited for a professional agency, studio, or consultancy: "the agency", "the team", "the consultants", "the practice", or the specific verified service name.
-   - STRICT BAN: DO NOT refer to this organization as "the platform", "the software", "the tool", "the CRM", or "the system".`;
+        if (scale === 'SOLO_PRACTITIONER') {
+          terminologyGuidance = `- BRAND SCALE & POSITIONING CONTRACT (SOLO PRACTITIONER - CRITICAL):
+    - Grounding evidence: ${this.targetBrand || 'The business'} operates as an independent solo practitioner / specialist.
+    - STRICT PROHIBITION: DO NOT refer to this business as "the agency", "the firm", "the team", "the consultants", "our departments", or "a multidisciplinary team". Never invent employees, partners, or organizational headcount.
+    - Approved terminology: Use solo/practitioner phrasing: "the designer", "the consultant", "the specialist", "the practitioner", "I", or direct brand name "${this.targetBrand || 'the brand'}".
+    - STRICT BAN: DO NOT refer to this entity as "the platform", "the software", "the tool", "the CRM", or "the system" unless verified software.`;
+        } else if (scale === 'SMALL_TEAM') {
+          terminologyGuidance = `- BRAND SCALE & POSITIONING CONTRACT (SMALL TEAM):
+    - Grounding evidence: Verified small team. Describe the team's verified focus and services accurately.
+    - STRICT PROHIBITION: DO NOT exaggerate to global enterprise, multinational departments, or large agency scale.
+    - Approved terminology: "the team", "the studio", "the specialists", or "${this.targetBrand || 'the brand'}".
+    - STRICT BAN: DO NOT refer to this organization as "the platform", "the software", "the tool", or "the CRM" unless verified software.`;
+        } else if (scale === 'ENTERPRISE') {
+          terminologyGuidance = `- BRAND SCALE & POSITIONING CONTRACT (ENTERPRISE):
+    - Grounding evidence: Verified enterprise organization.
+    - Approved terminology: "the enterprise", "the organization", "the company", or "${this.targetBrand || 'the brand'}".`;
+        } else if (scale === 'AGENCY') {
+          terminologyGuidance = `- BRAND SCALE & POSITIONING CONTRACT (AGENCY):
+    - Grounding evidence: Verified agency/consultancy with multi-person client delivery structure.
+    - Approved terminology: "the agency", "the practice", "the team", "the consultants", or "${this.targetBrand || 'the brand'}".
+    - STRICT BAN: DO NOT refer to this organization as "the platform", "the software", "the tool", "the CRM", or "the system" unless verified software.`;
         } else if (isLegal) {
-          terminologyGuidance = `- Use phrasing suited for a professional legal practice: "the firm", "the legal practice", "the attorneys", "the counsel", "the legal team".
-   - STRICT BAN: DO NOT refer to this organization as "the software", "the platform", "the tool", or "the SaaS".`;
+          terminologyGuidance = `- Use phrasing suited for a professional legal practice: "the firm", "the legal practice", "the attorneys", "the counsel".
+    - STRICT BAN: DO NOT refer to this organization as "the software", "the platform", "the tool", or "the SaaS".`;
         } else if (isIndustrial) {
-          terminologyGuidance = `- Use phrasing suited for industrial manufacturing or production: "the manufacturer", "the facility", "the producer", "the supplier", "the engineering team".
-   - STRICT BAN: DO NOT refer to this organization as "the platform", "the app", "the software", or "the CRM" unless explicitly verified industrial IoT software.`;
+          terminologyGuidance = `- Use phrasing suited for industrial manufacturing or production: "the manufacturer", "the facility", "the producer", "the supplier".
+    - STRICT BAN: DO NOT refer to this organization as "the platform", "the app", "the software", or "the CRM" unless explicitly verified industrial IoT software.`;
         } else if (isMarketplace) {
           terminologyGuidance = `- Use phrasing suited for a marketplace or directory: "the marketplace", "the network", "the directory", "the exchange", "the platform".
-   - DO NOT refer to it as a single-vendor SaaS tool or an agency.`;
+    - DO NOT refer to it as a single-vendor SaaS tool or an agency.`;
         } else if (isEcommerce) {
           terminologyGuidance = `- Use phrasing suited for retail/commerce: "the store", "the company", "the brand".
-   - DO NOT refer to it as a software platform, CRM, or agency.`;
+    - DO NOT refer to it as a software platform, CRM, or agency.`;
         } else if (isSaaS) {
           terminologyGuidance = `- Use natural phrasing suited for a software product: "the platform", "the software", or "the solution" only when supported by verified profile capabilities.
-   - DO NOT refer to it as "the CRM" unless the profile explicitly verifies CRM functionality.`;
+    - DO NOT refer to it as "the CRM" unless the profile explicitly verifies CRM functionality.`;
         } else {
-          terminologyGuidance = `- Use neutral terminology: "the organization", "the company", "the team", or "the brand".
-   - DO NOT assume or assert that it is a software product, platform, CRM, or tool without verified evidence.`;
+          terminologyGuidance = `- BRAND SCALE & POSITIONING CONTRACT (SCALE UNKNOWN - NEUTRAL):
+    - Grounding evidence: Business scale is unverified / unknown.
+    - STRICT PROHIBITION: DO NOT invent or assume an organizational scale. Never invent employee counts, departments, office locations, or agency structures. Do not assume or assert that it is an agency, an enterprise, or a multi-department team.
+    - Approved terminology: Use neutral brand phrasing: "the organization", "the company", "the brand", or "${this.targetBrand || 'the brand'}".
+    - DO NOT assume or assert that it is a software product, platform, CRM, or tool without verified evidence.`;
         }
 
         let tacticalGuidance = '';
@@ -2474,10 +2496,14 @@ WORD BUDGET:
       .join('\n');
 
     let verifiedContextPrompt = '';
-    if (verifiedOfferingsList || verifiedFeaturesList) {
+    const scale = this.saasProfile?.businessScale || 'UNKNOWN';
+    const scaleEvidence = this.saasProfile?.businessScaleEvidence ? ` (Evidence: ${this.saasProfile.businessScaleEvidence})` : '';
+
+    if (verifiedOfferingsList || verifiedFeaturesList || scale !== 'UNKNOWN') {
       verifiedContextPrompt = `
-=== VERIFIED BRAND OFFERINGS & CAPABILITIES ===
-${verifiedOfferingsList ? `Verified Offerings:\n${verifiedOfferingsList}\n` : ''}${verifiedFeaturesList ? `Verified Target Facts:\n${verifiedFeaturesList}\n` : ''}Only attribute capabilities and offerings supported by the verified facts above. Never invent unverified services, features, or deliverables.
+=== VERIFIED BRAND OFFERINGS & SCALE GROUNDING ===
+Business Scale: ${scale}${scaleEvidence}
+${scale === 'SOLO_PRACTITIONER' ? 'STRICT SCALE RULE: The business is a verified solo practitioner. NEVER refer to it as "the agency", "the team", "our consultants", "our departments", or an organization with employees. Use solo/practitioner phrasing ("the designer", "the consultant", "the specialist", "I", or the brand name).\n' : ''}${scale === 'UNKNOWN' ? 'SCALE RULE: Business scale is unverified. Use neutral brand phrasing; do not invent agency or enterprise scale, departments, or headcount.\n' : ''}${verifiedOfferingsList ? `Verified Offerings:\n${verifiedOfferingsList}\n` : ''}${verifiedFeaturesList ? `Verified Target Facts:\n${verifiedFeaturesList}\n` : ''}Only attribute capabilities and offerings supported by the verified facts above. Never invent unverified services, features, or deliverables.
 `;
     }
 

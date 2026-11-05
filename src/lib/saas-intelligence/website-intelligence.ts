@@ -3,7 +3,7 @@ import { cleanHtmlContent } from '../seo-intelligence/content_cleaner';
 import { GeminiProvider } from '../content/GeminiProvider';
 import { DryRunLLMProvider } from '../core/GenerationPipelineAdapter';
 import { verifyUrlSafety } from '../research/url-verifier';
-import { SaaSProfileSchema, SaaSProfile } from '@/core/contracts/schemas';
+import { SaaSProfileSchema, SaaSProfile, BusinessScale } from '@/core/contracts/schemas';
 import { LLMProvider } from '@/core/contracts/providers';
 import { PipelineTelemetryService } from '@/lib/observability/PipelineTelemetryService';
 import { z } from 'zod';
@@ -149,14 +149,14 @@ export class WebsiteIntelligenceService {
     // Safeguard 1: If extracted text is suspiciously small (< 40 chars), fall back to raw JSDOM text without pruning
     if (cleanedText.length < 40) {
       console.log(`[website-intelligence] Safe homepage DOM extracted text is too short (${cleanedText.length} chars). Running Strategy 2 (raw DOM text without pruning)...`);
-      
+
       const dom2 = new JSDOM(cleanHtml, { url });
       const doc2 = dom2.window.document;
       // Prune only script/style/svg/iframe tags
       doc2.querySelectorAll('script, style, noscript, svg, iframe').forEach(el => el.remove());
       const rawText = doc2.body?.textContent || '';
       const cleanedRawText = rawText.replace(/\s+/g, ' ').trim();
-      
+
       if (cleanedRawText.length > cleanedText.length) {
         cleanedText = cleanedRawText;
       }
@@ -174,7 +174,7 @@ export class WebsiteIntelligenceService {
     if (metaHeader) {
       cleanedText = `${metaHeader}\n\n${cleanedText}`.trim();
     }
-    
+
     return cleanedText;
   }
 
@@ -238,6 +238,8 @@ export class WebsiteIntelligenceService {
         canonicalUrl: safety.normalizedUrl || url,
         description: `${brandName} website (unreadable content).`,
         businessType: 'UNKNOWN',
+        businessScale: 'UNKNOWN',
+        businessScaleEvidence: 'Unreadable or failed crawl content',
         verifiedOfferings: [],
         keyFeatures: [],
         identityConfidence: 'LOW',
@@ -300,6 +302,8 @@ export class WebsiteIntelligenceService {
         canonicalUrl: canonicalUrl,
         description: fallbackDesc,
         businessType: detected.businessType,
+        businessScale: detected.businessScale || 'UNKNOWN',
+        businessScaleEvidence: detected.businessScaleEvidence,
         verifiedOfferings: detected.verifiedOfferings, // only offerings in text; empty if none
         identityConfidence: 'LOW',
         keyFeatures: detected.verifiedOfferings,
@@ -356,9 +360,10 @@ Generate a structured business profile matching the requested schema.
 CRITICAL ARCHETYPE & OFFERING ACCURACY:
 1. Accurately identify the businessType: 'SaaS' (software product/tool/app), 'Agency/Portfolio' (design studio, consultancy, freelancer, agency, portfolio), 'Ecommerce' (online store selling physical goods), 'Publisher/Blog' (media/content site), 'Services' (professional service provider), or 'Other'.
 2. DO NOT classify consultancies, design studios, agencies, or individual portfolios as 'SaaS' or software platforms!
-3. Populate verifiedOfferings with concrete, explicit services or capabilities mentioned in the text (e.g. ['UX Audits', 'Onboarding Redesign']).
-4. Set identityConfidence to 'HIGH' if the archetype is clearly stated, 'MEDIUM' if inferred, or 'LOW' if ambiguous.
-5. Ensure keyFeatures reflects their actual services or capabilities, and name is the actual business name.`;
+3. Accurately identify businessScale: 'SOLO_PRACTITIONER' (independent consultant, solo designer, freelance portfolio, single practitioner), 'SMALL_TEAM' (verified small team 2-15 people), 'AGENCY' (verified multi-person client agency), 'ENTERPRISE' (large enterprise / corporate), or 'UNKNOWN' (if ambiguous or unverified). CRITICAL: Never assume agency or team scale merely from plural marketing copy ('we', 'our') or multiple services. If evidence is ambiguous or unverified, use 'UNKNOWN'.
+4. Populate verifiedOfferings with concrete, explicit services or capabilities mentioned in the text (e.g. ['UX Audits', 'Onboarding Redesign']).
+5. Set identityConfidence to 'HIGH' if the archetype is clearly stated, 'MEDIUM' if inferred, or 'LOW' if ambiguous.
+6. Ensure keyFeatures reflects their actual services or capabilities, and name is the actual business name.`;
 
     const profile = await this.llm.structuredGenerate<SaaSProfile>(profilePrompt, SaaSProfileSchema, {
       operation: 'URL Profile Extraction',
@@ -371,6 +376,11 @@ CRITICAL ARCHETYPE & OFFERING ACCURACY:
     profile.crawlStatus = 'SUCCESS';
     profile.extractedTextLength = cleanedText.length;
     profile.targetExcerpts = targetExcerpts;
+
+    // Ground business scale with evidence-driven detector
+    const scaleDetection = detectBusinessScaleFromText(cleanedText, profile.businessScale);
+    profile.businessScale = scaleDetection.businessScale;
+    profile.businessScaleEvidence = scaleDetection.businessScaleEvidence;
 
     PipelineTelemetryService.getInstance().recordEvent({
       runId: runId || `crawl_${Date.now()}`,
@@ -460,7 +470,7 @@ CRITICAL DIVERSIFICATION RULES:
     const clusterAnalysis = detectSemanticCluster(candidateKeywords, profile);
     if (clusterAnalysis.isConcentrated && clusterAnalysis.dominantStem) {
       console.warn(`[website-intelligence] Secondary cluster dominance detected: "${clusterAnalysis.dominantStem}" (${clusterAnalysis.dominantCount}/${clusterAnalysis.totalCount} keywords). Attempting rebalancing...`);
-      
+
       try {
         const rebalancePrompt = `The previous SEO candidate keywords were overly concentrated on the secondary feature "${clusterAnalysis.dominantStem}" (${clusterAnalysis.dominantCount} of ${clusterAnalysis.totalCount} keywords).
 Regenerate 4 to 6 target SEO keywords for "${profile.name}".
@@ -477,7 +487,7 @@ MANDATORY REBALANCING RULES:
           runId,
           systemInstruction: 'Output a valid JSON containing 4-6 balanced lowercase keyword strings.'
         });
-        
+
         if (rebalancedResult.keywords && rebalancedResult.keywords.length >= 4) {
           candidateKeywords = rebalancedResult.keywords;
         }
@@ -669,10 +679,112 @@ export function enforceKeywordDiversification(
   };
 }
 
-export function detectBusinessTypeFromTextAndUrl(text: string, url: string): {
+/**
+ * Phase 6C.3 Grounding Contract: Detect business scale strictly from explicit evidence.
+ *
+ * Critical Rules:
+ * 1. Never classify a business based only on its name.
+ * 2. Never classify a business as an agency merely because it offers multiple services.
+ * 3. Never interpret plural wording ("we", "our", "us") as sufficient proof of a team.
+ * 4. Never invent employee counts, office locations, departments, clients, or operational capacity.
+ * 5. If evidence is insufficient, preserve UNKNOWN.
+ * 6. Explicit user-provided profile information takes precedence over weak contextual assumptions.
+ * 7. Existing user profiles without scale information must continue working.
+ * 8. Do not silently convert unknown business scale into an agency or enterprise classification.
+ */
+export function detectBusinessScaleFromText(
+  text: string,
+  explicitScale?: BusinessScale
+): {
+  businessScale: BusinessScale;
+  businessScaleEvidence?: string;
+} {
+  // Rule 6: Explicit user-provided profile information takes precedence
+  if (explicitScale && explicitScale !== 'UNKNOWN') {
+    return {
+      businessScale: explicitScale,
+      businessScaleEvidence: 'Explicitly configured in business profile'
+    };
+  }
+
+  if (!text || !text.trim()) {
+    return {
+      businessScale: 'UNKNOWN',
+      businessScaleEvidence: 'No text content available for business scale evaluation'
+    };
+  }
+
+  // 1. Enterprise scale signals: verified enterprise evidence
+  // (e.g. Fortune 500, publicly traded, > 1,000 employees, multinational corporate entity)
+  const enterpriseRegex = /\b(?:fortune\s+(?:500|1000)|publicly\s+traded|nasdaq\s*:|nyse\s*:|(?:over|more\s+than)\s+\d{3,}\s+employees|multinational\s+corporation|global\s+enterprise\s+with\s+offices\s+in\s+\d+\s+countries)\b/i;
+  const enterpriseMatch = text.match(enterpriseRegex);
+  if (enterpriseMatch) {
+    return {
+      businessScale: 'ENTERPRISE',
+      businessScaleEvidence: `Verified enterprise evidence: "${enterpriseMatch[0]}"`
+    };
+  }
+
+  // 2. Solo practitioner signals: explicit first-person / solo markers
+  // (e.g., "I am", "I'm", "about me", "hire me", "my work", "independent designer", "solo practitioner", "freelance designer", "freelancer", single person bio)
+  const soloRegex = /\b(?:i\s+am\s+(?:an?\s+)?(?:independent|freelance|solo)|i['’]m\s+(?:an?\s+)?(?:independent|freelance|solo)|(?:about|hire)\s+me|independent\s+(?:designer|consultant|contractor|practitioner|specialist)|solo\s+practitioner|freelance\s+(?:designer|consultant|developer|writer)|freelancer|sole\s+proprietor|single-founder)\b/i;
+  const soloBioRegex = /\b(?:hi,?|hello,?)?\s*i['’]m\s+([A-Z][a-z]+)\b/i;
+
+  const soloMatch = text.match(soloRegex) || text.match(soloBioRegex);
+
+  // 3. Small team signals: explicit small team headcount / co-founders
+  const smallTeamRegex = /\b(?:(?:small|boutique|core)\s+team\s+of\s+([2-9]|1[0-5])|team\s+of\s+([2-9]|1[0-5])\s+(?:designers|engineers|specialists|consultants|people)|co-founded\s+by\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?\s+and\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?|co-founders?\s*:\s*[A-Z][a-z]+)\b/i;
+  const smallTeamMatch = text.match(smallTeamRegex);
+
+  // 4. Agency signals: verified multi-person agency structure
+  // CRITICAL (Rules 1, 2, 3): Never classify as agency solely from domain (.agency), brand name,
+  // multiple services, or generic plural pronouns ("we", "our"). Must have verified multi-person agency evidence.
+  const agencyExplicitRegex = /\b(?:full-service\s+agency\s+with\s+departments|agency\s+team\s+of\s+\d+|roster\s+of\s+\d+\s+consultants|our\s+agency\s+staff\s+of\s+\d+)\b/i;
+  const agencyMatch = text.match(agencyExplicitRegex);
+
+  // Evaluation:
+  if (soloMatch && !smallTeamMatch && !agencyMatch) {
+    return {
+      businessScale: 'SOLO_PRACTITIONER',
+      businessScaleEvidence: `Verified solo practitioner evidence: "${soloMatch[0]}"`
+    };
+  }
+
+  // Conflicting signals handling (Rule 6 & Rule 7):
+  if (soloMatch && smallTeamMatch) {
+    return {
+      businessScale: 'SOLO_PRACTITIONER',
+      businessScaleEvidence: `Resolved solo practitioner based on direct founder statement: "${soloMatch[0]}"`
+    };
+  }
+
+  if (smallTeamMatch) {
+    return {
+      businessScale: 'SMALL_TEAM',
+      businessScaleEvidence: `Verified small team evidence: "${smallTeamMatch[0]}"`
+    };
+  }
+
+  if (agencyMatch) {
+    return {
+      businessScale: 'AGENCY',
+      businessScaleEvidence: `Verified agency structure: "${agencyMatch[0]}"`
+    };
+  }
+
+  // Rule 5: If evidence is insufficient, preserve UNKNOWN.
+  return {
+    businessScale: 'UNKNOWN',
+    businessScaleEvidence: 'Insufficient evidence to ground specific business scale; preserved UNKNOWN'
+  };
+}
+
+export function detectBusinessTypeFromTextAndUrl(text: string, url: string, explicitScale?: BusinessScale): {
   businessType: 'SaaS' | 'Agency/Portfolio' | 'Ecommerce' | 'Publisher/Blog' | 'Services' | 'Other' | 'UNKNOWN';
   verifiedOfferings: string[];
   identityConfidence: 'HIGH' | 'MEDIUM' | 'LOW';
+  businessScale: BusinessScale;
+  businessScaleEvidence?: string;
 } {
   const lowerText = text.toLowerCase();
   let parsedUrl: URL | null = null;
@@ -681,6 +793,7 @@ export function detectBusinessTypeFromTextAndUrl(text: string, url: string): {
   } catch {}
 
   const hostname = (parsedUrl?.hostname || '').toLowerCase();
+  const scaleResult = detectBusinessScaleFromText(text, explicitScale);
 
   // Agency/Portfolio domain signals
   const isAgencyDomain = hostname.endsWith('.design') ||
@@ -719,7 +832,9 @@ export function detectBusinessTypeFromTextAndUrl(text: string, url: string): {
     return {
       businessType: 'Agency/Portfolio',
       verifiedOfferings,
-      identityConfidence: matchedAgencyKeywords.length >= 2 ? 'HIGH' : 'MEDIUM'
+      identityConfidence: matchedAgencyKeywords.length >= 2 ? 'HIGH' : 'MEDIUM',
+      businessScale: scaleResult.businessScale,
+      businessScaleEvidence: scaleResult.businessScaleEvidence
     };
   }
 
@@ -728,7 +843,9 @@ export function detectBusinessTypeFromTextAndUrl(text: string, url: string): {
     return {
       businessType: 'Agency/Portfolio',
       verifiedOfferings, // only populated if verified in text; otherwise empty
-      identityConfidence: verifiedOfferings.length > 0 ? 'MEDIUM' : 'LOW'
+      identityConfidence: verifiedOfferings.length > 0 ? 'MEDIUM' : 'LOW',
+      businessScale: scaleResult.businessScale,
+      businessScaleEvidence: scaleResult.businessScaleEvidence
     };
   }
 
@@ -737,7 +854,9 @@ export function detectBusinessTypeFromTextAndUrl(text: string, url: string): {
     return {
       businessType: 'Ecommerce',
       verifiedOfferings: ['Online Retail'],
-      identityConfidence: 'HIGH'
+      identityConfidence: 'HIGH',
+      businessScale: scaleResult.businessScale,
+      businessScaleEvidence: scaleResult.businessScaleEvidence
     };
   }
 
@@ -746,7 +865,9 @@ export function detectBusinessTypeFromTextAndUrl(text: string, url: string): {
     return {
       businessType: 'SaaS',
       verifiedOfferings: [],
-      identityConfidence: matchedSaasKeywords.length >= 2 ? 'HIGH' : 'MEDIUM'
+      identityConfidence: matchedSaasKeywords.length >= 2 ? 'HIGH' : 'MEDIUM',
+      businessScale: scaleResult.businessScale,
+      businessScaleEvidence: scaleResult.businessScaleEvidence
     };
   }
 
@@ -754,7 +875,9 @@ export function detectBusinessTypeFromTextAndUrl(text: string, url: string): {
   return {
     businessType: 'UNKNOWN',
     verifiedOfferings: [],
-    identityConfidence: 'LOW'
+    identityConfidence: 'LOW',
+    businessScale: scaleResult.businessScale,
+    businessScaleEvidence: scaleResult.businessScaleEvidence
   };
 }
 

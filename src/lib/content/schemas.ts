@@ -6,6 +6,8 @@ import {
   OutlineNode,
   SearchIntentSchema,
   SaaSProfile,
+  BusinessScaleSchema,
+  BusinessScale,
   ContentBlockRoleSchema,
   ContentBlockRole,
   ContentBlockModeSchema,
@@ -80,6 +82,7 @@ export type {
   BoundaryVerificationOptions
 };
 export {
+  BusinessScaleSchema,
   ContentBriefSchema,
   ContentAssetSchema,
   OutlineNodeSchema,

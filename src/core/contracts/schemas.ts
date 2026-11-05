@@ -1,6 +1,15 @@
 import { z } from 'zod';
 
-// 1. SaaSProfile Schema
+// 1. BusinessScale & SaaSProfile Schema
+export const BusinessScaleSchema = z.enum([
+  'SOLO_PRACTITIONER',
+  'SMALL_TEAM',
+  'AGENCY',
+  'ENTERPRISE',
+  'UNKNOWN'
+]);
+export type BusinessScale = z.infer<typeof BusinessScaleSchema>;
+
 export const SaaSProfileSchema = z.object({
   name: z.string().min(1, 'SaaS Name is required'),
   description: z.string().min(1, 'SaaS Description is required'),
@@ -11,6 +20,8 @@ export const SaaSProfileSchema = z.object({
   tone: z.string().optional().default('professional'),
   customInsights: z.string().optional().default(''),
   businessType: z.enum(['SaaS', 'Agency/Portfolio', 'Ecommerce', 'Publisher/Blog', 'Services', 'Other', 'UNKNOWN']).optional(),
+  businessScale: BusinessScaleSchema.optional(),
+  businessScaleEvidence: z.string().optional(),
   verifiedOfferings: z.array(z.string()).optional(),
   evidenceSources: z.array(z.object({ type: z.string(), value: z.string() })).optional(),
   identityConfidence: z.enum(['HIGH', 'MEDIUM', 'LOW']).optional(),

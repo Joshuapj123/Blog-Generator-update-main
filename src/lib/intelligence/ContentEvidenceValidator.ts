@@ -918,8 +918,12 @@ export class ContentEvidenceValidator {
       criticalErrors.push(`Article Completeness Alert: Incomplete placeholder text detected in HTML: ${uniquePlaceholders.slice(0, 3).map(p => `"${p}"`).join(', ')}.`);
     }
 
-    // 1.1 Editorial Integrity & Prompt Leakage Check in HTML (Phase 6D)
-    const integrityReport = EditorialIntegrityValidator.validateEditorialIntegrity(html, { targetBrand });
+    // 1.1 Editorial Integrity & Prompt Leakage Check in HTML (Phase 6D & 6C.3)
+    const integrityReport = EditorialIntegrityValidator.validateEditorialIntegrity(html, {
+      targetBrand,
+      businessScale: saasProfile?.businessScale,
+      saasProfile
+    });
     if (!integrityReport.passed) {
       for (const err of integrityReport.criticalErrors) {
         if (!criticalErrors.includes(err)) {
