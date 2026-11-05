@@ -294,11 +294,7 @@ export function useGenerationPipeline() {
         if (sec.outbound_authority_link?.resolved_url && /^https?:\/\//i.test(sec.outbound_authority_link.resolved_url.trim())) {
           lines.push(`📎 [${sec.outbound_authority_link.resolved_title || 'Source'}](${sec.outbound_authority_link.resolved_url.trim()})\n`);
         }
-        const vidId = String(sec.rich_media_query?.youtube_video_id || '').trim();
-        if (/^[a-zA-Z0-9_-]{11}$/.test(vidId)) {
-          const vid = sec.rich_media_query;
-          lines.push(`🎬 **YouTube Reference:** [${vid?.suggested_search_query || 'Watch Video'}](https://www.youtube.com/watch?v=${vidId})\n`);
-        }
+        // Phase 6C.2: Automatic YouTube markdown insertion permanently eliminated
         return lines.join('\n');
       }).join('\n\n');
       

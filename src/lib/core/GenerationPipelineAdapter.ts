@@ -524,23 +524,8 @@ export class GenerationPipelineAdapter {
       }
     }
 
-    // 8. Trigger YouTube media fetching helper if key exists and not in dry-run
-    const youtubeKey = process.env.YOUTUBE_API_KEY;
-    if (!dryRunEnabled && youtubeKey && finalArticle.sections) {
-      console.log('[Adapter] Fetching YouTube media for sections...');
-      for (const section of finalArticle.sections) {
-        const query = section.heading;
-        const videoId = await this.fetchYouTubeVideo(query, youtubeKey);
-        if (videoId && /^[a-zA-Z0-9_-]{11}$/.test(videoId.trim())) {
-          section.rich_media_query = {
-            type: 'youtube',
-            suggested_search_query: query,
-            alt_text: `YouTube video on ${query}`,
-            youtube_video_id: videoId.trim()
-          };
-        }
-      }
-    }
+    // 8. Phase 6C.2: Automatic YouTube media discovery permanently eliminated per editorial quality policy.
+    // Unapproved video references are never automatically queried or attached to section metadata.
 
     // 9. Persist to My Content (Firestore "articles" collection)
     const idempotentArticleId = payload.articleId || `art_${runId.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
@@ -831,25 +816,6 @@ export class GenerationPipelineAdapter {
     };
   }
 
-  private static async fetchYouTubeVideo(query: string, apiKey: string): Promise<string | null> {
-    try {
-      const params = new URLSearchParams({
-        part: 'snippet',
-        q: query,
-        type: 'video',
-        maxResults: '3',
-        relevanceLanguage: 'en',
-        key: apiKey,
-      });
-      const res = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`);
-      if (!res.ok) return null;
-      const data = await res.json();
-      return data.items?.[0]?.id?.videoId ?? null;
-    } catch (e) {
-      console.warn('YouTube search fetch failed:', e);
-      return null;
-    }
-  }
 
   public static sanitizeOrchestrationError(e: OrchestrationError | any, stageOverride?: AgentStage | string): string {
     const rawMsg = (typeof e === 'string' ? e : e?.message) || '';

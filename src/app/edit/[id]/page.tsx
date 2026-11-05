@@ -9,7 +9,6 @@ import { Loader2, ArrowLeft, Save, Sparkles, Download, ChevronUp, ChevronDown, C
 import Link from 'next/link';
 import { InlineEditableText } from '@/components/InlineEditableText';
 import { toMarkdown, toHtml, toPlainText, triggerDownload, slugify, renderMarkdown } from '@/lib/article-utils';
-import { YouTubeEmbed } from '@/components/SectionEditor';
 import { DownloadMenu } from '@/app/(main)/engine/components/DownloadMenu';
 
 interface ResolvedArticleData {
@@ -431,30 +430,7 @@ export default function EditPage({ params }: { params: Promise<{ id: string }> }
                             </div>
                         </div>
 
-                        {/* YouTube */}
-                        {sec.rich_media_query && (
-                            <div className="rounded-xl border border-blue-200 overflow-hidden">
-                            <div className="px-4 py-2.5 bg-gradient-to-r from-primary to-accent flex items-center gap-2">
-                                <span className="text-white text-xs">▶</span>
-                                <span className="text-white text-xs font-bold uppercase tracking-wider">YouTube Reference</span>
-                                <span className="ml-auto text-white/70 text-[10px] italic truncate max-w-[60%]">{sec.rich_media_query.suggested_search_query}</span>
-                            </div>
-                            {sec.rich_media_query.youtube_video_id && (
-                                <YouTubeEmbed
-                                    href={`https://www.youtube.com/watch?v=${sec.rich_media_query.youtube_video_id}`}
-                                    onUpdateUrl={(_oldUrl, newUrl) => {
-                                        try {
-                                            const newId = new URL(newUrl).searchParams.get('v') || '';
-                                            updateSectionField(index, 'rich_media_query', {
-                                                ...sec.rich_media_query,
-                                                youtube_video_id: newId,
-                                            });
-                                        } catch {}
-                                    }}
-                                />
-                            )}
-                            </div>
-                        )}
+                        {/* YouTube reference card removed per Phase 6C.2 */}
 
                         {/* Takeaway */}
                         <div className="p-4 bg-accent/10 border-l-4 border-accent rounded-r-lg flex gap-3">

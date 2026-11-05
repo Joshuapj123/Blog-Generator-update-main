@@ -846,6 +846,16 @@ ${draftMetaTag}  <title>${this.escapeHtml(title)}</title>
       clean = clean.replace(match[0], `<p>${placeholder}</p>`);
     });
 
+    // Helper to identify YouTube URLs
+    const isYouTubeUrl = (url: string): boolean => {
+      try {
+        const u = new URL(url);
+        return u.hostname.includes('youtube.com') || u.hostname.includes('youtu.be') || u.hostname.includes('youtube-nocookie.com');
+      } catch {
+        return /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i.test(url);
+      }
+    };
+
     // Helper to preserve link URLs in PDF blocks: <a href="url">text</a> -> text (url)
     const preserveAnchorUrls = (content: string): string => {
       return content.replace(/<a\s+[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi, (_, href, linkText) => {
@@ -854,6 +864,17 @@ ${draftMetaTag}  <title>${this.escapeHtml(title)}</title>
         if (!cleanHref || cleanHref === '#' || cleanHref.startsWith('javascript:')) {
           return cleanText;
         }
+
+        // Phase 6C.2: Prevent unapproved YouTube references in PDF output
+        if (isYouTubeUrl(cleanHref)) {
+          // If the link text is just generic video placeholder or equals the URL, omit it completely
+          if (!cleanText || /^(?:watch video|youtube reference|video reference|youtube video|youtube search)$/i.test(cleanText) || cleanText.toLowerCase() === cleanHref.toLowerCase()) {
+            return '';
+          }
+          // If embedded in regular prose, keep the link text without leaking the unapproved video URL
+          return cleanText;
+        }
+
         if (!cleanText || cleanText.toLowerCase() === cleanHref.toLowerCase()) {
           return cleanHref;
         }
@@ -922,7 +943,12 @@ ${draftMetaTag}  <title>${this.escapeHtml(title)}</title>
       // Strip javascript: URLs
       .replace(/href\s*=\s*['"]\s*javascript:[^'"]*['"]/gi, 'href="#"')
       // Strip data: URIs except safe image types
-      .replace(/href\s*=\s*['"]\s*data:[^'"]*['"]/gi, 'href="#"');
+      .replace(/href\s*=\s*['"]\s*data:[^'"]*['"]/gi, 'href="#"')
+      // Phase 6C.2: Strip unapproved video containers and reference paragraphs
+      .replace(/<div\s+[^>]*data-youtube-video[^>]*>[\s\S]*?<\/div>/gi, '')
+      .replace(/<div\s+[^>]*class=["'][^"']*yt-embed[^"']*["'][^>]*>[\s\S]*?<\/div>/gi, '')
+      .replace(/<iframe\b[^>]*src=["'][^"']*(?:youtube\.com|youtu\.be|youtube-nocookie\.com)[^"']*["'][^>]*>[\s\S]*?<\/iframe>/gi, '')
+      .replace(/<p[^>]*>\s*(?:🎬|\[Video\])?\s*(?:<strong>|\*\*)?(?:YouTube Reference|Video Reference|YouTube Search)(?:<\/strong>|\*\*)?:?[\s\S]*?<\/p>/gi, '');
   }
 
   public static sanitizeTextForPdf(text: string): string {
@@ -939,6 +965,9 @@ ${draftMetaTag}  <title>${this.escapeHtml(title)}</title>
       .replace(/–/g, ' - ')
       .replace(/…/g, '...')
       .replace(/•/g, '-')
+      // Phase 6C.2: Scrub any unapproved YouTube reference lines and URLs from PDF blocks
+      .replace(/(?:\[Video\]|🎬)?\s*(?:\*\*)?(?:YouTube Reference|Video Reference|YouTube Search)(?:\*\*)?:?\s*(?:\[[^\]]*\])?(?:\s*\(?https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be|youtube-nocookie\.com)[^\s\)]*\)?)?/gi, '')
+      .replace(/https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be|youtube-nocookie\.com)[^\s\)]*/gi, '')
       // Map known emojis and symbol prefixes to clean textual labels
       .replace(/🎬/g, '[Video]')
       .replace(/📎/g, '[Source]')

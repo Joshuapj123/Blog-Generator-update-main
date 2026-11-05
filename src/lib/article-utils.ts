@@ -148,21 +148,12 @@ export function toMarkdown(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]):
     if ((sec as any).outbound_authority_link?.resolved_url) {
       lines.push(`📎 [${(sec as any).outbound_authority_link.resolved_title || 'Source'}](${(sec as any).outbound_authority_link.resolved_url})\n`);
     }
-    // Media reference (YouTube or user Image)
+    // Media reference (user Image only; automated YouTube injection eliminated in Phase 6C.2)
     const media = (sec as any).rich_media_query;
-    if (media) {
-      if (media.type === 'image') {
-        if (media.image_url) {
-          lines.push(`![${media.alt_text || media.suggested_search_query || 'Section Image'}](${media.image_url})\n`);
-          if (media.alt_text) lines.push(`*Image: ${media.alt_text}*\n`);
-        }
-        // AI image/diagram generation removed per Prompt 5C
-      } else {
-        const vid = String(media.youtube_video_id || '').trim();
-        if (/^[a-zA-Z0-9_-]{11}$/.test(vid)) {
-          lines.push(`**Video Reference:** [${media.suggested_search_query || 'Watch Video'}](https://www.youtube.com/watch?v=${vid})\n`);
-        }
-        // Missing, malformed, or placeholder references are safely omitted without corrupting the article
+    if (media && media.type === 'image') {
+      if (media.image_url) {
+        lines.push(`![${media.alt_text || media.suggested_search_query || 'Section Image'}](${media.image_url})\n`);
+        if (media.alt_text) lines.push(`*Image: ${media.alt_text}*\n`);
       }
     }
   }
@@ -234,21 +225,12 @@ export function toHtml(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]): str
     const tag = (sec as any).level === 'H3' ? 'h3' : 'h2';
     const media = (sec as any).rich_media_query;
     let mediaEmbed = '';
-    if (media) {
-      if (media.type === 'image') {
-        if (media.image_url) {
-          mediaEmbed = `<div class="image-embed" style="margin: 1.5rem 0; text-align: center;">
+    if (media && media.type === 'image') {
+      if (media.image_url) {
+        mediaEmbed = `<div class="image-embed" style="margin: 1.5rem 0; text-align: center;">
             <img src="${media.image_url}" alt="${media.alt_text || media.suggested_search_query || 'Section Image'}" style="max-width: 100%; height: auto; border-radius: 0.75rem; border: 1px solid #e5e7eb;" />
             ${media.alt_text ? `<div style="font-size: 0.8rem; color: #6b7280; margin-top: 0.5rem; font-style: italic;">${media.alt_text}</div>` : ''}
           </div>`;
-        }
-        // AI image/diagram generation removed per Prompt 5C
-      } else {
-        mediaEmbed = media.youtube_video_id
-          ? `<div class="yt-embed"><div class="yt-label">🎬 YouTube Reference${media.suggested_search_query ? ` — ${media.suggested_search_query}` : ''}</div><div class="yt-wrapper"><iframe src="https://www.youtube.com/embed/${media.youtube_video_id}" title="${media.suggested_search_query || 'YouTube video'}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div></div>`
-          : media.suggested_search_query
-            ? `<div class="yt-embed"><div class="yt-label">🎬 YouTube Search: <em>${media.suggested_search_query}</em></div></div>`
-            : '';
       }
     }
     const whyItWorksHtml = sec.why_it_works && !isDefaultMetaText(sec.why_it_works)
@@ -298,10 +280,6 @@ export function toHtml(bp: Partial<ArticleBlueprint>, secs: SectionBlock[]): str
     a { color: #2563eb; }
     ul { padding-left: 1.5rem; }
     .section { margin-bottom: 2rem; }
-    .yt-embed { margin: 1.5rem 0; border-radius: 0.75rem; overflow: hidden; border: 1px solid #e5e7eb; }
-    .yt-label { background: linear-gradient(90deg, #2563eb, #7c3aed); color: #fff; font-size: 0.8rem; font-weight: 600; padding: 0.5rem 1rem; }
-    .yt-wrapper { position: relative; padding-bottom: 56.25%; height: 0; }
-    .yt-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
   </style>
 </head>
 <body>
@@ -352,19 +330,11 @@ export function toPlainText(bp: Partial<ArticleBlueprint>, secs: SectionBlock[])
       lines.push((sec as any).markdown_table);
     }
     const media = (sec as any).rich_media_query;
-    if (media) {
-      if (media.type === 'image') {
-        if (media.image_url) {
-          lines.push(`Image: ${media.image_url} [Alt: ${media.alt_text || ''}]`);
-        } else if (media.image_prompt) {
-          lines.push(`Image Prompt: ${media.image_prompt}`);
-        }
-      } else {
-        if (media.youtube_video_id) {
-          lines.push(`YouTube Reference: https://www.youtube.com/watch?v=${media.youtube_video_id}  [${media.suggested_search_query || ''}]`);
-        } else if (media.suggested_search_query) {
-          lines.push(`YouTube Search: ${media.suggested_search_query}`);
-        }
+    if (media && media.type === 'image') {
+      if (media.image_url) {
+        lines.push(`Image: ${media.image_url} [Alt: ${media.alt_text || ''}]`);
+      } else if (media.image_prompt) {
+        lines.push(`Image Prompt: ${media.image_prompt}`);
       }
     }
     lines.push('');
@@ -476,6 +446,10 @@ export function htmlToMarkdown(html: string): string {
   // Server-side / fallback regex-based transformation (no Node.js modules required in client bundle)
   return DiagramAssetService.deduplicateCaptions(
     html
+      // Phase 6C.2: Scrub unapproved YouTube embeds and references from markdown conversion
+      .replace(/<div\s+[^>]*data-youtube-video[^>]*>[\s\S]*?<\/div>/gi, '')
+      .replace(/<div\s+[^>]*class=["'][^"']*yt-embed[^"']*["'][^>]*>[\s\S]*?<\/div>/gi, '')
+      .replace(/<p[^>]*>\s*(?:🎬|\[Video\])?\s*(?:<strong>|\*\*)?(?:YouTube Reference|Video Reference|YouTube Search)(?:<\/strong>|\*\*)?:?[\s\S]*?<\/p>/gi, '')
       .replace(/<h1[^>]*>([\s\S]*?)<\/h1>/gi, '# $1\n\n')
       .replace(/<h2[^>]*>([\s\S]*?)<\/h2>/gi, '## $1\n\n')
       .replace(/<h3[^>]*>([\s\S]*?)<\/h3>/gi, '### $1\n\n')

@@ -446,12 +446,7 @@ export function SectionEditor() {
             if (generatedSec.outbound_authority_link?.resolved_url && /^https?:\/\//i.test(generatedSec.outbound_authority_link.resolved_url.trim())) {
               lines.push(`📎 [${generatedSec.outbound_authority_link.resolved_title || 'Source'}](${generatedSec.outbound_authority_link.resolved_url.trim()})\n`);
             }
-            const vidId = String(generatedSec.rich_media_query?.youtube_video_id || '').trim();
-            if (/^[a-zA-Z0-9_-]{11}$/.test(vidId)) {
-              const vid = generatedSec.rich_media_query;
-              lines.push(`<div data-youtube-video src="https://www.youtube.com/watch?v=${vidId}"></div>\n`);
-              lines.push(`🎬 **YouTube Reference:** [${vid?.suggested_search_query || 'Watch Video'}](https://www.youtube.com/watch?v=${vidId})\n`);
-            }
+            // Phase 6C.2: Automatic YouTube markdown insertion permanently eliminated
           } else {
             lines.push('*Generating content...*');
           }
@@ -518,14 +513,7 @@ export function SectionEditor() {
         if (sec.outbound_authority_link?.resolved_url) {
           lines.push(`📎 [${sec.outbound_authority_link.resolved_title || 'Source'}](${sec.outbound_authority_link.resolved_url})\n`);
         }
-        if (sec.rich_media_query?.youtube_video_id) {
-          const vid = sec.rich_media_query;
-          lines.push(`<div data-youtube-video src="https://www.youtube.com/watch?v=${vid.youtube_video_id}"></div>\n`);
-          lines.push(`🎬 **YouTube Reference:** [${vid.suggested_search_query || 'Watch Video'}](https://www.youtube.com/watch?v=${vid.youtube_video_id})\n`);
-        } else if (sec.rich_media_query?.suggested_search_query) {
-          const query = sec.rich_media_query.suggested_search_query;
-          lines.push(`🎬 **YouTube Search:** [${query}](https://www.youtube.com/results?search_query=${encodeURIComponent(query)})\n`);
-        }
+        // Phase 6C.2: Automatic YouTube markdown insertion permanently eliminated
         return lines.join('\n');
       }).join('\n\n');
       
