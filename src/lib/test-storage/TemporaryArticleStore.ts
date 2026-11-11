@@ -1,5 +1,14 @@
 import type { Article } from '@/lib/firebase/firestore';
-import type { AnalysisSession } from '@/core/contracts/schemas';
+import {
+  AnalysisSession,
+  PractitionerKnowledgeProfile,
+  PractitionerKnowledgeProfileSchema,
+} from '@/core/contracts/schemas';
+import {
+  PractitionerKnowledgeService,
+  ReviewerContext,
+  ReviewerDecision,
+} from '@/lib/intelligence/PractitionerKnowledgeService';
 
 /**
  * Checks whether the temporary test storage adapter is explicitly activated.
@@ -201,6 +210,7 @@ export class TemporaryArticleStore {
   private static approvalStore: Map<string, string> = new Map();
   private static distributionJobStore: Map<string, string> = new Map();
   private static sessionStore: Map<string, string> = new Map();
+  private static practitionerProfileStore: Map<string, string> = new Map();
   private static idCounter: number = 0;
   private static simulateFailure: boolean = false;
   private static failureMessage: string = 'Temporary test storage simulated write failure';
@@ -213,6 +223,7 @@ export class TemporaryArticleStore {
     this.approvalStore.clear();
     this.distributionJobStore.clear();
     this.sessionStore.clear();
+    this.practitionerProfileStore.clear();
     this.idCounter = 0;
     this.simulateFailure = false;
     this.failureMessage = 'Temporary test storage simulated write failure';
@@ -701,6 +712,111 @@ export class TemporaryArticleStore {
     this.sessionStore.set(sessionId, JSON.stringify(session));
     return true;
   }
+
+  /**
+   * Saves or updates a practitioner knowledge profile in temporary test store.
+   * Enforces verifiedUid and tenantId matching, validates schema, prevents cross-tenant writes.
+   */
+  static async savePractitionerProfile(
+    profile: PractitionerKnowledgeProfile,
+    verifiedUid: string,
+    tenantId: string
+  ): Promise<string> {
+    if (!verifiedUid || typeof verifiedUid !== 'string' || !verifiedUid.trim()) {
+      throw new Error('A verified Firebase UID is required to persist a practitioner profile.');
+    }
+    if (!tenantId || typeof tenantId !== 'string' || !tenantId.trim()) {
+      throw new Error('A valid tenantId is required to persist a practitioner profile.');
+    }
+
+    if (this.simulateFailure) {
+      throw new Error(this.failureMessage);
+    }
+
+    const cleanUid = verifiedUid.trim();
+    const cleanTenant = tenantId.trim();
+
+    // Validate schema
+    const parsed = PractitionerKnowledgeProfileSchema.parse(profile);
+
+    // Incoming payload tenant/user match check
+    if (parsed.tenantId !== cleanTenant || parsed.userId !== cleanUid) {
+      throw new Error(
+        `Forbidden: Cannot save practitioner profile belonging to tenant "${parsed.tenantId}" under authenticated tenant "${cleanTenant}".`
+      );
+    }
+
+    // Existing record check
+    let existingDoc: PractitionerKnowledgeProfile | null = null;
+    const existingRaw = this.practitionerProfileStore.get(parsed.id);
+    if (existingRaw) {
+      existingDoc = PractitionerKnowledgeProfileSchema.parse(JSON.parse(existingRaw));
+      if (existingDoc.userId !== cleanUid || existingDoc.tenantId !== cleanTenant) {
+        throw new Error(
+          `Forbidden: Caller "${cleanUid}" (tenant "${cleanTenant}") cannot modify practitioner profile "${parsed.id}" owned by "${existingDoc.userId}" (tenant "${existingDoc.tenantId}").`
+        );
+      }
+    }
+
+    // Apply strict owner draft sanitization: prevent self-promotion and invalidate approvals on edit
+    const sanitized = PractitionerKnowledgeService.sanitizeOwnerDraftSubmission(parsed, existingDoc);
+
+    // Deep clone and store serialized JSON
+    this.practitionerProfileStore.set(sanitized.id, JSON.stringify(sanitized));
+    return sanitized.id;
+  }
+
+  /**
+   * Promotes or rejects an item via an authorized reviewer in temporary test store.
+   */
+  static async reviewPractitionerProfile(
+    practitionerId: string,
+    decision: ReviewerDecision,
+    reviewer: ReviewerContext
+  ): Promise<PractitionerKnowledgeProfile> {
+    if (!reviewer?.reviewerId || !reviewer.reviewerId.trim()) {
+      throw new Error('A verified reviewer ID is required.');
+    }
+    const raw = this.practitionerProfileStore.get(practitionerId);
+    if (!raw) {
+      throw new Error(`Practitioner profile "${practitionerId}" not found.`);
+    }
+    const existing = PractitionerKnowledgeProfileSchema.parse(JSON.parse(raw));
+    const updated = PractitionerKnowledgeService.applyReviewerDecision(existing, decision, reviewer);
+    this.practitionerProfileStore.set(practitionerId, JSON.stringify(updated));
+    return updated;
+  }
+
+  /**
+   * Retrieves a practitioner knowledge profile by ID with strict tenant isolation.
+   */
+  static async getPractitionerProfile(
+    practitionerId: string,
+    verifiedUid: string,
+    tenantId: string
+  ): Promise<PractitionerKnowledgeProfile | null> {
+    if (!verifiedUid || typeof verifiedUid !== 'string' || !verifiedUid.trim()) {
+      throw new Error('A verified Firebase UID is required to retrieve a practitioner profile.');
+    }
+    if (!tenantId || typeof tenantId !== 'string' || !tenantId.trim()) {
+      throw new Error('A valid tenantId is required to retrieve a practitioner profile.');
+    }
+
+    const cleanUid = verifiedUid.trim();
+    const cleanTenant = tenantId.trim();
+
+    const raw = this.practitionerProfileStore.get(practitionerId);
+    if (!raw) return null;
+
+    const data = JSON.parse(raw);
+    if (data.userId !== cleanUid || data.tenantId !== cleanTenant) {
+      throw new Error(
+        `Forbidden: Cross-tenant access denied. Caller "${cleanUid}" (tenant "${cleanTenant}") cannot access practitioner profile "${practitionerId}" owned by "${data.userId}" (tenant "${data.tenantId}").`
+      );
+    }
+
+    return PractitionerKnowledgeProfileSchema.parse(data);
+  }
 }
 
 /**
@@ -865,4 +981,42 @@ export async function resolveAndReleaseGenerationLease(
     throw new Error('Durable Firestore persistence function is required in production.');
   }
   return adminReleaseFn(sessionId, verifiedUid, leaseToken, outcome);
+}
+
+/**
+ * Resolves persistence backend and saves a practitioner profile.
+ */
+export async function resolveAndSavePractitionerProfile(
+  profile: PractitionerKnowledgeProfile,
+  verifiedUid: string,
+  tenantId: string,
+  adminSaveFn?: (profile: PractitionerKnowledgeProfile, verifiedUid: string, tenantId: string) => Promise<string>
+): Promise<string> {
+  const backend = resolvePersistenceBackend();
+  if (backend === 'TEMP_TEST_STORAGE') {
+    return TemporaryArticleStore.savePractitionerProfile(profile, verifiedUid, tenantId);
+  }
+  if (!adminSaveFn) {
+    throw new Error('Durable Firestore persistence function is required in production.');
+  }
+  return adminSaveFn(profile, verifiedUid, tenantId);
+}
+
+/**
+ * Resolves persistence backend and retrieves a practitioner profile with tenant isolation.
+ */
+export async function resolveAndGetPractitionerProfile(
+  practitionerId: string,
+  verifiedUid: string,
+  tenantId: string,
+  adminGetFn?: (practitionerId: string, verifiedUid: string, tenantId: string) => Promise<PractitionerKnowledgeProfile | null>
+): Promise<PractitionerKnowledgeProfile | null> {
+  const backend = resolvePersistenceBackend();
+  if (backend === 'TEMP_TEST_STORAGE') {
+    return TemporaryArticleStore.getPractitionerProfile(practitionerId, verifiedUid, tenantId);
+  }
+  if (!adminGetFn) {
+    throw new Error('Durable Firestore persistence function is required in production.');
+  }
+  return adminGetFn(practitionerId, verifiedUid, tenantId);
 }

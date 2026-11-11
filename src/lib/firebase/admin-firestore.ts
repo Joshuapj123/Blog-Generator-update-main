@@ -1,6 +1,15 @@
 import { getAdminFirestore } from './admin';
 import { Article, sanitizeForFirestore, isFallbackTitle, normalizeFolder } from './firestore';
-import type { AnalysisSession } from '@/core/contracts/schemas';
+import {
+  AnalysisSession,
+  PractitionerKnowledgeProfile,
+  PractitionerKnowledgeProfileSchema,
+} from '@/core/contracts/schemas';
+import {
+  PractitionerKnowledgeService,
+  ReviewerContext,
+  ReviewerDecision,
+} from '@/lib/intelligence/PractitionerKnowledgeService';
 
 
 /**
@@ -461,4 +470,139 @@ export async function releaseGenerationLeaseAdmin(
     transaction.update(docRef, updates);
     return true;
   });
+}
+
+/**
+ * Saves or updates a practitioner knowledge profile in Firestore using the Firebase Admin SDK.
+ * Strictly enforces verifiedUid and tenantId ownership.
+ */
+export async function savePractitionerProfileAdmin(
+  profile: PractitionerKnowledgeProfile,
+  verifiedUid: string,
+  tenantId: string
+): Promise<string> {
+  if (!verifiedUid || typeof verifiedUid !== 'string' || !verifiedUid.trim()) {
+    throw new Error('A verified Firebase UID is required to persist a practitioner profile.');
+  }
+  if (!tenantId || typeof tenantId !== 'string' || !tenantId.trim()) {
+    throw new Error('A valid tenantId is required to persist a practitioner profile.');
+  }
+
+  const cleanUid = verifiedUid.trim();
+  const cleanTenant = tenantId.trim();
+
+  // Validate schema
+  const parsed = PractitionerKnowledgeProfileSchema.parse(profile);
+
+  // Cross-tenant write check on incoming payload
+  if (parsed.tenantId !== cleanTenant || parsed.userId !== cleanUid) {
+    throw new Error(
+      `Forbidden: Cannot save practitioner profile belonging to tenant "${parsed.tenantId}" under authenticated tenant "${cleanTenant}".`
+    );
+  }
+
+  const db = await getAdminFirestore();
+  const col = db.collection('practitioner_profiles');
+  const docRef = col.doc(parsed.id);
+  const docSnap = await docRef.get();
+
+  let existingDoc: PractitionerKnowledgeProfile | null = null;
+  if (docSnap.exists) {
+    const existing = docSnap.data();
+    const existingOwner = existing?.userId || existing?.ownerId;
+    const existingTenant = existing?.tenantId;
+
+    if (existingOwner && existingOwner !== cleanUid) {
+      throw new Error(
+        `Forbidden: Caller "${cleanUid}" does not have permission to modify practitioner profile "${parsed.id}" owned by "${existingOwner}".`
+      );
+    }
+    if (existingTenant && existingTenant !== cleanTenant) {
+      throw new Error(
+        `Forbidden: Tenant "${cleanTenant}" does not have permission to modify practitioner profile "${parsed.id}" owned by tenant "${existingTenant}".`
+      );
+    }
+    existingDoc = PractitionerKnowledgeProfileSchema.parse(existing);
+  }
+
+  // Security Invariant: Owner draft submissions cannot self-promote or forge verification/approval.
+  // Modifying previously approved items automatically invalidates approval back to draft.
+  const sanitized = PractitionerKnowledgeService.sanitizeOwnerDraftSubmission(parsed, existingDoc);
+
+  const cleanData = sanitizeForFirestore({
+    ...sanitized,
+    userId: cleanUid,
+    ownerId: cleanUid,
+    tenantId: cleanTenant,
+  });
+
+  await docRef.set(cleanData, { merge: true });
+  return parsed.id;
+}
+
+/**
+ * Promotes or rejects a practitioner knowledge profile item via an authorized reviewer.
+ * Enforces separation of duties: reviewer cannot review their own profile.
+ */
+export async function reviewPractitionerProfileAdmin(
+  practitionerId: string,
+  decision: ReviewerDecision,
+  reviewer: ReviewerContext
+): Promise<PractitionerKnowledgeProfile> {
+  if (!reviewer?.reviewerId || !reviewer.reviewerId.trim()) {
+    throw new Error('A verified reviewer ID is required.');
+  }
+
+  const db = await getAdminFirestore();
+  const docRef = db.collection('practitioner_profiles').doc(practitionerId);
+  const docSnap = await docRef.get();
+
+  if (!docSnap.exists) {
+    throw new Error(`Practitioner profile "${practitionerId}" not found.`);
+  }
+
+  const existing = PractitionerKnowledgeProfileSchema.parse(docSnap.data());
+  const updated = PractitionerKnowledgeService.applyReviewerDecision(existing, decision, reviewer);
+  const cleanData = sanitizeForFirestore(updated);
+  await docRef.set(cleanData, { merge: true });
+  return updated;
+}
+
+/**
+ * Retrieves a practitioner knowledge profile by ID using Firebase Admin SDK with strict tenant isolation.
+ */
+export async function getPractitionerProfileAdmin(
+  practitionerId: string,
+  verifiedUid: string,
+  tenantId: string
+): Promise<PractitionerKnowledgeProfile | null> {
+  if (!verifiedUid || typeof verifiedUid !== 'string' || !verifiedUid.trim()) {
+    throw new Error('A verified Firebase UID is required to retrieve a practitioner profile.');
+  }
+  if (!tenantId || typeof tenantId !== 'string' || !tenantId.trim()) {
+    throw new Error('A valid tenantId is required to retrieve a practitioner profile.');
+  }
+
+  const cleanUid = verifiedUid.trim();
+  const cleanTenant = tenantId.trim();
+
+  const db = await getAdminFirestore();
+  const docRef = db.collection('practitioner_profiles').doc(practitionerId);
+  const docSnap = await docRef.get();
+
+  if (!docSnap.exists) {
+    return null;
+  }
+
+  const data = docSnap.data();
+  const owner = data?.userId || data?.ownerId;
+  const docTenant = data?.tenantId;
+
+  if (owner !== cleanUid || docTenant !== cleanTenant) {
+    throw new Error(
+      `Forbidden: Cross-tenant access denied. Caller "${cleanUid}" (tenant "${cleanTenant}") cannot access practitioner profile "${practitionerId}" owned by "${owner}" (tenant "${docTenant}").`
+    );
+  }
+
+  return PractitionerKnowledgeProfileSchema.parse(data);
 }

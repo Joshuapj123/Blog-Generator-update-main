@@ -10,6 +10,174 @@ export const BusinessScaleSchema = z.enum([
 ]);
 export type BusinessScale = z.infer<typeof BusinessScaleSchema>;
 
+// Phase 6D.1: Practitioner Knowledge Foundation Schemas
+export const KnowledgeVerificationStatusSchema = z.enum([
+  'UNVERIFIED',
+  'PENDING_APPROVAL',
+  'VERIFIED',
+  'REJECTED',
+  'EXPIRED'
+]);
+export type KnowledgeVerificationStatus = z.infer<typeof KnowledgeVerificationStatusSchema>;
+
+export const KnowledgeApprovalStatusSchema = z.enum([
+  'DRAFT',
+  'PENDING',
+  'APPROVED',
+  'REJECTED'
+]);
+export type KnowledgeApprovalStatus = z.infer<typeof KnowledgeApprovalStatusSchema>;
+
+export const ProjectConfidentialityLevelSchema = z.enum([
+  'PUBLIC',
+  'ANONYMIZED',
+  'CONFIDENTIAL',
+  'INTERNAL_ONLY'
+]);
+export type ProjectConfidentialityLevel = z.infer<typeof ProjectConfidentialityLevelSchema>;
+
+export const PractitionerProfileStatusSchema = z.enum([
+  'ACTIVE',
+  'INACTIVE',
+  'ARCHIVED',
+  'DRAFT'
+]);
+export type PractitionerProfileStatus = z.infer<typeof PractitionerProfileStatusSchema>;
+
+export const PractitionerIdentitySchema = z.object({
+  practitionerId: z.string().min(1, 'practitionerId is required'),
+  tenantId: z.string().min(1, 'tenantId is required'),
+  displayName: z.string().min(1, 'displayName is required'),
+  professionalTitle: z.string().min(1, 'professionalTitle is required'),
+  biography: z.string().default(''),
+  domainFocus: z.array(z.string()).default([]),
+  approvedAuthorName: z.string().default(''),
+  profileStatus: PractitionerProfileStatusSchema.default('ACTIVE'),
+  yearsOfExperience: z.number().nonnegative().optional(),
+  verificationStatus: KnowledgeVerificationStatusSchema.default('UNVERIFIED'),
+  verifiedAt: z.string().optional(),
+  verifiedBy: z.string().optional(),
+});
+export type PractitionerIdentity = z.infer<typeof PractitionerIdentitySchema>;
+
+export const VerifiedExpertiseItemSchema = z.object({
+  expertiseId: z.string().min(1, 'expertiseId is required'),
+  capability: z.string().min(1, 'capability is required'),
+  description: z.string().min(1, 'description is required'),
+  verificationStatus: KnowledgeVerificationStatusSchema.default('UNVERIFIED'),
+  approvalStatus: KnowledgeApprovalStatusSchema.default('DRAFT'),
+  evidenceReferences: z.array(z.string()).default([]),
+  verifiedAt: z.string().optional(),
+  reviewedAt: z.string().optional(),
+  reviewedBy: z.string().optional(),
+  sourceReference: z.string().optional(),
+});
+export type VerifiedExpertiseItem = z.infer<typeof VerifiedExpertiseItemSchema>;
+
+export const DesignPrincipleItemSchema = z.object({
+  principleId: z.string().min(1, 'principleId is required'),
+  statement: z.string().min(1, 'statement is required'),
+  explanation: z.string().default(''),
+  context: z.string().default(''),
+  sourceReferences: z.array(z.string()).default([]),
+  verificationStatus: KnowledgeVerificationStatusSchema.default('UNVERIFIED'),
+  approvalStatus: KnowledgeApprovalStatusSchema.default('DRAFT'),
+  verifiedAt: z.string().optional(),
+  reviewedAt: z.string().optional(),
+  reviewedBy: z.string().optional(),
+  sourceReference: z.string().optional(),
+});
+export type DesignPrincipleItem = z.infer<typeof DesignPrincipleItemSchema>;
+
+export const VerifiedProjectItemSchema = z.object({
+  projectId: z.string().min(1, 'projectId is required'),
+  projectTitle: z.string().min(1, 'projectTitle is required'),
+  projectType: z.string().default('Consultancy'),
+  clientName: z.string().optional(),
+  confidentialityLevel: ProjectConfidentialityLevelSchema.default('CONFIDENTIAL'),
+  clientNamingPermission: z.boolean().default(false),
+  anonymizedDescription: z.string().min(1, 'anonymizedDescription is required'),
+  problemObserved: z.string().min(1, 'problemObserved is required'),
+  intervention: z.string().min(1, 'intervention is required'),
+  documentedOutcome: z.string().min(1, 'documentedOutcome is required'),
+  documentedOutcomes: z.array(z.string()).optional(),
+  evidenceReferences: z.array(z.string()).default([]),
+  verificationStatus: KnowledgeVerificationStatusSchema.default('UNVERIFIED'),
+  approvalStatus: KnowledgeApprovalStatusSchema.default('DRAFT'),
+  verifiedAt: z.string().optional(),
+  reviewedAt: z.string().optional(),
+  reviewedBy: z.string().optional(),
+  sourceReference: z.string().optional(),
+});
+export type VerifiedProjectItem = z.infer<typeof VerifiedProjectItemSchema>;
+
+export const PractitionerAttributionRulesSchema = z.object({
+  firstPersonVoiceAllowed: z.boolean().default(false),
+  thirdPersonVoiceAllowed: z.boolean().default(true),
+  approvedByline: z.string().optional(),
+  approvedCredentials: z.array(z.string()).optional().default([]),
+  clientNamingPermission: z.boolean().default(false),
+  approvedUsageScope: z.array(z.string()).optional().default([]),
+  requireAnonymization: z.boolean().default(true),
+  prohibitedClaims: z.array(z.string()).optional().default([]),
+});
+export type PractitionerAttributionRules = z.infer<typeof PractitionerAttributionRulesSchema>;
+
+export const PractitionerKnowledgeProfileSchema = z.object({
+  id: z.string().min(1, 'id is required'),
+  tenantId: z.string().min(1, 'tenantId is required'),
+  userId: z.string().min(1, 'userId is required'),
+  identity: PractitionerIdentitySchema,
+  expertise: z.array(VerifiedExpertiseItemSchema).default([]),
+  designPrinciples: z.array(DesignPrincipleItemSchema).default([]),
+  verifiedProjects: z.array(VerifiedProjectItemSchema).default([]),
+  attributionRules: PractitionerAttributionRulesSchema.default({
+    firstPersonVoiceAllowed: false,
+    thirdPersonVoiceAllowed: true,
+    approvedCredentials: [],
+    clientNamingPermission: false,
+    approvedUsageScope: [],
+    requireAnonymization: true,
+    prohibitedClaims: [],
+  }),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  version: z.number().int().positive().default(1),
+});
+export type PractitionerKnowledgeProfile = z.infer<typeof PractitionerKnowledgeProfileSchema>;
+
+export const VerifiedPractitionerContextSchema = z.object({
+  practitionerId: z.string(),
+  displayName: z.string(),
+  professionalTitle: z.string(),
+  approvedAuthorName: z.string(),
+  firstPersonVoiceAllowed: z.boolean(),
+  thirdPersonVoiceAllowed: z.boolean(),
+  approvedByline: z.string().optional(),
+  verifiedPrinciples: z.array(z.object({
+    principleId: z.string(),
+    statement: z.string(),
+    explanation: z.string(),
+    context: z.string(),
+  })),
+  verifiedProjects: z.array(z.object({
+    projectId: z.string(),
+    projectTitle: z.string(),
+    anonymizedDescription: z.string(),
+    problemObserved: z.string(),
+    intervention: z.string(),
+    documentedOutcome: z.string(),
+    clientName: z.string().optional(),
+  })),
+  verifiedExpertise: z.array(z.object({
+    expertiseId: z.string(),
+    capability: z.string(),
+    description: z.string(),
+  })),
+  safeAttributionDirectives: z.array(z.string()),
+});
+export type VerifiedPractitionerContext = z.infer<typeof VerifiedPractitionerContextSchema>;
+
 export const SaaSProfileSchema = z.object({
   name: z.string().min(1, 'SaaS Name is required'),
   description: z.string().min(1, 'SaaS Description is required'),
@@ -30,6 +198,7 @@ export const SaaSProfileSchema = z.object({
   extractedTextLength: z.number().optional(),
   crawlFailureReason: z.string().optional(),
   targetExcerpts: z.array(z.string()).optional(),
+  practitionerProfile: PractitionerKnowledgeProfileSchema.optional(),
 });
 
 export type SaaSProfile = z.infer<typeof SaaSProfileSchema>;

@@ -126,6 +126,7 @@ import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceVali
 import { DeliverableContractValidator } from '@/lib/intelligence/DeliverableContractValidator';
 import { ClaimExtractionService } from '@/lib/intelligence/ClaimExtractionService';
 import { ClaimGroundingEngine } from '@/lib/intelligence/ClaimGroundingEngine';
+import { PractitionerKnowledgeService } from '@/lib/intelligence/PractitionerKnowledgeService';
 import { ContentRepairService } from '@/lib/content/ContentRepairService';
 import { ArtifactLifecycleBoundary } from '@/lib/content/ArtifactLifecycleBoundary';
 import { PipelineTelemetryService } from '@/lib/observability/PipelineTelemetryService';
@@ -907,6 +908,9 @@ Persona Pain Points: ${(saasIntelligenceProfile.audience.painPoints || []).join(
 Jobs-To-Be-Done / Goals: ${(saasIntelligenceProfile.audience.jtbd || []).join(', ')}`
           : `Business Profile: ${input.saasProfile?.name || 'Target Business'} - ${input.saasProfile?.description || ''}`;
 
+        const verifiedPractitionerContext = PractitionerKnowledgeService.filterForGenerationContext(this.saasProfile?.practitionerProfile);
+        const practitionerPlanContext = PractitionerKnowledgeService.formatForPromptContext(verifiedPractitionerContext);
+
         const isSeoKeyword = TopicRelevanceValidator.isSeoDomainTopic(discovery.targetKeyword);
         const geoContextText = geoIntelligence && geoIntelligence.geoOpportunities?.length > 0
           ? (isSeoKeyword
@@ -958,7 +962,7 @@ ${this.evidenceSet.items.slice(0, 15).map(e => {
 
         const prompt = `Create a structured content brief and outline for an article targeting the canonical primary keyword: "${discovery.targetKeyword}".
 Target Audience: ${discovery.audience}
-${saasIntelText}
+${saasIntelText}${practitionerPlanContext ? `\n\n${practitionerPlanContext}` : ''}
 Competitor Medians: ${JSON.stringify(analysis.seoSignals)}
 ${supportingTermsText}
 ${geoContextText}
@@ -1929,6 +1933,8 @@ WRITING RULES:
     // Bounded section drafting: concurrency of 2 with pacing ensures sub-minute drafting while strictly adhering to provider RPM limits
     const concurrencyLimit = Math.min(2, brief.outline.length);
     const sectionTexts: string[] = new Array(brief.outline.length).fill('');
+    const verifiedPractitionerContext = PractitionerKnowledgeService.filterForGenerationContext(this.saasProfile?.practitionerProfile);
+    const practitionerSectionContext = PractitionerKnowledgeService.formatForPromptContext(verifiedPractitionerContext);
     const queue = brief.outline.map((section, index) => ({ section, index }));
 
     const workers = Array.from({ length: concurrencyLimit }, async () => {
@@ -2050,10 +2056,15 @@ CRITICAL EVIDENCE ACCURACY RULES:
 
         let terminologyGuidance = '';
         if (scale === 'SOLO_PRACTITIONER') {
+          const firstPersonAllowed = Boolean(verifiedPractitionerContext?.firstPersonVoiceAllowed);
+          const approvedSoloTerms = firstPersonAllowed
+            ? `"the designer", "the consultant", "the specialist", "the practitioner", "I", or direct brand name "${this.targetBrand || 'the brand'}"`
+            : `"the designer", "the consultant", "the specialist", "the practitioner", or direct brand name "${this.targetBrand || 'the brand'}"`;
           terminologyGuidance = `- BRAND SCALE & POSITIONING CONTRACT (SOLO PRACTITIONER - CRITICAL):
     - Grounding evidence: ${this.targetBrand || 'The business'} operates as an independent solo practitioner / specialist.
     - STRICT PROHIBITION: DO NOT refer to this business as "the agency", "the firm", "the team", "the consultants", "our departments", or "a multidisciplinary team". Never invent employees, partners, or organizational headcount.
-    - Approved terminology: Use solo/practitioner phrasing: "the designer", "the consultant", "the specialist", "the practitioner", "I", or direct brand name "${this.targetBrand || 'the brand'}".
+    - Approved terminology: Use solo/practitioner phrasing: ${approvedSoloTerms}.
+    - Voice Rule: ${firstPersonAllowed ? 'First-person voice ("I", "my") is authorized ONLY for verified practitioner principles/projects in context.' : 'First-person voice ("I", "my", "we", "our") is STRICTLY PROHIBITED. Use objective third-person practitioner authority.'}
     - STRICT BAN: DO NOT refer to this entity as "the platform", "the software", "the tool", "the CRM", or "the system" unless verified software.`;
         } else if (scale === 'SMALL_TEAM') {
           terminologyGuidance = `- BRAND SCALE & POSITIONING CONTRACT (SMALL TEAM):
@@ -2256,7 +2267,7 @@ Canonical Primary Keyword: "${primaryKeyword}"
 Assigned Section Keywords: ${section.assignedKeywords?.length ? section.assignedKeywords.join(', ') : 'None specifically assigned (focus on section topic and supporting terms)'}
 ${this.supportingTerms.length > 0 ? `Available Supporting Terms (use naturally where relevant): ${this.supportingTerms.join(', ')}\n` : ''}Assigned Entities: ${section.assignedEntities?.join(', ') || ''}
 Core Concept: ${section.core_concept || ''}
-${this.internalLinks.length > 0 ? `Relevant Internal Links (integrate 1-2 naturally if relevant as markdown links [anchor text](url)): \n${this.internalLinks.slice(0, 5).join('\n')}\n` : ''}${compactOutlineContext}${previousSectionsContext}${assetInstructions}${intelligenceContext}${sectionEvidenceContext}${blockPlansContext}${deliverableGuidance}
+${this.internalLinks.length > 0 ? `Relevant Internal Links (integrate 1-2 naturally if relevant as markdown links [anchor text](url)): \n${this.internalLinks.slice(0, 5).join('\n')}\n` : ''}${compactOutlineContext}${previousSectionsContext}${assetInstructions}${intelligenceContext}${practitionerSectionContext ? `\n\n${practitionerSectionContext}` : ''}${sectionEvidenceContext}${blockPlansContext}${deliverableGuidance}
 
 === 18 EDITORIAL WRITING & READABILITY CONTRACTS ===
 1. CANONICAL PRIMARY KEYWORD CONTRACT:

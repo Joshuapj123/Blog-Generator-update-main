@@ -36,6 +36,23 @@ service cloud.firestore {
       allow delete: if isResourceOwner();
     }
 
+    // ── Practitioner Profiles Collection (Phase 6D.1 / 6D.1R) ─────────────────
+    // Strict tenant isolation and verification gate:
+    // Profile owners can ONLY write unverified draft records directly.
+    // They cannot self-promote to VERIFIED or APPROVED, nor forge reviewer metadata.
+    match /practitioner_profiles/{practitionerId} {
+      allow read: if isResourceOwner();
+      allow create: if isValidNewOwner() &&
+        request.resource.data.identity.verificationStatus == 'UNVERIFIED' &&
+        (!('verifiedBy' in request.resource.data.identity) || request.resource.data.identity.verifiedBy == null) &&
+        (!('verifiedAt' in request.resource.data.identity) || request.resource.data.identity.verifiedAt == null);
+      allow update: if isResourceOwner() && isValidNewOwner() &&
+        request.resource.data.tenantId == resource.data.tenantId &&
+        request.resource.data.userId == resource.data.userId &&
+        request.resource.data.identity.verificationStatus == 'UNVERIFIED';
+      allow delete: if isResourceOwner();
+    }
+
     // ── Content Plans ────────────────────────────────────────────────────────
     match /content_plans/{planId} {
       allow read, write: if isAuthenticated();
