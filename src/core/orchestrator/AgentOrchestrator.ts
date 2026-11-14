@@ -90,7 +90,8 @@ import {
   OutlineNodeSchema,
   ContentBriefSchema,
   SectionEvidencePlan,
-  WorkedFinding
+  WorkedFinding,
+  ExpertiseValidationResult
 } from '../contracts/schemas';
 import {
   PlanRecoveryDiagnostics,
@@ -126,6 +127,7 @@ import { TopicRelevanceValidator } from '@/lib/intelligence/TopicRelevanceValida
 import { SectionEvidenceMapper } from '@/lib/intelligence/SectionEvidenceMapper';
 import { SectionEvidencePlanner } from '@/lib/intelligence/SectionEvidencePlanner';
 import { WorkedFindingsEngine } from '@/lib/intelligence/WorkedFindingsEngine';
+import { ExpertiseGenericityValidator } from '@/lib/intelligence/ExpertiseGenericityValidator';
 import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceValidator';
 import { DeliverableContractValidator } from '@/lib/intelligence/DeliverableContractValidator';
 import { ClaimExtractionService } from '@/lib/intelligence/ClaimExtractionService';
@@ -250,6 +252,7 @@ export interface ReviewResult {
   repairable: boolean;
   repairDetails?: BoundedRepairSummary;
   signatureReport?: any;
+  expertiseValidation?: ExpertiseValidationResult;
 }
 
 export interface OrchestrationError {
@@ -281,6 +284,7 @@ export interface OrchestrationResult {
   sectionEvidenceMaps?: SectionEvidenceMap[];
   sectionEvidencePlans?: SectionEvidencePlan[];
   workedFindings?: WorkedFinding[];
+  expertiseValidation?: ExpertiseValidationResult;
   researchIntelligence?: ResearchIntelligenceDiagnostics;
   repairResult?: BoundedRepairSummary;
 }
@@ -1848,8 +1852,9 @@ geminiModel: "${this.telemetry.geminiModel || 'gemini-3.5-flash-lite'}"
         sectionEvidenceMaps: this.sectionEvidenceMaps,
         sectionEvidencePlans: this.sectionEvidencePlans,
         workedFindings: this.workedFindings,
+        expertiseValidation: review?.expertiseValidation,
         researchIntelligence: this.telemetry.researchIntelligence,
-        repairResult: review.repairDetails
+        repairResult: review?.repairDetails
       };
 
     } catch (err: any) {
@@ -1903,6 +1908,7 @@ geminiModel: "${this.telemetry.geminiModel || 'gemini-3.5-flash-lite'}"
         sectionEvidenceMaps: this.sectionEvidenceMaps,
         sectionEvidencePlans: this.sectionEvidencePlans,
         workedFindings: this.workedFindings,
+        expertiseValidation: undefined,
         researchIntelligence: this.telemetry.researchIntelligence,
       };
     }
@@ -2658,14 +2664,53 @@ WORD BUDGET:
       }
     });
 
+    // Phase 6D.4: Expertise & Genericity Validation Engine
+    const verifiedPractitionerContext = PractitionerKnowledgeService.filterForGenerationContext(
+      this.saasProfile?.practitionerProfile
+    );
+    const expertiseValidation = ExpertiseGenericityValidator.validateArticle(
+      {
+        title: content.title || brief.title,
+        bodyMarkdown: content.bodyMarkdown,
+        outline: brief.outline,
+        workedFindings: this.workedFindings,
+      },
+      this.evidenceSet,
+      verifiedPractitionerContext,
+      this.saasProfile
+    );
+
+    let finalValidationStatus: 'PASSED' | 'PASSED_WITH_WARNINGS' | 'FAILED' | 'REVIEW_REQUIRED' | undefined;
+
+    const criticalFindings = expertiseValidation.findings.filter(f => f.severity === 'CRITICAL');
+    const warningFindings = expertiseValidation.findings.filter(f => f.severity === 'WARNING');
+
+    if (expertiseValidation.decision === 'REJECT') {
+      criticalErrors.push(...criticalFindings.map(f => `[${f.dimension}] ${f.explanation}`));
+      finalValidationStatus = 'FAILED';
+    } else if (expertiseValidation.decision === 'REVIEW_REQUIRED') {
+      if (criticalFindings.length > 0) {
+        criticalErrors.push(...criticalFindings.map(f => `[${f.dimension}] ${f.explanation}`));
+        finalValidationStatus = 'FAILED';
+      } else {
+        warnings.push(`[Expertise Review Required] Score: ${expertiseValidation.aggregateScore}/100. ${expertiseValidation.deterministicSummary}`);
+        finalValidationStatus = 'REVIEW_REQUIRED';
+      }
+    }
+    if (warningFindings.length > 0) {
+      warnings.push(...warningFindings.map(f => `[${f.dimension}] ${f.explanation}`));
+    }
+
     return {
       passed: criticalErrors.length === 0 && warnings.length === 0,
       score: content.seoScore,
       issues: [...criticalErrors, ...warnings],
       criticalErrors,
       warnings,
+      finalValidationStatus,
       repairable: criticalErrors.length > 0 || warnings.length > 0,
-      signatureReport
+      signatureReport,
+      expertiseValidation
     };
   }
 

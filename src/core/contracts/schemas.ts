@@ -456,6 +456,86 @@ export const WorkedFindingSchema = z.object({
 });
 export type WorkedFinding = z.infer<typeof WorkedFindingSchema>;
 
+// Phase 6D.4: Expertise & Genericity Validation Contracts
+export const ValidationSeveritySchema = z.enum([
+  'CRITICAL',
+  'WARNING',
+  'SUGGESTION'
+]);
+export type ValidationSeverity = z.infer<typeof ValidationSeveritySchema>;
+
+export const ValidationDecisionSchema = z.enum([
+  'PASS',
+  'PASS_WITH_WARNINGS',
+  'REVIEW_REQUIRED',
+  'REJECT'
+]);
+export type ValidationDecision = z.infer<typeof ValidationDecisionSchema>;
+
+export const ValidationDimensionSchema = z.enum([
+  'EVIDENCE_GROUNDING',
+  'EXPERTISE_SPECIFICITY',
+  'REASONING_DEPTH',
+  'RECOMMENDATION_QUALITY',
+  'REPETITION_CONTROL',
+  'BUSINESS_IMPACT_INTEGRITY',
+  'PRACTITIONER_PROVENANCE',
+  'QUANTITATIVE_INTEGRITY'
+]);
+export type ValidationDimension = z.infer<typeof ValidationDimensionSchema>;
+
+export const ValidationFindingSchema = z.object({
+  findingId: z.string().min(1, 'findingId is required'),
+  sectionId: z.string().optional(),
+  workedFindingId: z.string().optional(),
+  ruleId: z.string().optional(),
+  dimension: ValidationDimensionSchema,
+  severity: ValidationSeveritySchema,
+  explanation: z.string().min(5, 'explanation must be at least 5 characters'),
+  evidenceOrTextLocation: z.string().default(''),
+  reason: z.string().min(5, 'reason must be at least 5 characters'),
+  suggestedCorrectionCategory: z.enum([
+    'ADD_EVIDENCE',
+    'SPECIFY_CONTEXT',
+    'DEEPEN_CAUSAL_REASONING',
+    'CONCRETIZE_ACTION',
+    'DEDUPLICATE',
+    'QUALIFY_OUTCOME',
+    'SCRUB_CLIENT',
+    'PROVIDE_PROVENANCE',
+    'GENERAL_CORRECTION'
+  ]),
+  requiresHumanReview: z.boolean().default(false),
+});
+export type ValidationFinding = z.infer<typeof ValidationFindingSchema>;
+
+export const DimensionScoreSchema = z.object({
+  dimension: ValidationDimensionSchema,
+  score: z.number().min(0).max(100),
+  weight: z.number().min(0).max(1),
+  passed: z.boolean(),
+  criticalCount: z.number().int().nonnegative(),
+  warningCount: z.number().int().nonnegative(),
+  rubricSummary: z.string(),
+});
+export type DimensionScore = z.infer<typeof DimensionScoreSchema>;
+
+export const ExpertiseValidationResultSchema = z.object({
+  decision: ValidationDecisionSchema,
+  aggregateScore: z.number().min(0).max(100),
+  passed: z.boolean(),
+  dimensionScores: z.record(ValidationDimensionSchema, DimensionScoreSchema),
+  findings: z.array(ValidationFindingSchema),
+  criticalViolationsCount: z.number().int().nonnegative(),
+  warningsCount: z.number().int().nonnegative(),
+  evaluatedFindingCount: z.number().int().nonnegative(),
+  evaluatedSectionCount: z.number().int().nonnegative(),
+  evaluatedArticleWordCount: z.number().int().nonnegative(),
+  deterministicSummary: z.string(),
+  timestamp: z.string(),
+});
+export type ExpertiseValidationResult = z.infer<typeof ExpertiseValidationResultSchema>;
+
 export const OutlineNodeSchema = z.object({
   heading: z.string().min(1, 'Heading is required'),
   level: z.enum(['H2', 'H3']).default('H2'),
