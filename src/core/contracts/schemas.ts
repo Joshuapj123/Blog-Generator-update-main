@@ -258,6 +258,79 @@ export const ContentBlockPlanSchema = z.object({
 });
 export type ContentBlockPlan = z.infer<typeof ContentBlockPlanSchema>;
 
+export const EvidenceAvailabilityStatusSchema = z.enum([
+  'AVAILABLE_VERIFIED',
+  'AVAILABLE_UNVERIFIED',
+  'MISSING',
+  'NOT_APPLICABLE',
+  'REQUIRES_EXTERNAL_RESEARCH'
+]);
+export type EvidenceAvailabilityStatus = z.infer<typeof EvidenceAvailabilityStatusSchema>;
+
+export const ClaimEvidenceClassificationSchema = z.enum([
+  'OBSERVED_FACT',
+  'VERIFIED_PRACTITIONER_EXPERIENCE',
+  'EXTERNAL_SOURCE_FACT',
+  'INFERENCE',
+  'HYPOTHESIS',
+  'ILLUSTRATIVE_EXAMPLE',
+  'PROPOSED_RECOMMENDATION'
+]);
+export type ClaimEvidenceClassification = z.infer<typeof ClaimEvidenceClassificationSchema>;
+
+export const SectionPurposePlanSchema = z.object({
+  sectionId: z.string().min(1, 'sectionId is required'),
+  heading: z.string().min(1, 'heading is required'),
+  sectionPurpose: z.string().min(1, 'sectionPurpose is required'),
+  buyerQuestion: z.string().min(10, 'buyerQuestion must be a substantive question of at least 10 characters'),
+  readerKnowledgeLevel: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXECUTIVE']).default('INTERMEDIATE'),
+  intendedReaderOutcome: z.string().min(1, 'intendedReaderOutcome is required'),
+}).refine(data => {
+  const normQ = data.buyerQuestion.trim().toLowerCase().replace(/[^\w\s]/g, '');
+  const normH = data.heading.trim().toLowerCase().replace(/[^\w\s]/g, '');
+  return normQ !== normH;
+}, {
+  message: 'buyerQuestion cannot simply repeat or match the heading'
+});
+export type SectionPurposePlan = z.infer<typeof SectionPurposePlanSchema>;
+
+export const EvidenceRequirementsPlanSchema = z.object({
+  requiredEvidenceTypes: z.array(z.string()).default([]),
+  assignedEvidenceReferences: z.array(z.string()).default([]),
+  practitionerEvidenceReferences: z.array(z.string()).default([]),
+  externalSourceReferences: z.array(z.string()).default([]),
+  evidenceAvailability: EvidenceAvailabilityStatusSchema,
+  evidenceGapReason: z.string().optional(),
+}).refine(data => {
+  if ((data.evidenceAvailability === 'MISSING' || data.evidenceAvailability === 'REQUIRES_EXTERNAL_RESEARCH') && (!data.evidenceGapReason || data.evidenceGapReason.trim().length === 0)) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'evidenceGapReason is required when evidenceAvailability is MISSING or REQUIRES_EXTERNAL_RESEARCH'
+});
+export type EvidenceRequirementsPlan = z.infer<typeof EvidenceRequirementsPlanSchema>;
+
+export const ReasoningRequirementsPlanSchema = z.object({
+  observationRequirement: z.string().min(1, 'observationRequirement is required'),
+  interpretationRequirement: z.string().min(1, 'interpretationRequirement is required'),
+  recommendationRequirement: z.string().min(1, 'recommendationRequirement is required'),
+  implementationRequirement: z.string().min(1, 'implementationRequirement is required'),
+  validationRequirement: z.string().min(1, 'validationRequirement is required'),
+});
+export type ReasoningRequirementsPlan = z.infer<typeof ReasoningRequirementsPlanSchema>;
+
+export const SectionEvidencePlanSchema = z.object({
+  sectionId: z.string().min(1, 'sectionId is required'),
+  heading: z.string().min(1, 'heading is required'),
+  purpose: SectionPurposePlanSchema,
+  evidence: EvidenceRequirementsPlanSchema,
+  reasoning: ReasoningRequirementsPlanSchema,
+  claimClassificationGuidance: z.array(z.string()).default([]),
+  isSubstantive: z.boolean().default(true),
+});
+export type SectionEvidencePlan = z.infer<typeof SectionEvidencePlanSchema>;
+
 export const OutlineNodeSchema = z.object({
   heading: z.string().min(1, 'Heading is required'),
   level: z.enum(['H2', 'H3']).default('H2'),
@@ -266,6 +339,7 @@ export const OutlineNodeSchema = z.object({
   assignedEntities: z.array(z.string()).optional().default([]),
   core_concept: z.string().optional(),
   blockPlans: z.array(ContentBlockPlanSchema).optional(),
+  evidencePlan: SectionEvidencePlanSchema.optional(),
 });
 
 export type OutlineNode = z.infer<typeof OutlineNodeSchema>;

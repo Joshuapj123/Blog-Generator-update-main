@@ -88,7 +88,8 @@ import {
   ContentBrief, 
   ContentAsset,
   OutlineNodeSchema,
-  ContentBriefSchema
+  ContentBriefSchema,
+  SectionEvidencePlan
 } from '../contracts/schemas';
 import {
   PlanRecoveryDiagnostics,
@@ -122,6 +123,7 @@ import { EvidenceExtractionService } from '@/lib/intelligence/EvidenceExtraction
 import { ContentGapService } from '@/lib/intelligence/ContentGapService';
 import { TopicRelevanceValidator } from '@/lib/intelligence/TopicRelevanceValidator';
 import { SectionEvidenceMapper } from '@/lib/intelligence/SectionEvidenceMapper';
+import { SectionEvidencePlanner } from '@/lib/intelligence/SectionEvidencePlanner';
 import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceValidator';
 import { DeliverableContractValidator } from '@/lib/intelligence/DeliverableContractValidator';
 import { ClaimExtractionService } from '@/lib/intelligence/ClaimExtractionService';
@@ -275,6 +277,7 @@ export interface OrchestrationResult {
   evidenceSet?: EvidenceSet;
   gapMatrix?: ContentGapMatrix;
   sectionEvidenceMaps?: SectionEvidenceMap[];
+  sectionEvidencePlans?: SectionEvidencePlan[];
   researchIntelligence?: ResearchIntelligenceDiagnostics;
   repairResult?: BoundedRepairSummary;
 }
@@ -288,6 +291,7 @@ export class AgentOrchestrator {
   private evidenceSet?: EvidenceSet;
   private gapMatrix?: ContentGapMatrix;
   private sectionEvidenceMaps: SectionEvidenceMap[] = [];
+  private sectionEvidencePlans: SectionEvidencePlan[] = [];
   private internalLinks: string[] = [];
   private saasProfile?: any;
   private lastUnrepairableClaimIds: string[] = [];
@@ -1225,6 +1229,28 @@ Return only the schema-compliant structured object.`;
           plan.targetKeywords?.[0] || discovery.targetKeyword
         );
 
+        // Phase 6D.2: Formulate typed SectionEvidencePlans and attach to outline nodes
+        const activePractitionerProfile = (input.saasProfile || this.saasProfile)?.practitionerProfile;
+        const activePractitionerContext = activePractitionerProfile
+          ? PractitionerKnowledgeService.filterForGenerationContext(activePractitionerProfile)
+          : null;
+
+        this.sectionEvidencePlans = SectionEvidencePlanner.createSectionPlans(
+          plan.outline,
+          this.evidenceSet || { items: [], extractedAt: new Date().toISOString(), summary: { totalCount: 0, highConfidenceCount: 0, businessFactCount: 0, competitorObservationCount: 0, serpObservationCount: 0, inferenceCount: 0 } },
+          activePractitionerContext,
+          this.gapMatrix,
+          input.saasProfile || this.saasProfile,
+          plan.targetKeywords?.[0] || discovery.targetKeyword
+        );
+
+        // Attach evidence plans directly to outline nodes in the approved brief
+        for (let i = 0; i < plan.outline.length; i++) {
+          if (this.sectionEvidencePlans[i]) {
+            plan.outline[i].evidencePlan = this.sectionEvidencePlans[i];
+          }
+        }
+
         // Telemetry diagnostics recording
         this.telemetry.planRecovery = planRecovery;
 
@@ -1261,7 +1287,8 @@ Return only the schema-compliant structured object.`;
         this.completeStage(planStage, { 
           title: plan.title, 
           planRecovery,
-          mappedSectionsCount: this.sectionEvidenceMaps.length 
+          mappedSectionsCount: this.sectionEvidenceMaps.length,
+          plannedEvidenceSectionsCount: this.sectionEvidencePlans.length
         });
       } catch (err: any) {
         planRecovery.finalStatus = 'FAILED';
@@ -1790,6 +1817,7 @@ geminiModel: "${this.telemetry.geminiModel || 'gemini-3.5-flash-lite'}"
         evidenceSet: this.evidenceSet,
         gapMatrix: this.gapMatrix,
         sectionEvidenceMaps: this.sectionEvidenceMaps,
+        sectionEvidencePlans: this.sectionEvidencePlans,
         researchIntelligence: this.telemetry.researchIntelligence,
         repairResult: review.repairDetails
       };
@@ -1843,6 +1871,7 @@ geminiModel: "${this.telemetry.geminiModel || 'gemini-3.5-flash-lite'}"
         evidenceSet: this.evidenceSet,
         gapMatrix: this.gapMatrix,
         sectionEvidenceMaps: this.sectionEvidenceMaps,
+        sectionEvidencePlans: this.sectionEvidencePlans,
         researchIntelligence: this.telemetry.researchIntelligence,
       };
     }
@@ -1976,8 +2005,12 @@ WRITING RULES:
         const secStart = Date.now();
         const mapsToUse = sectionMaps || this.sectionEvidenceMaps || [];
         const sectionMap = mapsToUse.find(m => m.heading.toLowerCase().trim() === section.heading.toLowerCase().trim()) || mapsToUse[i];
+        const sectionPlan = this.sectionEvidencePlans.find(p => p.heading.toLowerCase().trim() === section.heading.toLowerCase().trim()) || this.sectionEvidencePlans[i] || (section.evidencePlan as SectionEvidencePlan | undefined);
 
         let sectionEvidenceContext = '';
+        if (sectionPlan) {
+          sectionEvidenceContext += `\n\n${SectionEvidencePlanner.formatPlanDirectives(sectionPlan)}`;
+        }
         if (sectionMap) {
           const evItems = (this.evidenceSet?.items || []).filter(e => sectionMap.evidenceIds.includes(e.id));
           const factsList = evItems.length > 0
