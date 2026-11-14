@@ -331,6 +331,131 @@ export const SectionEvidencePlanSchema = z.object({
 });
 export type SectionEvidencePlan = z.infer<typeof SectionEvidencePlanSchema>;
 
+export const FindingTypeSchema = z.enum([
+  'PROBLEM_FINDING',
+  'OPPORTUNITY_FINDING',
+  'BENCHMARK_FINDING',
+  'VERIFICATION_FINDING',
+  'STRATEGIC_FINDING',
+  'RISK_FINDING',
+  'HEURISTIC_VIOLATION'
+]);
+export type FindingType = z.infer<typeof FindingTypeSchema>;
+
+export const FindingConfidenceSchema = z.enum([
+  'HIGH',
+  'MEDIUM',
+  'LOW',
+  'HYPOTHETICAL'
+]);
+export type FindingConfidence = z.infer<typeof FindingConfidenceSchema>;
+
+export const ThresholdProvenanceSchema = z.enum([
+  'EMPIRICAL_BENCHMARK',
+  'INDUSTRY_STANDARD',
+  'CLIENT_HISTORICAL',
+  'PROPOSED_TARGET',
+  'THEORETICAL_LIMIT',
+  'NOT_APPLICABLE'
+]);
+export type ThresholdProvenance = z.infer<typeof ThresholdProvenanceSchema>;
+
+export const WorkedFindingSchema = z.object({
+  findingId: z.string().min(1, 'findingId is required'),
+  sectionId: z.string().min(1, 'sectionId is required'),
+  findingType: FindingTypeSchema,
+  title: z.string().min(3, 'title must be at least 3 characters'),
+  observation: z.string().min(10, 'observation must be at least 10 characters'),
+  evidenceReferences: z.array(z.string()).default([]),
+  evidenceClassification: ClaimEvidenceClassificationSchema,
+  confidence: FindingConfidenceSchema,
+  limitations: z.array(z.string().min(5, 'limitation must be at least 5 characters')).default([]),
+  interpretation: z.string().min(10, 'interpretation must be at least 10 characters'),
+  businessImpact: z.string().min(10, 'businessImpact must be at least 10 characters'),
+  recommendation: z.string().min(10, 'recommendation must be at least 10 characters'),
+  implementationSteps: z.array(z.string().min(5, 'step must be at least 5 characters')).min(1, 'At least one implementation step is required'),
+  validationMethod: z.string().min(5, 'validationMethod must be at least 5 characters'),
+  successCriteria: z.string().min(5, 'successCriteria must be at least 5 characters'),
+  thresholdProvenance: ThresholdProvenanceSchema,
+}).refine(data => {
+  // Rule 1: Factual findings must have supporting evidence references
+  if ((data.evidenceClassification === 'OBSERVED_FACT' || data.evidenceClassification === 'EXTERNAL_SOURCE_FACT') && data.evidenceReferences.length === 0) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'OBSERVED_FACT and EXTERNAL_SOURCE_FACT findings must contain at least one valid evidence reference'
+}).refine(data => {
+  // Rule 2: Practitioner experience must reference verified practitioner evidence
+  if (data.evidenceClassification === 'VERIFIED_PRACTITIONER_EXPERIENCE') {
+    return data.evidenceReferences.some(r => r.includes('[PRACTITIONER EXPERIENCE]') || r.startsWith('practitioner:') || r.startsWith('pe_'));
+  }
+  return true;
+}, {
+  message: 'VERIFIED_PRACTITIONER_EXPERIENCE findings must cite a verified practitioner evidence reference'
+}).refine(data => {
+  // Rule 3: External source facts must not cite practitioner evidence
+  if (data.evidenceClassification === 'EXTERNAL_SOURCE_FACT') {
+    return !data.evidenceReferences.some(r => r.includes('[PRACTITIONER EXPERIENCE]'));
+  }
+  return true;
+}, {
+  message: 'EXTERNAL_SOURCE_FACT findings cannot cite practitioner experience'
+}).refine(data => {
+  // Rule 4: Limitations mandatory when evidence is missing, unverified, inference, hypothesis, or low/hypothetical confidence
+  const nonFactual = ['INFERENCE', 'HYPOTHESIS', 'ILLUSTRATIVE_EXAMPLE', 'PROPOSED_RECOMMENDATION'].includes(data.evidenceClassification);
+  const lowConf = data.confidence === 'LOW' || data.confidence === 'HYPOTHETICAL';
+  const noEvidence = data.evidenceReferences.length === 0;
+  const meaningfulLimitations = (data.limitations || []).filter(l => {
+    const trimmed = l.trim().toLowerCase();
+    return trimmed.length >= 10 && !['none', 'n/a', 'na', 'nil', 'tbd', 'placeholder', 'not applicable', 'no limitations'].includes(trimmed);
+  });
+  if ((nonFactual || lowConf || noEvidence) && meaningfulLimitations.length === 0) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'Findings with non-factual classification, low/hypothetical confidence, or empty evidence references must declare at least one explicit substantive limitation (at least 10 chars, not a placeholder)'
+}).refine(data => {
+  // Rule 5: Hypotheses and illustrative examples cannot claim HIGH confidence
+  if (data.evidenceClassification === 'HYPOTHESIS' && (data.confidence === 'HIGH' || data.confidence === 'MEDIUM')) {
+    return false;
+  }
+  if (data.evidenceClassification === 'ILLUSTRATIVE_EXAMPLE' && data.confidence === 'HIGH') {
+    return false;
+  }
+  return true;
+}, {
+  message: 'HYPOTHESIS must have LOW or HYPOTHETICAL confidence; ILLUSTRATIVE_EXAMPLE cannot have HIGH confidence'
+}).refine(data => {
+  // Rule 6: Observation and recommendation must be distinct substantive statements
+  const normObs = data.observation.trim().toLowerCase().replace(/[^\w\s]/g, '');
+  const normRec = data.recommendation.trim().toLowerCase().replace(/[^\w\s]/g, '');
+  if (normObs === normRec) {
+    return false;
+  }
+  // Prevent trivial paraphrases where one simply wraps the other
+  if (normRec.includes(normObs) || normObs.includes(normRec)) {
+    const lenRatio = Math.min(normObs.length, normRec.length) / Math.max(normObs.length, normRec.length);
+    if (lenRatio > 0.70) {
+      return false; // Trivially derived by prepending/appending a boilerplate wrapper
+    }
+  }
+  return true;
+}, {
+  message: 'observation and recommendation must be distinct substantive statements, not trivial paraphrases'
+}).refine(data => {
+  // Rule 7: Numerical thresholds must have declared provenance
+  const hasMetric = /\b\d+(\.\d+)?%|\$\d+|\b\d+\s*(?:ms|seconds|minutes|hours|days|points|users|clicks)\b/i.test(data.observation + ' ' + data.recommendation + ' ' + data.successCriteria);
+  if (hasMetric && data.thresholdProvenance === 'NOT_APPLICABLE') {
+    return false;
+  }
+  return true;
+}, {
+  message: 'Findings containing numerical metrics or thresholds must declare a valid thresholdProvenance other than NOT_APPLICABLE'
+});
+export type WorkedFinding = z.infer<typeof WorkedFindingSchema>;
+
 export const OutlineNodeSchema = z.object({
   heading: z.string().min(1, 'Heading is required'),
   level: z.enum(['H2', 'H3']).default('H2'),
@@ -340,6 +465,7 @@ export const OutlineNodeSchema = z.object({
   core_concept: z.string().optional(),
   blockPlans: z.array(ContentBlockPlanSchema).optional(),
   evidencePlan: SectionEvidencePlanSchema.optional(),
+  workedFindings: z.array(WorkedFindingSchema).optional(),
 });
 
 export type OutlineNode = z.infer<typeof OutlineNodeSchema>;

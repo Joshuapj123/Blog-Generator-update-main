@@ -89,7 +89,8 @@ import {
   ContentAsset,
   OutlineNodeSchema,
   ContentBriefSchema,
-  SectionEvidencePlan
+  SectionEvidencePlan,
+  WorkedFinding
 } from '../contracts/schemas';
 import {
   PlanRecoveryDiagnostics,
@@ -124,6 +125,7 @@ import { ContentGapService } from '@/lib/intelligence/ContentGapService';
 import { TopicRelevanceValidator } from '@/lib/intelligence/TopicRelevanceValidator';
 import { SectionEvidenceMapper } from '@/lib/intelligence/SectionEvidenceMapper';
 import { SectionEvidencePlanner } from '@/lib/intelligence/SectionEvidencePlanner';
+import { WorkedFindingsEngine } from '@/lib/intelligence/WorkedFindingsEngine';
 import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceValidator';
 import { DeliverableContractValidator } from '@/lib/intelligence/DeliverableContractValidator';
 import { ClaimExtractionService } from '@/lib/intelligence/ClaimExtractionService';
@@ -278,6 +280,7 @@ export interface OrchestrationResult {
   gapMatrix?: ContentGapMatrix;
   sectionEvidenceMaps?: SectionEvidenceMap[];
   sectionEvidencePlans?: SectionEvidencePlan[];
+  workedFindings?: WorkedFinding[];
   researchIntelligence?: ResearchIntelligenceDiagnostics;
   repairResult?: BoundedRepairSummary;
 }
@@ -292,6 +295,7 @@ export class AgentOrchestrator {
   private gapMatrix?: ContentGapMatrix;
   private sectionEvidenceMaps: SectionEvidenceMap[] = [];
   private sectionEvidencePlans: SectionEvidencePlan[] = [];
+  private workedFindings: WorkedFinding[] = [];
   private internalLinks: string[] = [];
   private saasProfile?: any;
   private lastUnrepairableClaimIds: string[] = [];
@@ -1251,6 +1255,30 @@ Return only the schema-compliant structured object.`;
           }
         }
 
+        // Phase 6D.3: Formulate WorkedFinding instances and attach to outline nodes
+        this.workedFindings = [];
+        const articleDeliverable = DeliverableContractValidator.detectDeliverableType(plan.title || discovery.targetKeyword || '');
+        for (let i = 0; i < plan.outline.length; i++) {
+          const node = plan.outline[i];
+          const planForNode = this.sectionEvidencePlans[i];
+          if (planForNode) {
+            const sectionDeliverable = DeliverableContractValidator.detectDeliverableType(node.heading) || articleDeliverable;
+            const findingsForSection = WorkedFindingsEngine.generateWorkedFindingsForSection({
+              node,
+              plan: planForNode,
+              deliverableType: sectionDeliverable,
+              intent: (discovery as any)?.intent || null,
+              evidenceSet: this.evidenceSet || { items: [], extractedAt: new Date().toISOString(), summary: { totalCount: 0, highConfidenceCount: 0, businessFactCount: 0, competitorObservationCount: 0, serpObservationCount: 0, inferenceCount: 0 } },
+              practitionerContext: activePractitionerContext,
+              saasProfile: input.saasProfile || this.saasProfile,
+              targetKeyword: plan.targetKeywords?.[0] || discovery.targetKeyword,
+              findingIndexOffset: this.workedFindings.length + 1
+            });
+            node.workedFindings = findingsForSection;
+            this.workedFindings.push(...findingsForSection);
+          }
+        }
+
         // Telemetry diagnostics recording
         this.telemetry.planRecovery = planRecovery;
 
@@ -1288,7 +1316,8 @@ Return only the schema-compliant structured object.`;
           title: plan.title, 
           planRecovery,
           mappedSectionsCount: this.sectionEvidenceMaps.length,
-          plannedEvidenceSectionsCount: this.sectionEvidencePlans.length
+          plannedEvidenceSectionsCount: this.sectionEvidencePlans.length,
+          workedFindingsCount: this.workedFindings.length
         });
       } catch (err: any) {
         planRecovery.finalStatus = 'FAILED';
@@ -1818,6 +1847,7 @@ geminiModel: "${this.telemetry.geminiModel || 'gemini-3.5-flash-lite'}"
         gapMatrix: this.gapMatrix,
         sectionEvidenceMaps: this.sectionEvidenceMaps,
         sectionEvidencePlans: this.sectionEvidencePlans,
+        workedFindings: this.workedFindings,
         researchIntelligence: this.telemetry.researchIntelligence,
         repairResult: review.repairDetails
       };
@@ -1872,6 +1902,7 @@ geminiModel: "${this.telemetry.geminiModel || 'gemini-3.5-flash-lite'}"
         gapMatrix: this.gapMatrix,
         sectionEvidenceMaps: this.sectionEvidenceMaps,
         sectionEvidencePlans: this.sectionEvidencePlans,
+        workedFindings: this.workedFindings,
         researchIntelligence: this.telemetry.researchIntelligence,
       };
     }
@@ -2010,6 +2041,10 @@ WRITING RULES:
         let sectionEvidenceContext = '';
         if (sectionPlan) {
           sectionEvidenceContext += `\n\n${SectionEvidencePlanner.formatPlanDirectives(sectionPlan)}`;
+        }
+        const findingsForSec = section.workedFindings || (sectionPlan ? this.workedFindings.filter(f => f.sectionId === sectionPlan.sectionId) : []);
+        if (findingsForSec && findingsForSec.length > 0) {
+          sectionEvidenceContext += `\n\n${WorkedFindingsEngine.formatWorkedFindingPromptDirectives(findingsForSec)}`;
         }
         if (sectionMap) {
           const evItems = (this.evidenceSet?.items || []).filter(e => sectionMap.evidenceIds.includes(e.id));
