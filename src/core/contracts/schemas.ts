@@ -492,7 +492,7 @@ export const ValidationFindingSchema = z.object({
   dimension: ValidationDimensionSchema,
   severity: ValidationSeveritySchema,
   explanation: z.string().min(5, 'explanation must be at least 5 characters'),
-  evidenceOrTextLocation: z.string().default(''),
+  evidenceOrTextLocation: z.string().optional().default(''),
   reason: z.string().min(5, 'reason must be at least 5 characters'),
   suggestedCorrectionCategory: z.enum([
     'ADD_EVIDENCE',
@@ -502,10 +502,12 @@ export const ValidationFindingSchema = z.object({
     'DEDUPLICATE',
     'QUALIFY_OUTCOME',
     'SCRUB_CLIENT',
+    'VARY_SYNTAX',
     'PROVIDE_PROVENANCE',
+    'PRESERVE_LIMITATION',
     'GENERAL_CORRECTION'
   ]),
-  requiresHumanReview: z.boolean().default(false),
+  requiresHumanReview: z.boolean().optional().default(false),
 });
 export type ValidationFinding = z.infer<typeof ValidationFindingSchema>;
 
@@ -535,6 +537,88 @@ export const ExpertiseValidationResultSchema = z.object({
   timestamp: z.string(),
 });
 export type ExpertiseValidationResult = z.infer<typeof ExpertiseValidationResultSchema>;
+
+// Phase 6D.5: Controlled Content Repair & Provenance Guard Contracts
+export const RepairabilityClassificationSchema = z.enum([
+  'REPAIRABLE_WITH_EXISTING_EVIDENCE',
+  'REQUIRES_ADDITIONAL_RESEARCH',
+  'REQUIRES_PRACTITIONER_INPUT',
+  'NON_REPAIRABLE_INTEGRITY_VIOLATION',
+  'HUMAN_REVIEW_REQUIRED'
+]);
+export type RepairabilityClassification = z.infer<typeof RepairabilityClassificationSchema>;
+
+export const RepairRequestSchema = z.object({
+  requestId: z.string(),
+  articleId: z.string(),
+  sectionId: z.string(),
+  findingId: z.string().optional(),
+  validationIssueIds: z.array(z.string()),
+  repairability: RepairabilityClassificationSchema,
+  existingEvidenceReferences: z.array(z.string()),
+  permittedChanges: z.array(z.string()),
+  prohibitedChanges: z.array(z.string()),
+  maxRepairScope: z.enum(['FINDING', 'SECTION', 'ARTICLE']),
+  originalText: z.string(),
+});
+export type RepairRequest = z.infer<typeof RepairRequestSchema>;
+
+export const ChangedTextRangeSchema = z.object({
+  start: z.number(),
+  end: z.number(),
+  originalSnippet: z.string(),
+  repairedSnippet: z.string()
+});
+export type ChangedTextRange = z.infer<typeof ChangedTextRangeSchema>;
+
+export const RepairCandidateSchema = z.object({
+  requestId: z.string(),
+  originalText: z.string(),
+  candidateText: z.string(),
+  changedTextRanges: z.array(ChangedTextRangeSchema).default([]),
+  preservedEvidenceReferences: z.array(z.string()).default([]),
+  claimedOutcomes: z.array(z.string()).default([]),
+});
+export type RepairCandidate = z.infer<typeof RepairCandidateSchema>;
+
+export const ProvenanceViolationSchema = z.object({
+  invariantId: z.string(),
+  description: z.string(),
+  originalMetadata: z.record(z.string(), z.any()).optional(),
+  repairedMetadata: z.record(z.string(), z.any()).optional()
+});
+export type ProvenanceViolation = z.infer<typeof ProvenanceViolationSchema>;
+
+export const ProvenancePreservationResultSchema = z.object({
+  preserved: z.boolean(),
+  violations: z.array(ProvenanceViolationSchema),
+  checkedInvariantsCount: z.number().int().nonnegative()
+});
+export type ProvenancePreservationResult = z.infer<typeof ProvenancePreservationResultSchema>;
+
+export const RepairValidationResultSchema = z.object({
+  decision: z.enum(['ACCEPT', 'REJECT']),
+  rejectionReason: z.string().optional(),
+  originalScore: z.number(),
+  repairedScore: z.number(),
+  validationResult: ExpertiseValidationResultSchema.optional(),
+  provenanceCheck: ProvenancePreservationResultSchema,
+});
+export type RepairValidationResult = z.infer<typeof RepairValidationResultSchema>;
+
+export const RepairAuditRecordSchema = z.object({
+  repairId: z.string(),
+  timestamp: z.string(),
+  sectionId: z.string(),
+  findingId: z.string().optional(),
+  classification: RepairabilityClassificationSchema,
+  originalText: z.string(),
+  repairedText: z.string(),
+  decision: z.enum(['ACCEPTED', 'REJECTED', 'REFUSED']),
+  decisionReason: z.string(),
+  provenanceCheck: ProvenancePreservationResultSchema,
+});
+export type RepairAuditRecord = z.infer<typeof RepairAuditRecordSchema>;
 
 export const OutlineNodeSchema = z.object({
   heading: z.string().min(1, 'Heading is required'),

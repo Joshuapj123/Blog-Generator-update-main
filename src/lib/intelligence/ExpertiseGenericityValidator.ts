@@ -458,7 +458,7 @@ export class ExpertiseGenericityValidator {
     issues: ValidationFinding[]
   ): void {
     // Check interpretation: must provide causal explanation
-    const interp = finding.interpretation.trim();
+    const interp = (finding.interpretation || '').trim();
     const hasCausalIndicator = /\b(?:because|due to|violates|causes|results in|when|leads to|introduces|suppresses|creates|forces|interrupts|triggers|compromises)\b/i.test(interp);
 
     if (!hasCausalIndicator && interp.length < 50) {

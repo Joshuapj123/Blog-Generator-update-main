@@ -68,6 +68,7 @@ export interface Article {
   dispatchProviderIdempotencyKeys?: Record<string, string>;
   dispatchResults?: any;
   dispatchClaimedAt?: string;
+  controlledRepairAudit?: any;
 }
 
 export interface ExternalLink {

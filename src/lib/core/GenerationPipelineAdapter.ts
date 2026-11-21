@@ -605,7 +605,8 @@ export class GenerationPipelineAdapter {
       contentVersion: result.content?.contentVersion || 1,
       runId,
       persistedAt: new Date().toISOString(),
-      persistenceStatus: 'SAVED'
+      persistenceStatus: 'SAVED',
+      controlledRepairAudit: result.controlledRepairAudit
     };
 
     let persistenceResult: { status: 'SAVED' | 'SAVE_FAILED' | 'PERSISTENCE_SKIPPED_DRY_RUN'; articleId?: string; error?: string } = {

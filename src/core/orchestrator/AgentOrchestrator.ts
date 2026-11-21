@@ -91,7 +91,8 @@ import {
   ContentBriefSchema,
   SectionEvidencePlan,
   WorkedFinding,
-  ExpertiseValidationResult
+  ExpertiseValidationResult,
+  RepairAuditRecord
 } from '../contracts/schemas';
 import {
   PlanRecoveryDiagnostics,
@@ -128,6 +129,7 @@ import { SectionEvidenceMapper } from '@/lib/intelligence/SectionEvidenceMapper'
 import { SectionEvidencePlanner } from '@/lib/intelligence/SectionEvidencePlanner';
 import { WorkedFindingsEngine } from '@/lib/intelligence/WorkedFindingsEngine';
 import { ExpertiseGenericityValidator } from '@/lib/intelligence/ExpertiseGenericityValidator';
+import { ControlledContentRepairEngine } from '@/lib/intelligence/ControlledContentRepairEngine';
 import { ContentEvidenceValidator } from '@/lib/intelligence/ContentEvidenceValidator';
 import { DeliverableContractValidator } from '@/lib/intelligence/DeliverableContractValidator';
 import { ClaimExtractionService } from '@/lib/intelligence/ClaimExtractionService';
@@ -253,6 +255,7 @@ export interface ReviewResult {
   repairDetails?: BoundedRepairSummary;
   signatureReport?: any;
   expertiseValidation?: ExpertiseValidationResult;
+  controlledRepairAudit?: RepairAuditRecord[];
 }
 
 export interface OrchestrationError {
@@ -285,6 +288,7 @@ export interface OrchestrationResult {
   sectionEvidencePlans?: SectionEvidencePlan[];
   workedFindings?: WorkedFinding[];
   expertiseValidation?: ExpertiseValidationResult;
+  controlledRepairAudit?: RepairAuditRecord[];
   researchIntelligence?: ResearchIntelligenceDiagnostics;
   repairResult?: BoundedRepairSummary;
 }
@@ -1516,6 +1520,54 @@ Return only the schema-compliant structured object.`;
           }
         }
 
+        // Phase 6D.5: Controlled Content Repair & Provenance Guard
+        if (!review.passed && review.expertiseValidation && review.finalValidationStatus !== 'REVIEW_REQUIRED') {
+          const verifiedPractitionerContext = PractitionerKnowledgeService.filterForGenerationContext(
+            this.saasProfile?.practitionerProfile
+          );
+          const controlledRepairResult = ControlledContentRepairEngine.repairArticle(
+            {
+              title: content.title || plan.title,
+              bodyMarkdown: content.bodyMarkdown,
+              outline: plan.outline,
+              workedFindings: this.workedFindings,
+            },
+            review.expertiseValidation,
+            {
+              articleId: this.telemetry.runId,
+              evidenceSet: this.evidenceSet,
+              practitionerContext: verifiedPractitionerContext,
+              saasProfile: this.saasProfile,
+              maxRetries: 1,
+            }
+          );
+
+          if (controlledRepairResult.auditRecords.length > 0) {
+            review.controlledRepairAudit = controlledRepairResult.auditRecords;
+          }
+
+          if (controlledRepairResult.decision === 'ACCEPTED' && controlledRepairResult.repairedMarkdown !== content.bodyMarkdown) {
+            console.log(`[AgentOrchestrator] ControlledContentRepairEngine accepted surgical repair (${controlledRepairResult.repairedSectionsCount} section(s) repaired).`);
+            content.bodyMarkdown = controlledRepairResult.repairedMarkdown;
+            content.wordCount = controlledRepairResult.repairedMarkdown.split(/\s+/).filter(Boolean).length;
+            review = await this.runReview(content, plan, {
+              repairAttempted: true,
+              attemptIndex: retries,
+              unrepairableClaimIds: this.lastUnrepairableClaimIds
+            });
+            review.controlledRepairAudit = controlledRepairResult.auditRecords;
+            if (review.passed || (review.criticalErrors || []).length < bestCriticalCount) {
+              bestDraft = { ...content };
+              bestReview = review;
+              bestCriticalCount = (review.criticalErrors || []).length;
+              bestWarningCount = (review.warnings || []).length;
+              bestPassed = review.passed;
+            }
+          } else if (controlledRepairResult.decision === 'REFUSED') {
+            console.warn(`[AgentOrchestrator] ControlledContentRepairEngine refused repair: unrepairable violations or human review required.`);
+          }
+        }
+
         let repairableIssues = review.finalValidationStatus === 'REVIEW_REQUIRED' ? [] : getRepairableIssues(review);
 
         while (!review.passed && review.finalValidationStatus !== 'REVIEW_REQUIRED' && repairableIssues.length > 0 && retries < maxRetries) {
@@ -1853,6 +1905,7 @@ geminiModel: "${this.telemetry.geminiModel || 'gemini-3.5-flash-lite'}"
         sectionEvidencePlans: this.sectionEvidencePlans,
         workedFindings: this.workedFindings,
         expertiseValidation: review?.expertiseValidation,
+        controlledRepairAudit: review?.controlledRepairAudit,
         researchIntelligence: this.telemetry.researchIntelligence,
         repairResult: review?.repairDetails
       };
