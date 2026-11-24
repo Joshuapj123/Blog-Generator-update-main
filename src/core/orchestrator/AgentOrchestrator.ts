@@ -1456,6 +1456,8 @@ Return only the schema-compliant structured object.`;
         review = await this.runReview(content, plan, { repairAttempted: false });
         
         // Bounded Repair Loop
+        let structuralRetries = 0;
+        let generalRetries = 0;
         let retries = 0;
         const maxRetries = this.options.maxReviewRetries ?? 2;
         const contentBeforeReview = { ...content };
@@ -1477,7 +1479,7 @@ Return only the schema-compliant structured object.`;
           return [...critical, ...repairableWarnings];
         };
 
-        // Phase R4: Targeted Bounded Structural Repair
+        // Phase R4 / 6D.6R: Targeted Bounded Structural Repair
         if (!review.passed && review.signatureReport && !review.signatureReport.valid && review.signatureReport.violations.length > 0) {
           console.log(`[AgentOrchestrator] Structural paragraph repetition detected (${review.signatureReport.violations.length} violation(s)). Invoking TargetedRepairEngine...`);
           const boundedRepairResult = await TargetedRepairEngine.executeBoundedRepair(
@@ -1496,7 +1498,8 @@ Return only the schema-compliant structured object.`;
           );
 
           review.repairDetails = boundedRepairResult;
-          retries += boundedRepairResult.attemptsUsed;
+          structuralRetries += boundedRepairResult.attemptsUsed;
+          retries = structuralRetries + generalRetries;
 
           if (boundedRepairResult.status === 'repaired' && boundedRepairResult.repairedMarkdown) {
             content.bodyMarkdown = boundedRepairResult.repairedMarkdown;
@@ -1515,8 +1518,24 @@ Return only the schema-compliant structured object.`;
               bestPassed = review.passed;
             }
           } else if (boundedRepairResult.status === 'review_required') {
-            review.passed = false;
-            review.finalValidationStatus = 'REVIEW_REQUIRED';
+            console.warn(`[AgentOrchestrator] TargetedRepairEngine completed with status 'review_required' (${boundedRepairResult.failureCategory || 'unresolved'}). Retaining structural diagnostics and permitting downstream general repair.`);
+            if (boundedRepairResult.repairedMarkdown && boundedRepairResult.repairedMarkdown !== content.bodyMarkdown) {
+              content.bodyMarkdown = boundedRepairResult.repairedMarkdown;
+              content.wordCount = boundedRepairResult.repairedMarkdown.split(/\s+/).filter(Boolean).length;
+              review = await this.runReview(content, plan, {
+                repairAttempted: true,
+                attemptIndex: retries,
+                unrepairableClaimIds: this.lastUnrepairableClaimIds
+              });
+              review.repairDetails = boundedRepairResult;
+              if (review.passed || (review.criticalErrors || []).length < bestCriticalCount) {
+                bestDraft = { ...content };
+                bestReview = review;
+                bestCriticalCount = (review.criticalErrors || []).length;
+                bestWarningCount = (review.warnings || []).length;
+                bestPassed = review.passed;
+              }
+            }
           }
         }
 
@@ -1570,14 +1589,15 @@ Return only the schema-compliant structured object.`;
 
         let repairableIssues = review.finalValidationStatus === 'REVIEW_REQUIRED' ? [] : getRepairableIssues(review);
 
-        while (!review.passed && review.finalValidationStatus !== 'REVIEW_REQUIRED' && repairableIssues.length > 0 && retries < maxRetries) {
+        while (!review.passed && review.finalValidationStatus !== 'REVIEW_REQUIRED' && repairableIssues.length > 0 && generalRetries < maxRetries) {
           if (!this.budgetGuard.hasBudgetForRepair()) {
             console.warn(`[AgentOrchestrator] Runtime budget insufficient for repair attempt (${this.budgetGuard.getRemainingMs()}ms remaining, reservedFinalize=${this.budgetGuard.getReservedFinalizeMs()}ms). Skipping further repairs to preserve finalization headroom.`);
             break;
           }
-          retries++;
+          generalRetries++;
+          retries = structuralRetries + generalRetries;
           reviewHistory.push(...repairableIssues);
-          console.log(`[agent] Quality issues detected (${repairableIssues.length} repairable). Starting repair attempt ${retries}/${maxRetries}...`);
+          console.log(`[agent] Quality issues detected (${repairableIssues.length} repairable). Starting repair attempt ${generalRetries}/${maxRetries} (total repair attempts: ${retries})...`);
 
           PipelineTelemetryService.getInstance().recordEvent({
             runId: this.telemetry.runId,
@@ -1674,7 +1694,8 @@ Return only the schema-compliant structured object.`;
         if (review.finalValidationStatus === 'REVIEW_REQUIRED') {
           finalValidationStatus = 'REVIEW_REQUIRED';
         } else if (review.criticalErrors && review.criticalErrors.length > 0) {
-          finalValidationStatus = 'FAILED';
+          const hasUnresolvedStructuralError = review.criticalErrors.some(e => e.includes('Critical Structural Repetition Alert') || e.includes('Paragraph Signature'));
+          finalValidationStatus = hasUnresolvedStructuralError ? 'REVIEW_REQUIRED' : 'FAILED';
         } else if (review.warnings && review.warnings.length > 0) {
           finalValidationStatus = 'PASSED_WITH_WARNINGS';
         } else {
@@ -2308,6 +2329,49 @@ Focus on the distinct scope and tactical depth of "${section.heading}" as define
           }
         }
 
+        // Workstream A / 6D.6R: Preceding Section Structural Rhythm Context
+        let precedingRhythmContext = '';
+        if (i > 0) {
+          let trailingSig = '';
+          const prevText = sectionTexts[i - 1];
+          if (prevText && prevText.trim()) {
+            const normPrev = prevText.replace(/^(#{1,6}\s+[^\n]+)/gm, '\n\n$1\n\n');
+            const prevBlocks = normPrev.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean);
+            for (let bIdx = prevBlocks.length - 1; bIdx >= 0; bIdx--) {
+              const blk = prevBlocks[bIdx];
+              const check = ParagraphSignatureValidator.isNonProseBlock(blk);
+              if (!check.isNonProse) {
+                const cleaned = ParagraphSignatureValidator.cleanParagraphText(blk);
+                const comp = ParagraphSignatureValidator.computeCanonicalSignature(cleaned, 'PROSE');
+                if (comp.sentenceCount > 0) {
+                  trailingSig = comp.signature;
+                  break;
+                }
+              }
+            }
+          }
+
+          const prevBlockPlans = brief.outline[i - 1]?.blockPlans;
+          if (!trailingSig && prevBlockPlans && prevBlockPlans.length > 0) {
+            const prosePlans = prevBlockPlans.filter((bp: any) => bp.mode === 'PROSE');
+            if (prosePlans.length > 0) {
+              trailingSig = prosePlans[prosePlans.length - 1].targetSignature || '';
+            }
+          }
+
+          if (trailingSig) {
+            precedingRhythmContext = `
+
+=== PRECEDING SECTION STRUCTURAL RHYTHM CONTRACT ===
+The preceding section concluded with prose structural signature: "${trailingSig}".
+To prevent cross-section structural repetition and ensure natural reading rhythm:
+- Open this section with a DIFFERENT structural opening and sentence length pattern.
+- If the previous section ended with a 2-sentence paragraph (e.g. (2, PROSE, M-M)), open this section with a 1-sentence, 3-sentence, or varied rhythm paragraph.
+- Ensure natural phrasing and logical flow while maintaining structural variety.
+====================================================`;
+          }
+        }
+
         let blockPlansContext = '';
         if (Array.isArray(section.blockPlans) && section.blockPlans.length > 0) {
           const blocksDesc = section.blockPlans.map((bp: any, bpIdx: number) => {
@@ -2350,10 +2414,18 @@ STRICT BAN: DO NOT provide abstract filler like "structured review" or "transfor
 
 === SUBSTANTIVE DELIVERABLE CONTRACT (COMPARISON) ===
 This section heading promises a COMPARISON deliverable. You MUST fulfill all 4 requirements:
-1. Explicit Alternatives: Clearly name and compare distinct options or approaches.
+1. Explicit Alternatives & Structured Comparison Table:
+   - Provide a clean Markdown comparison table comparing at least 2 distinct named alternatives (e.g., In-House Review vs External Specialist Audit, or verified market options from research evidence).
+   - Format:
+     | Dimension | [Alternative 1] | [Alternative 2] |
+     |---|---|---|
+     | [Dimension 1: e.g. Diagnostic Depth] | [Factual contrast] | [Factual contrast] |
+     | [Dimension 2: e.g. Velocity / Time to Value] | [Factual contrast] | [Factual contrast] |
+     | [Dimension 3: e.g. Resource Overhead] | [Factual contrast] | [Factual contrast] |
 2. Concrete Comparison Dimensions: Evaluate across dimensions such as cost, speed, depth, control, or complexity.
-3. Meaningful Trade-offs: Contrast genuine pros, cons, and compromises between options.
-4. Justified Decision Rule / Conclusion: Provide a clear decision framework specifying when to choose each alternative.
+3. Meaningful Trade-offs: Contrast genuine pros, cons, and compromises between options in the explanatory prose.
+4. Justified Decision Rule / Conclusion: Provide a clear decision framework specifying when to choose each alternative (e.g., "Choose [Alternative 1] when...; opt for [Alternative 2] if...").
+STRICT PROHIBITION: DO NOT fabricate unverified provider names, false pricing numbers, or fake performance metrics. If specific provider data is not in research evidence, use clearly labelled defensible service archetypes or report the evidence gap.
 ====================================================`;
         } else if (deliverableType === 'CHECKLIST') {
           deliverableGuidance = `
@@ -2394,7 +2466,7 @@ Canonical Primary Keyword: "${primaryKeyword}"
 Assigned Section Keywords: ${section.assignedKeywords?.length ? section.assignedKeywords.join(', ') : 'None specifically assigned (focus on section topic and supporting terms)'}
 ${this.supportingTerms.length > 0 ? `Available Supporting Terms (use naturally where relevant): ${this.supportingTerms.join(', ')}\n` : ''}Assigned Entities: ${section.assignedEntities?.join(', ') || ''}
 Core Concept: ${section.core_concept || ''}
-${this.internalLinks.length > 0 ? `Relevant Internal Links (integrate 1-2 naturally if relevant as markdown links [anchor text](url)): \n${this.internalLinks.slice(0, 5).join('\n')}\n` : ''}${compactOutlineContext}${previousSectionsContext}${assetInstructions}${intelligenceContext}${practitionerSectionContext ? `\n\n${practitionerSectionContext}` : ''}${sectionEvidenceContext}${blockPlansContext}${deliverableGuidance}
+${this.internalLinks.length > 0 ? `Relevant Internal Links (integrate 1-2 naturally if relevant as markdown links [anchor text](url)): \n${this.internalLinks.slice(0, 5).join('\n')}\n` : ''}${compactOutlineContext}${previousSectionsContext}${precedingRhythmContext}${assetInstructions}${intelligenceContext}${practitionerSectionContext ? `\n\n${practitionerSectionContext}` : ''}${sectionEvidenceContext}${blockPlansContext}${deliverableGuidance}
 
 === 18 EDITORIAL WRITING & READABILITY CONTRACTS ===
 1. CANONICAL PRIMARY KEYWORD CONTRACT:
@@ -2830,7 +2902,11 @@ ${verifiedContextPrompt}
    - Output only the requested repaired body without meta-commentary or validation claims.
 9. SUBSTANTIVE DELIVERABLES & ANTI-LOOPING CONTRACT (CRITICAL):
    - Every section heading that promises an AUDIT must deliver concrete evaluation criteria, interface observations, identified friction points, impact analysis, and prioritized corrective actions.
-   - Every section heading that promises a COMPARISON must deliver explicit alternatives, comparison dimensions, meaningful trade-offs, and a justified conclusion.
+   - Every section heading that promises a COMPARISON (or Comparison Matrix):
+     * MUST provide a structured Markdown comparison table (| Dimension | Option A | Option B |) comparing at least two distinct, clearly named alternatives across concrete comparison dimensions (e.g. speed, cost, control, depth, complexity).
+     * DO NOT fabricate ungrounded provider claims, prices, or performance metrics; use defensible categories (e.g. In-House Review vs External Specialist Audit) grounded in verified evidence or general industry practice.
+     * MUST provide substantive narrative analyzing meaningful differences and trade-offs between the alternatives.
+     * MUST provide a justified conclusion or decision rule (e.g. "Choose [Option A] when...; choose [Option B] if...") clearly stating when to select each alternative.
    - Every section heading that promises a CHECKLIST must deliver a structured list where items specify observable pass/fail checks and implementation guidance (no empty/obvious advice).
    - Every section heading that promises a STRATEGY must deliver defined objectives, proposed actions, sequencing roadmap, and measurable success criteria without ungrounded absolute commercial guarantees.
    - Every section heading that promises a CASE STUDY must deliver identifiable context, clearly labelled illustrative assumptions or verified evidence, specific actions taken, and verified outcomes.

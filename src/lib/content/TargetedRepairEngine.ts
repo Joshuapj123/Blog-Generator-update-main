@@ -80,6 +80,8 @@ export interface BoundedRepairAttempt {
 
 export interface BoundedRepairSummary {
   status: 'repaired' | 'review_required' | 'skipped_already_valid';
+  structuralRepairSucceeded?: boolean;
+  unrelatedViolationsRemaining?: string[];
   failureCategory?: RepairFailureCategory;
   failureCode?: RepairFailureCode;
   targetBlockIds: string[];
@@ -642,13 +644,17 @@ ${bandsExplanation}
         evidenceErrors = evidenceRes.criticalErrors;
       }
 
+      const criticalQualityErrors = this.extractCriticalQualityErrors(revalidatedQuality.errors || []);
+      const structuralRepetitionResolved = revalidatedSig.valid && revalidatedSig.violations.length === 0;
+      const localStructuralQualityPassed = structuralRepetitionResolved && criticalQualityErrors.length === 0;
+
       const candidateErrors = [
         ...revalidatedSig.criticalErrors,
-        ...this.extractCriticalQualityErrors(revalidatedQuality.errors || []),
+        ...criticalQualityErrors,
         ...evidenceErrors
       ];
 
-      const passed = candidateErrors.length === 0;
+      const allValidatorsPassed = candidateErrors.length === 0;
 
       attempts.push({
         attemptNumber: attemptNum,
@@ -658,20 +664,22 @@ ${bandsExplanation}
         appliedFix: `Rewrote block ${target.blockId} to target signature ${target.targetSignature}`,
         diagnosticsBefore: [activeViolation.message],
         diagnosticsAfter: candidateErrors,
-        passedRevalidation: passed,
+        passedRevalidation: allValidatorsPassed,
         timestamp: new Date().toISOString()
       });
 
-      if (passed) {
+      if (localStructuralQualityPassed) {
         return {
           status: 'repaired',
+          structuralRepairSucceeded: true,
+          unrelatedViolationsRemaining: evidenceErrors,
           targetBlockIds,
           attemptsUsed: attemptNum,
           maxAttempts,
           retryBudgetExhausted: false,
-          allValidatorsPassed: true,
-          diagnostics: [],
-          unresolvedIssues: [],
+          allValidatorsPassed,
+          diagnostics: candidateErrors,
+          unresolvedIssues: evidenceErrors,
           attempts,
           repairedMarkdown: candidateMarkdown
         };
@@ -681,7 +689,7 @@ ${bandsExplanation}
       currentMarkdown = candidateMarkdown;
     }
 
-    // All retry attempts exhausted
+    // All retry attempts exhausted without resolving structural repetition
     const finalSig = ParagraphSignatureValidator.validate(currentMarkdown);
     const finalErrors = finalSig.criticalErrors.length > 0
       ? finalSig.criticalErrors
@@ -689,6 +697,7 @@ ${bandsExplanation}
 
     return {
       status: 'review_required',
+      structuralRepairSucceeded: false,
       failureCategory: 'RETRY_BUDGET_EXHAUSTED',
       failureCode: REPAIR_FAILURE_CODES.RETRY_BUDGET_EXHAUSTED,
       targetBlockIds,

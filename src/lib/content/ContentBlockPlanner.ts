@@ -140,7 +140,7 @@ export function planBlockVarietyForOutlineNode(
       targetSignature: spec1.signature,
       parentHeading: node.heading,
       protectedRequirements: [
-        'Establish objective evaluation criteria and matrix context'
+        'Establish objective evaluation criteria, comparison dimensions, and matrix context'
       ]
     }));
 
@@ -152,7 +152,7 @@ export function planBlockVarietyForOutlineNode(
       targetSignature: '(TABLE, COMPARISON_MATRIX)',
       parentHeading: node.heading,
       protectedRequirements: [
-        'Clean markdown comparison table with factual capability contrast'
+        'Clean markdown comparison table with at least 2 distinct alternatives and 3 comparison dimensions'
       ]
     }));
 
@@ -166,7 +166,7 @@ export function planBlockVarietyForOutlineNode(
       targetSignature: spec3.signature,
       parentHeading: node.heading,
       protectedRequirements: [
-        'Actionable guidance based on table comparison'
+        'Comparative trade-off synthesis and justified decision rule specifying when to choose each alternative'
       ]
     }));
   } else if (isList) {
